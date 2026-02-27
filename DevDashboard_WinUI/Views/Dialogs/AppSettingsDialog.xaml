@@ -1,0 +1,325 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="DevDashboard.Views.Dialogs.AppSettingsDialog"
+    x:Uid="AppSettingsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:DevDashboard.ViewModels"
+    xmlns:models="using:DevDashboard.Models"
+    DefaultButton="Primary">
+
+    <Grid MinWidth="680" MinHeight="460">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="160" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- 좌측 탐색 -->
+        <StackPanel
+            Grid.Column="0"
+            Spacing="2"
+            Padding="0,4,12,4"
+            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+            BorderThickness="0,0,1,0">
+            <RadioButton
+                x:Uid="NavSettings"
+                IsChecked="True"
+                GroupName="SettingsNav"
+                Style="{StaticResource GroupTabRadioButtonStyle}"
+                HorizontalAlignment="Stretch"
+                Checked="Nav_Checked"
+                Tag="0" />
+            <RadioButton
+                x:Uid="NavTools"
+                GroupName="SettingsNav"
+                Style="{StaticResource GroupTabRadioButtonStyle}"
+                HorizontalAlignment="Stretch"
+                Checked="Nav_Checked"
+                Tag="1" />
+            <RadioButton
+                x:Uid="NavCode"
+                GroupName="SettingsNav"
+                Style="{StaticResource GroupTabRadioButtonStyle}"
+                HorizontalAlignment="Stretch"
+                Checked="Nav_Checked"
+                Tag="2" />
+            <RadioButton
+                x:Uid="NavInfo"
+                GroupName="SettingsNav"
+                Style="{StaticResource GroupTabRadioButtonStyle}"
+                HorizontalAlignment="Stretch"
+                Checked="Nav_Checked"
+                Tag="3" />
+        </StackPanel>
+
+        <!-- 우측 콘텐츠 영역 -->
+        <ScrollViewer Grid.Column="1" Padding="16,4" VerticalScrollBarVisibility="Auto">
+        <Grid>
+
+            <!-- 0: 설정 패널 -->
+            <StackPanel x:Name="PanelSettings" Spacing="14" Visibility="Visible">
+                <CheckBox
+                    x:Uid="RunOnStartupCheck"
+                    IsChecked="{x:Bind Vm.RunOnStartup, Mode=TwoWay}" />
+                <CheckBox
+                    x:Uid="TodoPopupCheck"
+                    IsChecked="{x:Bind Vm.ShowWorkLogPopupOnTodoComplete, Mode=TwoWay}" />
+                <TextBlock x:Uid="ThemeLabelText" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,8,0,0" />
+                <ComboBox
+                    ItemsSource="{x:Bind Vm.ThemeModeItems}"
+                    SelectedItem="{x:Bind Vm.SelectedThemeModeItem, Mode=TwoWay}"
+                    HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ThemeModeItem">
+                            <TextBlock Text="{x:Bind DisplayName}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+
+            <!-- 1: 도구 패널 -->
+            <StackPanel x:Name="PanelTools" Spacing="8" Visibility="Collapsed">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Uid="ToolsLabelText" Grid.Column="0" Style="{StaticResource BodyStrongTextBlockStyle}" VerticalAlignment="Center" />
+                    <Button x:Uid="Btn_Add" Grid.Column="1" Click="AddTool_Click" />
+                </Grid>
+                <ItemsControl x:Name="ToolList">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ToolItemViewModel">
+                            <Border
+                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Margin="0,0,0,6"
+                                Padding="12,8">
+                                <StackPanel Spacing="8">
+                                    <!-- 헤더 (항상 표시) -->
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Text="{x:Bind Name, Mode=OneWay}"
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                        <Button
+                                            x:Uid="Btn_Edit"
+                                            Grid.Column="1"
+                                            Padding="8,4"
+                                            Margin="0,0,4,0"
+                                            Tag="{x:Bind}"
+                                            Visibility="{x:Bind IsEditing, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}"
+                                            Click="ToolEdit_Click" />
+                                        <Button
+                                            ToolTipService.ToolTip="Delete"
+                                            Grid.Column="2"
+                                            Padding="8,4"
+                                            Tag="{x:Bind}"
+                                            Visibility="{x:Bind IsEditing, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}"
+                                            Click="ToolDelete_Click">
+                                            <FontIcon Glyph="&#xE74D;" FontSize="12" />
+                                        </Button>
+                                    </Grid>
+                                    <!-- 읽기 모드 경로 표시 -->
+                                    <TextBlock
+                                        Text="{x:Bind ExecutablePath, Mode=OneWay}"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        FontSize="12"
+                                        TextTrimming="CharacterEllipsis"
+                                        Visibility="{x:Bind IsEditing, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}" />
+                                    <!-- 편집 폼 -->
+                                    <StackPanel
+                                        Spacing="8"
+                                        Visibility="{x:Bind IsEditing, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                        <TextBox
+                                            x:Uid="ToolNameBox"
+                                            Text="{x:Bind EditName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <Grid ColumnSpacing="8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox
+                                                x:Uid="ToolPathBox"
+                                                Grid.Column="0"
+                                                Text="{x:Bind EditExecutablePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <Button
+                                                x:Uid="Btn_Browse"
+                                                Grid.Column="1"
+                                                Command="{x:Bind BrowseExecutableCommand}" />
+                                        </Grid>
+                                        <TextBlock
+                                            Text="{x:Bind EditErrorText, Mode=OneWay}"
+                                            Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                            Visibility="{x:Bind EditErrorText, Mode=OneWay, Converter={StaticResource StringNotEmptyToVisibility}}" />
+                                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                                            <Button x:Uid="Btn_Cancel" Tag="{x:Bind}" Click="ToolCancelEdit_Click" />
+                                            <Button
+                                                x:Uid="Btn_Save"
+                                                Style="{StaticResource AccentButtonStyle}"
+                                                Tag="{x:Bind}"
+                                                Click="ToolSaveEdit_Click" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <!-- 2: 코드 패널 -->
+            <StackPanel x:Name="PanelCode" Spacing="14" Visibility="Collapsed">
+
+                <!-- 기술 스택 태그 -->
+                <TextBlock x:Uid="TagsLabelText" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <TextBlock
+                    x:Uid="TagsDescText"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    FontSize="12" />
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        x:Uid="TagInputBox"
+                        Grid.Column="0"
+                        Text="{x:Bind Vm.NewTagText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        MaxLength="50" />
+                    <Button x:Uid="Btn_Add" Grid.Column="1" Command="{x:Bind Vm.AddTechTagCommand}" />
+                </Grid>
+                <ItemsControl ItemsSource="{x:Bind Vm.TechStackTags, Mode=OneWay}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapGrid Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <Border
+                                Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                CornerRadius="4"
+                                Padding="8,4"
+                                Margin="0,0,6,6">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="{x:Bind}" VerticalAlignment="Center" />
+                                    <Button
+                                        Padding="4"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Tag="{x:Bind}"
+                                        Click="RemoveTag_Click">
+                                        <FontIcon Glyph="&#xE711;" FontSize="10" />
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- 카테고리 -->
+                <TextBlock x:Uid="CategoryLabelText" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,8,0,0" />
+                <TextBlock
+                    x:Uid="CategoryDescText"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    FontSize="12" />
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        x:Uid="CategoryInputBox"
+                        Grid.Column="0"
+                        Text="{x:Bind Vm.NewCategoryText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        MaxLength="50" />
+                    <Button x:Uid="Btn_Add" Grid.Column="1" Command="{x:Bind Vm.AddCategoryCommand}" />
+                </Grid>
+                <ItemsControl ItemsSource="{x:Bind Vm.Categories, Mode=OneWay}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapGrid Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <Border
+                                Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                CornerRadius="4"
+                                Padding="8,4"
+                                Margin="0,0,6,6">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="{x:Bind}" VerticalAlignment="Center" />
+                                    <Button
+                                        Padding="4"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Tag="{x:Bind}"
+                                        Click="RemoveCategory_Click">
+                                        <FontIcon Glyph="&#xE711;" FontSize="10" />
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+            </StackPanel>
+
+            <!-- 3: 정보 패널 -->
+            <StackPanel x:Name="PanelInfo" Spacing="12" Visibility="Collapsed">
+                <TextBlock Text="{x:Bind Vm.AppVersion}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <StackPanel
+                    Orientation="Horizontal"
+                    Spacing="8"
+                    Visibility="{x:Bind Vm.HasNewVersion, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="{x:Bind Vm.LatestVersionText, Mode=OneWay}" VerticalAlignment="Center" />
+                    <HyperlinkButton
+                        x:Uid="Btn_Download"
+                        Command="{x:Bind Vm.OpenLatestReleaseCommand}" />
+                </StackPanel>
+                <Rectangle Style="{StaticResource SeparatorStyle}" Margin="0,8" />
+                <TextBlock x:Uid="OpenSourceLabelText" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <ItemsControl ItemsSource="{x:Bind Vm.OpenSourceLibraries}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:OpenSourceItem">
+                            <Grid ColumnSpacing="12" Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Text="{x:Bind Name}"
+                                    Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock
+                                    Grid.Column="1"
+                                    Text="{x:Bind License}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    VerticalAlignment="Center" />
+                                <HyperlinkButton
+                                    x:Uid="Btn_GitHub"
+                                    Grid.Column="2"
+                                    Tag="{x:Bind Url}"
+                                    Click="OpenLicenseUrl_Click" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+        </Grid>
+        </ScrollViewer>
+    </Grid>
+
+</ContentDialog>

@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:DevDashboard.Converters">
+
+    <!-- ===== 가시성 변환기 ===== -->
+    <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+    <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility" />
+    <converters:NullToVisibilityConverter x:Key="NullToVisibility" />
+    <converters:InverseNullToVisibilityConverter x:Key="InverseNullToVisibility" />
+    <converters:IsNullConverter x:Key="IsNull" />
+    <converters:EqualityConverter x:Key="Equality" />
+    <converters:InverseBoolConverter x:Key="InverseBool" />
+    <converters:StringEmptyToVisibilityConverter x:Key="StringEmptyToVisibility" />
+    <converters:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibility" />
+    <converters:ListEmptyToVisibilityConverter x:Key="ListEmptyToVisibility" />
+    <converters:ListNotEmptyToVisibilityConverter x:Key="ListNotEmptyToVisibility" />
+    <converters:CountToVisibilityConverter x:Key="CountToVisibility" />
+
+    <!-- ===== 개발 도구 변환기 ===== -->
+    <converters:TagColorConverter x:Key="TagColor" />
+
+    <!-- ===== 이미지 변환기 ===== -->
+    <converters:ImagePathToSourceConverter x:Key="ImagePathToSource" />
+
+    <!-- ===== 테마 변환기 ===== -->
+    <converters:ThemeModeRadioConverter x:Key="ThemeModeRadio" />
+
+    <!-- ===== 날짜/시간 변환기 ===== -->
+    <converters:NullableDateTimeToStringConverter x:Key="NullableDateTimeToString" />
+
+</ResourceDictionary>

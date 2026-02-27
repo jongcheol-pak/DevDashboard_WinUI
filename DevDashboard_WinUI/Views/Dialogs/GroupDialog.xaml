@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="DevDashboard.Views.Dialogs.GroupDialog"
+    x:Uid="GroupDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    DefaultButton="Primary">
+
+    <StackPanel Spacing="12" MinWidth="380">
+        <TextBlock x:Uid="GroupNameLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
+        <TextBox
+            x:Name="NameBox"
+            x:Uid="GroupNameBox"
+            Text="{x:Bind Vm.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            MaxLength="50" />
+        <TextBlock
+            x:Name="ErrorText"
+            Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+            Visibility="Collapsed"
+            TextWrapping="Wrap" />
+    </StackPanel>
+
+</ContentDialog>

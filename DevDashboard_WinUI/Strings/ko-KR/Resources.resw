@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- ===== C# LocalizationService.Get() 전용 키 ===== -->
+  <data name="DefaultGroupName" xml:space="preserve"><value>사용자</value></data>
+  <data name="SaveError" xml:space="preserve"><value>저장 오류</value></data>
+  <data name="DatabaseInitError" xml:space="preserve"><value>데이터베이스 초기화 중 오류가 발생했습니다.{0}{1}</value></data>
+  <data name="StartupError" xml:space="preserve"><value>시작 오류</value></data>
+  <data name="VersionPrefix" xml:space="preserve"><value>버전: </value></data>
+  <data name="LatestVersionPrefix" xml:space="preserve"><value>최신 버전: </value></data>
+  <data name="ProjectNameInputRequired" xml:space="preserve"><value>프로젝트 이름을 입력하세요.</value></data>
+  <data name="ProjectNameDuplicateFormat" xml:space="preserve"><value>'{0}' 이름이 이미 존재합니다.</value></data>
+  <data name="DevToolInputRequired" xml:space="preserve"><value>개발 도구를 선택하세요.</value></data>
+  <data name="CommandInputRequired" xml:space="preserve"><value>실행 명령어를 입력하세요.</value></data>
+  <data name="ShellWorkingDirectoryRequired" xml:space="preserve"><value>실행 폴더 경로를 입력하세요.</value></data>
+  <data name="ProjectPathOrOptionsRequired" xml:space="preserve"><value>프로젝트 경로 또는 옵션을 입력하세요.</value></data>
+  <data name="CategorySelectRequired" xml:space="preserve"><value>카테고리를 선택하세요.</value></data>
+  <data name="GroupSelectRequired" xml:space="preserve"><value>그룹을 선택하세요.</value></data>
+  <data name="SelectProjectFileTitle" xml:space="preserve"><value>프로젝트 파일 선택</value></data>
+  <data name="ProjectFileFilter" xml:space="preserve"><value>모든 파일|*.*</value></data>
+  <data name="SelectIconImageTitle" xml:space="preserve"><value>아이콘 이미지 선택</value></data>
+  <data name="ImageFileFilter" xml:space="preserve"><value>이미지 파일|*.png;*.jpg;*.jpeg;*.ico;*.bmp</value></data>
+  <data name="SelectExecutableTitle" xml:space="preserve"><value>실행 파일 선택</value></data>
+  <data name="ExecutableFilter" xml:space="preserve"><value>실행 파일|*.exe</value></data>
+  <data name="WorkingDirectoryNotFoundFormat" xml:space="preserve"><value>실행 폴더를 찾을 수 없습니다.{0}{1}</value></data>
+  <data name="WorkingDirectoryError" xml:space="preserve"><value>실행 폴더 오류</value></data>
+  <data name="WorkingDirectoryRequired" xml:space="preserve"><value>실행 폴더 경로를 입력하세요.</value></data>
+  <data name="LaunchFailedFormat" xml:space="preserve"><value>실행 실패:{0}{1}</value></data>
+  <data name="LaunchError" xml:space="preserve"><value>실행 오류</value></data>
+  <data name="DeleteConfirmMessage" xml:space="preserve"><value>정말 삭제하시겠습니까?</value></data>
+  <data name="DeleteConfirmTitle" xml:space="preserve"><value>삭제 확인</value></data>
+  <data name="DeleteGroupConfirmFormat" xml:space="preserve"><value>'{0}' 그룹을 삭제하시겠습니까?{1}그룹에 속한 프로젝트들은 그룹 없음 상태가 됩니다.</value></data>
+  <data name="DeleteGroupTitle" xml:space="preserve"><value>그룹 삭제</value></data>
+  <data name="ScriptDescriptionRequired" xml:space="preserve"><value>스크립트 설명을 입력하세요.</value></data>
+  <data name="ScriptRequired" xml:space="preserve"><value>스크립트 내용을 입력하세요.</value></data>
+  <data name="ToolInputRequired" xml:space="preserve"><value>이름과 실행 파일 경로를 모두 입력하세요.</value></data>
+  <data name="InputRequired" xml:space="preserve"><value>입력 필요</value></data>
+  <data name="NameAlreadyRegistered" xml:space="preserve"><value>이미 등록된 이름입니다.</value></data>
+  <data name="DuplicateCheck" xml:space="preserve"><value>중복 확인</value></data>
+  <data name="Theme_Light" xml:space="preserve"><value>밝은 테마</value></data>
+  <data name="Theme_Dark" xml:space="preserve"><value>어두운 테마</value></data>
+  <data name="Theme_System" xml:space="preserve"><value>시스템 설정</value></data>
+  <data name="GroupDialog_TitleAdd" xml:space="preserve"><value>그룹 추가</value></data>
+  <data name="GroupDialog_TitleEdit" xml:space="preserve"><value>그룹 수정</value></data>
+  <data name="GroupDialog_NameRequired" xml:space="preserve"><value>그룹 이름을 입력하세요.</value></data>
+  <data name="GroupDialog_DuplicateFormat" xml:space="preserve"><value>'{0}' 이름의 그룹이 이미 존재합니다.</value></data>
+  <data name="HistoryDialog_TitleFormat" xml:space="preserve"><value>작업 기록 — {0}</value></data>
+  <data name="HistoryDialog_TitleRequired" xml:space="preserve"><value>제목을 입력하세요.</value></data>
+  <data name="HistoryDialog_MarkdownType" xml:space="preserve"><value>마크다운</value></data>
+  <data name="ProjectHistoryDialog_TitleRequired" xml:space="preserve"><value>제목을 입력하세요.</value></data>
+  <data name="ProjectSettingsDialog_TitleAdd" xml:space="preserve"><value>프로젝트 추가</value></data>
+  <data name="ProjectSettingsDialog_TitleEdit" xml:space="preserve"><value>프로젝트 수정</value></data>
+  <data name="MainWindow_ProjectCountSuffix" xml:space="preserve"><value>개 프로젝트</value></data>
+
+  <!-- ===== C# ToolTipService 코드비하인드 전용 ([ToolTipService.ToolTip] x:Uid는 런타임 오류 발생) ===== -->
+  <data name="ToolTip_GridView" xml:space="preserve"><value>그리드 뷰</value></data>
+  <data name="ToolTip_ListView" xml:space="preserve"><value>리스트 뷰</value></data>
+  <data name="ToolTip_Sort" xml:space="preserve"><value>정렬</value></data>
+  <data name="ToolTip_AllHistory" xml:space="preserve"><value>전체 작업 기록</value></data>
+  <data name="ToolTip_AppSettings" xml:space="preserve"><value>앱 설정</value></data>
+  <data name="ToolTip_AddGroup" xml:space="preserve"><value>그룹 추가</value></data>
+  <data name="ToolTip_Refresh" xml:space="preserve"><value>새로고침</value></data>
+
+  <!-- ===== XAML x:Uid 공통 버튼 (Content) ===== -->
+  <data name="Btn_Save.Content" xml:space="preserve"><value>저장</value></data>
+  <data name="Btn_Cancel.Content" xml:space="preserve"><value>취소</value></data>
+  <data name="Btn_Add.Content" xml:space="preserve"><value>추가</value></data>
+  <data name="Btn_Delete.Content" xml:space="preserve"><value>삭제</value></data>
+  <data name="Btn_Edit.Content" xml:space="preserve"><value>편집</value></data>
+  <data name="Btn_Browse.Content" xml:space="preserve"><value>찾아보기</value></data>
+  <data name="Btn_Close.Content" xml:space="preserve"><value>닫기</value></data>
+  <data name="Btn_Clear.Content" xml:space="preserve"><value>지우기</value></data>
+  <data name="Btn_Download.Content" xml:space="preserve"><value>다운로드</value></data>
+  <data name="Btn_GitHub.Content" xml:space="preserve"><value>GitHub</value></data>
+  <data name="Btn_ExportMarkdown.Content" xml:space="preserve"><value>마크다운 내보내기</value></data>
+
+  <!-- ===== XAML x:Uid — MainWindow ===== -->
+  <data name="SearchBox.PlaceholderText" xml:space="preserve"><value>검색...</value></data>
+  <data name="GridViewButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>그리드 뷰</value></data>
+  <data name="ListViewButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>리스트 뷰</value></data>
+  <data name="SortButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>정렬</value></data>
+  <data name="SortByNameItem.Text" xml:space="preserve"><value>이름순</value></data>
+  <data name="SortByCategoryItem.Text" xml:space="preserve"><value>카테고리순</value></data>
+  <data name="SortByRecentItem.Text" xml:space="preserve"><value>최근 등록순</value></data>
+  <data name="AllHistoryButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>전체 작업 기록</value></data>
+  <data name="AppSettingsBtn.[ToolTipService.ToolTip]" xml:space="preserve"><value>앱 설정</value></data>
+  <data name="NewProjectText.Text" xml:space="preserve"><value>새 프로젝트</value></data>
+  <data name="AllGroupTab.Content" xml:space="preserve"><value>전체</value></data>
+  <data name="GroupTabRenameItem.Text" xml:space="preserve"><value>이름 변경</value></data>
+  <data name="GroupTabDeleteItem.Text" xml:space="preserve"><value>삭제</value></data>
+  <data name="AddGroupButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>그룹 추가</value></data>
+  <data name="RefreshButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>새로고침</value></data>
+  <data name="HardRefreshItem.Text" xml:space="preserve"><value>전체 새로고침 (DB 재로드)</value></data>
+  <data name="NewVersionBanner.Content" xml:space="preserve"><value>새 버전 출시됨 — 클릭하여 다운로드</value></data>
+
+  <!-- ===== XAML x:Uid — DashboardView ===== -->
+  <data name="PathInvalidIcon.[ToolTipService.ToolTip]" xml:space="preserve"><value>프로젝트 경로를 찾을 수 없습니다</value></data>
+  <data name="PinButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>핀 고정/해제</value></data>
+  <data name="RunButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>실행</value></data>
+  <data name="RunAsAdminMenuItem.Text" xml:space="preserve"><value>관리자 권한으로 실행</value></data>
+  <data name="OpenFolderButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>폴더 열기</value></data>
+  <data name="EditButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>프로젝트 설정</value></data>
+  <data name="DeleteButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>프로젝트 삭제</value></data>
+  <data name="CmdSlotConfigureItem.Text" xml:space="preserve"><value>설정</value></data>
+  <data name="CmdSlotChangeIconItem.Text" xml:space="preserve"><value>아이콘 변경</value></data>
+  <data name="CmdSlotDeleteItem.Text" xml:space="preserve"><value>삭제</value></data>
+  <data name="GitStatusButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>Git 상태</value></data>
+  <data name="TodoButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>To-Do 목록</value></data>
+  <data name="HistoryButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>작업 기록</value></data>
+  <data name="TerminalButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>터미널 열기</value></data>
+  <data name="AddNewProjectText.Text" xml:space="preserve"><value>새 프로젝트 추가</value></data>
+  <data name="LoadingText.Text" xml:space="preserve"><value>로딩 중...</value></data>
+
+  <!-- ===== XAML x:Uid — AppSettingsDialog ===== -->
+  <data name="AppSettingsDialog.Title" xml:space="preserve"><value>앱 설정</value></data>
+  <data name="AppSettingsDialog.PrimaryButtonText" xml:space="preserve"><value>저장</value></data>
+  <data name="AppSettingsDialog.CloseButtonText" xml:space="preserve"><value>취소</value></data>
+  <data name="NavSettings.Content" xml:space="preserve"><value>설정</value></data>
+  <data name="NavTools.Content" xml:space="preserve"><value>도구</value></data>
+  <data name="NavCode.Content" xml:space="preserve"><value>코드</value></data>
+  <data name="NavInfo.Content" xml:space="preserve"><value>정보</value></data>
+  <data name="RunOnStartupCheck.Content" xml:space="preserve"><value>시작 시 자동 실행</value></data>
+  <data name="TodoPopupCheck.Content" xml:space="preserve"><value>To-Do 완료 시 작업 기록 팝업 표시</value></data>
+  <data name="ThemeLabelText.Text" xml:space="preserve"><value>테마</value></data>
+  <data name="ToolsLabelText.Text" xml:space="preserve"><value>외부 도구 목록</value></data>
+  <data name="ToolNameBox.PlaceholderText" xml:space="preserve"><value>도구 이름</value></data>
+  <data name="ToolPathBox.PlaceholderText" xml:space="preserve"><value>실행 파일 경로 (.exe)</value></data>
+  <data name="TagsLabelText.Text" xml:space="preserve"><value>기술 스택 태그</value></data>
+  <data name="TagsDescText.Text" xml:space="preserve"><value>사용자 정의 태그 (기본 태그는 변경 불가)</value></data>
+  <data name="TagInputBox.PlaceholderText" xml:space="preserve"><value>새 태그 입력...</value></data>
+  <data name="CategoryLabelText.Text" xml:space="preserve"><value>카테고리</value></data>
+  <data name="CategoryDescText.Text" xml:space="preserve"><value>사용자 정의 카테고리 (기본 카테고리는 변경 불가)</value></data>
+  <data name="CategoryInputBox.PlaceholderText" xml:space="preserve"><value>새 카테고리 입력...</value></data>
+  <data name="OpenSourceLabelText.Text" xml:space="preserve"><value>오픈소스 라이브러리</value></data>
+  <!-- 아이콘 버튼 툴팁 (Content 없음 — FontIcon 덮어쓰기 방지) -->
+  <data name="IconDeleteBtn.[ToolTipService.ToolTip]" xml:space="preserve"><value>삭제</value></data>
+
+  <!-- ===== XAML x:Uid — ProjectSettingsDialog ===== -->
+  <data name="ProjectSettingsDialog.PrimaryButtonText" xml:space="preserve"><value>저장</value></data>
+  <data name="ProjectSettingsDialog.CloseButtonText" xml:space="preserve"><value>취소</value></data>
+  <data name="ProjNameLabel.Text" xml:space="preserve"><value>프로젝트 이름 *</value></data>
+  <data name="ProjNameBox.PlaceholderText" xml:space="preserve"><value>프로젝트 이름 입력</value></data>
+  <data name="ProjDescLabel.Text" xml:space="preserve"><value>설명</value></data>
+  <data name="ProjDescBox.PlaceholderText" xml:space="preserve"><value>프로젝트 설명 (선택)</value></data>
+  <data name="ProjGroupLabel.Text" xml:space="preserve"><value>그룹 *</value></data>
+  <data name="ProjGroupCombo.PlaceholderText" xml:space="preserve"><value>그룹 선택</value></data>
+  <data name="ProjCategoryLabel.Text" xml:space="preserve"><value>카테고리 *</value></data>
+  <data name="ProjCategoryCombo.PlaceholderText" xml:space="preserve"><value>카테고리 선택</value></data>
+  <data name="ProjDevToolLabel.Text" xml:space="preserve"><value>개발 도구 *</value></data>
+  <data name="ProjDevToolCombo.PlaceholderText" xml:space="preserve"><value>개발 도구 선택</value></data>
+  <data name="ProjCommandLabel.Text" xml:space="preserve"><value>명령어 *</value></data>
+  <data name="ProjCommandBox.PlaceholderText" xml:space="preserve"><value>실행할 명령어</value></data>
+  <data name="ProjUseWorkingDirCheck.Content" xml:space="preserve"><value>실행 폴더 지정</value></data>
+  <data name="ProjWorkingDirBox.PlaceholderText" xml:space="preserve"><value>실행 폴더 경로</value></data>
+  <data name="ProjPathLabel.Text" xml:space="preserve"><value>경로 (폴더 또는 파일)</value></data>
+  <data name="ProjPathBox.PlaceholderText" xml:space="preserve"><value>폴더 또는 파일 경로</value></data>
+  <data name="ProjPathFolderBtn.Content" xml:space="preserve"><value>폴더</value></data>
+  <data name="ProjPathFileBtn.Content" xml:space="preserve"><value>파일</value></data>
+  <data name="ProjOptionsLabel.Text" xml:space="preserve"><value>옵션</value></data>
+  <data name="ProjOptionsBox.PlaceholderText" xml:space="preserve"><value>추가 옵션 (선택)</value></data>
+  <data name="ProjRunAsAdminCheck.Content" xml:space="preserve"><value>관리자 권한으로 실행</value></data>
+  <data name="ProjIconLabel.Text" xml:space="preserve"><value>아이콘 이미지</value></data>
+  <data name="ProjIconBox.PlaceholderText" xml:space="preserve"><value>이미지 파일 경로 (선택)</value></data>
+  <data name="ProjTagsLabel.Text" xml:space="preserve"><value>기술 스택 태그</value></data>
+
+  <!-- ===== XAML x:Uid — CommandScriptDialog ===== -->
+  <data name="CommandScriptDialog.Title" xml:space="preserve"><value>커맨드 스크립트 설정</value></data>
+  <data name="CommandScriptDialog.PrimaryButtonText" xml:space="preserve"><value>저장</value></data>
+  <data name="CommandScriptDialog.CloseButtonText" xml:space="preserve"><value>취소</value></data>
+  <data name="CmdDescLabel.Text" xml:space="preserve"><value>설명</value></data>
+  <data name="CmdDescBox.PlaceholderText" xml:space="preserve"><value>커맨드 설명 입력</value></data>
+  <data name="CmdShellLabel.Text" xml:space="preserve"><value>셸</value></data>
+  <data name="CmdRunAsAdminCheck.Content" xml:space="preserve"><value>관리자 권한으로 실행</value></data>
+  <data name="CmdScriptLabel.Text" xml:space="preserve"><value>스크립트</value></data>
+  <data name="CmdScriptBox.PlaceholderText" xml:space="preserve"><value>실행할 스크립트 또는 명령어 입력</value></data>
+  <data name="CmdUseWorkingDirCheck.Content" xml:space="preserve"><value>실행 폴더 지정</value></data>
+  <data name="CmdWorkingDirBox.PlaceholderText" xml:space="preserve"><value>실행 폴더 경로</value></data>
+
+  <!-- ===== XAML x:Uid — GroupDialog ===== -->
+  <data name="GroupDialog.PrimaryButtonText" xml:space="preserve"><value>저장</value></data>
+  <data name="GroupDialog.CloseButtonText" xml:space="preserve"><value>취소</value></data>
+  <data name="GroupNameLabel.Text" xml:space="preserve"><value>그룹 이름</value></data>
+  <data name="GroupNameBox.PlaceholderText" xml:space="preserve"><value>그룹 이름 입력</value></data>
+
+  <!-- ===== XAML x:Uid — TodoDialog ===== -->
+  <data name="TodoDialog.Title" xml:space="preserve"><value>To-Do</value></data>
+  <data name="TodoDialog.PrimaryButtonText" xml:space="preserve"><value>저장</value></data>
+  <data name="TodoDialog.CloseButtonText" xml:space="preserve"><value>취소</value></data>
+  <data name="TodoTabAll.Content" xml:space="preserve"><value>전체</value></data>
+  <data name="TodoTabActive.Content" xml:space="preserve"><value>진행 중</value></data>
+  <data name="TodoTabDone.Content" xml:space="preserve"><value>완료됨</value></data>
+  <data name="NewTodoBox.PlaceholderText" xml:space="preserve"><value>새 할 일 입력...</value></data>
+  <data name="EmptyTodoText.Text" xml:space="preserve"><value>항목이 없습니다.</value></data>
+
+  <!-- ===== XAML x:Uid — GitStatusDialog ===== -->
+  <data name="GitStatusDialog.Title" xml:space="preserve"><value>Git 상태</value></data>
+  <data name="GitStatusDialog.CloseButtonText" xml:space="preserve"><value>닫기</value></data>
+  <data name="GitLoadingText.Text" xml:space="preserve"><value>Git 상태 불러오는 중...</value></data>
+  <data name="GitErrorBar.Title" xml:space="preserve"><value>오류</value></data>
+  <data name="GitCommitHistoryLabel.Text" xml:space="preserve"><value>최근 커밋</value></data>
+  <data name="NoCommitsText.Text" xml:space="preserve"><value>커밋 기록이 없습니다.</value></data>
+
+  <!-- ===== XAML x:Uid — HistoryDialog ===== -->
+  <data name="HistoryDialog.CloseButtonText" xml:space="preserve"><value>닫기</value></data>
+  <data name="HistorySearchBox.PlaceholderText" xml:space="preserve"><value>검색...</value></data>
+  <data name="AddHistoryBtn.Content" xml:space="preserve"><value>새 기록 추가</value></data>
+  <data name="HistoryAddNewHeader.Text" xml:space="preserve"><value>새 기록 추가</value></data>
+  <data name="AddTitleBox.PlaceholderText" xml:space="preserve"><value>제목 (필수)</value></data>
+  <data name="AddDescriptionBox.PlaceholderText" xml:space="preserve"><value>상세 설명 (선택)</value></data>
+  <data name="EmptyHistoryText.Text" xml:space="preserve"><value>작업 기록이 없습니다.</value></data>
+
+  <!-- ===== XAML x:Uid — ProjectHistoryDialog ===== -->
+  <data name="ProjectHistoryDialog.Title" xml:space="preserve"><value>전체 작업 기록</value></data>
+  <data name="ProjectHistoryDialog.CloseButtonText" xml:space="preserve"><value>닫기</value></data>
+  <data name="ProjectCombo.PlaceholderText" xml:space="preserve"><value>프로젝트 선택</value></data>
+  <data name="AddProjectHistoryBtn.Content" xml:space="preserve"><value>새 기록 추가</value></data>
+  <data name="ProjHistAddNewHeader.Text" xml:space="preserve"><value>새 기록 추가</value></data>
+  <data name="ProjHistSearchBox.PlaceholderText" xml:space="preserve"><value>검색...</value></data>
+  <data name="ProjHistTitleBox.PlaceholderText" xml:space="preserve"><value>제목 (필수)</value></data>
+  <data name="ProjHistDescBox.PlaceholderText" xml:space="preserve"><value>상세 설명 (선택)</value></data>
+  <data name="EmptyProjHistText.Text" xml:space="preserve"><value>작업 기록이 없습니다.</value></data>
+
+  <!-- ===== XAML x:Uid — IconPickerDialog ===== -->
+  <data name="IconPickerDialog.Title" xml:space="preserve"><value>아이콘 선택</value></data>
+  <data name="IconPickerDialog.CloseButtonText" xml:space="preserve"><value>취소</value></data>
+  <data name="IconSearchBox.PlaceholderText" xml:space="preserve"><value>아이콘 이름 검색...</value></data>
+  <data name="RemoveIconBtn.Content" xml:space="preserve"><value>아이콘 제거 (기본값)</value></data>
+
+</root>
