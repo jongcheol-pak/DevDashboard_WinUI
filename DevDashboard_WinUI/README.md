@@ -28,6 +28,7 @@ dotnet run
 - 프로젝트 DB: SQLite (`SqliteProjectRepository`)
 - 버전 확인: GitHub Releases API
 - 지역화: `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`
+- 다이얼로그: `DialogWindowHost.ShowAsync(dialog)` — 독립 창에 표시, `MainWindow.OnRootGridLoaded`에서 `SetOwnerWindow(this)` 등록 필요
 
 ## 알려진 제한 사항
 

@@ -1,12 +1,11 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<ContentDialog
+<?xml version="1.0" encoding="utf-8"?>
+<Window
     x:Class="DevDashboard.Views.Dialogs.IconPickerDialog"
-    x:Uid="IconPickerDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:DevDashboard.ViewModels">
 
-    <StackPanel Spacing="12" MinWidth="580">
+    <StackPanel Spacing="12" Padding="16,12" Loaded="OnRootLoaded">
 
         <!-- 검색 + 카운트 -->
         <Grid ColumnSpacing="12">
@@ -89,4 +88,4 @@
 
     </StackPanel>
 
-</ContentDialog>
+</Window>

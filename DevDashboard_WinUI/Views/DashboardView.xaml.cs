@@ -1,5 +1,6 @@
 ﻿using System.Collections.Specialized;
 using DevDashboard.Models;
+using DevDashboard.Services;
 using DevDashboard.ViewModels;
 using DevDashboard.Views.Dialogs;
 using Microsoft.UI.Xaml;
@@ -96,7 +97,7 @@ public sealed partial class DashboardView : UserControl
     private async void OnShowGitStatusRequested(object? sender, EventArgs e)
     {
         if (sender is not ProjectCardViewModel card) return;
-        var dialog = new GitStatusDialog(card) { XamlRoot = XamlRoot };
+        var dialog = new GitStatusDialog(card);
         await dialog.ShowAsync();
     }
 
@@ -104,17 +105,16 @@ public sealed partial class DashboardView : UserControl
     {
         if (sender is not ProjectCardViewModel card) return;
         var dialogVm = card.CreateTodoDialogViewModel();
-        var dialog = new TodoDialog(dialogVm) { XamlRoot = XamlRoot };
-        var result = await dialog.ShowAsync();
-        if (result == ContentDialogResult.Primary)
-            card.OnTodoDialogClosed(dialogVm, dialog.NewHistories);
+        var dialog = new TodoDialog(dialogVm);
+        await dialog.ShowAsync();
+        card.OnTodoDialogClosed(dialogVm, dialog.NewHistories);
     }
 
     private async void OnOpenHistoryRequested(object? sender, EventArgs e)
     {
         if (sender is not ProjectCardViewModel card) return;
         var dialogVm = card.CreateHistoryDialogViewModel();
-        var dialog = new HistoryDialog(dialogVm) { XamlRoot = XamlRoot };
+        var dialog = new HistoryDialog(dialogVm);
         await dialog.ShowAsync();
         card.OnHistoryDialogClosed(dialogVm);
     }
@@ -123,19 +123,17 @@ public sealed partial class DashboardView : UserControl
     {
         if (sender is not ProjectCardViewModel card) return;
         var existing = card.GetCommandScriptForDialog(slotIndex);
-        var dialog = new CommandScriptDialog(existing) { XamlRoot = XamlRoot };
-        var result = await dialog.ShowAsync();
-        if (result == ContentDialogResult.Primary && dialog.ResultScript is not null)
+        var dialog = new CommandScriptDialog(existing);
+        await dialog.ShowAsync();
+        if (dialog.ResultScript is not null)
             card.ApplyCommandScriptResult(slotIndex, dialog.ResultScript);
     }
 
     private async void OnChangeCommandIconRequested(object? sender, int slotIndex)
     {
         if (sender is not ProjectCardViewModel card) return;
-        var dialog = new IconPickerDialog() { XamlRoot = XamlRoot };
+        var dialog = new IconPickerDialog();
         await dialog.ShowAsync();
-        // IconPickerDialog는 VM의 CloseRequested 이벤트로 Hide()를 호출하므로
-        // ContentDialogResult가 아닌 dialog.SelectedGlyph로 결과 확인
         if (dialog.SelectedGlyph is not null)
             card.ApplyCommandIconResult(slotIndex, dialog.SelectedGlyph);
     }

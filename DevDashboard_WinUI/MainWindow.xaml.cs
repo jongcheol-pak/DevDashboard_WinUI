@@ -48,8 +48,8 @@ public sealed partial class MainWindow : Window
     {
         RootGrid.Loaded -= OnRootGridLoaded;
 
-        // XamlRoot 설정 — ContentDialog에 필요
-        DialogService.SetXamlRoot(RootGrid.XamlRoot);
+        // 다이얼로그 독립 창의 소유자 창 등록
+        DialogWindowHost.SetOwnerWindow(this);
 
         // Run.Text는 x:Uid를 지원하지 않으므로 ResourceLoader로 직접 설정
         ProjectCountSuffixRun.Text = LocalizationService.Get("MainWindow_ProjectCountSuffix");
@@ -214,13 +214,9 @@ public sealed partial class MainWindow : Window
     {
         if (_viewModel is null) return;
 
-        var dialog = new GroupDialog(_viewModel.GetGroups(), existing)
-        {
-            XamlRoot = RootGrid.XamlRoot
-        };
-
-        var result = await dialog.ShowAsync();
-        if (result == ContentDialogResult.Primary && dialog.ResultGroup is not null)
+        var dialog = new GroupDialog(_viewModel.GetGroups(), existing);
+        await dialog.ShowAsync();
+        if (dialog.ResultGroup is not null)
             _viewModel.AddOrUpdateGroup(dialog.ResultGroup);
     }
 
@@ -230,13 +226,9 @@ public sealed partial class MainWindow : Window
     {
         if (_viewModel is null) return;
 
-        var dialog = new AppSettingsDialog(_viewModel.GetSettings())
-        {
-            XamlRoot = RootGrid.XamlRoot
-        };
-
-        var result = await dialog.ShowAsync();
-        if (result == ContentDialogResult.Primary && dialog.ResultSettings is not null)
+        var dialog = new AppSettingsDialog(_viewModel.GetSettings());
+        await dialog.ShowAsync();
+        if (dialog.ResultSettings is not null)
             _viewModel.SaveAppSettings(dialog.ResultSettings);
     }
 
@@ -247,11 +239,7 @@ public sealed partial class MainWindow : Window
         if (_viewModel is null) return;
 
         var projects = _viewModel.GetAllProjectItemsWithHistories();
-        var dialog = new ProjectHistoryDialog(projects, _viewModel.GetProjectRepository())
-        {
-            XamlRoot = RootGrid.XamlRoot
-        };
-
+        var dialog = new ProjectHistoryDialog(projects, _viewModel.GetProjectRepository());
         await dialog.ShowAsync();
     }
 
@@ -274,13 +262,9 @@ public sealed partial class MainWindow : Window
         var dialog = new ProjectSettingsDialog(
             _viewModel.GetGroups(), _viewModel.GetTools(), existingNames,
             _viewModel.GetSettings(), card?.ToModel(),
-            card is null ? _viewModel.SelectedGroupId : null)
-        {
-            XamlRoot = RootGrid.XamlRoot
-        };
-
-        var result = await dialog.ShowAsync();
-        if (result == ContentDialogResult.Primary && dialog.ResultItem is not null)
+            card is null ? _viewModel.SelectedGroupId : null);
+        await dialog.ShowAsync();
+        if (dialog.ResultItem is not null)
             _viewModel.AddOrUpdateProject(dialog.ResultItem);
     }
 }

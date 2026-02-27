@@ -124,9 +124,8 @@
   <data name="LoadingText.Text" xml:space="preserve"><value>Loading...</value></data>
 
   <!-- ===== XAML x:Uid — AppSettingsDialog ===== -->
-  <data name="AppSettingsDialog.Title" xml:space="preserve"><value>App Settings</value></data>
-  <data name="AppSettingsDialog.PrimaryButtonText" xml:space="preserve"><value>Save</value></data>
-  <data name="AppSettingsDialog.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
+  <data name="AppSettingsDialogTitle" xml:space="preserve"><value>App Settings</value></data>
+
   <data name="NavSettings.Content" xml:space="preserve"><value>Settings</value></data>
   <data name="NavTools.Content" xml:space="preserve"><value>Tools</value></data>
   <data name="NavCode.Content" xml:space="preserve"><value>Code</value></data>
@@ -147,8 +146,7 @@
   <data name="IconDeleteBtn.[ToolTipService.ToolTip]" xml:space="preserve"><value>Delete</value></data>
 
   <!-- ===== XAML x:Uid — ProjectSettingsDialog ===== -->
-  <data name="ProjectSettingsDialog.PrimaryButtonText" xml:space="preserve"><value>Save</value></data>
-  <data name="ProjectSettingsDialog.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
+
   <data name="ProjNameLabel.Text" xml:space="preserve"><value>Project Name *</value></data>
   <data name="ProjNameBox.PlaceholderText" xml:space="preserve"><value>Enter project name</value></data>
   <data name="ProjDescLabel.Text" xml:space="preserve"><value>Description</value></data>
@@ -175,7 +173,7 @@
   <data name="ProjTagsLabel.Text" xml:space="preserve"><value>Tech Stack Tags</value></data>
 
   <!-- ===== XAML x:Uid — CommandScriptDialog ===== -->
-  <data name="CommandScriptDialog.Title" xml:space="preserve"><value>Command Script Settings</value></data>
+  <data name="CommandScriptDialogTitle" xml:space="preserve"><value>Command Script Settings</value></data>
   <data name="CommandScriptDialog.PrimaryButtonText" xml:space="preserve"><value>Save</value></data>
   <data name="CommandScriptDialog.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
   <data name="CmdDescLabel.Text" xml:space="preserve"><value>Description</value></data>
@@ -194,7 +192,7 @@
   <data name="GroupNameBox.PlaceholderText" xml:space="preserve"><value>Enter group name</value></data>
 
   <!-- ===== XAML x:Uid — TodoDialog ===== -->
-  <data name="TodoDialog.Title" xml:space="preserve"><value>To-Do</value></data>
+  <data name="TodoDialogTitle" xml:space="preserve"><value>To-Do</value></data>
   <data name="TodoDialog.PrimaryButtonText" xml:space="preserve"><value>Save</value></data>
   <data name="TodoDialog.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
   <data name="TodoTabAll.Content" xml:space="preserve"><value>All</value></data>
@@ -212,7 +210,7 @@
   <data name="NoCommitsText.Text" xml:space="preserve"><value>No commit history.</value></data>
 
   <!-- ===== XAML x:Uid — HistoryDialog ===== -->
-  <data name="HistoryDialog.CloseButtonText" xml:space="preserve"><value>Close</value></data>
+
   <data name="HistorySearchBox.PlaceholderText" xml:space="preserve"><value>Search...</value></data>
   <data name="AddHistoryBtn.Content" xml:space="preserve"><value>Add New</value></data>
   <data name="HistoryAddNewHeader.Text" xml:space="preserve"><value>Add New Entry</value></data>
@@ -221,8 +219,8 @@
   <data name="EmptyHistoryText.Text" xml:space="preserve"><value>No work history.</value></data>
 
   <!-- ===== XAML x:Uid — ProjectHistoryDialog ===== -->
-  <data name="ProjectHistoryDialog.Title" xml:space="preserve"><value>All Work History</value></data>
-  <data name="ProjectHistoryDialog.CloseButtonText" xml:space="preserve"><value>Close</value></data>
+  <data name="ProjectHistoryDialogTitle" xml:space="preserve"><value>All Work History</value></data>
+
   <data name="ProjectCombo.PlaceholderText" xml:space="preserve"><value>Select project</value></data>
   <data name="AddProjectHistoryBtn.Content" xml:space="preserve"><value>Add New</value></data>
   <data name="ProjHistAddNewHeader.Text" xml:space="preserve"><value>Add New Entry</value></data>
@@ -232,7 +230,7 @@
   <data name="EmptyProjHistText.Text" xml:space="preserve"><value>No work history.</value></data>
 
   <!-- ===== XAML x:Uid — IconPickerDialog ===== -->
-  <data name="IconPickerDialog.Title" xml:space="preserve"><value>Select Icon</value></data>
+  <data name="IconPickerDialogTitle" xml:space="preserve"><value>Select Icon</value></data>
   <data name="IconPickerDialog.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
   <data name="IconSearchBox.PlaceholderText" xml:space="preserve"><value>Search icon name...</value></data>
   <data name="RemoveIconBtn.Content" xml:space="preserve"><value>Remove Icon (Default)</value></data>

@@ -1,25 +1,47 @@
-﻿using DevDashboard.Models;
+using DevDashboard.Models;
 using DevDashboard.Services;
 using DevDashboard.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
+using WinUIEx;
 
 namespace DevDashboard.Views.Dialogs;
 
-public sealed partial class HistoryDialog : ContentDialog
+public sealed partial class HistoryDialog : Window
 {
+    private const int MinW = 580;
+    private const int InitW = 800;
+    private const int InitH = 600;
+
     private HistoryDialogViewModel Vm { get; }
+    private readonly TaskCompletionSource _closedTcs = new();
 
     public HistoryDialog(HistoryDialogViewModel vm)
     {
         Vm = vm;
         InitializeComponent();
+        SystemBackdrop = new MicaBackdrop();
+
+        var manager = WindowManager.Get(this);
+        manager.MinWidth = MinW;
+
+        // 프로젝트명을 포함한 동적 타이틀 설정
         Title = string.Format(LocalizationService.Get("HistoryDialog_TitleFormat"), vm.ProjectName);
+
         Vm.PropertyChanged += (_, _) => RefreshList();
         RefreshList();
+
+        Closed += (_, _) => _closedTcs.TrySetResult();
+    }
+
+    internal Task ShowAsync()
+    {
+        DialogWindowHost.Show(this, InitW, InitH);
+        return _closedTcs.Task;
     }
 
     private void RefreshList()
@@ -84,11 +106,14 @@ public sealed partial class HistoryDialog : ContentDialog
         picker.FileTypeChoices.Add(LocalizationService.Get("HistoryDialog_MarkdownType"), [".md"]);
         picker.SuggestedFileName = $"{Vm.ProjectName}_history";
 
-        var hwnd = WindowNative.GetWindowHandle(App.MainWindow);
+        // FileSavePicker hwnd는 이 다이얼로그 창 자체를 사용
+        var hwnd = WindowNative.GetWindowHandle(this);
         InitializeWithWindow.Initialize(picker, hwnd);
 
         var file = await picker.PickSaveFileAsync();
         if (file is not null)
             await FileIO.WriteTextAsync(file, Vm.ExportToMarkdown());
     }
+
+    private void OnClose(object sender, RoutedEventArgs e) => Close();
 }

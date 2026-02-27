@@ -4,6 +4,9 @@
 
 | 날짜 | 내용 |
 |------|------|
+| 2026-07 | **Window.Title x:Uid 버그 수정** — 5개 Dialog Window에서 x:Uid 제거, 코드비하인드에서 LocalizationService.Get으로 Title 설정 |
+| 2026-07 | **ContentDialog → Window 전환 완료** — 9개 Dialog 전면 교체, DialogWindowHost 단순화 |
+| 2026-07 | ContentDialog 독립 창 표시 — DialogWindowHost 추가, 창 크기 변경 시 ContentDialog 크기 동기화 추가 |
 | 2026-02-27 | 네임스페이스 DevDashboard_WinUI → DevDashboard 전체 변경 |
 | 2026-02-27 | [ToolTipService.ToolTip] x:Uid 패턴 전체 수정 (런타임 오류 해결) |
 | 2025-01 | WinUI 표준 지역화 방식으로 마이그레이션 (x:Uid + .resw) |
@@ -17,10 +20,15 @@
 - `LocalizationService.Get(key)`는 내부적으로 `ResourceLoader`를 사용 (C# 코드 변경 불필요)
 - `[ToolTipService.ToolTip]` x:Uid 패턴은 WinUI 3에서 런타임 XamlParseException을 발생시킴 — MainWindow는 코드비하인드 `ApplyToolTips()`로, DataTemplate 내부는 직접 XAML 속성으로 처리
 - `<Run>` 요소는 x:Uid를 지원하지 않으므로 `MainWindow.xaml.cs`에서 `LocalizationService.Get`으로 처리
-- ContentDialog에서 Title을 code-behind로 동적 설정하는 경우 (GroupDialog, ProjectSettingsDialog, HistoryDialog): x:Uid는 PrimaryButtonText, CloseButtonText만 적용
 - DashboardView.xaml DataTemplate 내 tooltip은 하드코딩 영문 문자열 (다국어 미지원)
+- **WinUI 3 Window에서 `{x:Bind Prop, Converter={StaticResource ...}}`는 CS1503 빌드 오류 발생** → `{Binding Prop, Converter=...}` + `DataContext="{x:Bind Vm}"`으로 대체 (Window ≠ FrameworkElement)
+- Dialog Window에서 `FileSavePicker` hwnd: `WindowNative.GetWindowHandle(this)` 사용 (App.MainWindow 아님)
+- `DialogWindowHost.Show(dialog, w, h)`: 창 속성 설정 후 `Activate()` 호출 순서 필수
+- **WinUI 3 Window.Title은 x:Uid로 설정 불가** — `Window.Title`은 CLR 속성으로 x:Uid DependencyProperty 할당 메커니즘 미지원 → `XamlParseException` 발생. Dialog Title은 코드비하인드에서 `LocalizationService.Get("욬XxxDialogTitle")`로 설정
+- `ContentDialog`는 `App.MainWindow!.Content.XamlRoot` 사용 (DialogService, 오류 메시지용)
 
 ## 상세 로그 링크
 
+- [docs/notes/2026-07.md](docs/notes/2026-07.md)
 - [docs/notes/2026-02.md](docs/notes/2026-02.md)
 - [docs/notes/2025-01.md](docs/notes/2025-01.md)

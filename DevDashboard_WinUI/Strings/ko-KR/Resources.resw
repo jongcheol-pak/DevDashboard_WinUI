@@ -124,9 +124,8 @@
   <data name="LoadingText.Text" xml:space="preserve"><value>로딩 중...</value></data>
 
   <!-- ===== XAML x:Uid — AppSettingsDialog ===== -->
-  <data name="AppSettingsDialog.Title" xml:space="preserve"><value>앱 설정</value></data>
-  <data name="AppSettingsDialog.PrimaryButtonText" xml:space="preserve"><value>저장</value></data>
-  <data name="AppSettingsDialog.CloseButtonText" xml:space="preserve"><value>취소</value></data>
+  <data name="AppSettingsDialogTitle" xml:space="preserve"><value>앱 설정</value></data>
+
   <data name="NavSettings.Content" xml:space="preserve"><value>설정</value></data>
   <data name="NavTools.Content" xml:space="preserve"><value>도구</value></data>
   <data name="NavCode.Content" xml:space="preserve"><value>코드</value></data>
@@ -148,8 +147,7 @@
   <data name="IconDeleteBtn.[ToolTipService.ToolTip]" xml:space="preserve"><value>삭제</value></data>
 
   <!-- ===== XAML x:Uid — ProjectSettingsDialog ===== -->
-  <data name="ProjectSettingsDialog.PrimaryButtonText" xml:space="preserve"><value>저장</value></data>
-  <data name="ProjectSettingsDialog.CloseButtonText" xml:space="preserve"><value>취소</value></data>
+
   <data name="ProjNameLabel.Text" xml:space="preserve"><value>프로젝트 이름 *</value></data>
   <data name="ProjNameBox.PlaceholderText" xml:space="preserve"><value>프로젝트 이름 입력</value></data>
   <data name="ProjDescLabel.Text" xml:space="preserve"><value>설명</value></data>
@@ -176,7 +174,7 @@
   <data name="ProjTagsLabel.Text" xml:space="preserve"><value>기술 스택 태그</value></data>
 
   <!-- ===== XAML x:Uid — CommandScriptDialog ===== -->
-  <data name="CommandScriptDialog.Title" xml:space="preserve"><value>커맨드 스크립트 설정</value></data>
+  <data name="CommandScriptDialogTitle" xml:space="preserve"><value>커맨드 스크립트 설정</value></data>
   <data name="CommandScriptDialog.PrimaryButtonText" xml:space="preserve"><value>저장</value></data>
   <data name="CommandScriptDialog.CloseButtonText" xml:space="preserve"><value>취소</value></data>
   <data name="CmdDescLabel.Text" xml:space="preserve"><value>설명</value></data>
@@ -195,7 +193,7 @@
   <data name="GroupNameBox.PlaceholderText" xml:space="preserve"><value>그룹 이름 입력</value></data>
 
   <!-- ===== XAML x:Uid — TodoDialog ===== -->
-  <data name="TodoDialog.Title" xml:space="preserve"><value>To-Do</value></data>
+  <data name="TodoDialogTitle" xml:space="preserve"><value>To-Do</value></data>
   <data name="TodoDialog.PrimaryButtonText" xml:space="preserve"><value>저장</value></data>
   <data name="TodoDialog.CloseButtonText" xml:space="preserve"><value>취소</value></data>
   <data name="TodoTabAll.Content" xml:space="preserve"><value>전체</value></data>
@@ -213,7 +211,7 @@
   <data name="NoCommitsText.Text" xml:space="preserve"><value>커밋 기록이 없습니다.</value></data>
 
   <!-- ===== XAML x:Uid — HistoryDialog ===== -->
-  <data name="HistoryDialog.CloseButtonText" xml:space="preserve"><value>닫기</value></data>
+
   <data name="HistorySearchBox.PlaceholderText" xml:space="preserve"><value>검색...</value></data>
   <data name="AddHistoryBtn.Content" xml:space="preserve"><value>새 기록 추가</value></data>
   <data name="HistoryAddNewHeader.Text" xml:space="preserve"><value>새 기록 추가</value></data>
@@ -222,8 +220,8 @@
   <data name="EmptyHistoryText.Text" xml:space="preserve"><value>작업 기록이 없습니다.</value></data>
 
   <!-- ===== XAML x:Uid — ProjectHistoryDialog ===== -->
-  <data name="ProjectHistoryDialog.Title" xml:space="preserve"><value>전체 작업 기록</value></data>
-  <data name="ProjectHistoryDialog.CloseButtonText" xml:space="preserve"><value>닫기</value></data>
+  <data name="ProjectHistoryDialogTitle" xml:space="preserve"><value>전체 작업 기록</value></data>
+
   <data name="ProjectCombo.PlaceholderText" xml:space="preserve"><value>프로젝트 선택</value></data>
   <data name="AddProjectHistoryBtn.Content" xml:space="preserve"><value>새 기록 추가</value></data>
   <data name="ProjHistAddNewHeader.Text" xml:space="preserve"><value>새 기록 추가</value></data>
@@ -233,7 +231,7 @@
   <data name="EmptyProjHistText.Text" xml:space="preserve"><value>작업 기록이 없습니다.</value></data>
 
   <!-- ===== XAML x:Uid — IconPickerDialog ===== -->
-  <data name="IconPickerDialog.Title" xml:space="preserve"><value>아이콘 선택</value></data>
+  <data name="IconPickerDialogTitle" xml:space="preserve"><value>아이콘 선택</value></data>
   <data name="IconPickerDialog.CloseButtonText" xml:space="preserve"><value>취소</value></data>
   <data name="IconSearchBox.PlaceholderText" xml:space="preserve"><value>아이콘 이름 검색...</value></data>
   <data name="RemoveIconBtn.Content" xml:space="preserve"><value>아이콘 제거 (기본값)</value></data>

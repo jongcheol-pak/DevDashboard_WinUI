@@ -1,24 +1,54 @@
-﻿using DevDashboard.Models;
+using DevDashboard.Models;
+using DevDashboard.Services;
 using DevDashboard.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
+using WinUIEx;
 
 namespace DevDashboard.Views.Dialogs;
 
-public sealed partial class AppSettingsDialog : ContentDialog
+public sealed partial class AppSettingsDialog : Window
 {
+    private const int MinW = 680;
+    private const int MinH = 460;
+    private const int InitW = 800;
+    private const int InitH = 640;
+
     private AppSettingsDialogViewModel Vm { get; } = new();
+    private readonly TaskCompletionSource _closedTcs = new();
 
     public AppSettings? ResultSettings { get; private set; }
 
     public AppSettingsDialog(AppSettings settings)
     {
         InitializeComponent();
+        Title = LocalizationService.Get("AppSettingsDialogTitle");
+        SystemBackdrop = new MicaBackdrop();
+
+        var manager = WindowManager.Get(this);
+        manager.MinWidth = MinW;
+        manager.MinHeight = MinH;
+
         Vm.LoadFrom(settings);
         RefreshToolList();
         Vm.Tools.CollectionChanged += (_, _) => RefreshToolList();
-        PrimaryButtonClick += OnPrimaryButtonClick;
-        Opened += async (_, _) => await Vm.CheckLatestVersionAsync();
+
+        Closed += (_, _) => _closedTcs.TrySetResult();
+    }
+
+    internal Task ShowAsync()
+    {
+        DialogWindowHost.Show(this, InitW, InitH);
+        return _closedTcs.Task;
+    }
+
+    private bool _initialized;
+    private async void OnRootLoaded(object sender, RoutedEventArgs e)
+    {
+        if (_initialized) return;
+        _initialized = true;
+        await Vm.CheckLatestVersionAsync();
     }
 
     private void RefreshToolList()
@@ -104,12 +134,15 @@ public sealed partial class AppSettingsDialog : ContentDialog
             Vm.OpenLicenseUrlCommand.Execute(url);
     }
 
-    // ─── 저장 ────────────────────────────────────────────
+    // ─── 저장/취소 ───────────────────────────────────────
 
-    private void OnPrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+    private void OnSave(object sender, RoutedEventArgs e)
     {
         var settings = new AppSettings();
         Vm.ApplyTo(settings);
         ResultSettings = settings;
+        Close();
     }
+
+    private void OnCancel(object sender, RoutedEventArgs e) => Close();
 }
