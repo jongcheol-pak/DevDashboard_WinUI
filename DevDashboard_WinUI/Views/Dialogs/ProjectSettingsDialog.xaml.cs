@@ -2,12 +2,13 @@ using DevDashboard.Models;
 using DevDashboard.Services;
 using DevDashboard.ViewModels;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using WinUIEx;
 
 namespace DevDashboard.Views.Dialogs;
 
-public sealed partial class ProjectSettingsDialog : Window
+public sealed partial class ProjectSettingsDialog : WindowEx
 {
     private const int MinW = 600;
     private const int InitW = 800;
@@ -36,19 +37,25 @@ public sealed partial class ProjectSettingsDialog : Window
         Vm.LoadTools(tools);
         Vm.LoadCategories(settings.Categories);
         Vm.LoadCustomTags(settings.TechStackTags);
-        Vm.SetExistingNames(existingNames);
 
         if (existing is not null)
         {
             Vm.LoadFrom(existing, groups, tools);
+            // LoadFrom 이후 호출해야 EditingProjectId가 설정되어 자기 자신 이름이 중복 목록에서 제외됨
+            Vm.SetExistingNames(existingNames);
             Title = LocalizationService.Get("ProjectSettingsDialog_TitleEdit");
         }
         else
         {
+            Vm.SetExistingNames(existingNames);
             Title = LocalizationService.Get("ProjectSettingsDialog_TitleAdd");
             if (!string.IsNullOrEmpty(defaultGroupId))
                 Vm.SelectedGroupId = defaultGroupId;
         }
+
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
+        AppTitleBarText.Text = Title;
 
         Closed += (_, _) => _closedTcs.TrySetResult();
     }
@@ -59,17 +66,22 @@ public sealed partial class ProjectSettingsDialog : Window
         return _closedTcs.Task;
     }
 
-    private void OnSave(object sender, RoutedEventArgs e)
+    private async void OnSave(object sender, RoutedEventArgs e)
     {
         var error = Vm.Validate();
         if (error is not null)
         {
-            ErrorText.Text = error;
-            ErrorText.Visibility = Visibility.Visible;
+            var dialog = new ContentDialog
+            {
+                Title = LocalizationService.Get("InputRequired"),
+                Content = error,
+                CloseButtonText = LocalizationService.Get("Btn_Close.Content"),
+                XamlRoot = Content.XamlRoot
+            };
+            await dialog.ShowAsync();
             return;
         }
 
-        ErrorText.Visibility = Visibility.Collapsed;
         ResultItem = Vm.ToProjectItem();
         Close();
     }

@@ -7,7 +7,7 @@ using WinUIEx;
 
 namespace DevDashboard.Views.Dialogs;
 
-public sealed partial class GroupDialog : Window
+public sealed partial class GroupDialog : WindowEx
 {
     private const int MinW = 380;
     private const int InitW = 500;
@@ -35,6 +35,10 @@ public sealed partial class GroupDialog : Window
         Title = existing is null
             ? LocalizationService.Get("GroupDialog_TitleAdd")
             : LocalizationService.Get("GroupDialog_TitleEdit");
+
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
+        AppTitleBarText.Text = Title;
 
         Closed += (_, _) => _closedTcs.TrySetResult();
     }

@@ -6,7 +6,7 @@ using WinUIEx;
 
 namespace DevDashboard.Views.Dialogs;
 
-public sealed partial class GitStatusDialog : Window
+public sealed partial class GitStatusDialog : WindowEx
 {
     private const int MinW = 560;
     private const int InitW = 700;
@@ -27,6 +27,10 @@ public sealed partial class GitStatusDialog : Window
 
         // 프로젝트명을 포함한 동적 타이틀 설정
         Title = $"Git 상태 — {card.Name}";
+
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
+        AppTitleBarText.Text = Title;
 
         Closed += (_, _) => _closedTcs.TrySetResult();
     }

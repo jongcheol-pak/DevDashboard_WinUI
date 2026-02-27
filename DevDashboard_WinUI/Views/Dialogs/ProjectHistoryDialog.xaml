@@ -1,19 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Window
+<winuiex:WindowEx
     x:Class="DevDashboard.Views.Dialogs.ProjectHistoryDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:DevDashboard.ViewModels"
-    xmlns:models="using:DevDashboard.Models">
+    xmlns:models="using:DevDashboard.Models"
+    xmlns:winuiex="using:WinUIEx">
 
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Row 0: 내용 -->
-        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Padding="16,12,16,0">
+        <!-- Row 0: 타이틀 바 (MainWindow 스타일) -->
+        <Border x:Name="AppTitleBar"
+                Grid.Row="0"
+                Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,0,0,1">
+            <TextBlock x:Name="AppTitleBarText"
+                       FontSize="13" FontWeight="SemiBold"
+                       VerticalAlignment="Center"
+                       Margin="12,0,148,0"/>
+        </Border>
+
+        <!-- Row 1: 내용 -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="16,12,16,0">
             <StackPanel Spacing="12">
 
                 <!-- 프로젝트 선택 + 내보내기 -->
@@ -152,9 +166,9 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- Row 1: 버튼 패널 -->
+        <!-- Row 2: 버튼 패널 -->
         <Border
-            Grid.Row="1"
+            Grid.Row="2"
             BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
             BorderThickness="0,1,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Padding="16,12">
@@ -163,4 +177,4 @@
         </Border>
     </Grid>
 
-</Window>
+</winuiex:WindowEx>

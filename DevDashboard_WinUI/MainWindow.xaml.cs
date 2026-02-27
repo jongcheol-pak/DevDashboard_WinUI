@@ -7,10 +7,11 @@ using DevDashboard.Views.Dialogs;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using WinUIEx;
 
 namespace DevDashboard;
 
-public sealed partial class MainWindow : Window
+public sealed partial class MainWindow : WindowEx
 {
     private MainViewModel? _viewModel;
     private readonly AppSettings _settings;

@@ -11,7 +11,7 @@ using WinUIEx;
 
 namespace DevDashboard.Views.Dialogs;
 
-public sealed partial class ProjectHistoryDialog : Window
+public sealed partial class ProjectHistoryDialog : WindowEx
 {
     private const int MinW = 620;
     private const int InitW = 900;
@@ -26,6 +26,10 @@ public sealed partial class ProjectHistoryDialog : Window
         InitializeComponent();
         Title = LocalizationService.Get("ProjectHistoryDialogTitle");
         SystemBackdrop = new MicaBackdrop();
+
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
+        AppTitleBarText.Text = Title;
 
         var manager = WindowManager.Get(this);
         manager.MinWidth = MinW;

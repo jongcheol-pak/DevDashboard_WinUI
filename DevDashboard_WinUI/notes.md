@@ -4,6 +4,12 @@
 
 | 날짜 | 내용 |
 |------|------|
+| 2026-07 | **ProjectSettingsDialog 아이콘 미리보기 추가** — ProjIconLabel 위에 Border+Image 컨트롤 추가, 경로가 비어있으면 숨김, ImagePathToSource/StringNotEmptyToVisibility 컨버터 사용 |
+| 2026-07 | **ProjectSettingsDialog 버그 수정** — 수정 모드에서 자기 자신 이름 중복 체크 문제 수정(SetExistingNames 호출 순서), 유효성 오류 메시지 ContentDialog 팝업으로 변경 |
+| 2026-07 | **Dialog 타이틀 바 스타일 통일** — 9개 다이얼로그에 AppTitleBar Border(40px) 추가, ExtendsContentIntoTitleBar + SetTitleBar 적용, MainWindow 스타일 통일 |
+| 2026-07 | **Dialog 모달 동작 추가** — DialogWindowHost.Show()에서 소유자 창 EnableWindow(false), 닫힐 때 EnableWindow(true) + SetForegroundWindow 복원 |
+| 2026-07 | **Dialog WindowEx 전환** — 9개 다이얼로그(AppSettings/CommandScript/GitStatus/Group/History/IconPicker/ProjectHistory/ProjectSettings/Todo) Window → WindowEx 변경 |
+| 2026-07 | **MainWindow WindowEx 전환** — WinUIEx `WindowEx` 베이스 클래스로 변경, `MinWidth=900`, `MinHeight=600` 적용 |
 | 2026-07 | **Window.Title x:Uid 버그 수정** — 5개 Dialog Window에서 x:Uid 제거, 코드비하인드에서 LocalizationService.Get으로 Title 설정 |
 | 2026-07 | **ContentDialog → Window 전환 완료** — 9개 Dialog 전면 교체, DialogWindowHost 단순화 |
 | 2026-07 | ContentDialog 독립 창 표시 — DialogWindowHost 추가, 창 크기 변경 시 ContentDialog 크기 동기화 추가 |

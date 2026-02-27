@@ -40,10 +40,32 @@ internal static class DialogWindowHost
         HwndExtensions.SetWindowSize(hwnd, width, height);
         HwndExtensions.CenterOnScreen(hwnd);
 
+        // 소유자 창 비활성화 → 모달 동작 (다이얼로그가 열려 있는 동안 클릭 차단)
+        if (_ownerHwnd != 0)
+        {
+            EnableWindow(_ownerHwnd, false);
+
+            // 다이얼로그 닫힐 때 소유자 창 재활성화 후 포커스 복원
+            void OnClosed(object? sender, WindowEventArgs e)
+            {
+                dialog.Closed -= OnClosed;
+                EnableWindow(_ownerHwnd, true);
+                SetForegroundWindow(_ownerHwnd);
+            }
+            dialog.Closed += OnClosed;
+        }
+
         // 모든 창 속성 설정 후 활성화 → 첫 표시 시 올바른 크기/위치로 나타남
         dialog.Activate();
     }
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern nint SetWindowLongPtr(nint hWnd, int nIndex, nint dwNewLong);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool EnableWindow(nint hWnd, bool bEnable);
+
+    [DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(nint hWnd);
 }

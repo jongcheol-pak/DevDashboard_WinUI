@@ -1,15 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Window
+<winuiex:WindowEx
     x:Class="DevDashboard.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:DevDashboard"
     xmlns:models="using:DevDashboard.Models"
     xmlns:vm="using:DevDashboard.ViewModels"
+    xmlns:winuiex="using:WinUIEx"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Title="DevDashboard">
+
+    Title="DevDashboard"
+    MinWidth="1000"
+    MinHeight="700">
 
     <Window.SystemBackdrop>
         <MicaBackdrop />
@@ -38,7 +42,7 @@
 
                 <!-- 좌: 앱 아이콘 + 타이틀 -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Image Source="Assets/DevDashboard.png" Width="24" Height="24"
+                    <Image Source="/Assets/DevDashboard.png" Width="24" Height="24"
                            Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,8,0" />
                     <TextBlock Text="DevDashboard" FontSize="15" FontWeight="SemiBold"
                                VerticalAlignment="Center" />
@@ -229,4 +233,4 @@
             </Grid>
         </Border>
     </Grid>
-</Window>
+</winuiex:WindowEx>

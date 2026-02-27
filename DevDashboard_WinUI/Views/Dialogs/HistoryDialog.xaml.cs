@@ -11,7 +11,7 @@ using WinUIEx;
 
 namespace DevDashboard.Views.Dialogs;
 
-public sealed partial class HistoryDialog : Window
+public sealed partial class HistoryDialog : WindowEx
 {
     private const int MinW = 580;
     private const int InitW = 800;
@@ -31,6 +31,10 @@ public sealed partial class HistoryDialog : Window
 
         // 프로젝트명을 포함한 동적 타이틀 설정
         Title = string.Format(LocalizationService.Get("HistoryDialog_TitleFormat"), vm.ProjectName);
+
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
+        AppTitleBarText.Text = Title;
 
         Vm.PropertyChanged += (_, _) => RefreshList();
         RefreshList();

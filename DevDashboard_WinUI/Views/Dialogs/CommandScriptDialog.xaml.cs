@@ -7,7 +7,7 @@ using WinUIEx;
 
 namespace DevDashboard.Views.Dialogs;
 
-public sealed partial class CommandScriptDialog : Window
+public sealed partial class CommandScriptDialog : WindowEx
 {
     private const int MinW = 480;
     private const int InitW = 600;
@@ -23,6 +23,10 @@ public sealed partial class CommandScriptDialog : Window
         InitializeComponent();
         Title = LocalizationService.Get("CommandScriptDialogTitle");
         SystemBackdrop = new MicaBackdrop();
+
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
+        AppTitleBarText.Text = Title;
 
         var manager = WindowManager.Get(this);
         manager.MinWidth = MinW;

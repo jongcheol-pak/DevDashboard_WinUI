@@ -8,7 +8,7 @@ using WinUIEx;
 
 namespace DevDashboard.Views.Dialogs;
 
-public sealed partial class TodoDialog : Window
+public sealed partial class TodoDialog : WindowEx
 {
     private const int MinW = 500;
     private const int InitW = 700;
@@ -26,6 +26,10 @@ public sealed partial class TodoDialog : Window
         InitializeComponent();
         Title = LocalizationService.Get("TodoDialogTitle");
         SystemBackdrop = new MicaBackdrop();
+
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
+        AppTitleBarText.Text = Title;
 
         var manager = WindowManager.Get(this);
         manager.MinWidth = MinW;

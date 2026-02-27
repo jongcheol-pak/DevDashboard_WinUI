@@ -8,10 +8,9 @@ using WinUIEx;
 
 namespace DevDashboard.Views.Dialogs;
 
-public sealed partial class AppSettingsDialog : Window
+public sealed partial class AppSettingsDialog : WindowEx
 {
-    private const int MinW = 680;
-    private const int MinH = 460;
+  
     private const int InitW = 800;
     private const int InitH = 640;
 
@@ -26,9 +25,12 @@ public sealed partial class AppSettingsDialog : Window
         Title = LocalizationService.Get("AppSettingsDialogTitle");
         SystemBackdrop = new MicaBackdrop();
 
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
+        AppTitleBarText.Text = Title;
+
         var manager = WindowManager.Get(this);
-        manager.MinWidth = MinW;
-        manager.MinHeight = MinH;
+        
 
         Vm.LoadFrom(settings);
         RefreshToolList();
