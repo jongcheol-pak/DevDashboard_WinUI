@@ -15,9 +15,12 @@ public partial class ProjectCardViewModel : ObservableObject
     private readonly IProjectRepository _repository;
     private readonly AppSettings _settings;
 
-    // 동일 아이콘 경로의 중복 로드 방지
+    // 동일 아이콘 경로의 중복 로드 방지 — Refresh 시 ClearIconCache()로 정리
     private static readonly ConcurrentDictionary<string, Lazy<Task<BitmapImage?>>> _iconLoadTasks
         = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>아이콘 캐시를 비웁니다. Refresh/HardRefresh 시 호출하여 메모리 누적을 방지합니다.</summary>
+    internal static void ClearIconCache() => _iconLoadTasks.Clear();
 
     // Todos/Histories 지연 로딩 플래그 — 다이얼로그 최초 열기 시 DB에서 로드
     private bool _todosLoaded;
@@ -472,7 +475,7 @@ public partial class ProjectCardViewModel : ObservableObject
         if (!int.TryParse(indexStr, out var index) || index < 0 || index >= CommandSlotCount) return;
 
         if (index < _item.CommandScripts.Count)
-            _item.CommandScripts.RemoveAt(index);
+            _item.CommandScripts[index] = null;
 
         RefreshCommandSlotStates();
         CommandScriptChanged?.Invoke(this, EventArgs.Empty);

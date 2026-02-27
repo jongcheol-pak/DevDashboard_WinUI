@@ -24,6 +24,8 @@ public sealed partial class AppSettingsDialog : WindowEx
         InitializeComponent();
         Title = LocalizationService.Get("AppSettingsDialogTitle");
         SystemBackdrop = new MicaBackdrop();
+        if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p)
+        { p.IsMinimizable = false; p.IsMaximizable = false; }
 
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);

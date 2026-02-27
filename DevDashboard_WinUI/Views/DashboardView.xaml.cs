@@ -23,6 +23,9 @@ public sealed partial class DashboardView : UserControl
     // DataContextChanged 시 이전 구독 해제용
     private MainViewModel? _subscribedVm;
 
+    // Reset 시 이전 구독 대상을 추적하는 집합
+    private readonly HashSet<ProjectCardViewModel> _subscribedCards = [];
+
     private MainViewModel? Vm => DataContext as MainViewModel;
 
     public DashboardView()
@@ -39,9 +42,9 @@ public sealed partial class DashboardView : UserControl
         if (_subscribedVm is not null)
         {
             _subscribedVm.DisplayCards.CollectionChanged -= OnDisplayCardsChanged;
-            foreach (var item in _subscribedVm.DisplayCards)
-                if (item is ProjectCardViewModel card)
-                    UnsubscribeCardEvents(card);
+            foreach (var card in _subscribedCards)
+                UnsubscribeCardEvents(card);
+            _subscribedCards.Clear();
             _subscribedVm = null;
         }
 
@@ -52,21 +55,47 @@ public sealed partial class DashboardView : UserControl
             vm.DisplayCards.CollectionChanged += OnDisplayCardsChanged;
             foreach (var item in vm.DisplayCards)
                 if (item is ProjectCardViewModel card)
+                {
                     SubscribeCardEvents(card);
+                    _subscribedCards.Add(card);
+                }
         }
     }
 
     private void OnDisplayCardsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
+        // Reset 액션은 OldItems/NewItems가 null — 기존 구독 전체 해제 후 현재 항목 재구독
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            foreach (var card in _subscribedCards)
+                UnsubscribeCardEvents(card);
+            _subscribedCards.Clear();
+
+            if (_subscribedVm is not null)
+                foreach (var item in _subscribedVm.DisplayCards)
+                    if (item is ProjectCardViewModel card)
+                    {
+                        SubscribeCardEvents(card);
+                        _subscribedCards.Add(card);
+                    }
+            return;
+        }
+
         if (e.NewItems is not null)
             foreach (var item in e.NewItems)
                 if (item is ProjectCardViewModel card)
+                {
                     SubscribeCardEvents(card);
+                    _subscribedCards.Add(card);
+                }
 
         if (e.OldItems is not null)
             foreach (var item in e.OldItems)
                 if (item is ProjectCardViewModel card)
+                {
                     UnsubscribeCardEvents(card);
+                    _subscribedCards.Remove(card);
+                }
     }
 
     private void SubscribeCardEvents(ProjectCardViewModel card)

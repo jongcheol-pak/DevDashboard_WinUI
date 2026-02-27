@@ -17,7 +17,7 @@ internal static class DevToolDetector
     ];
 
     // 반복 파일 시스템 탐색 방지를 위한 감지 결과 캐시
-    private static List<ExternalTool>? _cache;
+    private static volatile List<ExternalTool>? _cache;
 
     // 멀티스레드 캐시 접근 보호용 락 객체
     private static readonly object _lock = new();
@@ -29,27 +29,31 @@ internal static class DevToolDetector
         if (cached is not null)
             return cached;
 
-        var result = new List<ExternalTool>();
-        foreach (var (name, folder, relativePath) in KnownTools)
-        {
-            var basePath = Environment.GetFolderPath(folder);
-            if (string.IsNullOrEmpty(basePath))
-                continue;
-
-            var fullPath = Path.Combine(basePath, relativePath);
-            if (File.Exists(fullPath))
-            {
-                result.Add(new ExternalTool
-                {
-                    Name = name,
-                    ExecutablePath = fullPath
-                });
-            }
-        }
-
         lock (_lock)
         {
-            _cache ??= result;
+            // double-checked locking: lock 진입 후 다시 확인
+            if (_cache is not null)
+                return _cache;
+
+            var result = new List<ExternalTool>();
+            foreach (var (name, folder, relativePath) in KnownTools)
+            {
+                var basePath = Environment.GetFolderPath(folder);
+                if (string.IsNullOrEmpty(basePath))
+                    continue;
+
+                var fullPath = Path.Combine(basePath, relativePath);
+                if (File.Exists(fullPath))
+                {
+                    result.Add(new ExternalTool
+                    {
+                        Name = name,
+                        ExecutablePath = fullPath
+                    });
+                }
+            }
+
+            _cache = result;
             return _cache;
         }
     }

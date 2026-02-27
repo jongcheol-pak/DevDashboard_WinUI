@@ -525,6 +525,7 @@ public partial class MainViewModel : ObservableObject
 
             DevToolDetector.InvalidateCache();
             InvalidateToolsCache();
+            ProjectCardViewModel.ClearIconCache();
             var tools = await Task.Run(() => GetTools());
 
             var cards = await Task.Run(() =>
@@ -562,6 +563,7 @@ public partial class MainViewModel : ObservableObject
         {
             DevToolDetector.InvalidateCache();
             InvalidateToolsCache();
+            ProjectCardViewModel.ClearIconCache();
 
             var dbTask = Task.Run(() =>
             {

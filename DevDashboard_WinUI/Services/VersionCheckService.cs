@@ -40,7 +40,8 @@ public static class VersionCheckService
             using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
             if (!response.IsSuccessStatusCode) return null;
 
-            using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+            using var stream = await response.Content.ReadAsStreamAsync();
+            using var doc = await JsonDocument.ParseAsync(stream);
             var root = doc.RootElement;
 
             var tagName = root.GetProperty("tag_name").GetString() ?? string.Empty;

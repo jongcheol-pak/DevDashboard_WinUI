@@ -23,6 +23,8 @@ public sealed partial class CommandScriptDialog : WindowEx
         InitializeComponent();
         Title = LocalizationService.Get("CommandScriptDialogTitle");
         SystemBackdrop = new MicaBackdrop();
+        if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p)
+        { p.IsMinimizable = false; p.IsMaximizable = false; }
 
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);

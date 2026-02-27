@@ -29,6 +29,8 @@ public sealed partial class ProjectSettingsDialog : WindowEx
     {
         InitializeComponent();
         SystemBackdrop = new MicaBackdrop();
+        if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p)
+        { p.IsMinimizable = false; p.IsMaximizable = false; }
 
         var manager = WindowManager.Get(this);
         manager.MinWidth = MinW;

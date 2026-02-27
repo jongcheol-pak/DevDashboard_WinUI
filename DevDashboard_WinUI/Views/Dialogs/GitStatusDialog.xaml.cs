@@ -14,6 +14,7 @@ public sealed partial class GitStatusDialog : WindowEx
 
     private readonly ProjectCardViewModel _card;
     private readonly TaskCompletionSource _closedTcs = new();
+    private readonly CancellationTokenSource _cts = new();
     private bool _initialized;
 
     public GitStatusDialog(ProjectCardViewModel card)
@@ -21,6 +22,8 @@ public sealed partial class GitStatusDialog : WindowEx
         _card = card;
         InitializeComponent();
         SystemBackdrop = new MicaBackdrop();
+        if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p)
+        { p.IsMinimizable = false; p.IsMaximizable = false; }
 
         var manager = WindowManager.Get(this);
         manager.MinWidth = MinW;
@@ -32,7 +35,12 @@ public sealed partial class GitStatusDialog : WindowEx
         SetTitleBar(AppTitleBar);
         AppTitleBarText.Text = Title;
 
-        Closed += (_, _) => _closedTcs.TrySetResult();
+        Closed += (_, _) =>
+        {
+            _cts.Cancel();
+            _cts.Dispose();
+            _closedTcs.TrySetResult();
+        };
     }
 
     internal Task ShowAsync()
@@ -46,7 +54,15 @@ public sealed partial class GitStatusDialog : WindowEx
         if (_initialized) return;
         _initialized = true;
 
-        var error = await _card.LoadGitStatusAsync();
+        string? error;
+        try
+        {
+            error = await _card.LoadGitStatusAsync(_cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
 
         LoadingPanel.Visibility = Visibility.Collapsed;
 

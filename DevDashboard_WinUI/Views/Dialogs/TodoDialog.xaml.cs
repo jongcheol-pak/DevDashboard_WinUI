@@ -26,6 +26,8 @@ public sealed partial class TodoDialog : WindowEx
         InitializeComponent();
         Title = LocalizationService.Get("TodoDialogTitle");
         SystemBackdrop = new MicaBackdrop();
+        if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p)
+        { p.IsMinimizable = false; p.IsMaximizable = false; }
 
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);

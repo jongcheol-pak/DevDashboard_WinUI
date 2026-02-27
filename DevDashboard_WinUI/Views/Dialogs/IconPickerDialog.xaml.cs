@@ -25,6 +25,8 @@ public sealed partial class IconPickerDialog : WindowEx
         InitializeComponent();
         Title = LocalizationService.Get("IconPickerDialogTitle");
         SystemBackdrop = new MicaBackdrop();
+        if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p)
+        { p.IsMinimizable = false; p.IsMaximizable = false; }
 
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);

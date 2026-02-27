@@ -24,6 +24,8 @@ public sealed partial class GroupDialog : WindowEx
         _existingGroups = groups;
         InitializeComponent();
         SystemBackdrop = new MicaBackdrop();
+        if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p)
+        { p.IsMinimizable = false; p.IsMaximizable = false; }
 
         var manager = WindowManager.Get(this);
         manager.MinWidth = MinW;
