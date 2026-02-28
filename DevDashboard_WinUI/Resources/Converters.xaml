@@ -2,7 +2,7 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:converters="using:DevDashboard.Converters">
+    xmlns:converters="using:DevDashboard.Presentation.Converters">
 
     <!-- ===== 가시성 변환기 ===== -->
     <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />

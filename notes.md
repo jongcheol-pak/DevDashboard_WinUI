@@ -4,6 +4,7 @@
 
 | 일자 | 내용 |
 |------|------|
+| 2026-02-28 | **DDD 4계층 구조 적용** — Domain/Infrastructure/Presentation/Shared 폴더 재구성 완료 |
 | 2026-02-28 | 전체 코드 리뷰 — 메모리 누수 3건, 예외 처리 2건, 최적화 2건 수정 |
 | 2026-02-28 | 다이얼로그 깜빡임 수정 — EnableWindow → XAML 오버레이 입력 차단 방식 전환 |
 
@@ -14,4 +15,5 @@
 - MVVMTK0045 경고 다수 존재 (field → partial property 전환 권장, 기능에는 영향 없음)
 
 ## 상세 로그 링크
+- [2026-02-28 DDD 구조 적용](docs/notes/2026-02-28_ddd-restructure.md)
 - [2026-02-28 코드 리뷰 및 수정](docs/notes/2026-02-28_code-review-fixes.md)

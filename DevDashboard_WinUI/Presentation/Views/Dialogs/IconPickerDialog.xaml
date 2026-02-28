@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<winuiex:WindowEx
+    x:Class="DevDashboard.Presentation.Views.Dialogs.IconPickerDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:DevDashboard.Presentation.ViewModels"
+    xmlns:winuiex="using:WinUIEx">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Row 0: 타이틀 바 (MainWindow 스타일) -->
+        <Border x:Name="AppTitleBar"
+                Grid.Row="0"
+                Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,0,0,1">
+            <TextBlock x:Name="AppTitleBarText"
+                       FontSize="13" FontWeight="SemiBold"
+                       VerticalAlignment="Center"
+                       Margin="12,0,148,0"/>
+        </Border>
+
+        <!-- Row 1: 내용 -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="12" Padding="16,12" Loaded="OnRootLoaded">
+
+        <!-- 검색 + 카운트 -->
+        <Grid ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <AutoSuggestBox
+                x:Uid="IconSearchBox"
+                Grid.Column="0"
+                QueryIcon="Find"
+                TextChanged="SearchBox_TextChanged" />
+            <TextBlock
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                <Run x:Name="VisibleCountRun" />
+                <Run Text=" / " />
+                <Run x:Name="TotalCountRun" />
+            </TextBlock>
+        </Grid>
+
+        <!-- 기본값 복원 버튼 -->
+        <Button
+            x:Uid="RemoveIconBtn"
+            HorizontalAlignment="Left"
+            Click="ResetButton_Click" />
+
+        <!-- 로딩 -->
+        <ProgressRing
+            x:Name="LoadingRing"
+            IsActive="True"
+            Width="32" Height="32"
+            HorizontalAlignment="Center"
+            Margin="0,24" />
+
+        <!-- 아이콘 그리드 -->
+        <ScrollViewer
+            x:Name="IconScrollViewer"
+            Height="360"
+            VerticalScrollBarVisibility="Auto"
+            Visibility="Collapsed">
+            <ItemsRepeater x:Name="IconRepeater">
+                <ItemsRepeater.Layout>
+                    <UniformGridLayout
+                        MinItemWidth="64"
+                        MinItemHeight="64"
+                        ItemsJustification="Start"
+                        ItemsStretch="None" />
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="vm:IconItem">
+                        <Button
+                            Width="64" Height="64"
+                            Padding="4"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Click="IconButton_Click"
+                            Tag="{x:Bind}">
+                            <ToolTipService.ToolTip>
+                                <ToolTip Content="{x:Bind Name}" />
+                            </ToolTipService.ToolTip>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <FontIcon
+                                    Glyph="{x:Bind Glyph}"
+                                    FontFamily="Segoe MDL2 Assets"
+                                    FontSize="24"
+                                    HorizontalAlignment="Center" />
+                                <TextBlock
+                                    Text="{x:Bind Name}"
+                                    FontSize="9"
+                                    HorizontalAlignment="Center"
+                                    TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </Button>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+        </ScrollViewer>
+
+        </StackPanel>
+        </ScrollViewer>
+
+    </Grid>
+
+</winuiex:WindowEx>

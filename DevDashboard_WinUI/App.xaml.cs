@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
-using DevDashboard.Models;
-using DevDashboard.Services;
-using DevDashboard.ViewModels;
+using DevDashboard.Infrastructure.Persistence;
+using DevDashboard.Infrastructure.Services;
+using DevDashboard.Presentation.ViewModels;
 using Microsoft.UI.Xaml;
 
 namespace DevDashboard;

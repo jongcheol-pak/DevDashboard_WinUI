@@ -1,9 +1,8 @@
 ﻿using System.Text.RegularExpressions;
-using DevDashboard.Models;
-using DevDashboard.Services;
-using DevDashboard.ViewModels;
-using DevDashboard.Views;
-using DevDashboard.Views.Dialogs;
+using DevDashboard.Infrastructure.Services;
+using DevDashboard.Presentation.ViewModels;
+using DevDashboard.Presentation.Views;
+using DevDashboard.Presentation.Views.Dialogs;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;

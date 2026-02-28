@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<winuiex:WindowEx
+    x:Class="DevDashboard.Presentation.Views.Dialogs.HistoryDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:DevDashboard.Presentation.ViewModels"
+    xmlns:winuiex="using:WinUIEx">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Row 0: 타이틀 바 (MainWindow 스타일) -->
+        <Border x:Name="AppTitleBar"
+                Grid.Row="0"
+                Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,0,0,1">
+            <TextBlock x:Name="AppTitleBarText"
+                       FontSize="13" FontWeight="SemiBold"
+                       VerticalAlignment="Center"
+                       Margin="12,0,148,0"/>
+        </Border>
+
+        <!-- Row 1: 내용 -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="16,12,16,0">
+            <StackPanel Spacing="12">
+
+                <!-- 검색 + 추가 버튼 -->
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <AutoSuggestBox
+                        x:Uid="HistorySearchBox"
+                        Grid.Column="0"
+                        QueryIcon="Find"
+                        TextChanged="SearchBox_TextChanged" />
+                    <Button
+                        x:Uid="AddHistoryBtn"
+                        Grid.Column="1"
+                        Click="ToggleAddPanel_Click" />
+                    <Button
+                        x:Uid="Btn_ExportMarkdown"
+                        Grid.Column="2"
+                        Click="Export_Click" />
+                </Grid>
+
+                <!-- 인라인 추가 폼 -->
+                <Border
+                    x:Name="AddPanel"
+                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                    CornerRadius="6"
+                    Padding="16,12"
+                    Visibility="Collapsed">
+                    <StackPanel Spacing="10">
+                        <TextBlock x:Uid="HistoryAddNewHeader" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <DatePicker x:Name="AddDatePicker" HorizontalAlignment="Stretch" />
+                        <TextBox
+                            x:Name="AddTitleBox"
+                            x:Uid="AddTitleBox"
+                            MaxLength="200" />
+                        <TextBox
+                            x:Name="AddDescriptionBox"
+                            x:Uid="AddDescriptionBox"
+                            AcceptsReturn="True"
+                            MinHeight="70"
+                            TextWrapping="Wrap"
+                            ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                        <TextBlock
+                            x:Name="AddErrorText"
+                            Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                            Visibility="Collapsed" />
+                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                            <Button x:Uid="Btn_Cancel" Click="CancelAdd_Click" />
+                            <Button x:Uid="Btn_Save" Style="{StaticResource AccentButtonStyle}" Click="SaveAdd_Click" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 기록 목록 -->
+                <ItemsControl x:Name="GroupList">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:HistoryDateGroup">
+                            <StackPanel Spacing="4" Margin="0,0,0,12">
+                                <!-- 날짜 헤더 -->
+                                <TextBlock
+                                    Text="{x:Bind DateText}"
+                                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                <!-- 항목 목록 -->
+                                <ItemsControl ItemsSource="{x:Bind Entries}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:HistoryEntryViewModel">
+                                            <Border
+                                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="4"
+                                                Padding="12,8"
+                                                Margin="0,0,0,4">
+                                                <Grid ColumnSpacing="8">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0" Spacing="4">
+                                                        <TextBlock
+                                                            Text="{x:Bind Title}"
+                                                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                                        <TextBlock
+                                                            Text="{x:Bind Description}"
+                                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                            TextWrapping="Wrap"
+                                                            Visibility="{Binding HasDescription, Converter={StaticResource BoolToVisibility}}" />
+                                                        <TextBlock
+                                                            Text="{x:Bind CreatedAtText}"
+                                                            FontSize="11"
+                                                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                                    </StackPanel>
+                                                    <Button
+                                                        x:Uid="IconDeleteBtn"
+                                                        Grid.Column="1"
+                                                        Padding="8,4"
+                                                        VerticalAlignment="Top"
+                                                        Tag="{x:Bind}"
+                                                        Click="DeleteEntry_Click">
+                                                        <FontIcon Glyph="&#xE74D;" FontSize="12" />
+                                                    </Button>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- 빈 상태 -->
+                <TextBlock
+                    x:Name="EmptyText"
+                    x:Uid="EmptyHistoryText"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    HorizontalAlignment="Center"
+                    Padding="0,24"
+                    Visibility="Collapsed" />
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Row 2: 버튼 패널 -->
+        <Border
+            Grid.Row="2"
+            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Padding="16,12">
+                <Button x:Uid="Btn_Close" Click="OnClose" />
+            </StackPanel>
+        </Border>
+    </Grid>
+
+</winuiex:WindowEx>
