@@ -78,6 +78,16 @@ public partial class ProjectHistoryDialogViewModel : ObservableObject
         RebuildGroups();
     }
 
+    /// <summary>작업 기록 수정</summary>
+    public void UpdateEntry(HistoryEntryViewModel entryVm, string title, string description, DateTime completedAt)
+    {
+        entryVm.Model.Title = title;
+        entryVm.Model.Description = description;
+        entryVm.Model.CompletedAt = completedAt;
+        MarkCurrentProjectModified();
+        RebuildGroups();
+    }
+
     /// <summary>작업 기록 수정 후 목록 갱신</summary>
     public void RefreshAfterEdit()
     {

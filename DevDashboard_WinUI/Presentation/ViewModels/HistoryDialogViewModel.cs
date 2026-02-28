@@ -43,11 +43,27 @@ public partial class HistoryEntryViewModel : ObservableObject
     /// <summary>상세 정보 존재 여부</summary>
     public bool HasDescription => !string.IsNullOrWhiteSpace(Model.Description);
 
-    /// <summary>상세 정보 표시 가시성 ({x:Bind} 전용 — DataTemplate 내 BoolToVisibility 컨버터 대체)</summary>
-    public Visibility DescriptionVisibility => HasDescription ? Visibility.Visible : Visibility.Collapsed;
+    /// <summary>상세 정보 표시 가시성 (펼쳐진 경우 + 설명이 있는 경우)</summary>
+    public Visibility DescriptionVisibility => (HasDescription && IsExpanded) ? Visibility.Visible : Visibility.Collapsed;
+
+    /// <summary>상세 영역 전체 가시성 (펼쳐진 경우)</summary>
+    public Visibility ExpandedVisibility => IsExpanded ? Visibility.Visible : Visibility.Collapsed;
+
+    /// <summary>펼침/접힘 화살표 글리프 (Segoe MDL2 Assets — ChevronDown / ChevronRight)</summary>
+    public string ExpandChevron => IsExpanded ? "\uE70D" : "\uE76C";
+
+    partial void OnIsExpandedChanged(bool value)
+    {
+        OnPropertyChanged(nameof(DescriptionVisibility));
+        OnPropertyChanged(nameof(ExpandedVisibility));
+        OnPropertyChanged(nameof(ExpandChevron));
+    }
 
     /// <summary>삭제 버튼 툴팁 ({x:Bind} 전용 — DataTemplate 내 x:Uid ToolTipService 패턴 대체)</summary>
     public string DeleteTooltip => LocalizationService.Get("IconDeleteBtn_Tooltip");
+
+    /// <summary>수정 버튼 툴팁 ({x:Bind} 전용)</summary>
+    public string EditTooltip => LocalizationService.Get("IconEditBtn_Tooltip");
 
     public HistoryEntryViewModel(HistoryEntry model)
     {
@@ -97,6 +113,15 @@ public partial class HistoryDialogViewModel : ObservableObject
     public void AddEntry(HistoryEntry entry)
     {
         _allEntries.Add(entry);
+        RebuildGroups();
+    }
+
+    /// <summary>작업 기록 수정</summary>
+    public void UpdateEntry(HistoryEntryViewModel entryVm, string title, string description, DateTime completedAt)
+    {
+        entryVm.Model.Title = title;
+        entryVm.Model.Description = description;
+        entryVm.Model.CompletedAt = completedAt;
         RebuildGroups();
     }
 

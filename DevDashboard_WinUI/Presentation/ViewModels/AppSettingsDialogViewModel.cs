@@ -3,15 +3,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevDashboard.Infrastructure.Services;
 using Microsoft.UI.Xaml;
-using Microsoft.Win32;
+using Windows.ApplicationModel;
 
 namespace DevDashboard.Presentation.ViewModels;
 
 /// <summary>앱 설정 팝업 뷰모델</summary>
 public partial class AppSettingsDialogViewModel : ObservableObject
 {
-    private const string StartupRegistryKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
-    private const string AppName = "DevDashboard";
+    private const string StartupTaskId = "DevDashboardStartup";
 
     public AppSettingsDialogViewModel()
     {
@@ -221,7 +220,6 @@ public partial class AppSettingsDialogViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(settings);
 
-        RunOnStartup = ReadStartupRegistry();
         ShowWorkLogPopupOnTodoComplete = settings.ShowWorkLogPopupOnTodoComplete;
         SelectedThemeModeItem = ThemeModeItems.FirstOrDefault(t => t.Value == settings.ThemeMode)
             ?? ThemeModeItems[0];
@@ -248,7 +246,6 @@ public partial class AppSettingsDialogViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(settings);
 
-        settings.RunOnStartup = RunOnStartup;
         settings.ShowWorkLogPopupOnTodoComplete = ShowWorkLogPopupOnTodoComplete;
         settings.ThemeMode = SelectedThemeModeItem?.Value ?? ThemeMode.Light;
 
@@ -262,7 +259,6 @@ public partial class AppSettingsDialogViewModel : ObservableObject
         settings.Categories.Clear();
         settings.Categories.AddRange(Categories);
 
-        ApplyStartupRegistry(RunOnStartup);
         ApplyTheme(SelectedThemeModeItem?.Value ?? ThemeMode.Light);
     }
 
@@ -280,39 +276,34 @@ public partial class AppSettingsDialogViewModel : ObservableObject
             root.RequestedTheme = theme;
     }
 
-    private static void ApplyStartupRegistry(bool enable)
+    /// <summary>StartupTask API를 통해 자동 실행 상태를 비동기로 읽습니다.</summary>
+    public async Task LoadStartupStateAsync()
     {
         try
         {
-            using var key = Registry.CurrentUser.OpenSubKey(StartupRegistryKey, writable: true);
-            if (key is null) return;
-
-            if (enable)
-            {
-                var exePath = Environment.ProcessPath ?? string.Empty;
-                key.SetValue(AppName, $"\"{exePath}\"");
-            }
-            else
-            {
-                key.DeleteValue(AppName, throwOnMissingValue: false);
-            }
+            var task = await StartupTask.GetAsync(StartupTaskId);
+            RunOnStartup = task.State is StartupTaskState.Enabled or StartupTaskState.EnabledByPolicy;
         }
         catch (Exception)
         {
-            // 레지스트리 접근 실패 — 조용히 처리
+            RunOnStartup = false;
         }
     }
 
-    private static bool ReadStartupRegistry()
+    /// <summary>StartupTask API를 통해 자동 실행 상태를 설정합니다.</summary>
+    public async Task ApplyStartupTaskAsync(bool enable)
     {
         try
         {
-            using var key = Registry.CurrentUser.OpenSubKey(StartupRegistryKey, writable: false);
-            return key?.GetValue(AppName) is not null;
+            var task = await StartupTask.GetAsync(StartupTaskId);
+            if (enable)
+                await task.RequestEnableAsync();
+            else
+                task.Disable();
         }
         catch (Exception)
         {
-            return false;
+            // StartupTask 접근 실패 — 조용히 처리
         }
     }
 }

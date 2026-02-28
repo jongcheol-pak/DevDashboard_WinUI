@@ -37,7 +37,14 @@ public sealed partial class AppSettingsDialog : WindowEx
         RefreshToolList();
         Vm.Tools.CollectionChanged += (_, _) => RefreshToolList();
 
-        Closed += (_, _) => _closedTcs.TrySetResult();
+        Closed += async (_, _) =>
+        {
+            await Vm.ApplyStartupTaskAsync(Vm.RunOnStartup);
+            var settings = new AppSettings();
+            Vm.ApplyTo(settings);
+            ResultSettings = settings;
+            _closedTcs.TrySetResult();
+        };
     }
 
     internal Task ShowAsync()
@@ -51,6 +58,7 @@ public sealed partial class AppSettingsDialog : WindowEx
     {
         if (_initialized) return;
         _initialized = true;
+        await Vm.LoadStartupStateAsync();
         await Vm.CheckLatestVersionAsync();
     }
 
@@ -136,16 +144,4 @@ public sealed partial class AppSettingsDialog : WindowEx
         if (sender is HyperlinkButton { Tag: string url })
             Vm.OpenLicenseUrlCommand.Execute(url);
     }
-
-    // ─── 저장/취소 ───────────────────────────────────────
-
-    private void OnSave(object sender, RoutedEventArgs e)
-    {
-        var settings = new AppSettings();
-        Vm.ApplyTo(settings);
-        ResultSettings = settings;
-        Close();
-    }
-
-    private void OnCancel(object sender, RoutedEventArgs e) => Close();
 }

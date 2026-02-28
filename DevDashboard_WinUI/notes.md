@@ -4,8 +4,11 @@
 
 | 날짜 | 내용 |
 |------|------|
+| 2026-07 | **MSIX StartupTask + LocalSettings 마이그레이션** — 자동 실행: 레지스트리 → `Windows.ApplicationModel.StartupTask` API 전환. 앱 설정 저장: settings.json(AppContext.BaseDirectory) → `ApplicationData.Current.LocalSettings` 전환 |
+| 2026-07 | **저장 경로 마이그레이션** — `AppContext.BaseDirectory`(MSIX 설치폴더, 읽기전용) → `ApplicationData.Current.LocalFolder.Path`로 변경 (settings.json → LocalSettings, projects.db → LocalFolder) |
 | 2026-07 | **ProjectHistoryDialog Closed 예외 미처리 수정** — `Vm.SaveAll()` 실패 시 `_closedTcs.TrySetResult()` 미호출 → 무한 대기 문제 수정. `try/catch/finally`로 항상 TCS 완료 보장 |
 | 2026-07 | **HistoryDialog/ProjectHistoryDialog 목록 미표시 및 팝업 오류 수정** — 중첩 DataTemplate 내 `{Binding HasDescription, Converter={StaticResource BoolToVisibility}}` → `{x:Bind DescriptionVisibility}` 변경 + `ItemsSource` 한 번만 설정, `RefreshList()` 단순화 |
+| 2026-07 | **HistoryDialog 아코디언 UI + 저장 즉시 표시** — 목록 클릭 시 상세 설명 펼침/접힘 구현, 삭제 버튼 Tapped 이벤트 전파 차단, `ExpandedVisibility`·`ExpandChevron` 프로퍼티 추가 |
 | 2026-07 | **HistoryDialog 삭제 버튼 ToolTip 다국어 수정** — DataTemplate 내 `x:Uid=[ToolTipService.ToolTip]` 패턴 → `HistoryEntryViewModel.DeleteTooltip` 프로퍼티 + `{x:Bind DeleteTooltip}` 직접 바인딩으로 변경 (XamlParseException 해결) |
 | 2026-07 | **HistoryDialog/ProjectHistoryDialog 저장 버튼 오류 수정** — `DatePicker.SelectedDate`(존재하지 않는 속성) → XAML `CalendarDatePicker`로 변경, 코드비하인드 `.SelectedDate` → `.Date` 수정 |
 | 2026-07 | **그리드/리스트 뷰 전환 기능 제거** — 헤더 GridViewButton/ListViewButton 삭제, ViewMode enum·AppSettings 프로퍼티·ViewModel 코드 전체 제거 |

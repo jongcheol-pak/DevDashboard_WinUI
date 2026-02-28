@@ -130,6 +130,10 @@
   <data name="NavTools.Content" xml:space="preserve"><value>도구</value></data>
   <data name="NavCode.Content" xml:space="preserve"><value>코드</value></data>
   <data name="NavInfo.Content" xml:space="preserve"><value>정보</value></data>
+  <data name="NavSettingsLabel.Text" xml:space="preserve"><value>설정</value></data>
+  <data name="NavToolsLabel.Text" xml:space="preserve"><value>도구</value></data>
+  <data name="NavCodeLabel.Text" xml:space="preserve"><value>코드</value></data>
+  <data name="NavInfoLabel.Text" xml:space="preserve"><value>정보</value></data>
   <data name="RunOnStartupCheck.Content" xml:space="preserve"><value>시작 시 자동 실행</value></data>
   <data name="TodoPopupCheck.Content" xml:space="preserve"><value>To-Do 완료 시 작업 기록 팝업 표시</value></data>
   <data name="ThemeLabelText.Text" xml:space="preserve"><value>테마</value></data>
@@ -145,6 +149,7 @@
   <data name="OpenSourceLabelText.Text" xml:space="preserve"><value>오픈소스 라이브러리</value></data>
   <!-- 아이콘 버튼 툴팁 (코드비하인드/x:Bind에서 LocalizationService.Get으로 사용 — x:Uid 패턴 사용 금지) -->
   <data name="IconDeleteBtn_Tooltip" xml:space="preserve"><value>삭제</value></data>
+  <data name="IconEditBtn_Tooltip" xml:space="preserve"><value>수정</value></data>
 
   <!-- ===== XAML x:Uid — ProjectSettingsDialog ===== -->
 
@@ -215,6 +220,7 @@
   <data name="HistorySearchBox.PlaceholderText" xml:space="preserve"><value>검색...</value></data>
   <data name="AddHistoryBtn.Content" xml:space="preserve"><value>새 기록 추가</value></data>
   <data name="HistoryAddNewHeader.Text" xml:space="preserve"><value>새 기록 추가</value></data>
+  <data name="HistoryEditHeader" xml:space="preserve"><value>기록 수정</value></data>
   <data name="AddTitleBox.PlaceholderText" xml:space="preserve"><value>제목 (필수)</value></data>
   <data name="AddDescriptionBox.PlaceholderText" xml:space="preserve"><value>상세 설명 (선택)</value></data>
   <data name="EmptyHistoryText.Text" xml:space="preserve"><value>작업 기록이 없습니다.</value></data>

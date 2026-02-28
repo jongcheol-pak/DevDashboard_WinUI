@@ -12,7 +12,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Row 0: 타이틀 바 (MainWindow 스타일) -->
@@ -30,7 +29,7 @@
         <!-- Row 1: 내용 (좌측 탐색 + 우측 콘텐츠) -->
         <Grid Grid.Row="1" Loaded="OnRootLoaded">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="160" />
+                <ColumnDefinition Width="100" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
@@ -42,34 +41,50 @@
                 BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
                 BorderThickness="0,0,1,0">
                 <RadioButton
-                    x:Uid="NavSettings"
                     IsChecked="True"
                     GroupName="SettingsNav"
-                    Style="{StaticResource GroupTabRadioButtonStyle}"
+                    Style="{StaticResource SettingsNavItemStyle}"
                     HorizontalAlignment="Stretch"
                     Checked="Nav_Checked"
-                    Tag="0" />
+                    Tag="0">
+                    <StackPanel Spacing="4" HorizontalAlignment="Center">
+                        <FontIcon Glyph="&#xE713;" FontSize="18" HorizontalAlignment="Center" />
+                        <TextBlock x:Uid="NavSettingsLabel" FontSize="11" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </RadioButton>
                 <RadioButton
-                    x:Uid="NavTools"
                     GroupName="SettingsNav"
-                    Style="{StaticResource GroupTabRadioButtonStyle}"
+                    Style="{StaticResource SettingsNavItemStyle}"
                     HorizontalAlignment="Stretch"
                     Checked="Nav_Checked"
-                    Tag="1" />
+                    Tag="1">
+                    <StackPanel Spacing="4" HorizontalAlignment="Center">
+                        <FontIcon Glyph="&#xEC7A;" FontSize="18" HorizontalAlignment="Center" />
+                        <TextBlock x:Uid="NavToolsLabel" FontSize="11" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </RadioButton>
                 <RadioButton
-                    x:Uid="NavCode"
                     GroupName="SettingsNav"
-                    Style="{StaticResource GroupTabRadioButtonStyle}"
+                    Style="{StaticResource SettingsNavItemStyle}"
                     HorizontalAlignment="Stretch"
                     Checked="Nav_Checked"
-                    Tag="2" />
+                    Tag="2">
+                    <StackPanel Spacing="4" HorizontalAlignment="Center">
+                        <FontIcon Glyph="&#xED0E;" FontSize="18" HorizontalAlignment="Center" />
+                        <TextBlock x:Uid="NavCodeLabel" FontSize="11" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </RadioButton>
                 <RadioButton
-                    x:Uid="NavInfo"
                     GroupName="SettingsNav"
-                    Style="{StaticResource GroupTabRadioButtonStyle}"
+                    Style="{StaticResource SettingsNavItemStyle}"
                     HorizontalAlignment="Stretch"
                     Checked="Nav_Checked"
-                    Tag="3" />
+                    Tag="3">
+                    <StackPanel Spacing="4" HorizontalAlignment="Center">
+                        <FontIcon Glyph="&#xE946;" FontSize="18" HorizontalAlignment="Center" />
+                        <TextBlock x:Uid="NavInfoLabel" FontSize="11" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </RadioButton>
             </StackPanel>
 
             <!-- 우측 콘텐츠 영역 -->
@@ -342,16 +357,6 @@
             </ScrollViewer>
         </Grid>
 
-        <!-- Row 2: 버튼 패널 -->
-        <Border
-            Grid.Row="2"
-            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-            BorderThickness="0,1,0,0">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Padding="16,12">
-                <Button x:Uid="Btn_Save" Click="OnSave" Style="{StaticResource AccentButtonStyle}" />
-                <Button x:Uid="Btn_Cancel" Click="OnCancel" />
-            </StackPanel>
-        </Border>
     </Grid>
 
 </winuiex:WindowEx>

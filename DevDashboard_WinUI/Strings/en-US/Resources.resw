@@ -130,6 +130,10 @@
   <data name="NavTools.Content" xml:space="preserve"><value>Tools</value></data>
   <data name="NavCode.Content" xml:space="preserve"><value>Code</value></data>
   <data name="NavInfo.Content" xml:space="preserve"><value>Info</value></data>
+  <data name="NavSettingsLabel.Text" xml:space="preserve"><value>Settings</value></data>
+  <data name="NavToolsLabel.Text" xml:space="preserve"><value>Tools</value></data>
+  <data name="NavCodeLabel.Text" xml:space="preserve"><value>Code</value></data>
+  <data name="NavInfoLabel.Text" xml:space="preserve"><value>Info</value></data>
   <data name="RunOnStartupCheck.Content" xml:space="preserve"><value>Run on Startup</value></data>
   <data name="TodoPopupCheck.Content" xml:space="preserve"><value>Show work history popup when To-Do completed</value></data>
   <data name="ThemeLabelText.Text" xml:space="preserve"><value>Theme</value></data>
@@ -145,6 +149,7 @@
   <data name="OpenSourceLabelText.Text" xml:space="preserve"><value>Open Source Libraries</value></data>
   <!-- 아이콘 버튼 툴팁 (코드비하인드/x:Bind에서 LocalizationService.Get으로 사용 — x:Uid 패턴 사용 금지) -->
   <data name="IconDeleteBtn_Tooltip" xml:space="preserve"><value>Delete</value></data>
+  <data name="IconEditBtn_Tooltip" xml:space="preserve"><value>Edit</value></data>
 
   <!-- ===== XAML x:Uid — ProjectSettingsDialog ===== -->
 
@@ -215,6 +220,7 @@
   <data name="HistorySearchBox.PlaceholderText" xml:space="preserve"><value>Search...</value></data>
   <data name="AddHistoryBtn.Content" xml:space="preserve"><value>Add New</value></data>
   <data name="HistoryAddNewHeader.Text" xml:space="preserve"><value>Add New Entry</value></data>
+  <data name="HistoryEditHeader" xml:space="preserve"><value>Edit Entry</value></data>
   <data name="AddTitleBox.PlaceholderText" xml:space="preserve"><value>Title (required)</value></data>
   <data name="AddDescriptionBox.PlaceholderText" xml:space="preserve"><value>Description (optional)</value></data>
   <data name="EmptyHistoryText.Text" xml:space="preserve"><value>No work history.</value></data>

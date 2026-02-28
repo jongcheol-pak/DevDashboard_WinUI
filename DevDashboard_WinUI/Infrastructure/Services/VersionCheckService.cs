@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Net.Http;
 using System.Text.Json;
-using Microsoft.Win32;
 
 namespace DevDashboard.Infrastructure.Services;
 
@@ -13,7 +12,6 @@ public static class VersionCheckService
 {
     private const string GitHubOwner = "jongcheol-pak";
     private const string GitHubRepo = "DevDashboard";
-    private const string VersionRegistryPath = @"Software\PJC\DevDashboard";
 
     /// <summary>소켓 고갈 방지를 위해 정적으로 공유하는 HttpClient</summary>
     private static readonly HttpClient _httpClient = new()
@@ -26,11 +24,18 @@ public static class VersionCheckService
         _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("DevDashboard");
     }
 
-    /// <summary>레지스트리에서 현재 설치된 버전을 읽어옵니다.</summary>
+    /// <summary>MSIX 패키지 ID에서 현재 앱 버전을 읽어옵니다.</summary>
     public static string ReadCurrentVersion()
     {
-        using var key = Registry.CurrentUser.OpenSubKey(VersionRegistryPath);
-        return key?.GetValue("Version") as string ?? "0";
+        try
+        {
+            var v = Windows.ApplicationModel.Package.Current.Id.Version;
+            return $"{v.Major}.{v.Minor}.{v.Build}";
+        }
+        catch (Exception)
+        {
+            return "0";
+        }
     }
 
     /// <summary>

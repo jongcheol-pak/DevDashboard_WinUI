@@ -3,57 +3,49 @@ using System.Text.Json;
 namespace DevDashboard.Infrastructure.Services;
 
 /// <summary>
-/// JSON 파일 기반 앱 설정 저장/불러오기 서비스.
-/// 저장 위치: [설치폴더]\settings\settings.json
-/// 파일 손상 또는 부재 시 기본값을 반환합니다.
+/// ApplicationData.Current.LocalSettings 기반 앱 설정 저장/불러오기 서비스.
+/// JSON 문자열로 직렬화하여 LocalSettings에 저장합니다.
+/// 데이터 부재 또는 손상 시 기본값을 반환합니다.
 /// </summary>
 public class JsonStorageService
 {
-    private static readonly string SettingsPath = Path.Combine(
-        AppContext.BaseDirectory,
-        "settings",
-        "settings.json");
+    private const string SettingsKey = "AppSettings";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        WriteIndented = true,
+        WriteIndented = false,
         PropertyNameCaseInsensitive = true,
         Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
     };
 
+    private static Windows.Storage.ApplicationDataContainer LocalSettings =>
+        Windows.Storage.ApplicationData.Current.LocalSettings;
+
     /// <summary>
-    /// 설정 파일을 불러옵니다.
-    /// 파일이 없거나 손상된 경우 기본값을 반환합니다.
+    /// 설정을 불러옵니다.
+    /// 값이 없거나 손상된 경우 기본값을 반환합니다.
     /// </summary>
     public AppSettings Load()
     {
-        if (!File.Exists(SettingsPath))
-            return new AppSettings();
-
         try
         {
-            var json = File.ReadAllText(SettingsPath);
+            if (LocalSettings.Values[SettingsKey] is not string json)
+                return new AppSettings();
+
             return JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? new AppSettings();
         }
         catch (Exception)
         {
-            // 파일 손상 시 기본 설정으로 복구
             return new AppSettings();
         }
     }
 
-    /// <summary>
-    /// 설정을 JSON 파일에 저장합니다.
-    /// 디렉터리가 없으면 자동 생성합니다.
-    /// </summary>
+    /// <summary>설정을 LocalSettings에 저장합니다.</summary>
     public void Save(AppSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
 
-        var directory = Path.GetDirectoryName(SettingsPath)!;
-        Directory.CreateDirectory(directory);
-
         var json = JsonSerializer.Serialize(settings, JsonOptions);
-        File.WriteAllText(SettingsPath, json, System.Text.Encoding.UTF8);
+        LocalSettings.Values[SettingsKey] = json;
     }
 }

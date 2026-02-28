@@ -2,6 +2,7 @@ using DevDashboard.Infrastructure.Services;
 using DevDashboard.Presentation.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Windows.Storage;
 using Windows.Storage.Pickers;
@@ -18,7 +19,6 @@ public sealed partial class HistoryDialog : WindowEx
 
     private HistoryDialogViewModel Vm { get; }
     private readonly TaskCompletionSource _closedTcs = new();
-
     public HistoryDialog(HistoryDialogViewModel vm)
     {
         Vm = vm;
@@ -76,6 +76,42 @@ public sealed partial class HistoryDialog : WindowEx
         }
     }
 
+    private async void EditEntry_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: HistoryEntryViewModel entryVm }) return;
+
+        var titleBox = new TextBox { Text = entryVm.Model.Title, MaxLength = 200 };
+        var descBox = new TextBox
+        {
+            Text = entryVm.Model.Description,
+            AcceptsReturn = true,
+            MinHeight = 70,
+            TextWrapping = TextWrapping.Wrap
+        };
+        ScrollViewer.SetVerticalScrollBarVisibility(descBox, ScrollBarVisibility.Auto);
+
+        var panel = new StackPanel { Spacing = 10 };
+        panel.Children.Add(titleBox);
+        panel.Children.Add(descBox);
+
+        var dialog = new ContentDialog
+        {
+            Title = LocalizationService.Get("HistoryEditHeader"),
+            Content = panel,
+            PrimaryButtonText = LocalizationService.Get("Btn_Save.Content"),
+            CloseButtonText = LocalizationService.Get("Btn_Cancel.Content"),
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = Content.XamlRoot
+        };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+
+        var title = titleBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(title)) return;
+
+        Vm.UpdateEntry(entryVm, title, descBox.Text.Trim(), entryVm.Model.CompletedAt);
+    }
+
     private void SaveAdd_Click(object sender, RoutedEventArgs e)
     {
         var title = AddTitleBox.Text.Trim();
@@ -89,8 +125,8 @@ public sealed partial class HistoryDialog : WindowEx
         AddErrorText.Visibility = Visibility.Collapsed;
         var date = AddDatePicker.Date?.Date ?? DateTime.Today;
         var desc = AddDescriptionBox.Text.Trim();
-        var entry = new HistoryEntry { Title = title, Description = desc, CompletedAt = date };
-        Vm.AddEntry(entry);
+
+        Vm.AddEntry(new HistoryEntry { Title = title, Description = desc, CompletedAt = date });
         AddPanel.Visibility = Visibility.Collapsed;
     }
 
@@ -103,6 +139,25 @@ public sealed partial class HistoryDialog : WindowEx
     {
         if (sender is Button { Tag: HistoryEntryViewModel entryVm })
             Vm.DeleteEntryCommand.Execute(entryVm);
+    }
+
+    // 항목 Border 클릭 → 펼침/접힘 토글
+    private void EntryBorder_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        if (sender is Border { Tag: HistoryEntryViewModel entryVm })
+            entryVm.ToggleExpandCommand.Execute(null);
+    }
+
+    // 수정 버튼 Tapped → 부모 Border의 Tapped 이벤트 전파 차단
+    private void EditBtn_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        e.Handled = true;
+    }
+
+    // 삭제 버튼 Tapped → 부모 Border의 Tapped 이벤트 전파 차단
+    private void DeleteBtn_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        e.Handled = true;
     }
 
     private async void Export_Click(object sender, RoutedEventArgs e)

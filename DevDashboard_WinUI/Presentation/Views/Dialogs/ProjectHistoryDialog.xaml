@@ -111,37 +111,65 @@
                                                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="4"
-                                                Padding="12,8"
-                                                Margin="0,0,0,4">
-                                                <Grid ColumnSpacing="8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <StackPanel Grid.Column="0" Spacing="4">
+                                                Margin="0,0,0,4"
+                                                Tapped="EntryBorder_Tapped"
+                                                Tag="{x:Bind}">
+                                                <StackPanel>
+                                                    <!-- 항상 표시: 제목 행 -->
+                                                    <Grid Padding="12,8" ColumnSpacing="4">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <FontIcon
+                                                            Grid.Column="0"
+                                                            Glyph="{x:Bind ExpandChevron, Mode=OneWay}"
+                                                            FontSize="11"
+                                                            VerticalAlignment="Center" />
                                                         <TextBlock
+                                                            Grid.Column="1"
                                                             Text="{x:Bind Title}"
-                                                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                                            Style="{StaticResource BodyStrongTextBlockStyle}"
+                                                            VerticalAlignment="Center" />
+                                                        <Button
+                                                            Grid.Column="2"
+                                                            Padding="8,4"
+                                                            VerticalAlignment="Center"
+                                                            ToolTipService.ToolTip="{x:Bind EditTooltip}"
+                                                            Tag="{x:Bind}"
+                                                            Tapped="EditBtn_Tapped"
+                                                            Click="EditEntry_Click">
+                                                            <FontIcon Glyph="&#xE70F;" FontSize="12" />
+                                                        </Button>
+                                                        <Button
+                                                            Grid.Column="3"
+                                                            Padding="8,4"
+                                                            VerticalAlignment="Center"
+                                                            ToolTipService.ToolTip="{x:Bind DeleteTooltip}"
+                                                            Tag="{x:Bind}"
+                                                            Tapped="DeleteBtn_Tapped"
+                                                            Click="DeleteEntry_Click">
+                                                            <FontIcon Glyph="&#xE74D;" FontSize="12" />
+                                                        </Button>
+                                                    </Grid>
+                                                    <!-- 펼쳐진 경우: 상세 영역 -->
+                                                    <StackPanel
+                                                        Padding="36,0,12,8"
+                                                        Spacing="4"
+                                                        Visibility="{x:Bind ExpandedVisibility, Mode=OneWay}">
                                                         <TextBlock
                                                             Text="{x:Bind Description}"
                                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                             TextWrapping="Wrap"
-                                                            Visibility="{x:Bind DescriptionVisibility}" />
+                                                            Visibility="{x:Bind DescriptionVisibility, Mode=OneWay}" />
                                                         <TextBlock
                                                             Text="{x:Bind CreatedAtText}"
                                                             FontSize="11"
                                                             Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                                                     </StackPanel>
-                                                    <Button
-                                                        x:Uid="IconDeleteBtn"
-                                                        Grid.Column="1"
-                                                        Padding="8,4"
-                                                        VerticalAlignment="Top"
-                                                        Tag="{x:Bind}"
-                                                        Click="DeleteEntry_Click">
-                                                        <FontIcon Glyph="&#xE74D;" FontSize="12" />
-                                                    </Button>
-                                                </Grid>
+                                                </StackPanel>
                                             </Border>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>

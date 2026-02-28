@@ -1,14 +1,11 @@
 namespace DevDashboard.Domain.Entities;
 
 /// <summary>
-/// 앱 전체 설정 루트 엔티티 — settings.json 최상위 객체.
+/// 앱 전체 설정 루트 엔티티 — ApplicationData.LocalSettings에 저장됩니다.
 /// ProjectGroup, ExternalTool 등 자식 엔티티를 소유하는 Aggregate Root입니다.
 /// </summary>
 public class AppSettings
 {
-    /// <summary>Windows 부팅 시 자동 실행 여부</summary>
-    public bool RunOnStartup { get; set; }
-
     /// <summary>앱 테마 설정 (Light / Dark / System)</summary>
     public ThemeMode ThemeMode { get; set; } = ThemeMode.System;
 

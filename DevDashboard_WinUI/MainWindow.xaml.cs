@@ -37,8 +37,9 @@ public sealed partial class MainWindow : WindowEx
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
 
-        // 초기 창 크기
+        // 초기 창 크기 및 위치
         AppWindow.Resize(new Windows.Graphics.SizeInt32(1280, 800));
+        this.CenterOnScreen();
 
         RootGrid.Loaded += OnRootGridLoaded;
         Closed += OnWindowClosed;

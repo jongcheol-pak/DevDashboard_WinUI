@@ -4,20 +4,19 @@ namespace DevDashboard.Infrastructure.Persistence;
 
 /// <summary>
 /// SQLite 데이터베이스 초기화 및 연결 관리.
-/// 저장 위치: [설치폴더]\settings\projects.db
+/// 저장 위치: %LOCALAPPDATA%\Packages\[PackageFamilyName]\LocalState\projects.db
 /// 테이블 생성, WAL 모드 활성화, 스키마 마이그레이션을 담당합니다.
 /// </summary>
 public sealed class DatabaseContext
 {
-    private static readonly string DbDirectory = Path.Combine(AppContext.BaseDirectory, "settings");
-
-    private static readonly string DbPath = Path.Combine(DbDirectory, "projects.db");
+    private static readonly string DbPath = Path.Combine(
+        Windows.Storage.ApplicationData.Current.LocalFolder.Path,
+        "projects.db");
 
     private readonly string _connectionString;
 
     public DatabaseContext()
     {
-        Directory.CreateDirectory(DbDirectory);
         // Foreign Keys=True: 연결마다 PRAGMA foreign_keys = ON 자동 적용
         _connectionString = $"Data Source={DbPath};Foreign Keys=True";
         InitializeDatabase();

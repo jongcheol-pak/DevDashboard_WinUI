@@ -3,6 +3,81 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!-- ===== 설정 다이얼로그 세로 네비게이션 스타일 ===== -->
+    <!--
+        RadioButton은 내부적으로 CommonStates / CheckStates 두 그룹을 독립 호출한다.
+        하나의 그룹에 복합 상태(CheckedPointerOver 등)를 정의하면 GoToState("Checked")가
+        GoToState("PointerOver")를 덮어써 hover/click 이벤트가 무시되는 것처럼 보이는 버그가 발생.
+        → CheckedBackground(CheckStates 담당) + HoverBackground(CommonStates 담당) 요소로 분리.
+    -->
+    <Style x:Key="SettingsNavItemStyle" TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0,10" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Grid Background="Transparent">
+                        <!-- CheckStates 그룹이 제어하는 선택 배경 -->
+                        <Border x:Name="CheckedBackground"
+                                Background="Transparent"
+                                CornerRadius="6" />
+                        <!-- CommonStates 그룹이 제어하는 호버/프레스 오버레이 -->
+                        <Border x:Name="HoverBackground"
+                                Background="Transparent"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Foreground="{TemplateBinding Foreground}"
+                                              FontSize="{TemplateBinding FontSize}" />
+                        </Border>
+                        <!-- CheckStates 그룹이 제어하는 선택 인디케이터 -->
+                        <Rectangle x:Name="ActiveIndicator"
+                                   Width="3" Height="18"
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Center"
+                                   RadiusX="1.5" RadiusY="1.5"
+                                   Fill="Transparent" />
+                        <VisualStateManager.VisualStateGroups>
+                            <!-- 포인터 상태: CheckStates와 독립적으로 동작 -->
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="HoverBackground.Background"
+                                                Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="HoverBackground.Background"
+                                                Value="{ThemeResource SubtleFillColorTertiaryBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Disabled" />
+                            </VisualStateGroup>
+                            <!-- 선택 상태: CommonStates와 독립적으로 동작 -->
+                            <VisualStateGroup x:Name="CheckStates">
+                                <VisualState x:Name="Checked">
+                                    <VisualState.Setters>
+                                        <Setter Target="CheckedBackground.Background"
+                                                Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
+                                        <Setter Target="ActiveIndicator.Fill"
+                                                Value="{ThemeResource AccentFillColorDefaultBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Unchecked" />
+                                <VisualState x:Name="Indeterminate" />
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ===== 그룹 탭 RadioButton 스타일 ===== -->
     <Style x:Key="GroupTabRadioButtonStyle" TargetType="RadioButton">
         <Setter Property="Background" Value="Transparent" />
