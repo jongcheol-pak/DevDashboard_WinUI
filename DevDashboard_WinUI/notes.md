@@ -4,7 +4,15 @@
 
 | 날짜 | 내용 |
 |------|------|
-| 2026-07 | **ProjectSettingsDialog 아이콘 미리보기 추가** — ProjIconLabel 위에 Border+Image 컨트롤 추가, 경로가 비어있으면 숨김, ImagePathToSource/StringNotEmptyToVisibility 컨버터 사용 |
+| 2026-07 | **ProjectHistoryDialog Closed 예외 미처리 수정** — `Vm.SaveAll()` 실패 시 `_closedTcs.TrySetResult()` 미호출 → 무한 대기 문제 수정. `try/catch/finally`로 항상 TCS 완료 보장 |
+| 2026-07 | **HistoryDialog/ProjectHistoryDialog 목록 미표시 및 팝업 오류 수정** — 중첩 DataTemplate 내 `{Binding HasDescription, Converter={StaticResource BoolToVisibility}}` → `{x:Bind DescriptionVisibility}` 변경 + `ItemsSource` 한 번만 설정, `RefreshList()` 단순화 |
+| 2026-07 | **HistoryDialog 삭제 버튼 ToolTip 다국어 수정** — DataTemplate 내 `x:Uid=[ToolTipService.ToolTip]` 패턴 → `HistoryEntryViewModel.DeleteTooltip` 프로퍼티 + `{x:Bind DeleteTooltip}` 직접 바인딩으로 변경 (XamlParseException 해결) |
+| 2026-07 | **HistoryDialog/ProjectHistoryDialog 저장 버튼 오류 수정** — `DatePicker.SelectedDate`(존재하지 않는 속성) → XAML `CalendarDatePicker`로 변경, 코드비하인드 `.SelectedDate` → `.Date` 수정 |
+| 2026-07 | **그리드/리스트 뷰 전환 기능 제거** — 헤더 GridViewButton/ListViewButton 삭제, ViewMode enum·AppSettings 프로퍼티·ViewModel 코드 전체 제거 |
+| 2026-07 | **DashboardView 개발 도구 아이콘 표시 방식 변경** — `&#xEC7A;` 항상 표시(보조색), `&#xE7BA;` 경고 아이콘을 도구 파일 미존재 시 추가 표시 (cmd/powershell 제외) |
+| 2026-07 | **Git 버튼 미표시 버그 수정** — MainViewModel.AddOrUpdateProject() 새 카드 추가 분기에서 StartGitStatusLoad() + StartIconLoad() 누락 수정 |
+| 2026-07 | **DashboardView Git 버튼 아이콘 교체** — FontIcon(Segoe MDL2 Assets) → GitHub 공식 SVG Path 요소로 변경 |
+| 2026-07 | **ProjectSettingsDialog 아이콘 미리보기 추가**
 | 2026-07 | **ProjectSettingsDialog 버그 수정** — 수정 모드에서 자기 자신 이름 중복 체크 문제 수정(SetExistingNames 호출 순서), 유효성 오류 메시지 ContentDialog 팝업으로 변경 |
 | 2026-07 | **Dialog 타이틀 바 스타일 통일** — 9개 다이얼로그에 AppTitleBar Border(40px) 추가, ExtendsContentIntoTitleBar + SetTitleBar 적용, MainWindow 스타일 통일 |
 | 2026-07 | **Dialog 모달 동작 추가** — DialogWindowHost.Show()에서 소유자 창 EnableWindow(false), 닫힐 때 EnableWindow(true) + SetForegroundWindow 복원 |
@@ -32,6 +40,8 @@
 - `DialogWindowHost.Show(dialog, w, h)`: 창 속성 설정 후 `Activate()` 호출 순서 필수
 - **WinUI 3 Window.Title은 x:Uid로 설정 불가** — `Window.Title`은 CLR 속성으로 x:Uid DependencyProperty 할당 메커니즘 미지원 → `XamlParseException` 발생. Dialog Title은 코드비하인드에서 `LocalizationService.Get("욬XxxDialogTitle")`로 설정
 - `ContentDialog`는 `App.MainWindow!.Content.XamlRoot` 사용 (DialogService, 오류 메시지용)
+- **중첩 DataTemplate 내 `{Binding ..., Converter={StaticResource ...}}`는 리소스 조회 실패 위험** — `x:DataType` 지정 DataTemplate에서는 `{x:Bind ComputedProperty}` 패턴 사용 (ViewModel에 `Visibility` 계산 속성 추가)
+- `ObservableCollection`이 `ItemsControl.ItemsSource`에 연결된 경우 `Clear()` + `Add()` 만으로 자동 갱신됨 — ItemsSource 재할당(null → 컬렉션) 불필요
 
 ## 상세 로그 링크
 

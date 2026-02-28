@@ -46,9 +46,6 @@ public partial class MainViewModel : ObservableObject
     private SortOrder _currentSortOrder = SortOrder.Name;
 
     [ObservableProperty]
-    private ViewMode _viewMode = ViewMode.Grid;
-
-    [ObservableProperty]
     private int _projectCount;
 
     // --- 최신 버전 확인 ---
@@ -100,7 +97,6 @@ public partial class MainViewModel : ObservableObject
         _suppressReactiveUpdates = true;
         try
         {
-            ViewMode = _settings.ViewMode;
             CurrentSortOrder = _settings.SortOrder;
 
             if (_settings.Groups.Count == 0)
@@ -233,7 +229,6 @@ public partial class MainViewModel : ObservableObject
     {
         _settings.Groups = [.. Groups];
         _settings.SortOrder = CurrentSortOrder;
-        _settings.ViewMode = ViewMode;
         _settings.SelectedGroupId = SelectedGroupId;
         _storageService.Save(_settings);
     }
@@ -434,7 +429,10 @@ public partial class MainViewModel : ObservableObject
                 return;
             }
 
-            AddCardInternal(new ProjectCardViewModel(item, GetTools(), _projectRepository, _settings));
+            var newCard = new ProjectCardViewModel(item, GetTools(), _projectRepository, _settings);
+            AddCardInternal(newCard);
+            newCard.StartIconLoad();
+            newCard.StartGitStatusLoad();
         }
 
         ApplyFilterAndSort();
@@ -489,13 +487,6 @@ public partial class MainViewModel : ObservableObject
 
     [RelayCommand]
     private void RequestAddProject() => AddProjectRequested?.Invoke(this, EventArgs.Empty);
-
-    [RelayCommand]
-    private void ToggleViewMode()
-    {
-        ViewMode = ViewMode == ViewMode.Grid ? ViewMode.List : ViewMode.Grid;
-        SaveSettings();
-    }
 
     [RelayCommand]
     private void SetSortOrder(SortOrder order)

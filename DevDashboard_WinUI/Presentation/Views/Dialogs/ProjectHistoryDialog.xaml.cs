@@ -35,14 +35,26 @@ public sealed partial class ProjectHistoryDialog : WindowEx
         var manager = WindowManager.Get(this);
         manager.MinWidth = MinW;
 
+        GroupList.ItemsSource = Vm.DateGroups;
         Vm.PropertyChanged += (_, _) => RefreshList();
         RefreshList();
 
         // 창 닫힐 때 SaveAll 호출 후 Task 완료
+        // SaveAll 실패 시에도 _closedTcs.TrySetResult()가 반드시 호출되도록 finally 보장
         Closed += (_, _) =>
         {
-            Vm.SaveAll();
-            _closedTcs.TrySetResult();
+            try
+            {
+                Vm.SaveAll();
+            }
+            catch (Exception ex)
+            {
+                _ = DialogService.ShowErrorAsync(ex.Message, LocalizationService.Get("SaveError"));
+            }
+            finally
+            {
+                _closedTcs.TrySetResult();
+            }
         };
     }
 
@@ -52,10 +64,9 @@ public sealed partial class ProjectHistoryDialog : WindowEx
         return _closedTcs.Task;
     }
 
+    // ObservableCollection이 CollectionChanged로 자동 갱신하므로 ItemsSource 재할당 불필요
     private void RefreshList()
     {
-        GroupList.ItemsSource = null;
-        GroupList.ItemsSource = Vm.DateGroups;
         EmptyText.Visibility = !Vm.HasEntries ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -75,7 +86,7 @@ public sealed partial class ProjectHistoryDialog : WindowEx
             AddTitleBox.Text = string.Empty;
             AddDescriptionBox.Text = string.Empty;
             AddErrorText.Visibility = Visibility.Collapsed;
-            AddDatePicker.SelectedDate = DateTimeOffset.Now;
+            AddDatePicker.Date = DateTimeOffset.Now;
         }
     }
 
@@ -90,7 +101,7 @@ public sealed partial class ProjectHistoryDialog : WindowEx
         }
 
         AddErrorText.Visibility = Visibility.Collapsed;
-        var date = AddDatePicker.SelectedDate?.Date ?? DateTime.Today;
+        var date = AddDatePicker.Date?.Date ?? DateTime.Today;
         var desc = AddDescriptionBox.Text.Trim();
         var entry = new HistoryEntry { Title = title, Description = desc, CompletedAt = date };
         Vm.AddEntry(entry);

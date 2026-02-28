@@ -15,9 +15,6 @@ public class AppSettings
     /// <summary>카드 목록 정렬 기준</summary>
     public SortOrder SortOrder { get; set; } = SortOrder.Name;
 
-    /// <summary>대시보드 뷰 모드 (Grid / List)</summary>
-    public ViewMode ViewMode { get; set; } = ViewMode.Grid;
-
     /// <summary>프로젝트 그룹 목록</summary>
     public List<ProjectGroup> Groups { get; set; } = [];
 

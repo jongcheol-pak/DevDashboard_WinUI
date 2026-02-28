@@ -60,7 +60,7 @@
                     Visibility="Collapsed">
                     <StackPanel Spacing="10">
                         <TextBlock x:Uid="HistoryAddNewHeader" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                        <DatePicker x:Name="AddDatePicker" HorizontalAlignment="Stretch" />
+                        <CalendarDatePicker x:Name="AddDatePicker" HorizontalAlignment="Stretch" />
                         <TextBox
                             x:Name="AddTitleBox"
                             x:Uid="AddTitleBox"
@@ -117,17 +117,17 @@
                                                             Text="{x:Bind Description}"
                                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                             TextWrapping="Wrap"
-                                                            Visibility="{Binding HasDescription, Converter={StaticResource BoolToVisibility}}" />
+                                                            Visibility="{x:Bind DescriptionVisibility}" />
                                                         <TextBlock
                                                             Text="{x:Bind CreatedAtText}"
                                                             FontSize="11"
                                                             Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                                                     </StackPanel>
                                                     <Button
-                                                        x:Uid="IconDeleteBtn"
                                                         Grid.Column="1"
                                                         Padding="8,4"
                                                         VerticalAlignment="Top"
+                                                        ToolTipService.ToolTip="{x:Bind DeleteTooltip}"
                                                         Tag="{x:Bind}"
                                                         Click="DeleteEntry_Click">
                                                         <FontIcon Glyph="&#xE74D;" FontSize="12" />

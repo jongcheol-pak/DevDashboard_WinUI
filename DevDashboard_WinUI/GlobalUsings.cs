@@ -9,7 +9,7 @@ global using DevDashboard.Domain.Entities;
 // 도메인 값 객체 (ProjectGroup, GitFileStatus 등)
 global using DevDashboard.Domain.ValueObjects;
 
-// 도메인 열거형 (SortOrder, ViewMode, ThemeMode 등)
+// 도메인 열거형 (SortOrder, ThemeMode 등)
 global using DevDashboard.Domain.Enums;
 
 // 도메인 리포지토리 인터페이스 (IProjectRepository)

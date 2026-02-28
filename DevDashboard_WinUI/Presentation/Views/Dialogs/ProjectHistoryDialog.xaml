@@ -53,10 +53,7 @@
                         x:Uid="AddProjectHistoryBtn"
                         Grid.Column="1"
                         Click="ToggleAddPanel_Click" />
-                    <Button
-                        x:Uid="Btn_ExportMarkdown"
-                        Grid.Column="2"
-                        Click="Export_Click" />
+                  
                 </Grid>
 
                 <!-- 검색 -->
@@ -74,7 +71,7 @@
                     Visibility="Collapsed">
                     <StackPanel Spacing="10">
                         <TextBlock x:Uid="ProjHistAddNewHeader" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                        <DatePicker x:Name="AddDatePicker" HorizontalAlignment="Stretch" />
+                        <CalendarDatePicker x:Name="AddDatePicker" HorizontalAlignment="Stretch" />
                         <TextBox
                             x:Name="AddTitleBox"
                             x:Uid="ProjHistTitleBox"
@@ -129,7 +126,7 @@
                                                             Text="{x:Bind Description}"
                                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                             TextWrapping="Wrap"
-                                                            Visibility="{Binding HasDescription, Converter={StaticResource BoolToVisibility}}" />
+                                                            Visibility="{x:Bind DescriptionVisibility}" />
                                                         <TextBlock
                                                             Text="{x:Bind CreatedAtText}"
                                                             FontSize="11"
@@ -171,9 +168,26 @@
             Grid.Row="2"
             BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
             BorderThickness="0,1,0,0">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Padding="16,12">
-                <Button x:Uid="Btn_Close" Click="OnClose" />
-            </StackPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Spacing="8" Padding="16,12">
+                    <Button
+      Grid.Column="2"
+      Click="Export_Click" >
+                        <FontIcon Glyph="&#xE896;" FontSize="14"
+              Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                    </Button>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="8" Padding="16,12">
+                    <Button x:Uid="Btn_Close" Click="OnClose" />
+                </StackPanel>
+            </Grid>
+            
         </Border>
     </Grid>
 

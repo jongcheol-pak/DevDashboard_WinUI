@@ -64,20 +64,6 @@
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
                             Spacing="4">
 
-                    <!-- 그리드 뷰 버튼 -->
-                    <Button x:Name="GridViewButton"
-                            Width="36" Height="36" Padding="0"
-                            Click="GridViewButton_Click">
-                        <FontIcon Glyph="&#xF0E2;" FontSize="16" />
-                    </Button>
-
-                    <!-- 리스트 뷰 버튼 -->
-                    <Button x:Name="ListViewButton"
-                            Width="36" Height="36" Padding="0"
-                            Click="ListViewButton_Click">
-                        <FontIcon Glyph="&#xE8FD;" FontSize="16" />
-                    </Button>
-
                     <!-- 정렬 버튼 -->
                     <Button x:Name="SortButton"
                             Width="36" Height="36" Padding="0">

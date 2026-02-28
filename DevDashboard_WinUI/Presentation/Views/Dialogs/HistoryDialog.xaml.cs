@@ -37,6 +37,7 @@ public sealed partial class HistoryDialog : WindowEx
         SetTitleBar(AppTitleBar);
         AppTitleBarText.Text = Title;
 
+        GroupList.ItemsSource = Vm.DateGroups;
         Vm.PropertyChanged += (_, _) => RefreshList();
         RefreshList();
 
@@ -49,10 +50,9 @@ public sealed partial class HistoryDialog : WindowEx
         return _closedTcs.Task;
     }
 
+    // ObservableCollection이 CollectionChanged로 자동 갱신하므로 ItemsSource 재할당 불필요
     private void RefreshList()
     {
-        GroupList.ItemsSource = null;
-        GroupList.ItemsSource = Vm.DateGroups;
         EmptyText.Visibility = !Vm.HasEntries ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -72,7 +72,7 @@ public sealed partial class HistoryDialog : WindowEx
             AddTitleBox.Text = string.Empty;
             AddDescriptionBox.Text = string.Empty;
             AddErrorText.Visibility = Visibility.Collapsed;
-            AddDatePicker.SelectedDate = DateTimeOffset.Now;
+            AddDatePicker.Date = DateTimeOffset.Now;
         }
     }
 
@@ -87,7 +87,7 @@ public sealed partial class HistoryDialog : WindowEx
         }
 
         AddErrorText.Visibility = Visibility.Collapsed;
-        var date = AddDatePicker.SelectedDate?.Date ?? DateTime.Today;
+        var date = AddDatePicker.Date?.Date ?? DateTime.Today;
         var desc = AddDescriptionBox.Text.Trim();
         var entry = new HistoryEntry { Title = title, Description = desc, CompletedAt = date };
         Vm.AddEntry(entry);

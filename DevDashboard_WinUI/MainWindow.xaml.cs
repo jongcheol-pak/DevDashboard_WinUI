@@ -96,8 +96,6 @@ public sealed partial class MainWindow : WindowEx
     /// 코드비하인드에서 LocalizationService로 직접 설정합니다.</summary>
     private void ApplyToolTips()
     {
-        ToolTipService.SetToolTip(GridViewButton, LocalizationService.Get("ToolTip_GridView"));
-        ToolTipService.SetToolTip(ListViewButton, LocalizationService.Get("ToolTip_ListView"));
         ToolTipService.SetToolTip(SortButton, LocalizationService.Get("ToolTip_Sort"));
         ToolTipService.SetToolTip(AllHistoryButton, LocalizationService.Get("ToolTip_AllHistory"));
         ToolTipService.SetToolTip(AppSettingsButton, LocalizationService.Get("ToolTip_AppSettings"));
@@ -141,20 +139,6 @@ public sealed partial class MainWindow : WindowEx
 
         firstCard.OpenInDevToolCommand.Execute(null);
         e.Handled = true;
-    }
-
-    // ─── 뷰 모드 ────────────────────────────────────────────────────────
-
-    private void GridViewButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (_viewModel?.ViewMode != ViewMode.Grid)
-            _viewModel?.ToggleViewModeCommand.Execute(null);
-    }
-
-    private void ListViewButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (_viewModel?.ViewMode != ViewMode.List)
-            _viewModel?.ToggleViewModeCommand.Execute(null);
     }
 
     // ─── 그룹 탭 ────────────────────────────────────────────────────────

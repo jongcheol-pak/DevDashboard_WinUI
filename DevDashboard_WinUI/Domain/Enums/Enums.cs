@@ -13,16 +13,6 @@ public enum SortOrder
     CreatedAt
 }
 
-/// <summary>대시보드 뷰 모드</summary>
-public enum ViewMode
-{
-    /// <summary>격자 뷰</summary>
-    Grid,
-
-    /// <summary>목록 뷰</summary>
-    List
-}
-
 /// <summary>앱 테마 모드</summary>
 public enum ThemeMode
 {

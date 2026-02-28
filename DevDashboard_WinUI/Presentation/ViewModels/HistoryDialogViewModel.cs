@@ -2,6 +2,8 @@
 using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DevDashboard.Infrastructure.Services;
+using Microsoft.UI.Xaml;
 
 namespace DevDashboard.Presentation.ViewModels;
 
@@ -40,6 +42,12 @@ public partial class HistoryEntryViewModel : ObservableObject
 
     /// <summary>상세 정보 존재 여부</summary>
     public bool HasDescription => !string.IsNullOrWhiteSpace(Model.Description);
+
+    /// <summary>상세 정보 표시 가시성 ({x:Bind} 전용 — DataTemplate 내 BoolToVisibility 컨버터 대체)</summary>
+    public Visibility DescriptionVisibility => HasDescription ? Visibility.Visible : Visibility.Collapsed;
+
+    /// <summary>삭제 버튼 툴팁 ({x:Bind} 전용 — DataTemplate 내 x:Uid ToolTipService 패턴 대체)</summary>
+    public string DeleteTooltip => LocalizationService.Get("IconDeleteBtn_Tooltip");
 
     public HistoryEntryViewModel(HistoryEntry model)
     {

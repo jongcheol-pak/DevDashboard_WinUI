@@ -143,8 +143,8 @@
   <data name="CategoryDescText.Text" xml:space="preserve"><value>사용자 정의 카테고리 (기본 카테고리는 변경 불가)</value></data>
   <data name="CategoryInputBox.PlaceholderText" xml:space="preserve"><value>새 카테고리 입력...</value></data>
   <data name="OpenSourceLabelText.Text" xml:space="preserve"><value>오픈소스 라이브러리</value></data>
-  <!-- 아이콘 버튼 툴팁 (Content 없음 — FontIcon 덮어쓰기 방지) -->
-  <data name="IconDeleteBtn.[ToolTipService.ToolTip]" xml:space="preserve"><value>삭제</value></data>
+  <!-- 아이콘 버튼 툴팁 (코드비하인드/x:Bind에서 LocalizationService.Get으로 사용 — x:Uid 패턴 사용 금지) -->
+  <data name="IconDeleteBtn_Tooltip" xml:space="preserve"><value>삭제</value></data>
 
   <!-- ===== XAML x:Uid — ProjectSettingsDialog ===== -->
 
