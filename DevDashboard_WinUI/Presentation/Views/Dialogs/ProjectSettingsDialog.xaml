@@ -6,6 +6,7 @@
     xmlns:vm="using:DevDashboard.Presentation.ViewModels"
     xmlns:models="using:DevDashboard.Domain.Entities"
     xmlns:vo="using:DevDashboard.Domain.ValueObjects"
+    MinWidth="600" MinHeight="600"
     xmlns:winuiex="using:WinUIEx">
 
     <Grid>
@@ -138,20 +139,27 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBox
                                 x:Uid="ProjPathBox"
+                                IsReadOnly="True"
                                 Grid.Column="0"
                                 Text="{x:Bind Vm.Path, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                            <Button
-                                x:Uid="ProjPathFolderBtn"
-                                Grid.Column="1"
-                                Command="{x:Bind Vm.BrowseFolderCommand}" />
-                            <Button
-                                x:Uid="ProjPathFileBtn"
-                                Grid.Column="2"
-                                Command="{x:Bind Vm.BrowseFileCommand}" />
+
+
+                            <!-- 폴더 / 파일 선택 버튼 -->
+                            <Button Grid.Column="1"  Width="36" Height="36" Padding="0">
+                                <Button.Flyout>
+                                    <MenuFlyout>
+                                        <MenuFlyoutItem x:Uid="ProjPathFolderBtn"
+                                                        Command="{x:Bind Vm.BrowseFolderCommand}" />
+
+                                        <MenuFlyoutItem x:Uid="ProjPathFileBtn"
+                               Command="{x:Bind Vm.BrowseFileCommand}" />
+                                    </MenuFlyout>
+                                </Button.Flyout>
+                                <FontIcon Glyph="&#xE712;" FontSize="16" />
+                            </Button>
                         </Grid>
                     </StackPanel>
                     <StackPanel Spacing="4">
@@ -177,16 +185,16 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <!-- 아이콘 이미지 미리보기 -->
-                        <Border
-                            Grid.Column="0"
-     Width="48" Height="48"
-     CornerRadius="8"
-     HorizontalAlignment="Left"
-     Visibility="{Binding IconPath, Converter={StaticResource StringNotEmptyToVisibility}}">
-                            <Image
-         Source="{Binding IconPath, Converter={StaticResource ImagePathToSource}}"
-         Stretch="Uniform" />
-                        </Border>
+                        <Grid Grid.Column="0" Width="48" Height="48">
+                            <FontIcon Glyph="&#xE91B;" FontSize="24"
+                                      Visibility="{Binding IconPath, Converter={StaticResource StringEmptyToVisibility}}" />
+                            <Border CornerRadius="8"
+                                    Visibility="{Binding IconPath, Converter={StaticResource StringNotEmptyToVisibility}}">
+                                <Image
+                                    Source="{Binding IconPath, Converter={StaticResource ImagePathToSource}}"
+                                    Stretch="Uniform" />
+                            </Border>
+                        </Grid>
                         <TextBox
                             x:Uid="ProjIconBox"
                             Grid.Column="1"
@@ -222,6 +230,7 @@
                                     IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
                                     Padding="10,4"
                                     CornerRadius="12"
+                                    MinWidth="30"
                                     FontSize="12" />
                             </DataTemplate>
                         </ItemsRepeater.ItemTemplate>

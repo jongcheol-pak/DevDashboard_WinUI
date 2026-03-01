@@ -553,4 +553,139 @@ public sealed class SqliteProjectRepository : IProjectRepository
 
         return DateTime.MinValue;
     }
+
+    // ===== 가져오기/내보내기 지원 =====
+
+    /// <summary>지정된 DB 파일에서 모든 프로젝트(Tags, Scripts, Todos, Histories 포함)를 읽어옵니다.</summary>
+    public static List<ProjectItem> ReadAllFromDb(string dbPath)
+    {
+        using var conn = DatabaseContext.CreateConnectionForPath(dbPath);
+
+        // Projects 테이블 존재 여부 확인
+        using var checkCmd = conn.CreateCommand();
+        checkCmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='Projects'";
+        if (checkCmd.ExecuteScalar() is null)
+            throw new InvalidOperationException("InvalidDbFile");
+
+        var projects = ReadProjects(conn);
+        var tagsMap = ReadAllTags(conn);
+        var scriptsMap = ReadAllCommandScripts(conn);
+
+        foreach (var p in projects)
+        {
+            p.Tags = tagsMap.TryGetValue(p.Id, out var tags) ? tags : [];
+            p.CommandScripts = scriptsMap.TryGetValue(p.Id, out var scripts) ? scripts : [null, null, null, null];
+            p.Todos = ReadTodosForProject(conn, p.Id);
+            p.Histories = ReadHistoriesForProject(conn, p.Id);
+        }
+
+        return projects;
+    }
+
+    /// <summary>프로젝트를 삭제(관련 하위 데이터 포함)하고 새로 추가합니다 (덮어쓰기용).</summary>
+    public void DeleteAndInsert(ProjectItem project)
+    {
+        using var conn = _db.CreateConnection();
+        using var tx = conn.BeginTransaction();
+
+        // CASCADE로 하위 테이블 자동 삭제
+        using (var delCmd = conn.CreateCommand())
+        {
+            delCmd.CommandText = "DELETE FROM Projects WHERE Id = @id";
+            delCmd.Parameters.AddWithValue("@id", project.Id);
+            delCmd.ExecuteNonQuery();
+        }
+
+        InsertProject(conn, project);
+        InsertTags(conn, project.Id, project.Tags);
+        InsertCommandScripts(conn, project.Id, project.CommandScripts);
+        InsertTodos(conn, project.Id, project.Todos);
+        InsertHistories(conn, project.Id, project.Histories);
+
+        tx.Commit();
+    }
+
+    /// <summary>이름이 동일한 기존 프로젝트의 ID를 반환합니다. 없으면 null.</summary>
+    public string? FindProjectIdByName(string name)
+    {
+        using var conn = _db.CreateConnection();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT Id FROM Projects WHERE Name = @name";
+        cmd.Parameters.AddWithValue("@name", name);
+        return cmd.ExecuteScalar() as string;
+    }
+
+    /// <summary>이름이 동일한 기존 프로젝트를 삭제하고 새 프로젝트를 추가합니다 (이름 기준 덮어쓰기).</summary>
+    public void DeleteByNameAndInsert(string existingId, ProjectItem project)
+    {
+        using var conn = _db.CreateConnection();
+        using var tx = conn.BeginTransaction();
+
+        // 기존 프로젝트 삭제 (CASCADE로 하위 테이블 자동 삭제)
+        using (var delCmd = conn.CreateCommand())
+        {
+            delCmd.CommandText = "DELETE FROM Projects WHERE Id = @id";
+            delCmd.Parameters.AddWithValue("@id", existingId);
+            delCmd.ExecuteNonQuery();
+        }
+
+        InsertProject(conn, project);
+        InsertTags(conn, project.Id, project.Tags);
+        InsertCommandScripts(conn, project.Id, project.CommandScripts);
+        InsertTodos(conn, project.Id, project.Todos);
+        InsertHistories(conn, project.Id, project.Histories);
+
+        tx.Commit();
+    }
+
+    private static List<TodoItem> ReadTodosForProject(SqliteConnection conn, string projectId)
+    {
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT * FROM Todos WHERE ProjectId = @pid ORDER BY CreatedAt";
+        cmd.Parameters.AddWithValue("@pid", projectId);
+        using var reader = cmd.ExecuteReader();
+
+        var list = new List<TodoItem>();
+        while (reader.Read())
+        {
+            var completedAtStr = reader.IsDBNull(reader.GetOrdinal("CompletedAt"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("CompletedAt"));
+
+            list.Add(new TodoItem
+            {
+                Id = reader.GetString(reader.GetOrdinal("Id")),
+                Text = reader.GetString(reader.GetOrdinal("Text")),
+                Description = reader.GetString(reader.GetOrdinal("Description")),
+                IsCompleted = reader.GetInt64(reader.GetOrdinal("IsCompleted")) != 0,
+                CompletedAt = string.IsNullOrEmpty(completedAtStr) ? null : ParseDateTime(completedAtStr),
+                CreatedAt = ParseDateTime(reader.GetString(reader.GetOrdinal("CreatedAt")))
+            });
+        }
+
+        return list;
+    }
+
+    private static List<HistoryEntry> ReadHistoriesForProject(SqliteConnection conn, string projectId)
+    {
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT * FROM Histories WHERE ProjectId = @pid ORDER BY CompletedAt DESC, CreatedAt DESC";
+        cmd.Parameters.AddWithValue("@pid", projectId);
+        using var reader = cmd.ExecuteReader();
+
+        var list = new List<HistoryEntry>();
+        while (reader.Read())
+        {
+            list.Add(new HistoryEntry
+            {
+                Id = reader.GetString(reader.GetOrdinal("Id")),
+                Title = reader.GetString(reader.GetOrdinal("Title")),
+                Description = reader.GetString(reader.GetOrdinal("Description")),
+                CompletedAt = ParseDateTime(reader.GetString(reader.GetOrdinal("CompletedAt"))),
+                CreatedAt = ParseDateTime(reader.GetString(reader.GetOrdinal("CreatedAt")))
+            });
+        }
+
+        return list;
+    }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using DevDashboard.Infrastructure.Persistence;
 using DevDashboard.Infrastructure.Services;
 using DevDashboard.Presentation.ViewModels;
 using DevDashboard.Presentation.Views;
@@ -82,6 +83,26 @@ public sealed partial class MainWindow : WindowEx
         // 비동기 초기화
         await _viewModel.InitializeAsync();
         _ = _viewModel.CheckLatestVersionAsync();
+
+        // 저장된 그룹 탭 선택 복원 (ItemsRepeater 레이아웃 완료 후 실행)
+        DispatcherQueue.TryEnqueue(RestoreGroupTabSelection);
+    }
+
+    /// <summary>앱 재시작 시 저장된 그룹 탭 선택을 RadioButton 시각 상태에 복원합니다.</summary>
+    private void RestoreGroupTabSelection()
+    {
+        if (_viewModel is null) return;
+        var selectedGroupId = _viewModel.SelectedGroupId;
+        if (selectedGroupId is null) return;
+
+        var groups = _viewModel.Groups;
+        for (var i = 0; i < groups.Count; i++)
+        {
+            if (groups[i].Id != selectedGroupId) continue;
+            if (GroupTabsRepeater.TryGetElement(i) is RadioButton rb)
+                rb.IsChecked = true;
+            break;
+        }
     }
 
     private void OnWindowClosed(object sender, WindowEventArgs args)
@@ -99,6 +120,7 @@ public sealed partial class MainWindow : WindowEx
     {
         ToolTipService.SetToolTip(SortButton, LocalizationService.Get("ToolTip_Sort"));
         ToolTipService.SetToolTip(AllHistoryButton, LocalizationService.Get("ToolTip_AllHistory"));
+        ToolTipService.SetToolTip(ExportImportButton, LocalizationService.Get("ToolTip_ExportImport"));
         ToolTipService.SetToolTip(AppSettingsButton, LocalizationService.Get("ToolTip_AppSettings"));
         ToolTipService.SetToolTip(AddGroupButton, LocalizationService.Get("ToolTip_AddGroup"));
         ToolTipService.SetToolTip(RefreshButton, LocalizationService.Get("ToolTip_Refresh"));
@@ -113,7 +135,8 @@ public sealed partial class MainWindow : WindowEx
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
         if (_viewModel is null) return;
-        if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput) return;
+        // SuggestionChosen만 무시 — IME 조합(ProgrammaticChange)도 검색에 반영
+        if (args.Reason == AutoSuggestionBoxTextChangeReason.SuggestionChosen) return;
 
         var raw = sender.Text ?? string.Empty;
         var filtered = _searchSanitizePattern.Replace(raw, string.Empty);
@@ -121,11 +144,9 @@ public sealed partial class MainWindow : WindowEx
         if (filtered.Length > SearchMaxLength)
             filtered = filtered[..SearchMaxLength];
 
+        // 정제된 텍스트가 다를 경우 표시 텍스트만 교정하고, SearchText는 항상 업데이트
         if (filtered != raw)
-        {
             sender.Text = filtered;
-            return;
-        }
 
         _viewModel.SearchText = filtered;
     }
@@ -226,6 +247,117 @@ public sealed partial class MainWindow : WindowEx
         var projects = _viewModel.GetAllProjectItemsWithHistories();
         var dialog = new ProjectHistoryDialog(projects, _viewModel.GetProjectRepository());
         await dialog.ShowAsync();
+    }
+
+    // ─── 내보내기 / 가져오기 ─────────────────────────────────────────────
+
+    private async void ExportButton_Click(object sender, RoutedEventArgs e)
+    {
+        var picker = new Windows.Storage.Pickers.FileSavePicker();
+        picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
+        picker.SuggestedFileName = "projects";
+        picker.FileTypeChoices.Add("Database", [".db"]);
+
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+        var file = await picker.PickSaveFileAsync();
+        if (file is null) return;
+
+        try
+        {
+            // VACUUM INTO: WAL 포함 완전한 스냅샷을 단일 파일로 내보내기
+            await Task.Run(() => DatabaseContext.ExportTo(file.Path));
+
+            await DialogService.ShowErrorAsync(
+                LocalizationService.Get("Export_Success"),
+                LocalizationService.Get("Export_SuccessTitle"));
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("Export_Failed"), ex.Message),
+                LocalizationService.Get("Export_FailedTitle"));
+        }
+    }
+
+    private async void ImportButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel is null || _projectRepository is null) return;
+
+        var picker = new Windows.Storage.Pickers.FileOpenPicker();
+        picker.FileTypeFilter.Add(".db");
+
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+        var file = await picker.PickSingleFileAsync();
+        if (file is null) return;
+
+        List<ProjectItem> importProjects;
+        try
+        {
+            importProjects = SqliteProjectRepository.ReadAllFromDb(file.Path);
+        }
+        catch
+        {
+            await DialogService.ShowErrorAsync(
+                LocalizationService.Get("Import_InvalidFile"),
+                LocalizationService.Get("Import_InvalidFileTitle"));
+            return;
+        }
+
+        var totalCount = importProjects.Count;
+        var addedCount = 0;
+        var overwrittenCount = 0;
+        var skippedCount = 0;
+
+        foreach (var project in importProjects)
+        {
+            var existingId = _projectRepository.FindProjectIdByName(project.Name);
+            if (existingId is not null)
+            {
+                var result = await ShowOverwriteDialogAsync(project.Name);
+                if (result == ContentDialogResult.Primary)
+                {
+                    _projectRepository.DeleteByNameAndInsert(existingId, project);
+                    overwrittenCount++;
+                }
+                else
+                {
+                    skippedCount++;
+                }
+            }
+            else
+            {
+                _projectRepository.Add(project);
+                addedCount++;
+            }
+        }
+
+        await DialogService.ShowErrorAsync(
+            string.Format(LocalizationService.Get("Import_CompleteFormat"),
+                Environment.NewLine, totalCount, addedCount, overwrittenCount, skippedCount),
+            LocalizationService.Get("Import_CompleteTitle"));
+
+        // 목록 새로고침
+        _viewModel.HardRefreshCommand.Execute(null);
+    }
+
+    private static async Task<ContentDialogResult> ShowOverwriteDialogAsync(string projectName)
+    {
+        var xamlRoot = App.MainWindow?.Content?.XamlRoot;
+        if (xamlRoot is null) return ContentDialogResult.Secondary;
+
+        var dialog = new ContentDialog
+        {
+            Title = LocalizationService.Get("Import_DuplicateTitle"),
+            Content = string.Format(LocalizationService.Get("Import_DuplicateFormat"), projectName),
+            PrimaryButtonText = LocalizationService.Get("Import_Overwrite"),
+            CloseButtonText = LocalizationService.Get("Import_Skip"),
+            XamlRoot = xamlRoot
+        };
+        return await dialog.ShowAsync();
     }
 
     // ─── 프로젝트 추가/편집 ──────────────────────────────────────────────

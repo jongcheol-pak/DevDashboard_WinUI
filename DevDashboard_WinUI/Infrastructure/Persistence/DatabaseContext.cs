@@ -13,6 +13,9 @@ public sealed class DatabaseContext
         Windows.Storage.ApplicationData.Current.LocalFolder.Path,
         "projects.db");
 
+    /// <summary>현재 사용 중인 DB 파일의 전체 경로를 반환합니다.</summary>
+    public static string GetDbPath() => DbPath;
+
     private readonly string _connectionString;
 
     public DatabaseContext()
@@ -28,6 +31,31 @@ public sealed class DatabaseContext
         var connection = new SqliteConnection(_connectionString);
         connection.Open();
         return connection;
+    }
+
+    /// <summary>지정된 경로의 DB에 대한 연결을 생성합니다 (가져오기용).
+    /// Pooling=False로 Dispose 시 파일 핸들이 즉시 해제됩니다.</summary>
+    public static SqliteConnection CreateConnectionForPath(string dbPath)
+    {
+        var connection = new SqliteConnection($"Data Source={dbPath};Foreign Keys=True;Pooling=False");
+        connection.Open();
+        return connection;
+    }
+
+    /// <summary>현재 데이터베이스를 지정된 경로로 내보냅니다.
+    /// VACUUM INTO를 사용해 WAL 데이터 포함 완전한 스냅샷을 단일 파일로 생성합니다.</summary>
+    public static void ExportTo(string destPath)
+    {
+        // VACUUM INTO는 대상 파일이 이미 존재하면 오류를 발생시키므로 먼저 삭제
+        if (File.Exists(destPath))
+            File.Delete(destPath);
+
+        using var conn = new SqliteConnection($"Data Source={DbPath}");
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        // 경로 내 작은따옴표 이스케이프
+        cmd.CommandText = $"VACUUM INTO '{destPath.Replace("'", "''")}'";
+        cmd.ExecuteNonQuery();
     }
 
     /// <summary>테이블이 없으면 생성하고 스키마 마이그레이션을 실행합니다.</summary>
@@ -107,33 +135,5 @@ public sealed class DatabaseContext
             );
             """;
         cmd.ExecuteNonQuery();
-
-        // 기존 데이터베이스에 누락된 컬럼 추가 (하위 호환 마이그레이션)
-        MigrateSchema(connection);
-    }
-
-    /// <summary>기존 테이블에 누락된 컬럼을 추가합니다 (ALTER TABLE 방식).</summary>
-    private static void MigrateSchema(SqliteConnection connection)
-    {
-        AddColumnIfNotExists(connection, "Projects", "PinOrder", "INTEGER NOT NULL DEFAULT 0");
-        AddColumnIfNotExists(connection, "CommandScripts", "IconSymbol", "TEXT NOT NULL DEFAULT ''");
-    }
-
-    /// <summary>지정된 컬럼이 없을 경우에만 테이블에 추가합니다.</summary>
-    private static void AddColumnIfNotExists(SqliteConnection connection, string table, string column, string definition)
-    {
-        using var infoCmd = connection.CreateCommand();
-        infoCmd.CommandText = $"PRAGMA table_info([{table}])";
-        using var reader = infoCmd.ExecuteReader();
-
-        while (reader.Read())
-        {
-            if (string.Equals(reader.GetString(reader.GetOrdinal("name")), column, StringComparison.OrdinalIgnoreCase))
-                return;
-        }
-
-        using var alterCmd = connection.CreateCommand();
-        alterCmd.CommandText = $"ALTER TABLE [{table}] ADD COLUMN [{column}] {definition}";
-        alterCmd.ExecuteNonQuery();
     }
 }

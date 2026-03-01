@@ -447,7 +447,7 @@ public partial class ProjectCardViewModel : ObservableObject
     [RelayCommand]
     private void ExecuteCommandSlot(string indexStr)
     {
-        if (!int.TryParse(indexStr, out var index) || index < 0 || index >= CommandSlotCount) return;
+        if (!TryParseSlotIndex(indexStr, out var index)) return;
 
         var script = GetCommandScript(index);
         if (script is null)
@@ -463,7 +463,7 @@ public partial class ProjectCardViewModel : ObservableObject
     [RelayCommand]
     private void ConfigureCommandSlot(string indexStr)
     {
-        if (!int.TryParse(indexStr, out var index) || index < 0 || index >= CommandSlotCount) return;
+        if (!TryParseSlotIndex(indexStr, out var index)) return;
         ConfigureCommandSlotRequested?.Invoke(this, index);
     }
 
@@ -471,7 +471,7 @@ public partial class ProjectCardViewModel : ObservableObject
     [RelayCommand]
     private void ClearCommandSlot(string indexStr)
     {
-        if (!int.TryParse(indexStr, out var index) || index < 0 || index >= CommandSlotCount) return;
+        if (!TryParseSlotIndex(indexStr, out var index)) return;
 
         if (index < _item.CommandScripts.Count)
             _item.CommandScripts[index] = null;
@@ -484,10 +484,14 @@ public partial class ProjectCardViewModel : ObservableObject
     [RelayCommand]
     private void ChangeCommandIcon(string indexStr)
     {
-        if (!int.TryParse(indexStr, out var index) || index < 0 || index >= CommandSlotCount) return;
+        if (!TryParseSlotIndex(indexStr, out var index)) return;
         if (GetCommandScript(index) is null) return;
         ChangeCommandIconRequested?.Invoke(this, index);
     }
+
+    /// <summary>커맨드 슬롯 인덱스 문자열을 파싱합니다. 유효 범위(0~CommandSlotCount-1) 벗어나면 false.</summary>
+    private static bool TryParseSlotIndex(string indexStr, out int index)
+        => int.TryParse(indexStr, out index) && index >= 0 && index < CommandSlotCount;
 
     /// <summary>슬롯 인덱스의 CommandScript를 반환합니다. (View에서 다이얼로그 전달용)</summary>
     public CommandScript? GetCommandScriptForDialog(int index) => GetCommandScript(index);
@@ -563,7 +567,9 @@ public partial class ProjectCardViewModel : ObservableObject
         {
             var script = GetCommandScript(i);
             var configured = script is not null;
-            var tooltip = script?.Description ?? string.Empty;
+            var tooltip = configured
+                ? script!.Description
+                : LocalizationService.Get("CmdSlotEmptyTooltip");
             ParseSlotIcon(script, out var glyph, out var hasIcon);
 
             switch (i)
@@ -639,8 +645,7 @@ public partial class ProjectCardViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(DevToolName))
             return false;
 
-        if (DevToolName.Equals(ProjectSettingsDialogViewModel.PowerShellToolName, StringComparison.OrdinalIgnoreCase)
-            || DevToolName.Equals(ProjectSettingsDialogViewModel.CmdToolName, StringComparison.OrdinalIgnoreCase))
+        if (ProjectSettingsDialogViewModel.IsShellToolName(DevToolName))
             return true;
 
         var tool = _tools.FirstOrDefault(t => t.Name == DevToolName);
@@ -655,8 +660,7 @@ public partial class ProjectCardViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(DevToolName))
             return true;
 
-        if (DevToolName.Equals(ProjectSettingsDialogViewModel.PowerShellToolName, StringComparison.OrdinalIgnoreCase)
-            || DevToolName.Equals(ProjectSettingsDialogViewModel.CmdToolName, StringComparison.OrdinalIgnoreCase))
+        if (ProjectSettingsDialogViewModel.IsShellToolName(DevToolName))
             return true;
 
         if (string.IsNullOrWhiteSpace(Path))

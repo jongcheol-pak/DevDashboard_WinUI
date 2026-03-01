@@ -8,6 +8,7 @@
     xmlns:ctrl="using:DevDashboard.Presentation.Controls"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}">
@@ -40,8 +41,8 @@
                 <Grid Margin="16,14">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
@@ -110,7 +111,7 @@
                         </ItemsRepeater.Layout>
                         <ItemsRepeater.ItemTemplate>
                             <DataTemplate x:DataType="x:String">
-                                <Border Padding="6,3" CornerRadius="4"
+                                <Border Padding="8,4" CornerRadius="4"  MinWidth="30"
                                         Background="{ThemeResource SubtleFillColorSecondaryBrush}">
                                     <TextBlock Text="{x:Bind}"
                                                FontSize="11"

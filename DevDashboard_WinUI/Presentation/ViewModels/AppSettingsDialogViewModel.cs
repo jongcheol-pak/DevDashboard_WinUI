@@ -7,6 +7,11 @@ using Windows.ApplicationModel;
 
 namespace DevDashboard.Presentation.ViewModels;
 
+/// <summary>태그/카테고리 표시 항목 (기본값 여부 포함)</summary>
+/// <param name="Value">표시할 문자열 값</param>
+/// <param name="IsDefault">기본 제공 항목 여부 (true면 삭제 버튼 숨김)</param>
+public record TagDisplayItem(string Value, bool IsDefault);
+
 /// <summary>앱 설정 팝업 뷰모델</summary>
 public partial class AppSettingsDialogViewModel : ObservableObject
 {
@@ -15,8 +20,16 @@ public partial class AppSettingsDialogViewModel : ObservableObject
     public AppSettingsDialogViewModel()
     {
         Tools.CollectionChanged += OnToolsCollectionChanged;
-        TechStackTags.CollectionChanged += (_, _) => OnPropertyChanged(nameof(CanAddTechTag));
-        Categories.CollectionChanged += (_, _) => OnPropertyChanged(nameof(CanAddCategory));
+        TechStackTags.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(CanAddTechTag));
+            OnPropertyChanged(nameof(AllTechStackTags));
+        };
+        Categories.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(CanAddCategory));
+            OnPropertyChanged(nameof(AllCategories));
+        };
     }
 
     // --- 좌측 메뉴 ---
@@ -121,6 +134,11 @@ public partial class AppSettingsDialogViewModel : ObservableObject
     /// <summary>기술 스택 태그 목록</summary>
     public ObservableCollection<string> TechStackTags { get; } = [];
 
+    /// <summary>기본 항목(앞) + 사용자 항목(뒤) 합산 표시 목록</summary>
+    public IEnumerable<TagDisplayItem> AllTechStackTags =>
+        DefaultTechStackTags.Select(t => new TagDisplayItem(t, true))
+            .Concat(TechStackTags.Select(t => new TagDisplayItem(t, false)));
+
     /// <summary>기술 스택 태그 등록 가능 여부</summary>
     public bool CanAddTechTag => DefaultTechStackTags.Count + TechStackTags.Count < 50;
 
@@ -149,6 +167,11 @@ public partial class AppSettingsDialogViewModel : ObservableObject
 
     /// <summary>카테고리 목록</summary>
     public ObservableCollection<string> Categories { get; } = [];
+
+    /// <summary>기본 항목(앞) + 사용자 항목(뒤) 합산 표시 목록</summary>
+    public IEnumerable<TagDisplayItem> AllCategories =>
+        DefaultCategories.Select(t => new TagDisplayItem(t, true))
+            .Concat(Categories.Select(t => new TagDisplayItem(t, false)));
 
     /// <summary>기본 제공 카테고리 목록</summary>
     public static IReadOnlyList<string> DefaultCategories { get; } =

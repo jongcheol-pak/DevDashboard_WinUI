@@ -29,7 +29,6 @@
 
         <!-- ===== 헤더 (타이틀 바 영역) ===== -->
         <Border Grid.Row="0"
-                x:Name="AppTitleBar"
                 Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
                 BorderThickness="0,0,0,1"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
@@ -40,13 +39,16 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <!-- 좌: 앱 아이콘 + 타이틀 -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Image Source="/Assets/DevDashboard.png" Width="24" Height="24"
-                           Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,8,0" />
-                    <TextBlock Text="DevDashboard" FontSize="15" FontWeight="SemiBold"
-                               VerticalAlignment="Center" />
-                </StackPanel>
+                <!-- 좌: 앱 아이콘 + 타이틀 (드래그 전용 영역 — SetTitleBar 대상) -->
+                <!-- SearchBox/Button이 드래그 영역에 포함되면 키보드 입력이 차단될 수 있어 분리 -->
+                <Border x:Name="AppTitleBar" Grid.Column="0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Image Source="/Assets/DevDashboard.png" Width="24" Height="24"
+                               Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <TextBlock Text="DevDashboard" FontSize="15" FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
 
                 <!-- 중: 검색창 -->
                 <AutoSuggestBox x:Name="SearchBox"
@@ -88,6 +90,19 @@
                             Width="36" Height="36" Padding="0"
                             Click="ProjectHistoryButton_Click">
                         <FontIcon Glyph="&#xE81C;" FontSize="16" />
+                    </Button>
+
+                    <!-- 내보내기 / 가져오기 버튼 -->
+                    <Button x:Name="ExportImportButton" Width="36" Height="36" Padding="0">
+                        <Button.Flyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem x:Uid="ExportItem"
+                                               Click="ExportButton_Click" />
+                                <MenuFlyoutItem x:Uid="ImportItem"
+                                               Click="ImportButton_Click" />
+                            </MenuFlyout>
+                        </Button.Flyout>
+                        <FontIcon Glyph="&#xEA35;" FontSize="16" />
                     </Button>
 
                     <!-- 앱 설정 버튼 -->
@@ -143,10 +158,10 @@
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="models:ProjectGroup">
-                                    <RadioButton Content="{x:Bind Name}"
+                                    <RadioButton Content="{Binding Name}"
                                                  GroupName="GroupTabs"
                                                  Style="{StaticResource GroupTabRadioButtonStyle}"
-                                                 Tag="{x:Bind Id}"
+                                                 Tag="{Binding Id}"
                                                  Checked="GroupTab_Checked"
                                                  DoubleTapped="GroupTab_DoubleTapped">
                                         <RadioButton.ContextFlyout>

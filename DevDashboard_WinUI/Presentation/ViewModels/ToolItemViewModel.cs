@@ -98,7 +98,7 @@ public partial class ToolItemViewModel : ObservableObject
         }
 
         Name = trimmedName;
-        ExecutablePath = EditExecutablePath;
+        ExecutablePath = EditExecutablePath.Trim();
         IsEditing = false;
         IsNew = false;
     }

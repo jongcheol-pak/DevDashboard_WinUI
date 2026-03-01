@@ -113,6 +113,7 @@
   <data name="OpenFolderButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>Open Folder</value></data>
   <data name="EditButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>Project Settings</value></data>
   <data name="DeleteButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>Delete Project</value></data>
+  <data name="CmdSlotEmptyTooltip" xml:space="preserve"><value>Add Command</value></data>
   <data name="CmdSlotConfigureItem.Text" xml:space="preserve"><value>Configure</value></data>
   <data name="CmdSlotChangeIconItem.Text" xml:space="preserve"><value>Change Icon</value></data>
   <data name="CmdSlotDeleteItem.Text" xml:space="preserve"><value>Delete</value></data>
@@ -134,6 +135,10 @@
   <data name="NavToolsLabel.Text" xml:space="preserve"><value>Tools</value></data>
   <data name="NavCodeLabel.Text" xml:space="preserve"><value>Code</value></data>
   <data name="NavInfoLabel.Text" xml:space="preserve"><value>Info</value></data>
+  <data name="RunOnStartupCard.Header" xml:space="preserve"><value>Auto Start</value></data>
+  <data name="WorkLogPopupCard.Header" xml:space="preserve"><value>Work Log</value></data>
+  <data name="WorkLogPopupCard.Description" xml:space="preserve"><value>Show a work log popup when a To-Do task is completed.</value></data>
+  <data name="RunOnStartupCard.Description" xml:space="preserve"><value>Automatically launch the app when you sign in to Windows.</value></data>
   <data name="RunOnStartupCheck.Content" xml:space="preserve"><value>Run on Startup</value></data>
   <data name="TodoPopupCheck.Content" xml:space="preserve"><value>Show work history popup when To-Do completed</value></data>
   <data name="ThemeLabelText.Text" xml:space="preserve"><value>Theme</value></data>
@@ -169,8 +174,8 @@
   <data name="ProjWorkingDirBox.PlaceholderText" xml:space="preserve"><value>Working directory path</value></data>
   <data name="ProjPathLabel.Text" xml:space="preserve"><value>Path (folder or file)</value></data>
   <data name="ProjPathBox.PlaceholderText" xml:space="preserve"><value>Folder or file path</value></data>
-  <data name="ProjPathFolderBtn.Content" xml:space="preserve"><value>Folder</value></data>
-  <data name="ProjPathFileBtn.Content" xml:space="preserve"><value>File</value></data>
+  <data name="ProjPathFolderBtn.Text" xml:space="preserve"><value>Folder</value></data>
+  <data name="ProjPathFileBtn.Text" xml:space="preserve"><value>File</value></data>
   <data name="ProjOptionsLabel.Text" xml:space="preserve"><value>Options</value></data>
   <data name="ProjOptionsBox.PlaceholderText" xml:space="preserve"><value>Additional options (optional)</value></data>
   <data name="ProjRunAsAdminCheck.Content" xml:space="preserve"><value>Run as Administrator</value></data>
@@ -241,5 +246,26 @@
   <data name="IconPickerDialog.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
   <data name="IconSearchBox.PlaceholderText" xml:space="preserve"><value>Search icon name...</value></data>
   <data name="RemoveIconBtn.Content" xml:space="preserve"><value>Remove Icon (Default)</value></data>
+
+  <!-- ===== C# / XAML — Export/Import ===== -->
+  <data name="ExportItem.Text" xml:space="preserve"><value>Export</value></data>
+  <data name="ImportItem.Text" xml:space="preserve"><value>Import</value></data>
+  <data name="ToolTip_ExportImport" xml:space="preserve"><value>Export / Import</value></data>
+  <data name="Export_SelectFolderTitle" xml:space="preserve"><value>Select Export Folder</value></data>
+  <data name="Export_Success" xml:space="preserve"><value>Export completed successfully.</value></data>
+  <data name="Export_SuccessTitle" xml:space="preserve"><value>Export Complete</value></data>
+  <data name="Export_Failed" xml:space="preserve"><value>Export failed: {0}</value></data>
+  <data name="Export_FailedTitle" xml:space="preserve"><value>Export Error</value></data>
+  <data name="Import_SelectFileTitle" xml:space="preserve"><value>Select DB File to Import</value></data>
+  <data name="Import_InvalidFile" xml:space="preserve"><value>The file is not a valid DevDashboard database.</value></data>
+  <data name="Import_InvalidFileTitle" xml:space="preserve"><value>File Error</value></data>
+  <data name="Import_DuplicateFormat" xml:space="preserve"><value>A project named '{0}' already exists. Do you want to overwrite it?</value></data>
+  <data name="Import_DuplicateTitle" xml:space="preserve"><value>Duplicate Item</value></data>
+  <data name="Import_Overwrite" xml:space="preserve"><value>Overwrite</value></data>
+  <data name="Import_Skip" xml:space="preserve"><value>Skip</value></data>
+  <data name="Import_CompleteFormat" xml:space="preserve"><value>Import completed.{0}Total: {1} / Added: {2} / Overwritten: {3} / Skipped: {4}</value></data>
+  <data name="Import_CompleteTitle" xml:space="preserve"><value>Import Complete</value></data>
+  <data name="Import_Failed" xml:space="preserve"><value>Import failed: {0}</value></data>
+  <data name="Import_FailedTitle" xml:space="preserve"><value>Import Error</value></data>
 
 </root>

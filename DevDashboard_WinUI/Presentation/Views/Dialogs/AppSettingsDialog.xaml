@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:DevDashboard.Presentation.ViewModels"
     xmlns:models="using:DevDashboard.Domain.ValueObjects"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     xmlns:winuiex="using:WinUIEx">
     
 
@@ -93,23 +94,46 @@
 
                 <!-- 0: 설정 패널 -->
                 <StackPanel x:Name="PanelSettings" Spacing="14" Visibility="Visible">
-                    <CheckBox
-                        x:Uid="RunOnStartupCheck"
-                        IsChecked="{x:Bind Vm.RunOnStartup, Mode=TwoWay}" />
-                    <CheckBox
-                        x:Uid="TodoPopupCheck"
-                        IsChecked="{x:Bind Vm.ShowWorkLogPopupOnTodoComplete, Mode=TwoWay}" />
-                    <TextBlock x:Uid="ThemeLabelText" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,8,0,0" />
-                    <ComboBox
-                        ItemsSource="{x:Bind Vm.ThemeModeItems}"
-                        SelectedItem="{x:Bind Vm.SelectedThemeModeItem, Mode=TwoWay}"
-                        HorizontalAlignment="Stretch">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate x:DataType="vm:ThemeModeItem">
-                                <TextBlock Text="{x:Bind DisplayName}" />
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
+                        <TextBlock Text="시스템" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,8,0,0" />
+                        <toolkit:SettingsCard x:Uid="RunOnStartupCard">
+                            <toolkit:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE8FC;" />
+                            </toolkit:SettingsCard.HeaderIcon>
+                            <ToggleSwitch
+                                OnContent=""
+                                OffContent=""
+                                MinWidth="0"
+                                IsOn="{x:Bind Vm.RunOnStartup, Mode=TwoWay}" />
+                        </toolkit:SettingsCard>
+                        <toolkit:SettingsCard Header="테마" Description="현재 앱의 테마를 변경합니다. 앱의 테마를 선택하세요.">
+                            <toolkit:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE790;" />
+                            </toolkit:SettingsCard.HeaderIcon>
+                            <ComboBox
+     ItemsSource="{x:Bind Vm.ThemeModeItems}"
+     SelectedItem="{x:Bind Vm.SelectedThemeModeItem, Mode=TwoWay}"
+     HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:ThemeModeItem">
+                                        <TextBlock Text="{x:Bind DisplayName}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </toolkit:SettingsCard>
+
+                        <TextBlock Text="To-Do" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,8,0,0" />
+                        <toolkit:SettingsCard x:Uid="WorkLogPopupCard">
+                            <toolkit:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE81C;" />
+                            </toolkit:SettingsCard.HeaderIcon>
+                            <ToggleSwitch 
+                                OnContent=""
+                                OffContent=""
+                                MinWidth="0"
+                                IsOn="{x:Bind Vm.ShowWorkLogPopupOnTodoComplete, Mode=TwoWay}" />   
+                        </toolkit:SettingsCard>
+
+                      
                 </StackPanel>
 
                 <!-- 1: 도구 패널 -->
@@ -216,97 +240,133 @@
 
                     <!-- 기술 스택 태그 -->
                     <TextBlock x:Uid="TagsLabelText" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                    <TextBlock
-                        x:Uid="TagsDescText"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        FontSize="12" />
-                    <Grid ColumnSpacing="8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBox
-                            x:Uid="TagInputBox"
-                            Grid.Column="0"
-                            Text="{x:Bind Vm.NewTagText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            MaxLength="50" />
-                        <Button x:Uid="Btn_Add" Grid.Column="1" Command="{x:Bind Vm.AddTechTagCommand}" />
-                    </Grid>
-                    <ItemsControl ItemsSource="{x:Bind Vm.TechStackTags, Mode=OneWay}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapGrid Orientation="Horizontal" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="x:String">
-                                <Border
-                                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                                    CornerRadius="4"
-                                    Padding="8,4"
-                                    Margin="0,0,6,6">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <TextBlock Text="{x:Bind}" VerticalAlignment="Center" />
-                                        <Button
-                                            Padding="4"
-                                            Background="Transparent"
-                                            BorderThickness="0"
-                                            Tag="{x:Bind}"
-                                            Click="RemoveTag_Click">
-                                            <FontIcon Glyph="&#xE711;" FontSize="10" />
-                                        </Button>
-                                    </StackPanel>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
 
-                    <!-- 카테고리 -->
+                        <Border
+                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                        Padding="8"
+                        CornerRadius="4">
+
+                            <Grid ColumnSpacing="8" RowSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0"
+  x:Uid="TagsDescText"
+  Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+  FontSize="12" />
+                                <TextBox Grid.Column="0" Grid.Row="1"
+         x:Uid="TagInputBox"
+         Text="{x:Bind Vm.NewTagText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+         MaxLength="20" />
+                                <Button x:Uid="Btn_Add" Grid.Column="1" Grid.Row="1" Command="{x:Bind Vm.AddTechTagCommand}" />
+
+                                <ItemsControl Margin="0,12,0,0" Grid.Row="2" Grid.ColumnSpan="2" ItemsSource="{x:Bind Vm.AllTechStackTags, Mode=OneWay}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <toolkit:WrapPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:TagDisplayItem">
+                                            <Border
+                 Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                 CornerRadius="4"
+                 Padding="8,4"                                                
+                 Margin="0,0,6,6">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <TextBlock Text="{x:Bind Value}" VerticalAlignment="Center" />
+                                                    <Button
+                         Padding="4"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Tag="{Binding Value}"
+                         Visibility="{Binding IsDefault, Converter={StaticResource InverseBoolToVisibility}}"
+                         Click="RemoveTag_Click">
+                                                        <FontIcon Glyph="&#xE711;" FontSize="10" />
+                                                    </Button>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+
+                        </Border>
+                    
+
+                        <!-- 카테고리 -->
                     <TextBlock x:Uid="CategoryLabelText" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,8,0,0" />
-                    <TextBlock
-                        x:Uid="CategoryDescText"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        FontSize="12" />
-                    <Grid ColumnSpacing="8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBox
-                            x:Uid="CategoryInputBox"
-                            Grid.Column="0"
-                            Text="{x:Bind Vm.NewCategoryText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            MaxLength="50" />
-                        <Button x:Uid="Btn_Add" Grid.Column="1" Command="{x:Bind Vm.AddCategoryCommand}" />
-                    </Grid>
-                    <ItemsControl ItemsSource="{x:Bind Vm.Categories, Mode=OneWay}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapGrid Orientation="Horizontal" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="x:String">
-                                <Border
-                                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                                    CornerRadius="4"
-                                    Padding="8,4"
-                                    Margin="0,0,6,6">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <TextBlock Text="{x:Bind}" VerticalAlignment="Center" />
-                                        <Button
-                                            Padding="4"
-                                            Background="Transparent"
-                                            BorderThickness="0"
-                                            Tag="{x:Bind}"
-                                            Click="RemoveCategory_Click">
-                                            <FontIcon Glyph="&#xE711;" FontSize="10" />
-                                        </Button>
-                                    </StackPanel>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+
+
+                        <Border
+                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                        Padding="8"
+                        CornerRadius="4">
+
+                            <Grid ColumnSpacing="8" RowSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.ColumnSpan="2" Grid.Row="0"
+    x:Uid="CategoryDescText"
+    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+    FontSize="12" />
+                               
+                                
+                                    <TextBox Grid.Row="1"
+        x:Uid="CategoryInputBox"
+        Grid.Column="0"
+        Text="{x:Bind Vm.NewCategoryText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+        MaxLength="50" />
+                                    <Button x:Uid="Btn_Add" Grid.Column="1" Grid.Row="1" Command="{x:Bind Vm.AddCategoryCommand}" />
+                             
+                                <ItemsControl Margin="0,12,0,0" Grid.ColumnSpan="2" Grid.Row="2" ItemsSource="{x:Bind Vm.AllCategories, Mode=OneWay}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <toolkit:WrapPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:TagDisplayItem">
+                                            <Border
+                Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                CornerRadius="4"
+                Padding="8,4"
+                Margin="0,0,6,6">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <TextBlock Text="{x:Bind Value}" VerticalAlignment="Center" />
+                                                    <Button
+                        Padding="4"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Tag="{Binding Value}"
+                        Visibility="{Binding IsDefault, Converter={StaticResource InverseBoolToVisibility}}"
+                        Click="RemoveCategory_Click">
+                                                        <FontIcon Glyph="&#xE711;" FontSize="10" />
+                                                    </Button>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+                        </Border>
+
+                       
 
                 </StackPanel>
 

@@ -38,4 +38,10 @@ public interface IProjectRepository
 
     /// <summary>핀 고정 카드들의 표시 순서를 저장합니다. 전달된 ID 목록의 인덱스가 순서가 됩니다.</summary>
     void UpdatePinOrder(IReadOnlyList<string> orderedPinnedIds);
+
+    /// <summary>이름이 동일한 기존 프로젝트의 ID를 반환합니다. 없으면 null.</summary>
+    string? FindProjectIdByName(string name);
+
+    /// <summary>기존 프로젝트를 삭제하고 새 프로젝트를 추가합니다 (덮어쓰기).</summary>
+    void DeleteByNameAndInsert(string existingId, ProjectItem project);
 }

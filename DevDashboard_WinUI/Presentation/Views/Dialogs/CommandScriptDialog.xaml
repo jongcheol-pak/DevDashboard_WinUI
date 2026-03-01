@@ -73,7 +73,6 @@
                     Margin="0,8,0,0" />
 
                 <Grid
-                    Visibility="{Binding UseWorkingDirectory, Converter={StaticResource BoolToVisibility}}"
                     ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -82,22 +81,18 @@
                     <TextBox
                         x:Uid="CmdWorkingDirBox"
                         Grid.Column="0"
+                        IsReadOnly="True"
+                        IsEnabled="{x:Bind Vm.UseWorkingDirectory, Mode=OneWay}"
                         Text="{x:Bind Vm.WorkingDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <Button
                         x:Uid="Btn_Browse"
                         Grid.Column="1"
+                        IsEnabled="{x:Bind Vm.UseWorkingDirectory, Mode=OneWay}"
                         Command="{x:Bind Vm.BrowseWorkingDirectoryCommand}"
                         VerticalAlignment="Stretch" />
                 </Grid>
 
-                <!-- 에러 -->
-                <TextBlock
-                    x:Name="ErrorText"
-                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                    Visibility="Collapsed"
-                    TextWrapping="Wrap" />
-
-            </StackPanel>
+                </StackPanel>
         </ScrollViewer>
 
         <!-- Row 2: 버튼 패널 -->

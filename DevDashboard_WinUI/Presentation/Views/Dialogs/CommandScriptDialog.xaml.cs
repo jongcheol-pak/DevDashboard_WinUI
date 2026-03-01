@@ -1,6 +1,7 @@
 using DevDashboard.Infrastructure.Services;
 using DevDashboard.Presentation.ViewModels;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using WinUIEx;
 
@@ -44,17 +45,22 @@ public sealed partial class CommandScriptDialog : WindowEx
         return _closedTcs.Task;
     }
 
-    private void OnSave(object sender, RoutedEventArgs e)
+    private async void OnSave(object sender, RoutedEventArgs e)
     {
         var error = Vm.Validate();
         if (error is not null)
         {
-            ErrorText.Text = error;
-            ErrorText.Visibility = Visibility.Visible;
+            var dialog = new ContentDialog
+            {
+                Title = LocalizationService.Get("InputRequired"),
+                Content = error,
+                CloseButtonText = LocalizationService.Get("Btn_Close.Content"),
+                XamlRoot = Content.XamlRoot
+            };
+            await dialog.ShowAsync();
             return;
         }
 
-        ErrorText.Visibility = Visibility.Collapsed;
         ResultScript = Vm.ToCommandScript();
         Close();
     }

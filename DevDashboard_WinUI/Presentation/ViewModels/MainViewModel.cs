@@ -197,8 +197,7 @@ public partial class MainViewModel : ObservableObject
             var keyword = SearchText.Trim();
             query = query.Where(c =>
                 c.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-                c.Description.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-                c.Category.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+                c.Description.Contains(keyword, StringComparison.OrdinalIgnoreCase));
         }
 
         List<ProjectCardViewModel> pinned = [], unpinned = [];
@@ -397,6 +396,9 @@ public partial class MainViewModel : ObservableObject
         var existing = _allCards.FirstOrDefault(c => c.Id == item.Id);
         if (existing is not null)
         {
+            // ProjectSettingsDialog는 CommandScripts를 관리하지 않으므로 기존 값을 보존
+            item.CommandScripts = existing.ToModel().CommandScripts;
+
             try
             {
                 _projectRepository.Update(item);

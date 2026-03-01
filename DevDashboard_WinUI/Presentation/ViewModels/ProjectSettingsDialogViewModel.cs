@@ -100,6 +100,10 @@ public partial class ProjectSettingsDialogViewModel : ObservableObject
             .OrderBy(c => c, StringComparer.OrdinalIgnoreCase)
             .ToArray();
         OnPropertyChanged(nameof(Categories));
+
+        // 선택된 카테고리가 없으면 첫 번째 항목을 기본값으로 선택
+        if (string.IsNullOrEmpty(Category) && Categories.Length > 0)
+            Category = Categories[0];
     }
 
     public void LoadCustomTags(IEnumerable<string> customTags)
@@ -127,7 +131,7 @@ public partial class ProjectSettingsDialogViewModel : ObservableObject
         IsShellTool = value is not null && IsShellToolName(value.Name);
     }
 
-    private static bool IsShellToolName(string name)
+    internal static bool IsShellToolName(string name)
         => name.Equals(PowerShellToolName, StringComparison.OrdinalIgnoreCase)
         || name.Equals(CmdToolName, StringComparison.OrdinalIgnoreCase);
 
@@ -217,12 +221,12 @@ public partial class ProjectSettingsDialogViewModel : ObservableObject
         {
             Id = EditingProjectId ?? Guid.NewGuid().ToString(),
             Name = Name.Trim(),
-            Description = Description,
-            IconPath = IconPath,
-            Path = IsShellTool ? string.Empty : Path,
+            Description = Description.Trim(),
+            IconPath = IconPath.Trim(),
+            Path = IsShellTool ? string.Empty : Path.Trim(),
             DevToolName = SelectedDevTool?.Name ?? string.Empty,
-            Options = IsShellTool ? string.Empty : Options,
-            Command = IsShellTool ? Command : string.Empty,
+            Options = IsShellTool ? string.Empty : Options.Trim(),
+            Command = IsShellTool ? Command.Trim() : string.Empty,
             UseWorkingDirectory = IsShellTool && UseWorkingDirectory,
             ShellWorkingDirectory = IsShellTool ? ShellWorkingDirectory.Trim() : string.Empty,
             Tags = AvailableTags.Where(t => t.IsSelected).Select(t => t.Name)
@@ -308,6 +312,10 @@ public partial class ProjectSettingsDialogViewModel : ObservableObject
         Groups.Clear();
         foreach (var g in groups)
             Groups.Add(g);
+
+        // 선택된 그룹이 없으면 첫 번째 항목을 기본값으로 선택
+        if (string.IsNullOrEmpty(SelectedGroupId) && Groups.Count > 0)
+            SelectedGroupId = Groups[0].Id;
     }
 
     public void SetExistingNames(IReadOnlyList<string> names)

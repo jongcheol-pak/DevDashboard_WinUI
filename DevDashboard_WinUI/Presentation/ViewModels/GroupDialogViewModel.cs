@@ -17,7 +17,7 @@ public partial class GroupDialogViewModel : ObservableObject
         return new ProjectGroup
         {
             Id = EditingGroupId ?? Guid.NewGuid().ToString(),
-            Name = Name
+            Name = Name.Trim()
         };
     }
 

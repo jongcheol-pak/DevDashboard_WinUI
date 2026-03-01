@@ -9,8 +9,8 @@ namespace DevDashboard.Presentation.Views.Dialogs;
 
 public sealed partial class ProjectSettingsDialog : WindowEx
 {
-    private const int MinW = 600;
-    private const int InitW = 800;
+    
+    private const int InitW = 600;
     private const int InitH = 650;
 
     private ProjectSettingsDialogViewModel Vm { get; } = new();
@@ -30,9 +30,6 @@ public sealed partial class ProjectSettingsDialog : WindowEx
         SystemBackdrop = new MicaBackdrop();
         if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p)
         { p.IsMinimizable = false; p.IsMaximizable = false; }
-
-        var manager = WindowManager.Get(this);
-        manager.MinWidth = MinW;
 
         Vm.LoadGroups(groups);
         Vm.LoadTools(tools);

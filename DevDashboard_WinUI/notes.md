@@ -4,7 +4,9 @@
 
 | 날짜 | 내용 |
 |------|------|
-| 2026-07 | **MSIX StartupTask + LocalSettings 마이그레이션** — 자동 실행: 레지스트리 → `Windows.ApplicationModel.StartupTask` API 전환. 앱 설정 저장: settings.json(AppContext.BaseDirectory) → `ApplicationData.Current.LocalSettings` 전환 |
+| 2026-07 | **CommandScripts DB 삭제 버그 수정** — `ProjectSettingsDialog` 저장 시 `ToProjectItem()`이 `CommandScripts`를 포함하지 않아 `Update()`에서 전부 삭제되던 문제. `AddOrUpdateProject` 업데이트 분기에서 기존 카드의 `CommandScripts`를 보존하도록 수정 |
+| 2026-07 | **CommandScriptDialog 실행폴더 UI 개선 + 저장 버그 수정**
+| 2026-07 | **MSIX StartupTask + LocalSettings 마이그레이션**
 | 2026-07 | **저장 경로 마이그레이션** — `AppContext.BaseDirectory`(MSIX 설치폴더, 읽기전용) → `ApplicationData.Current.LocalFolder.Path`로 변경 (settings.json → LocalSettings, projects.db → LocalFolder) |
 | 2026-07 | **ProjectHistoryDialog Closed 예외 미처리 수정** — `Vm.SaveAll()` 실패 시 `_closedTcs.TrySetResult()` 미호출 → 무한 대기 문제 수정. `try/catch/finally`로 항상 TCS 완료 보장 |
 | 2026-07 | **HistoryDialog/ProjectHistoryDialog 목록 미표시 및 팝업 오류 수정** — 중첩 DataTemplate 내 `{Binding HasDescription, Converter={StaticResource BoolToVisibility}}` → `{x:Bind DescriptionVisibility}` 변경 + `ItemsSource` 한 번만 설정, `RefreshList()` 단순화 |
