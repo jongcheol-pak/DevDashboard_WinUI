@@ -36,6 +36,10 @@ public partial class ProjectCardViewModel : ObservableObject
     /// <summary>커맨드 스크립트 슬롯 수</summary>
     public const int CommandSlotCount = 4;
 
+    /// <summary>태그 마키 애니메이션 활성화 여부 — AppSettings에서 전달</summary>
+    [ObservableProperty]
+    private bool _enableTagAnimation;
+
     [ObservableProperty]
     private bool _isPinned;
 
@@ -188,6 +192,7 @@ public partial class ProjectCardViewModel : ObservableObject
         _repository = repository;
         _settings = settings;
         _isPinned = item.IsPinned;
+        _enableTagAnimation = settings.EnableTagAnimation;
         RefreshCommandSlotStates();
     }
 

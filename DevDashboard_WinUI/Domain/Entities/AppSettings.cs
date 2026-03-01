@@ -32,4 +32,7 @@ public class AppSettings
 
     /// <summary>진행 중인 To-Do 완료 시 작업 기록 팝업 표시 여부</summary>
     public bool ShowWorkLogPopupOnTodoComplete { get; set; }
+
+    /// <summary>태그 마키 애니메이션 활성화 여부 (기본값: true)</summary>
+    public bool EnableTagAnimation { get; set; } = true;
 }

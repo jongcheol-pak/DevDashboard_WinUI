@@ -649,6 +649,9 @@ public partial class MainViewModel : ObservableObject
     public void SaveAppSettings(AppSettings settings)
     {
         _settings = settings;
+        // 태그 애니메이션 설정 즉시 전파
+        foreach (var card in _allCards)
+            card.EnableTagAnimation = settings.EnableTagAnimation;
         InvalidateToolsCache();
         SaveSettings();
     }

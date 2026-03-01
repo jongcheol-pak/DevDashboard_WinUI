@@ -92,6 +92,10 @@ public partial class AppSettingsDialogViewModel : ObservableObject
     [ObservableProperty]
     private bool _showWorkLogPopupOnTodoComplete;
 
+    /// <summary>태그 마키 애니메이션 활성화 여부</summary>
+    [ObservableProperty]
+    private bool _enableTagAnimation = true;
+
     /// <summary>ComboBox 바인딩용 테마 선택 항목 목록</summary>
     public ThemeModeItem[] ThemeModeItems { get; } =
     [
@@ -244,6 +248,7 @@ public partial class AppSettingsDialogViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(settings);
 
         ShowWorkLogPopupOnTodoComplete = settings.ShowWorkLogPopupOnTodoComplete;
+        EnableTagAnimation = settings.EnableTagAnimation;
         SelectedThemeModeItem = ThemeModeItems.FirstOrDefault(t => t.Value == settings.ThemeMode)
             ?? ThemeModeItems[0];
 
@@ -270,6 +275,7 @@ public partial class AppSettingsDialogViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(settings);
 
         settings.ShowWorkLogPopupOnTodoComplete = ShowWorkLogPopupOnTodoComplete;
+        settings.EnableTagAnimation = EnableTagAnimation;
         settings.ThemeMode = SelectedThemeModeItem?.Value ?? ThemeMode.Light;
 
         settings.Tools.Clear();

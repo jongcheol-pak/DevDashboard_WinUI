@@ -41,7 +41,7 @@
                 <Grid Margin="16,14">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
+                        <RowDefinition Height="38" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
@@ -100,26 +100,17 @@
                                FontSize="12"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                TextWrapping="Wrap"
-                               MaxHeight="34"
+                               VerticalAlignment="Stretch"
+                               MaxLines="2"
                                Margin="0,4,0,0"
+                               TextTrimming="CharacterEllipsis"
                                Visibility="{Binding Description, Converter={StaticResource StringNotEmptyToVisibility}}" />
 
-                    <!-- 태그 영역 -->
-                    <ItemsRepeater Grid.Row="2" ItemsSource="{Binding Tags}" Margin="0,8,0,8">
-                        <ItemsRepeater.Layout>
-                            <muxc:StackLayout Orientation="Horizontal" Spacing="4" />
-                        </ItemsRepeater.Layout>
-                        <ItemsRepeater.ItemTemplate>
-                            <DataTemplate x:DataType="x:String">
-                                <Border Padding="8,4" CornerRadius="4"  MinWidth="30"
-                                        Background="{ThemeResource SubtleFillColorSecondaryBrush}">
-                                    <TextBlock Text="{x:Bind}"
-                                               FontSize="11"
-                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                                </Border>
-                            </DataTemplate>
-                        </ItemsRepeater.ItemTemplate>
-                    </ItemsRepeater>
+                    <!-- 태그 영역 (마키 애니메이션 컨트롤) -->
+                    <ctrl:MarqueeTagsControl Grid.Row="2"
+                        Tags="{Binding Tags}"
+                        IsAnimationEnabled="{Binding EnableTagAnimation}"
+                        Margin="0,4,0,4" />
 
                     <!-- 카드 하단 -->
                     <StackPanel Grid.Row="3" Spacing="8">
@@ -233,10 +224,12 @@
                                                   Visibility="{Binding IsCmd0Configured, Converter={StaticResource InverseBoolToVisibility}}" />
                                         <!-- 설정됨: 아이콘 유무에 따라 분기 -->
                                         <Grid Visibility="{Binding IsCmd0Configured, Converter={StaticResource BoolToVisibility}}">
-                                            <TextBlock Text=">_" FontSize="11" FontWeight="SemiBold"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                                                       Visibility="{Binding HasCmd0Icon, Converter={StaticResource InverseBoolToVisibility}}" />
+                                   
+                                            <FontIcon Glyph="&#xE756;" FontSize="14"           
+            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+ Visibility="{Binding HasCmd0Icon, Converter={StaticResource InverseBoolToVisibility}}" />
+                                            
+
                                             <FontIcon Glyph="{Binding Cmd0Icon}" FontSize="14"
                                                       FontFamily="Segoe MDL2 Assets"
                                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"
