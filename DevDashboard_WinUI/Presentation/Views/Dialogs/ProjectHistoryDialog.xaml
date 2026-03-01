@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:DevDashboard.Presentation.ViewModels"
     xmlns:models="using:DevDashboard.Domain.Entities"
+    xmlns:helpers="using:DevDashboard.Presentation.Helpers"
     xmlns:winuiex="using:WinUIEx">
 
     <Grid>
@@ -58,6 +59,7 @@
 
                 <!-- 검색 -->
                 <AutoSuggestBox
+                    helpers:AutoSuggestBoxHelper.MaxLength="50"
                     x:Uid="ProjHistSearchBox"
                     QueryIcon="Find"
                     TextChanged="SearchBox_TextChanged" />

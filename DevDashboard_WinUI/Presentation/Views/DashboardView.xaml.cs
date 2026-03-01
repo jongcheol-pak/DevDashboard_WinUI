@@ -252,6 +252,33 @@ public sealed partial class DashboardView : UserControl
         e.Handled = true;
     }
 
+    // ─── 플레이스홀더 드래그 이벤트 핸들러 ────────────────────────────────
+    // 플레이스홀더 위에서도 AcceptedOperation을 설정해야 드롭이 허용됨
+
+    private void Placeholder_DragOver(object sender, DragEventArgs e)
+    {
+        if (string.IsNullOrEmpty(_draggedCardId)) return;
+        e.AcceptedOperation = DataPackageOperation.Move;
+    }
+
+    private void Placeholder_Drop(object sender, DragEventArgs e)
+    {
+        var draggedId = _draggedCardId;
+        var targetId = _dropTargetId;
+        var insertAfter = !_dropIsLeft;
+
+        RemoveDropPlaceholder();
+
+        if (!string.IsNullOrEmpty(draggedId) &&
+            !string.IsNullOrEmpty(targetId) &&
+            draggedId != targetId)
+        {
+            Vm?.MovePinnedCard(draggedId, targetId, insertAfter);
+        }
+
+        e.Handled = true;
+    }
+
     // ─── 드롭 플레이스홀더 관리 ────────────────────────────────────────
 
     /// <summary>대상 카드의 좌/우에 빈 카드 플레이스홀더를 삽입합니다.</summary>

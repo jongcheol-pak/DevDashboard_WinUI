@@ -37,8 +37,8 @@
             <!-- 좌측 탐색 -->
             <StackPanel
                 Grid.Column="0"
-                Spacing="2"
-                Padding="0,4,12,4"
+                Spacing="6"
+                Padding="0,4,4,4"
                 BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
                 BorderThickness="0,0,1,0">
                 <RadioButton
@@ -157,9 +157,12 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <TextBlock x:Uid="ToolsLabelText" Grid.Column="0" Style="{StaticResource BodyStrongTextBlockStyle}" VerticalAlignment="Center" />
-                        <Button x:Uid="Btn_Add" Grid.Column="1" Click="AddTool_Click" />
-                    </Grid>
-                    <ItemsControl x:Name="ToolList">
+                            <Button  Grid.Column="1" Click="AddTool_Click">
+                                <FontIcon Glyph="&#xE710;" />
+                            </Button>
+                        </Grid>
+                        <Rectangle Style="{StaticResource SeparatorStyle}" Margin="0,6" />
+                        <ItemsControl x:Name="ToolList">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:ToolItemViewModel">
                                 <Border
@@ -400,28 +403,39 @@
                     <ItemsControl ItemsSource="{x:Bind Vm.OpenSourceLibraries}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="models:OpenSourceItem">
-                                <Grid ColumnSpacing="12" Margin="0,0,0,6">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock
-                                        Grid.Column="0"
-                                        Text="{x:Bind Name}"
-                                        Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                    <TextBlock
-                                        Grid.Column="1"
-                                        Text="{x:Bind License}"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        VerticalAlignment="Center" />
-                                    <HyperlinkButton
+                                    <Border
+  Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+  Padding="8"
+                                        Margin="0,0,0,8"
+  CornerRadius="8">
+                                        <Grid ColumnSpacing="12" Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Stretch" Orientation="Vertical" Spacing="6">
+                                                <TextBlock
+TextAlignment="Left"
+Text="{x:Bind Name}"
+                                                    HorizontalAlignment="Stretch"
+Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                                <TextBlock
+TextAlignment="Left"
+Text="{x:Bind License}"
+                                                    HorizontalAlignment="Stretch"
+Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+VerticalAlignment="Center" />
+                                            </StackPanel>
+                                            
+                                            <HyperlinkButton
                                         x:Uid="Btn_GitHub"
-                                        Grid.Column="2"
+                                        Grid.Column="1"
                                         Tag="{x:Bind Url}"
                                         Click="OpenLicenseUrl_Click" />
-                                </Grid>
-                            </DataTemplate>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </StackPanel>

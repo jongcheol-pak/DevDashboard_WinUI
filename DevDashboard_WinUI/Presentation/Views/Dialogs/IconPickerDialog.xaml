@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:DevDashboard.Presentation.ViewModels"
+    xmlns:helpers="using:DevDashboard.Presentation.Helpers"
     xmlns:winuiex="using:WinUIEx">
 
     <Grid>
@@ -42,6 +43,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <AutoSuggestBox
+                helpers:AutoSuggestBoxHelper.MaxLength="20"
                 x:Uid="IconSearchBox"
                 Grid.Column="0"
                 QueryIcon="Find"

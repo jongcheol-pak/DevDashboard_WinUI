@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:DevDashboard.Presentation.ViewModels"
+     xmlns:helpers="using:DevDashboard.Presentation.Helpers"
     xmlns:winuiex="using:WinUIEx">
 
     <Grid>
@@ -34,9 +35,9 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <AutoSuggestBox
+                        helpers:AutoSuggestBoxHelper.MaxLength="50"
                         x:Uid="HistorySearchBox"
                         Grid.Column="0"
                         QueryIcon="Find"
@@ -44,11 +45,7 @@
                     <Button
                         x:Uid="AddHistoryBtn"
                         Grid.Column="1"
-                        Click="ToggleAddPanel_Click" />
-                    <Button
-                        x:Uid="Btn_ExportMarkdown"
-                        Grid.Column="2"
-                        Click="Export_Click" />
+                        Click="ToggleAddPanel_Click" />                    
                 </Grid>
 
                 <!-- 인라인 추가 폼 -->
@@ -187,9 +184,28 @@
             Grid.Row="2"
             BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
             BorderThickness="0,1,0,0">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Padding="16,12">
-                <Button x:Uid="Btn_Close" Click="OnClose" />
-            </StackPanel>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Spacing="8" Padding="16,12">
+                    <Button
+Grid.Column="2"
+Click="Export_Click" >
+                        <FontIcon Glyph="&#xE896;" FontSize="14"
+        Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Padding="16,12">
+                    <Button x:Uid="Btn_Close" Click="OnClose" />
+                </StackPanel>
+            </Grid>
+
+         
         </Border>
     </Grid>
 

@@ -8,7 +8,7 @@ namespace DevDashboard.Presentation.Views.Dialogs;
 
 public sealed partial class GroupDialog : WindowEx
 {
-    private const int MinW = 380;
+    private const int MinW = 350;
     private const int InitW = 500;
     private const int InitH = 300;
 

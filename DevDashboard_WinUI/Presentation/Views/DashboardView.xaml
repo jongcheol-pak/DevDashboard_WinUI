@@ -28,6 +28,7 @@
         <!-- ───── 프로젝트 카드 DataTemplate ───── -->
         <DataTemplate x:Key="ProjectCardTemplate" x:DataType="vm:ProjectCardViewModel">
             <Border Width="330" Margin="8"
+                    MinHeight="204"
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     CornerRadius="12"
                     BorderThickness="1"
@@ -36,7 +37,7 @@
                     AllowDrop="True"
                     DragStarting="Card_DragStarting"
                     DropCompleted="Card_DropCompleted"
-                    DragOver="Card_DragOver"
+                    DragOver="Card_DragOver"                  
                     Drop="Card_Drop">
                 <Grid Margin="16,14">
                     <Grid.RowDefinitions>
@@ -437,11 +438,14 @@ Visibility="{Binding HasCmd3Icon, Converter={StaticResource InverseBoolToVisibil
         <!-- ───── 드롭 플레이스홀더 DataTemplate ───── -->
         <DataTemplate x:Key="DropPlaceholderTemplate">
             <Border Width="330" Margin="8"
-                    MinHeight="120"
+                    MinHeight="204"
                     CornerRadius="12"
                     BorderThickness="2"
                     BorderBrush="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                    Background="{ThemeResource SubtleFillColorSecondaryBrush}" />
+                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                    AllowDrop="True"
+                    DragOver="Placeholder_DragOver"
+                    Drop="Placeholder_Drop" />
         </DataTemplate>
 
         <!-- ───── Template Selector ───── -->

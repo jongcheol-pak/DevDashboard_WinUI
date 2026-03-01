@@ -9,6 +9,7 @@
     xmlns:winuiex="using:WinUIEx"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:helpers="using:DevDashboard.Presentation.Helpers"
     mc:Ignorable="d"
 
     Title="DevDashboard"
@@ -58,13 +59,14 @@
                                 QueryIcon="Find"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center"
-                                MaxWidth="350"
+                                MaxWidth="400"
+                               helpers:AutoSuggestBoxHelper.MaxLength="50"
                                 TextChanged="SearchBox_TextChanged"
                                 KeyDown="SearchBox_KeyDown" />
 
                 <!-- 우: 버튼 영역 -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
-                            Spacing="4">
+                            Spacing="6">
 
                     <!-- 정렬 버튼 -->
                     <Button x:Name="SortButton"
