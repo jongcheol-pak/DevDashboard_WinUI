@@ -166,6 +166,38 @@ public sealed partial class DashboardView : UserControl
             card.ApplyCommandIconResult(slotIndex, dialog.SelectedGlyph);
     }
 
+    /// <summary>
+    /// 미설정 슬롯의 빈 컨텍스트 메뉴를 차단합니다.
+    /// Visibility 바인딩은 첫 오픈 시 아직 평가되지 않을 수 있으므로
+    /// ViewModel 상태(GetCommandScriptForDialog)를 직접 확인합니다.
+    /// </summary>
+    private void CmdFlyout_Opening(object sender, object e)
+    {
+        if (sender is not MenuFlyout flyout) return;
+        if (flyout.Target is Button { DataContext: ProjectCardViewModel vm, CommandParameter: string param }
+            && int.TryParse(param, out var index)
+            && vm.GetCommandScriptForDialog(index) is null)
+            flyout.Hide();
+    }
+
+    /// <summary>미설정 커맨드 슬롯의 빈 컨텍스트 메뉴 표시를 차단합니다.</summary>
+    private void CmdSlot_ContextRequested(UIElement sender, Microsoft.UI.Xaml.Input.ContextRequestedEventArgs args)
+    {
+        args.Handled = true;
+
+        if (sender is Button { DataContext: ProjectCardViewModel vm, CommandParameter: string param } btn
+            && int.TryParse(param, out var index)
+            && vm.GetCommandScriptForDialog(index) is not null
+            && btn.ContextFlyout is { } flyout)
+        {
+            var options = new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions();
+            if (args.TryGetPosition(btn, out var point))
+                options.Position = point;
+
+            flyout.ShowAt(btn, options);
+        }
+    }
+
     // ─── 드래그앤드롭 ───────────────────────────────────────────────────
 
     private void Card_DragStarting(UIElement sender, DragStartingEventArgs e)

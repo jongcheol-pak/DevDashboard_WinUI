@@ -145,7 +145,7 @@
                                 MinWidth="0"
                                 IsOn="{x:Bind Vm.ShowWorkLogPopupOnTodoComplete, Mode=TwoWay}" />   
                         </toolkit:SettingsCard>
-
+                       
                       
                 </StackPanel>
 

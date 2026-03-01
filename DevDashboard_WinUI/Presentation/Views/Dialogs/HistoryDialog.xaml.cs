@@ -98,8 +98,8 @@ public sealed partial class HistoryDialog : WindowEx
         {
             Title = LocalizationService.Get("HistoryEditHeader"),
             Content = panel,
-            PrimaryButtonText = LocalizationService.Get("Btn_Save.Content"),
-            CloseButtonText = LocalizationService.Get("Btn_Cancel.Content"),
+            PrimaryButtonText = LocalizationService.Get("Dialog_Save"),
+            CloseButtonText = LocalizationService.Get("Dialog_Cancel"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = Content.XamlRoot
         };

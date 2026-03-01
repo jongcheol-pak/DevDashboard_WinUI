@@ -1,16 +1,19 @@
 ﻿using System.Collections.ObjectModel;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Windows.Storage;
 
 namespace DevDashboard.Presentation.ViewModels;
 
-/// <summary>아이콘 항목 — 이름(검색용)과 글리프(Segoe MDL2 Assets 유니코드 문자)</summary>
-public sealed record IconItem(string Name, string Glyph);
+/// <summary>아이콘 항목 — 이름(검색용), 글리프(유니코드 문자), 태그(동의어 검색용)</summary>
+public sealed record IconItem(string Name, string Glyph, IReadOnlyList<string> Tags);
 
-/// <summary>아이콘 선택 다이얼로그 뷰모델 — Segoe MDL2 Assets 아이콘 목록 표시</summary>
+/// <summary>아이콘 선택 다이얼로그 뷰모델 — IconsData.json 기반 아이콘 목록 표시</summary>
 public partial class IconPickerDialogViewModel : ObservableObject
 {
-    private static readonly IReadOnlyList<IconItem> _allIcons = BuildIconList();
+    private IReadOnlyList<IconItem> _allIcons = [];
     private CancellationTokenSource? _searchCts;
 
     [ObservableProperty]
@@ -44,6 +47,7 @@ public partial class IconPickerDialogViewModel : ObservableObject
     public async Task LoadIconsAsync()
     {
         IsLoading = true;
+        _allIcons = await LoadIconsFromJsonAsync();
         TotalIconCount = _allIcons.Count;
         await ApplyFilterAsync(CancellationToken.None);
         IsLoading = false;
@@ -75,18 +79,23 @@ public partial class IconPickerDialogViewModel : ObservableObject
         }
     }
 
-    /// <summary>검색어 기반 필터링</summary>
+    /// <summary>검색어 기반 필터링 — 이름과 태그 모두 검색</summary>
     private async Task ApplyFilterAsync(CancellationToken cancellationToken)
     {
         var query = SearchText?.Trim() ?? string.Empty;
+        var icons = _allIcons;
 
         var filtered = await Task.Run(() =>
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            IEnumerable<IconItem> result = _allIcons;
+            IEnumerable<IconItem> result = icons;
             if (!string.IsNullOrWhiteSpace(query))
-                result = result.Where(i => i.Name.Contains(query, StringComparison.OrdinalIgnoreCase));
+            {
+                result = result.Where(i =>
+                    i.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    i.Tags.Any(t => t.Contains(query, StringComparison.OrdinalIgnoreCase)));
+            }
 
             return result.ToList();
         }, cancellationToken);
@@ -123,102 +132,44 @@ public partial class IconPickerDialogViewModel : ObservableObject
         CloseRequested?.Invoke(this, EventArgs.Empty);
     }
 
-    /// <summary>Segoe MDL2 Assets 기반 아이콘 목록을 생성합니다.</summary>
-    private static IReadOnlyList<IconItem> BuildIconList()
+    /// <summary>Data/IconsData.json에서 아이콘 목록을 비동기로 로드합니다.</summary>
+    private static async Task<IReadOnlyList<IconItem>> LoadIconsFromJsonAsync()
     {
-        return
-        [
-            new("Add",              "\uE710"),
-            new("AddFriend",        "\uE8FA"),
-            new("Admin",            "\uE7EF"),
-            new("Alert",            "\uE7BA"),
-            new("Android",          "\uE8CF"),
-            new("Attach",           "\uE723"),
-            new("Back",             "\uE72B"),
-            new("Bluetooth",        "\uE702"),
-            new("Brightness",       "\uE706"),
-            new("Build",            "\uE8D3"),
-            new("Calculator",       "\uE8EF"),
-            new("Calendar",         "\uE787"),
-            new("Camera",           "\uE722"),
-            new("Cancel",           "\uE711"),
-            new("Check",            "\uE73E"),
-            new("Cloud",            "\uE753"),
-            new("Code",             "\uE943"),
-            new("ColorPalette",     "\uE790"),
-            new("Comment",          "\uE8F2"),
-            new("Copy",             "\uE8C8"),
-            new("Cut",              "\uE8C6"),
-            new("Data",             "\uE9F9"),
-            new("Delete",           "\uE74D"),
-            new("Document",         "\uE8A5"),
-            new("Download",         "\uE896"),
-            new("Edit",             "\uE8B5"),
-            new("Error",            "\uE814"),
-            new("Favorite",         "\uE734"),
-            new("Filter",           "\uE71C"),
-            new("Flag",             "\uE7C1"),
-            new("Folder",           "\uE8B7"),
-            new("FolderOpen",       "\uE8DA"),
-            new("Forward",          "\uE72A"),
-            new("Games",            "\uE7FC"),
-            new("Git",              "\uF1D3"),
-            new("Globe",            "\uE774"),
-            new("Grid",             "\uF0E2"),
-            new("Help",             "\uE897"),
-            new("Hide",             "\uED1A"),
-            new("Home",             "\uE80F"),
-            new("Info",             "\uE946"),
-            new("Key",              "\uE8D0"),
-            new("Left",             "\uE76B"),
-            new("Like",             "\uE8E1"),
-            new("Link",             "\uE71B"),
-            new("List",             "\uE8FD"),
-            new("Lock",             "\uE72E"),
-            new("Mail",             "\uE715"),
-            new("Mobile",           "\uE8EA"),
-            new("More",             "\uE712"),
-            new("Music",            "\uE8D6"),
-            new("Mute",             "\uE74F"),
-            new("Network",          "\uEC27"),
-            new("Package",          "\uE7B8"),
-            new("Paste",            "\uE77F"),
-            new("Pause",            "\uE769"),
-            new("Phone",            "\uE717"),
-            new("Photo",            "\uE8B9"),
-            new("Pin",              "\uE718"),
-            new("Play",             "\uE768"),
-            new("Power",            "\uE7E8"),
-            new("Print",            "\uE749"),
-            new("Redo",             "\uE7A6"),
-            new("Refresh",          "\uE72C"),
-            new("Right",            "\uE76C"),
-            new("Robot",            "\uE99A"),
-            new("Save",             "\uE74E"),
-            new("Search",           "\uE721"),
-            new("Send",             "\uE724"),
-            new("Server",           "\uECC8"),
-            new("Settings",         "\uE713"),
-            new("Share",            "\uE72D"),
-            new("Sort",             "\uE8CB"),
-            new("Sound",            "\uE995"),
-            new("Star",             "\uE735"),
-            new("Stop",             "\uE71A"),
-            new("Sync",             "\uE895"),
-            new("Tag",              "\uE8EC"),
-            new("Terminal",         "\uE756"),
-            new("Tools",            "\uE8F1"),
-            new("Unpin",            "\uE77A"),
-            new("Upload",           "\uE898"),
-            new("USB",              "\uED55"),
-            new("Video",            "\uE8B2"),
-            new("View",             "\uE890"),
-            new("Warning",          "\uE7BA"),
-            new("Web",              "\uE774"),
-            new("Wifi",             "\uE701"),
-            new("Windows",          "\uE782"),
-            new("ZoomIn",           "\uE8A3"),
-            new("ZoomOut",          "\uE71F"),
-        ];
+        var file = await StorageFile.GetFileFromApplicationUriAsync(
+            new Uri("ms-appx:///Data/IconsData.json"));
+        var json = await FileIO.ReadTextAsync(file);
+
+        var entries = JsonSerializer.Deserialize<List<IconJsonEntry>>(json, JsonOptions);
+        if (entries is null)
+            return [];
+
+        var items = new List<IconItem>(entries.Count);
+        foreach (var entry in entries)
+        {
+            // hex 코드("E700")를 글리프 문자로 변환
+            if (int.TryParse(entry.Code, System.Globalization.NumberStyles.HexNumber, null, out var codePoint))
+            {
+                var glyph = char.ConvertFromUtf32(codePoint);
+                items.Add(new IconItem(entry.Name, glyph, entry.Tags ?? []));
+            }
+        }
+
+        return items;
+    }
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
+    /// <summary>IconsData.json 역직렬화용 DTO</summary>
+    private sealed record IconJsonEntry
+    {
+        public string Code { get; init; } = string.Empty;
+        public string Name { get; init; } = string.Empty;
+        public List<string>? Tags { get; init; }
+
+        [JsonPropertyName("IsSegoeFluentOnly")]
+        public bool IsSegoeFluentOnly { get; init; }
     }
 }

@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:DevDashboard.Presentation.ViewModels"
     xmlns:models="using:DevDashboard.Domain.Enums"
+    xmlns:helpers="using:DevDashboard.Presentation.Helpers"
     xmlns:winuiex="using:WinUIEx">
 
     <Grid>
@@ -27,7 +28,7 @@
         </Border>
 
         <!-- Row 1: 내용 -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="16,12,16,0">
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="16,12,16,12">
             <StackPanel Spacing="12" DataContext="{x:Bind Vm}">
 
                 <!-- 설명 -->
@@ -61,10 +62,12 @@
                     x:Uid="CmdScriptBox"
                     Text="{x:Bind Vm.Script, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     AcceptsReturn="True"
-                    MinHeight="100"
+                    MaxHeight="100"
+                    MaxLength="300"
                     TextWrapping="Wrap"
+                    helpers:TextBoxHelper.MaxLines="10" 
                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                    FontFamily="Consolas" />
+                    />
 
                 <!-- 실행 폴더 -->
                 <CheckBox

@@ -76,6 +76,7 @@
                                    FontSize="15" FontWeight="SemiBold"
                                    VerticalAlignment="Center"
                                    TextTrimming="CharacterEllipsis"
+                                   HorizontalAlignment="Stretch"
                                    Margin="0,0,8,0" />
 
                         <!-- 핀 버튼 -->
@@ -200,9 +201,10 @@
                                          Margin="0,0,4,0"
                                         Command="{Binding ExecuteCommandSlotCommand}"
                                         CommandParameter="0"
-                                        ToolTipService.ToolTip="{Binding Cmd0Tooltip}">
+                                        ToolTipService.ToolTip="{Binding Cmd0Tooltip}"
+                                        ContextRequested="CmdSlot_ContextRequested">
                                     <Button.ContextFlyout>
-                                        <MenuFlyout>
+                                        <MenuFlyout Opening="CmdFlyout_Opening">
                                             <MenuFlyoutItem x:Uid="CmdSlotConfigureItem"
                                                            Command="{Binding ConfigureCommandSlotCommand}"
                                                            CommandParameter="0"
@@ -244,9 +246,10 @@
                                         Command="{Binding ExecuteCommandSlotCommand}"
                                         CommandParameter="1"
                                         ToolTipService.ToolTip="{Binding Cmd1Tooltip}"
-                                        Visibility="{Binding IsCmd1SlotVisible, Converter={StaticResource BoolToVisibility}}">
+                                        Visibility="{Binding IsCmd1SlotVisible, Converter={StaticResource BoolToVisibility}}"
+                                        ContextRequested="CmdSlot_ContextRequested">
                                     <Button.ContextFlyout>
-                                        <MenuFlyout>
+                                        <MenuFlyout Opening="CmdFlyout_Opening">
                                             <MenuFlyoutItem x:Uid="CmdSlotConfigureItem"
                                                            Command="{Binding ConfigureCommandSlotCommand}"
                                                            CommandParameter="1"
@@ -266,10 +269,10 @@
                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                   Visibility="{Binding IsCmd1Configured, Converter={StaticResource InverseBoolToVisibility}}" />
                                         <Grid Visibility="{Binding IsCmd1Configured, Converter={StaticResource BoolToVisibility}}">
-                                            <TextBlock Text=">_" FontSize="11" FontWeight="SemiBold"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                                                       Visibility="{Binding HasCmd1Icon, Converter={StaticResource InverseBoolToVisibility}}" />
+                                            <FontIcon Glyph="&#xE756;" FontSize="14"           
+           Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+Visibility="{Binding HasCmd1Icon, Converter={StaticResource InverseBoolToVisibility}}" />
+                                         
                                             <FontIcon Glyph="{Binding Cmd1Icon}" FontSize="14"
                                                       FontFamily="Segoe MDL2 Assets"
                                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"
@@ -284,9 +287,10 @@
                                         Command="{Binding ExecuteCommandSlotCommand}"
                                         CommandParameter="2"
                                         ToolTipService.ToolTip="{Binding Cmd2Tooltip}"
-                                        Visibility="{Binding IsCmd2SlotVisible, Converter={StaticResource BoolToVisibility}}">
+                                        Visibility="{Binding IsCmd2SlotVisible, Converter={StaticResource BoolToVisibility}}"
+                                        ContextRequested="CmdSlot_ContextRequested">
                                     <Button.ContextFlyout>
-                                        <MenuFlyout>
+                                        <MenuFlyout Opening="CmdFlyout_Opening">
                                             <MenuFlyoutItem x:Uid="CmdSlotConfigureItem"
                                                            Command="{Binding ConfigureCommandSlotCommand}"
                                                            CommandParameter="2"
@@ -306,10 +310,10 @@
                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                   Visibility="{Binding IsCmd2Configured, Converter={StaticResource InverseBoolToVisibility}}" />
                                         <Grid Visibility="{Binding IsCmd2Configured, Converter={StaticResource BoolToVisibility}}">
-                                            <TextBlock Text=">_" FontSize="11" FontWeight="SemiBold"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                                                       Visibility="{Binding HasCmd2Icon, Converter={StaticResource InverseBoolToVisibility}}" />
+                                            <FontIcon Glyph="&#xE756;" FontSize="14"           
+           Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+Visibility="{Binding HasCmd2Icon, Converter={StaticResource InverseBoolToVisibility}}" />
+                                         
                                             <FontIcon Glyph="{Binding Cmd2Icon}" FontSize="14"
                                                       FontFamily="Segoe MDL2 Assets"
                                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"
@@ -323,9 +327,10 @@
                                         Command="{Binding ExecuteCommandSlotCommand}"
                                         CommandParameter="3"
                                         ToolTipService.ToolTip="{Binding Cmd3Tooltip}"
-                                        Visibility="{Binding IsCmd3SlotVisible, Converter={StaticResource BoolToVisibility}}">
+                                        Visibility="{Binding IsCmd3SlotVisible, Converter={StaticResource BoolToVisibility}}"
+                                        ContextRequested="CmdSlot_ContextRequested">
                                     <Button.ContextFlyout>
-                                        <MenuFlyout>
+                                        <MenuFlyout Opening="CmdFlyout_Opening">
                                             <MenuFlyoutItem x:Uid="CmdSlotConfigureItem"
                                                            Command="{Binding ConfigureCommandSlotCommand}"
                                                            CommandParameter="3"
@@ -345,10 +350,10 @@
                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                   Visibility="{Binding IsCmd3Configured, Converter={StaticResource InverseBoolToVisibility}}" />
                                         <Grid Visibility="{Binding IsCmd3Configured, Converter={StaticResource BoolToVisibility}}">
-                                            <TextBlock Text=">_" FontSize="11" FontWeight="SemiBold"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                                                       Visibility="{Binding HasCmd3Icon, Converter={StaticResource InverseBoolToVisibility}}" />
+                                            <FontIcon Glyph="&#xE756;" FontSize="14"           
+           Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+Visibility="{Binding HasCmd3Icon, Converter={StaticResource InverseBoolToVisibility}}" />
+
                                             <FontIcon Glyph="{Binding Cmd3Icon}" FontSize="14"
                                                       FontFamily="Segoe MDL2 Assets"
                                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"

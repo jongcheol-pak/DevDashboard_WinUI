@@ -6,6 +6,7 @@
     xmlns:vm="using:DevDashboard.Presentation.ViewModels"
     xmlns:models="using:DevDashboard.Domain.Entities"
     xmlns:vo="using:DevDashboard.Domain.ValueObjects"
+    xmlns:helpers="using:DevDashboard.Presentation.Helpers"
     MinWidth="600" MinHeight="600"
     xmlns:winuiex="using:WinUIEx">
 
@@ -38,7 +39,7 @@
                     <TextBox
                         x:Uid="ProjNameBox"
                         Text="{x:Bind Vm.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        MaxLength="100" />
+                        MaxLength="30" />
                 </StackPanel>
 
                 <!-- 설명 -->
@@ -47,7 +48,12 @@
                     <TextBox
                         x:Uid="ProjDescBox"
                         Text="{x:Bind Vm.Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        MaxLength="300" />
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto"
+                        Height="200"
+                        helpers:TextBoxHelper.MaxLines="5"
+                        MaxLength="500" />
                 </StackPanel>
 
                 <!-- 그룹 + 카테고리 -->

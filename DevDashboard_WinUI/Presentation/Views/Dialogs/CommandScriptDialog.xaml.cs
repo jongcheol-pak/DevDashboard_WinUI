@@ -54,7 +54,7 @@ public sealed partial class CommandScriptDialog : WindowEx
             {
                 Title = LocalizationService.Get("InputRequired"),
                 Content = error,
-                CloseButtonText = LocalizationService.Get("Btn_Close.Content"),
+                CloseButtonText = LocalizationService.Get("Dialog_Close"),
                 XamlRoot = Content.XamlRoot
             };
             await dialog.ShowAsync();

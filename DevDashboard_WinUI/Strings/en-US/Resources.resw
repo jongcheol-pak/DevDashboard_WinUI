@@ -14,6 +14,10 @@
   </resheader>
 
   <!-- ===== C# LocalizationService.Get() Keys ===== -->
+  <!-- Used for ContentDialog button text in code (dotted x:Uid keys cannot be retrieved via ResourceLoader) -->
+  <data name="Dialog_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Dialog_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Dialog_Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="DefaultGroupName" xml:space="preserve"><value>User</value></data>
   <data name="SaveError" xml:space="preserve"><value>Save Error</value></data>
   <data name="DatabaseInitError" xml:space="preserve"><value>An error occurred during database initialization.{0}{1}</value></data>

@@ -472,14 +472,15 @@ public partial class ProjectCardViewModel : ObservableObject
         ConfigureCommandSlotRequested?.Invoke(this, index);
     }
 
-    /// <summary>커맨드 슬롯 삭제</summary>
+    /// <summary>커맨드 슬롯 삭제 — 뒤의 슬롯을 앞으로 당겨 빈 틈 없이 정렬</summary>
     [RelayCommand]
     private void ClearCommandSlot(string indexStr)
     {
         if (!TryParseSlotIndex(indexStr, out var index)) return;
+        if (index >= _item.CommandScripts.Count) return;
 
-        if (index < _item.CommandScripts.Count)
-            _item.CommandScripts[index] = null;
+        _item.CommandScripts.RemoveAt(index);
+        _item.CommandScripts.Add(null);
 
         RefreshCommandSlotStates();
         CommandScriptChanged?.Invoke(this, EventArgs.Empty);
