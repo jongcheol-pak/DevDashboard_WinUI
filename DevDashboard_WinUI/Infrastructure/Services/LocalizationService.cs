@@ -1,4 +1,5 @@
 using Windows.ApplicationModel.Resources;
+using Windows.ApplicationModel.Resources.Core;
 
 namespace DevDashboard.Infrastructure.Services;
 
@@ -13,6 +14,25 @@ public static class LocalizationService
     /// <summary>ResourceLoader 인스턴스를 지연 초기화하여 반환합니다.</summary>
     private static ResourceLoader Loader =>
         _loader ??= new ResourceLoader();
+
+    /// <summary>캐시된 ResourceLoader를 초기화하고 리소스 시스템에 새 언어를 알립니다.</summary>
+    public static void Reset()
+    {
+        _loader = null;
+
+        // PrimaryLanguageOverride만으로는 같은 프로세스 내 ResourceLoader가 새 언어를 인식하지 못함.
+        // 리소스 컨텍스트의 Language qualifier를 명시적으로 갱신하여 즉시 적용.
+        try
+        {
+            var lang = Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride;
+            if (!string.IsNullOrEmpty(lang))
+                ResourceContext.SetGlobalQualifierValue("Language", lang);
+        }
+        catch
+        {
+            // 리소스 컨텍스트 갱신 실패 시 무시 — 앱 재시작 시 적용
+        }
+    }
 
     /// <summary>
     /// 리소스 키로 현재 언어의 문자열을 반환합니다.

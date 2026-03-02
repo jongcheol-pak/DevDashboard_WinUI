@@ -5,6 +5,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:DevDashboard.Presentation.ViewModels"
     xmlns:models="using:DevDashboard.Domain.Entities"
+    xmlns:pmodels="using:DevDashboard.Presentation.Models"
+    xmlns:local="using:DevDashboard.Presentation.Views.Dialogs"
     xmlns:winuiex="using:WinUIEx">
 
     <Grid>
@@ -53,8 +55,27 @@
                         Tag="Completed" />
                 </StackPanel>
 
-                <!-- 새 항목 추가 -->
-                <Grid ColumnSpacing="8">
+                <!-- 완료됨 탭 날짜 기준 선택 -->
+                <StackPanel x:Name="CompletedGroupByPanel"
+                            Orientation="Horizontal" Spacing="0"
+                            Visibility="Collapsed">
+                    <RadioButton
+                        x:Uid="TodoGroupByCompleted"
+                        IsChecked="True"
+                        GroupName="CompletedGroupBy"
+                        Style="{StaticResource GroupTabRadioButtonStyle}"
+                        Checked="CompletedGroupBy_Checked"
+                        Tag="CompletedAt" />
+                    <RadioButton
+                        x:Uid="TodoGroupByCreated"
+                        GroupName="CompletedGroupBy"
+                        Style="{StaticResource GroupTabRadioButtonStyle}"
+                        Checked="CompletedGroupBy_Checked"
+                        Tag="CreatedAt" />
+                </StackPanel>
+
+                <!-- 새 항목 추가 (진행 중 탭에서만 표시) -->
+                <Grid x:Name="AddTodoPanel" ColumnSpacing="8" Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -70,30 +91,81 @@
                         Click="AddTodo_Click" />
                 </Grid>
 
-                <!-- 목록 -->
+                <!-- 목록 (날짜 그룹) -->
                 <ItemsControl x:Name="TodoList">
                     <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="models:TodoItem">
-                            <Grid Padding="0,4" ColumnSpacing="8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <CheckBox
-                                    Grid.Column="0"
-                                    Content="{x:Bind Text}"
-                                    IsChecked="{x:Bind IsCompleted, Mode=OneWay}"
-                                    Checked="TodoCheckBox_Changed"
-                                    Unchecked="TodoCheckBox_Changed" />
-                                <Button
-                                    x:Uid="IconDeleteBtn"
-                                    Grid.Column="1"
-                                    Padding="8,4"
-                                    Tag="{x:Bind}"
-                                    Click="DeleteTodo_Click">
-                                    <FontIcon Glyph="&#xE74D;" FontSize="12" />
-                                </Button>
-                            </Grid>
+                        <DataTemplate x:DataType="pmodels:TodoDateGroup">
+                            <StackPanel Margin="0,0,0,8">
+                                <!-- 날짜 그룹 헤더 -->
+                                <TextBlock
+                                    Text="{x:Bind DateLabel, Mode=OneWay}"
+                                    FontSize="13" FontWeight="SemiBold"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Margin="4,4,0,6" />
+
+                                <!-- 그룹 내 항목 목록 -->
+                                <ItemsControl ItemsSource="{x:Bind Items, Mode=OneWay}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="models:TodoItem">
+                                            <Border
+                                                Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                                Padding="8"
+                                                Margin="0,0,0,6"
+                                                CornerRadius="8">
+
+                                                <StackPanel Spacing="2">
+                                                    <Grid Padding="0,4" ColumnSpacing="8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <CheckBox
+                                                            Grid.Column="0"
+                                                            IsChecked="{x:Bind IsCompleted, Mode=OneWay}"
+                                                            Checked="TodoCheckBox_Changed"
+                                                            Unchecked="TodoCheckBox_Changed">
+                                                            <TextBlock
+                                                                Text="{x:Bind Text, Mode=OneWay}"
+                                                                TextDecorations="{x:Bind local:TodoDialog.GetTextDecorations(IsCompleted), Mode=OneWay}"
+                                                                Opacity="{x:Bind local:TodoDialog.GetOpacity(IsCompleted), Mode=OneWay}" />
+                                                        </CheckBox>
+                                                        <!-- 수정 버튼 (미완료 시에만 활성화) -->
+                                                        <Button
+                                                            Grid.Column="1"
+                                                            Padding="8,4"
+                                                            Tag="{x:Bind}"
+                                                            IsEnabled="{x:Bind local:TodoDialog.InvertBool(IsCompleted), Mode=OneWay}"
+                                                            Click="EditTodo_Click">
+                                                            <FontIcon Glyph="&#xE70F;" FontSize="12" />
+                                                        </Button>
+                                                        <!-- 삭제 버튼 -->
+                                                        <Button
+                                                            Grid.Column="2"
+                                                            Padding="8,4"
+                                                            Tag="{x:Bind}"
+                                                            Click="DeleteTodo_Click">
+                                                            <FontIcon Glyph="&#xE74D;" FontSize="12" />
+                                                        </Button>
+                                                    </Grid>
+                                                    <!-- 날짜 표시 -->
+                                                    <StackPanel Orientation="Horizontal" Spacing="12" Margin="36,0,0,2">
+                                                        <TextBlock
+                                                            Text="{x:Bind local:TodoDialog.FormatCreatedAt(CreatedAt), Mode=OneWay}"
+                                                            FontSize="11"
+                                                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                                        <TextBlock
+                                                            Text="{x:Bind local:TodoDialog.FormatCompletedAt(CompletedAt), Mode=OneWay}"
+                                                            FontSize="11"
+                                                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                            Visibility="{x:Bind local:TodoDialog.GetCompletedVisibility(IsCompleted), Mode=OneWay}" />
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

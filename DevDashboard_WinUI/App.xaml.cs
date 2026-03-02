@@ -47,7 +47,7 @@ public partial class App : Application
 
     /// <summary>언어 설정에 따라 PrimaryLanguageOverride를 지정합니다.
     /// ResourceLoader(.resw)가 올바른 언어 파일을 로드하도록 합니다.</summary>
-    private static void ApplyLanguageSetting(LanguageSetting lang)
+    internal static void ApplyLanguageSetting(LanguageSetting lang)
     {
         var useEnglish = lang == LanguageSetting.English ||
             (lang == LanguageSetting.SystemDefault &&

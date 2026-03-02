@@ -60,6 +60,13 @@
   <data name="Theme_Light" xml:space="preserve"><value>Light Theme</value></data>
   <data name="Theme_Dark" xml:space="preserve"><value>Dark Theme</value></data>
   <data name="Theme_System" xml:space="preserve"><value>System Default</value></data>
+  <data name="Lang_System" xml:space="preserve"><value>System Language</value></data>
+  <data name="Lang_Korean" xml:space="preserve"><value>한국어</value></data>
+  <data name="Lang_English" xml:space="preserve"><value>English</value></data>
+  <data name="LanguageRestart_Title" xml:space="preserve"><value>Language Changed</value></data>
+  <data name="LanguageRestart_Message" xml:space="preserve"><value>The app needs to restart to apply the language change. Restart now?</value></data>
+  <data name="LanguageCard.Header" xml:space="preserve"><value>Language</value></data>
+  <data name="LanguageCard.Description" xml:space="preserve"><value>Select the language displayed in the app.</value></data>
   <data name="GroupDialog_TitleAdd" xml:space="preserve"><value>Add Group</value></data>
   <data name="GroupDialog_TitleEdit" xml:space="preserve"><value>Edit Group</value></data>
   <data name="GroupDialog_NameRequired" xml:space="preserve"><value>Please enter a group name.</value></data>
@@ -236,6 +243,20 @@
   <data name="TodoTabDone.Content" xml:space="preserve"><value>Completed</value></data>
   <data name="NewTodoBox.PlaceholderText" xml:space="preserve"><value>New to-do...</value></data>
   <data name="EmptyTodoText.Text" xml:space="preserve"><value>No items.</value></data>
+  <data name="Dialog_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Dialog_Yes" xml:space="preserve"><value>Yes</value></data>
+  <data name="Dialog_No" xml:space="preserve"><value>No</value></data>
+  <data name="ResetSettingsConfirmTitle" xml:space="preserve"><value>Reset Settings</value></data>
+  <data name="ResetSettingsConfirmMessage" xml:space="preserve"><value>Do you want to reset the app settings?</value></data>
+  <data name="ResetProjectsConfirmTitle" xml:space="preserve"><value>Reset Projects</value></data>
+  <data name="ResetProjectsConfirmMessage" xml:space="preserve"><value>Do you want to reset all projects?</value></data>
+  <data name="TodoEditTitle" xml:space="preserve"><value>Edit To-Do</value></data>
+  <data name="TodoUncompleteConfirmTitle" xml:space="preserve"><value>Confirm</value></data>
+  <data name="TodoUncompleteConfirmMessage" xml:space="preserve"><value>Do you want to change this completed item back to in-progress?</value></data>
+  <data name="TodoLabel_Start" xml:space="preserve"><value>Start :</value></data>
+  <data name="TodoLabel_Completed" xml:space="preserve"><value>Completed :</value></data>
+  <data name="TodoGroupByCompleted.Content" xml:space="preserve"><value>Completed Date</value></data>
+  <data name="TodoGroupByCreated.Content" xml:space="preserve"><value>Start Date</value></data>
 
   <!-- ===== XAML x:Uid — GitStatusDialog ===== -->
   <data name="GitStatusDialog.Title" xml:space="preserve"><value>Git Status</value></data>

@@ -33,7 +33,7 @@ public partial class HistoryEntryViewModel : ObservableObject
 
     public string Title => Model.Title;
     public string Description => Model.Description;
-    public string CompletedAtText => Model.CompletedAt.ToString("yyyy-MM-dd");
+    public string CompletedAtText => Model.CompletedAt.ToString("yyyy-MM-dd HH:mm");
     public string CreatedAtText => Model.CreatedAt.ToString("yyyy-MM-dd HH:mm");
 
     /// <summary>상세 정보 표시 여부</summary>

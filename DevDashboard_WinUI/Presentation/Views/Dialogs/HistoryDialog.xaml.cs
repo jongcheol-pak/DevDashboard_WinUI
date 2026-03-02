@@ -50,6 +50,13 @@ public sealed partial class HistoryDialog : WindowEx
         return _closedTcs.Task;
     }
 
+    /// <summary>다이얼로그 타이틀을 사용자 정의 값으로 변경합니다.</summary>
+    internal void OverrideTitle(string title)
+    {
+        Title = title;
+        AppTitleBarText.Text = title;
+    }
+
     // ObservableCollection이 CollectionChanged로 자동 갱신하므로 ItemsSource 재할당 불필요
     private void RefreshList()
     {

@@ -96,6 +96,18 @@ public partial class AppSettingsDialogViewModel : ObservableObject
     [ObservableProperty]
     private bool _enableTagAnimation = true;
 
+    /// <summary>ComboBox 바인딩용 언어 선택 항목 목록</summary>
+    public LanguageItem[] LanguageItems { get; } =
+    [
+        new(LanguageSetting.SystemDefault, LocalizationService.Get("Lang_System")),
+        new(LanguageSetting.Korean, LocalizationService.Get("Lang_Korean")),
+        new(LanguageSetting.English, LocalizationService.Get("Lang_English"))
+    ];
+
+    /// <summary>ComboBox에서 선택된 언어 항목</summary>
+    [ObservableProperty]
+    private LanguageItem? _selectedLanguageItem;
+
     /// <summary>ComboBox 바인딩용 테마 선택 항목 목록</summary>
     public ThemeModeItem[] ThemeModeItems { get; } =
     [
@@ -249,6 +261,8 @@ public partial class AppSettingsDialogViewModel : ObservableObject
 
         ShowWorkLogPopupOnTodoComplete = settings.ShowWorkLogPopupOnTodoComplete;
         EnableTagAnimation = settings.EnableTagAnimation;
+        SelectedLanguageItem = LanguageItems.FirstOrDefault(l => l.Value == settings.Language)
+            ?? LanguageItems[0];
         SelectedThemeModeItem = ThemeModeItems.FirstOrDefault(t => t.Value == settings.ThemeMode)
             ?? ThemeModeItems[0];
 
@@ -276,6 +290,7 @@ public partial class AppSettingsDialogViewModel : ObservableObject
 
         settings.ShowWorkLogPopupOnTodoComplete = ShowWorkLogPopupOnTodoComplete;
         settings.EnableTagAnimation = EnableTagAnimation;
+        settings.Language = SelectedLanguageItem?.Value ?? LanguageSetting.SystemDefault;
         settings.ThemeMode = SelectedThemeModeItem?.Value ?? ThemeMode.Light;
 
         settings.Tools.Clear();
@@ -339,3 +354,6 @@ public partial class AppSettingsDialogViewModel : ObservableObject
 
 /// <summary>ComboBox 표시용 테마 항목</summary>
 public record ThemeModeItem(ThemeMode Value, string DisplayName);
+
+/// <summary>ComboBox 표시용 언어 항목</summary>
+public record LanguageItem(LanguageSetting Value, string DisplayName);

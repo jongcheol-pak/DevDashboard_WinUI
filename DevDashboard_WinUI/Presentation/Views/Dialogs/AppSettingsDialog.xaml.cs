@@ -1,5 +1,7 @@
+using DevDashboard.Infrastructure.Persistence;
 using DevDashboard.Infrastructure.Services;
 using DevDashboard.Presentation.ViewModels;
+using Microsoft.Data.Sqlite;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -18,6 +20,17 @@ public sealed partial class AppSettingsDialog : WindowEx
 
     public AppSettings? ResultSettings { get; private set; }
 
+    /// <summary>프로젝트 초기화가 수행되었는지 여부 (호출자가 목록 새로고침에 사용)</summary>
+    public bool ProjectsReset { get; private set; }
+
+    /// <summary>언어가 변경되었는지 여부 (호출자가 UI 새로고침에 사용)</summary>
+    public bool LanguageChanged { get; private set; }
+
+    private LanguageSetting _initialLanguage;
+
+    /// <summary>Close() 전에 확정된 언어 값 — XAML 소멸 시 바인딩 리셋으로 유실 방지</summary>
+    private LanguageSetting? _pendingLanguage;
+
     public AppSettingsDialog(AppSettings settings)
     {
         InitializeComponent();
@@ -31,9 +44,10 @@ public sealed partial class AppSettingsDialog : WindowEx
         AppTitleBarText.Text = Title;
 
         var manager = WindowManager.Get(this);
-        
+
 
         Vm.LoadFrom(settings);
+        _initialLanguage = Vm.SelectedLanguageItem?.Value ?? LanguageSetting.SystemDefault;
         RefreshToolList();
         Vm.Tools.CollectionChanged += (_, _) => RefreshToolList();
 
@@ -42,6 +56,9 @@ public sealed partial class AppSettingsDialog : WindowEx
             await Vm.ApplyStartupTaskAsync(Vm.RunOnStartup);
             var settings = new AppSettings();
             Vm.ApplyTo(settings);
+            // Close() 전에 확정한 언어 값으로 덮어쓰기 (XAML 소멸 시 바인딩 리셋 대응)
+            if (_pendingLanguage is { } lang)
+                settings.Language = lang;
             ResultSettings = settings;
             _closedTcs.TrySetResult();
         };
@@ -143,5 +160,76 @@ public sealed partial class AppSettingsDialog : WindowEx
     {
         if (sender is HyperlinkButton { Tag: string url })
             Vm.OpenLicenseUrlCommand.Execute(url);
+    }
+
+    // ─── 설정 패널 ───────────────────────────────────────
+
+    private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (Vm.SelectedLanguageItem is not { } langItem) return;
+
+        // 초기 언어로 되돌린 경우 — 변경 플래그 초기화
+        if (langItem.Value == _initialLanguage)
+        {
+            _pendingLanguage = null;
+            LanguageChanged = false;
+            App.ApplyLanguageSetting(_initialLanguage);
+            LocalizationService.Reset();
+            return;
+        }
+
+        // Close() 시 XAML 소멸로 TwoWay 바인딩이 SelectedLanguageItem을 null로 리셋하므로
+        // 확정된 언어 값을 별도 필드에 보관
+        _pendingLanguage = langItem.Value;
+        App.ApplyLanguageSetting(langItem.Value);
+        LocalizationService.Reset();
+        LanguageChanged = true;
+    }
+
+    private async void ResetSettings_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = LocalizationService.Get("ResetSettingsConfirmTitle"),
+            Content = LocalizationService.Get("ResetSettingsConfirmMessage"),
+            PrimaryButtonText = LocalizationService.Get("Dialog_Yes"),
+            CloseButtonText = LocalizationService.Get("Dialog_No"),
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = Content.XamlRoot
+        };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+
+        var defaultSettings = new AppSettings();
+        Vm.LoadFrom(defaultSettings);
+        new JsonStorageService().Save(defaultSettings);
+        RefreshToolList();
+    }
+
+    private async void ResetProjects_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = LocalizationService.Get("ResetProjectsConfirmTitle"),
+            Content = LocalizationService.Get("ResetProjectsConfirmMessage"),
+            PrimaryButtonText = LocalizationService.Get("Dialog_Yes"),
+            CloseButtonText = LocalizationService.Get("Dialog_No"),
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = Content.XamlRoot
+        };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+
+        var dbPath = DatabaseContext.GetDbPath();
+        SqliteConnection.ClearAllPools();
+
+        foreach (var file in Directory.GetFiles(Path.GetDirectoryName(dbPath)!, Path.GetFileName(dbPath) + "*"))
+        {
+            try { File.Delete(file); }
+            catch { /* WAL/SHM 파일 삭제 실패 시 무시 */ }
+        }
+
+        ProjectsReset = true;
+        Close();
     }
 }

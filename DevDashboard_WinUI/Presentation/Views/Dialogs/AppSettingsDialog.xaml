@@ -89,7 +89,7 @@
             </StackPanel>
 
             <!-- 우측 콘텐츠 영역 -->
-            <ScrollViewer Grid.Column="1" Padding="16,4" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer Grid.Column="1" Padding="16,8" VerticalScrollBarVisibility="Auto">
             <Grid>
 
                 <!-- 0: 설정 패널 -->
@@ -116,6 +116,23 @@
                                 OffContent=""
                                 MinWidth="0"
                                 IsOn="{x:Bind Vm.EnableTagAnimation, Mode=TwoWay}" />
+                        </toolkit:SettingsCard>
+
+                        <toolkit:SettingsCard x:Uid="LanguageCard" >
+                            <toolkit:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xF2B7;" />
+                            </toolkit:SettingsCard.HeaderIcon>
+                            <ComboBox
+                                ItemsSource="{x:Bind Vm.LanguageItems}"
+                                SelectedItem="{x:Bind Vm.SelectedLanguageItem, Mode=TwoWay}"
+                                SelectionChanged="LanguageComboBox_SelectionChanged"
+                                HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:LanguageItem">
+                                        <TextBlock Text="{x:Bind DisplayName}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
                         </toolkit:SettingsCard>
                     
                         <toolkit:SettingsCard x:Uid="ThemeCard">
@@ -145,9 +162,21 @@
                                 MinWidth="0"
                                 IsOn="{x:Bind Vm.ShowWorkLogPopupOnTodoComplete, Mode=TwoWay}" />   
                         </toolkit:SettingsCard>
-                       
-                      
-                </StackPanel>
+
+                        <TextBlock Text="데이터" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,8,0,0" />
+                        <toolkit:SettingsCard Header="설정 초기화" Description="앱의 모든 설정을 초기화 합니다. (프로젝트 목록은 초기화되지 않습니다)">
+                            <toolkit:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE713;" />
+                            </toolkit:SettingsCard.HeaderIcon>
+                            <Button Content="초기화" Click="ResetSettings_Click" />
+                        </toolkit:SettingsCard>
+                        <toolkit:SettingsCard Header="프로젝트 초기화" Description="프로젝트의 모든 설정을 초기화 합니다. (프로젝트 목록 삭제)">
+                            <toolkit:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE8A5;" />
+                            </toolkit:SettingsCard.HeaderIcon>
+                            <Button Content="초기화" Click="ResetProjects_Click" />
+                        </toolkit:SettingsCard>
+                    </StackPanel>
 
                 <!-- 1: 도구 패널 -->
                 <StackPanel x:Name="PanelTools" Spacing="8" Visibility="Collapsed">

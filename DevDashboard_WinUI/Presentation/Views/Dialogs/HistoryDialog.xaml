@@ -84,22 +84,22 @@
                 <ItemsControl x:Name="GroupList">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:HistoryDateGroup">
-                            <StackPanel Spacing="4" Margin="0,0,0,12">
+                            <StackPanel Margin="0,0,0,8">
                                 <!-- 날짜 헤더 -->
                                 <TextBlock
                                     Text="{x:Bind DateText}"
-                                    Style="{StaticResource BodyStrongTextBlockStyle}"
-                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                    FontSize="13" FontWeight="SemiBold"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Margin="4,4,0,6" />
                                 <!-- 항목 목록 -->
                                 <ItemsControl ItemsSource="{x:Bind Entries}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="vm:HistoryEntryViewModel">
                                             <Border
-                                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                                BorderThickness="1"
-                                                CornerRadius="4"
-                                                Margin="0,0,0,4"
+                                                Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                                Padding="8"
+                                                Margin="0,0,0,6"
+                                                CornerRadius="8"
                                                 Tapped="EntryBorder_Tapped"
                                                 Tag="{x:Bind}">
                                                 <StackPanel>

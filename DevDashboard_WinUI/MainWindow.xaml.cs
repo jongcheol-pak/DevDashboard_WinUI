@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using DevDashboard.Infrastructure.Persistence;
+using Microsoft.Windows.AppLifecycle;
 using DevDashboard.Infrastructure.Services;
 using DevDashboard.Presentation.ViewModels;
 using DevDashboard.Presentation.Views;
@@ -239,9 +240,42 @@ public sealed partial class MainWindow : WindowEx
         await dialog.ShowAsync();
         if (dialog.ResultSettings is not null)
             _viewModel.SaveAppSettings(dialog.ResultSettings);
+        if (dialog.ProjectsReset)
+            await _viewModel.HardRefreshCommand.ExecuteAsync(null);
+        if (dialog.LanguageChanged)
+            await HandleLanguageChangedAsync();
     }
 
     // ─── 전체 작업 기록 ─────────────────────────────────────────────────
+
+    /// <summary>언어 변경 후 재시작 여부를 사용자에게 확인하고 처리합니다.</summary>
+    private async Task HandleLanguageChangedAsync()
+    {
+        var confirmDialog = new ContentDialog
+        {
+            Title             = LocalizationService.Get("LanguageRestart_Title"),
+            Content           = LocalizationService.Get("LanguageRestart_Message"),
+            PrimaryButtonText = LocalizationService.Get("Dialog_Yes"),
+            CloseButtonText   = LocalizationService.Get("Dialog_No"),
+            DefaultButton     = ContentDialogButton.Primary,
+            XamlRoot          = Content.XamlRoot
+        };
+
+        if (await confirmDialog.ShowAsync() == ContentDialogResult.Primary)
+            AppInstance.Restart(string.Empty);
+        else
+            ReloadLanguageUI();  // 거부 시 코드비하인드 텍스트만 부분 갱신
+    }
+
+    /// <summary>언어 변경 후 UI를 새 언어로 재생성합니다.</summary>
+    private void ReloadLanguageUI()
+    {
+        if (_viewModel is null) return;
+
+        ProjectCountSuffixRun.Text = LocalizationService.Get("MainWindow_ProjectCountSuffix");
+        ApplyToolTips();
+        DashboardContent.Content = new DashboardView { DataContext = _viewModel };
+    }
 
     private async void ProjectHistoryButton_Click(object sender, RoutedEventArgs e)
     {
