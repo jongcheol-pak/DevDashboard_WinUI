@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -154,6 +154,12 @@
   <data name="NavToolsLabel.Text" xml:space="preserve"><value>Tools</value></data>
   <data name="NavCodeLabel.Text" xml:space="preserve"><value>Code</value></data>
   <data name="NavInfoLabel.Text" xml:space="preserve"><value>Info</value></data>
+  <data name="AppSettings_SystemLabel.Text" xml:space="preserve"><value>System</value></data>
+  <data name="TagAnimationCard.Header" xml:space="preserve"><value>Tag Animation</value></data>
+  <data name="TagAnimationCard.Description" xml:space="preserve"><value>Shows a scrolling animation when a card has many tags.</value></data>
+  <data name="ThemeCard.Header" xml:space="preserve"><value>Theme</value></data>
+  <data name="ThemeCard.Description" xml:space="preserve"><value>Change the current app theme.</value></data>
+  <data name="AppSettings_TodoLabel.Text" xml:space="preserve"><value>To-Do</value></data>
   <data name="RunOnStartupCard.Header" xml:space="preserve"><value>Auto Start</value></data>
   <data name="WorkLogPopupCard.Header" xml:space="preserve"><value>Work Log</value></data>
   <data name="WorkLogPopupCard.Description" xml:space="preserve"><value>Show a work log popup when a To-Do task is completed.</value></data>

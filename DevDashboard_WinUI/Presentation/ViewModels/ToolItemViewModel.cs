@@ -129,6 +129,9 @@ public partial class ToolItemViewModel : ObservableObject
         _onRequestDelete(this);
     }
 
+    /// <summary>삭제 버튼 툴팁 ({x:Bind} 전용 — DataTemplate 내 x:Uid ToolTipService 패턴 대체)</summary>
+    public string DeleteTooltip => LocalizationService.Get("IconDeleteBtn_Tooltip");
+
     /// <summary>실행 파일 선택 다이얼로그 (WinUI 3 FileOpenPicker)</summary>
     [RelayCommand]
     private async Task BrowseExecutable()

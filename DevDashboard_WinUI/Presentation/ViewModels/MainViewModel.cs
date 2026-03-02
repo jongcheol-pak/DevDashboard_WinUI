@@ -534,6 +534,7 @@ public partial class MainViewModel : ObservableObject
                 AddCardInternal(card);
                 card.StartIconLoad();
                 card.StartGitStatusLoad();
+                card.StartValidation();
             }
 
             ApplyFilterAndSort();
@@ -585,6 +586,7 @@ public partial class MainViewModel : ObservableObject
                 AddCardInternal(card);
                 card.StartIconLoad();
                 card.StartGitStatusLoad();
+                card.StartValidation();
             }
 
             ApplyFilterAndSort();

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -154,6 +154,12 @@
   <data name="NavToolsLabel.Text" xml:space="preserve"><value>도구</value></data>
   <data name="NavCodeLabel.Text" xml:space="preserve"><value>코드</value></data>
   <data name="NavInfoLabel.Text" xml:space="preserve"><value>정보</value></data>
+  <data name="AppSettings_SystemLabel.Text" xml:space="preserve"><value>시스템</value></data>
+  <data name="TagAnimationCard.Header" xml:space="preserve"><value>태그 애니메이션</value></data>
+  <data name="TagAnimationCard.Description" xml:space="preserve"><value>카드에 표시되는 태그 항목이 많은 경우 흐르는 애니메이션으로 표시합니다.</value></data>
+  <data name="ThemeCard.Header" xml:space="preserve"><value>테마</value></data>
+  <data name="ThemeCard.Description" xml:space="preserve"><value>현재 앱의 테마를 변경합니다.</value></data>
+  <data name="AppSettings_TodoLabel.Text" xml:space="preserve"><value>To-Do</value></data>
   <data name="RunOnStartupCard.Header" xml:space="preserve"><value>자동 실행</value></data>
   <data name="WorkLogPopupCard.Header" xml:space="preserve"><value>작업 기록</value></data>
   <data name="WorkLogPopupCard.Description" xml:space="preserve"><value>To-Do 작업 완료시 작업 기록 팝업을 표시합니다.</value></data>
