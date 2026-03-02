@@ -42,8 +42,8 @@ public sealed partial class MainWindow : WindowEx
         // 타이틀 바 확장 설정 — SetDragRectangles로 드래그 영역 직접 관리
         ExtendsContentIntoTitleBar = true;
 
-        // 초기 창 크기 및 위치
-        AppWindow.Resize(new Windows.Graphics.SizeInt32(1280, 800));
+        // 초기 창 크기 및 위치 (DIP 단위 — DPI 스케일 자동 적용)
+        this.SetWindowSize(1200, 800);
         this.CenterOnScreen();
 
         RootGrid.Loaded += OnRootGridLoaded;
@@ -186,7 +186,6 @@ public sealed partial class MainWindow : WindowEx
 
     private static readonly Regex _searchSanitizePattern =
         new(@"['\"";\\\-\-\/\*=<>\x00]", RegexOptions.Compiled);
-    private const int SearchMaxLength = 30;
 
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
@@ -197,9 +196,6 @@ public sealed partial class MainWindow : WindowEx
         var raw = sender.Text ?? string.Empty;
         var filtered = _searchSanitizePattern.Replace(raw, string.Empty);
 
-        if (filtered.Length > SearchMaxLength)
-            filtered = filtered[..SearchMaxLength];
-
         // 정제된 텍스트가 다를 경우 표시 텍스트만 교정하고, SearchText는 항상 업데이트
         if (filtered != raw)
             sender.Text = filtered;
@@ -207,18 +203,7 @@ public sealed partial class MainWindow : WindowEx
         _viewModel.SearchText = filtered;
     }
 
-    private void SearchBox_KeyDown(object sender, KeyRoutedEventArgs e)
-    {
-        if (_viewModel is null) return;
-        if (e.Key != Windows.System.VirtualKey.Enter) return;
-
-        var firstCard = _viewModel.FilteredCards.FirstOrDefault();
-        if (firstCard is null) return;
-
-        firstCard.OpenInDevToolCommand.Execute(null);
-        e.Handled = true;
-    }
-
+   
     // ─── 그룹 탭 ────────────────────────────────────────────────────────
 
     private void AllGroupTab_Checked(object sender, RoutedEventArgs e)

@@ -57,6 +57,16 @@ public sealed partial class HistoryDialog : WindowEx
         AppTitleBarText.Text = title;
     }
 
+    /// <summary>추가 폼을 펼치고 제목을 미리 채웁니다. Todo 완료 시 자동 호출됩니다.</summary>
+    internal void OpenAddPanel(string initialTitle)
+    {
+        AddPanel.Visibility = Visibility.Visible;
+        AddTitleBox.Text = initialTitle;
+        AddDescriptionBox.Text = string.Empty;
+        AddErrorText.Visibility = Visibility.Collapsed;
+        AddDatePicker.Date = DateTimeOffset.Now;
+    }
+
     // ObservableCollection이 CollectionChanged로 자동 갱신하므로 ItemsSource 재할당 불필요
     private void RefreshList()
     {

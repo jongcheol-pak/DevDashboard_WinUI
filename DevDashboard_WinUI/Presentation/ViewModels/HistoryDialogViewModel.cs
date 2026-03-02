@@ -109,10 +109,14 @@ public partial class HistoryDialogViewModel : ObservableObject
         RebuildGroups();
     }
 
+    /// <summary>이 세션에서 새로 추가된 항목 목록</summary>
+    public List<HistoryEntry> NewEntries { get; } = [];
+
     /// <summary>작업 기록 추가</summary>
     public void AddEntry(HistoryEntry entry)
     {
         _allEntries.Add(entry);
+        NewEntries.Add(entry);
         RebuildGroups();
     }
 

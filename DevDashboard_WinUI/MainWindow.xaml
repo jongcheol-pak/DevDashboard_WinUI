@@ -60,10 +60,10 @@
                                 QueryIcon="Find"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center"
-                                MaxWidth="400"
-                               helpers:AutoSuggestBoxHelper.MaxLength="50"
+                                MaxWidth="400"                                
+                               helpers:AutoSuggestBoxHelper.MaxLength="30"
                                 TextChanged="SearchBox_TextChanged"
-                                KeyDown="SearchBox_KeyDown" />
+                               />
 
                 <!-- 우: 버튼 영역 -->
                 <StackPanel x:Name="HeaderButtonsPanel"

@@ -134,18 +134,13 @@ public sealed partial class TodoDialog : WindowEx
             var settings = new JsonStorageService().Load();
             if (settings.ShowWorkLogPopupOnTodoComplete)
             {
-                var beforeCount = Vm.ProjectItem.Histories?.Count ?? 0;
                 var historyVm = new HistoryDialogViewModel(Vm.ProjectItem);
                 var historyDialog = new HistoryDialog(historyVm);
-                historyDialog.OverrideTitle(
-                    string.Format(LocalizationService.Get("HistoryDialog_TitleFormat"), todo.Text));
+                historyDialog.OpenAddPanel(todo.Text);
                 await historyDialog.ShowAsync();
-                historyVm.SaveToModel();
 
-                // 새로 추가된 작업 기록 수집
-                var afterHistories = Vm.ProjectItem.Histories;
-                if (afterHistories is not null && afterHistories.Count > beforeCount)
-                    NewHistories.AddRange(afterHistories.Skip(beforeCount));
+                // SaveToModel() 미호출 — OnTodoDialogClosed의 AddRange에서 신규 항목만 추가됨
+                NewHistories.AddRange(historyVm.NewEntries);
             }
         }
         else

@@ -77,6 +77,7 @@
                         <TextBox
                             x:Name="AddTitleBox"
                             x:Uid="ProjHistTitleBox"
+                            TextWrapping="Wrap"
                             MaxLength="200" />
                         <TextBox
                             x:Name="AddDescriptionBox"
@@ -84,6 +85,8 @@
                             AcceptsReturn="True"
                             MinHeight="70"
                             TextWrapping="Wrap"
+                            helpers:TextBoxHelper.MaxLines="20"
+                            MaxLength="1000"
                             ScrollViewer.VerticalScrollBarVisibility="Auto" />
                         <TextBlock
                             x:Name="AddErrorText"

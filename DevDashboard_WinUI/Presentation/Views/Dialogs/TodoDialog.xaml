@@ -34,15 +34,10 @@
 
                 <!-- 탭 바 -->
                 <StackPanel Orientation="Horizontal" Spacing="0">
-                    <RadioButton
-                        x:Uid="TodoTabAll"
-                        IsChecked="True"
-                        GroupName="TodoTab"
-                        Style="{StaticResource GroupTabRadioButtonStyle}"
-                        Checked="Tab_Checked"
-                        Tag="All" />
+                    
                     <RadioButton
                         x:Uid="TodoTabActive"
+                          IsChecked="True"
                         GroupName="TodoTab"
                         Style="{StaticResource GroupTabRadioButtonStyle}"
                         Checked="Tab_Checked"
@@ -53,6 +48,12 @@
                         Style="{StaticResource GroupTabRadioButtonStyle}"
                         Checked="Tab_Checked"
                         Tag="Completed" />
+                    <RadioButton
+                        x:Uid="TodoTabAll"  
+                        GroupName="TodoTab"
+                        Style="{StaticResource GroupTabRadioButtonStyle}"
+                        Checked="Tab_Checked"
+                        Tag="All" />
                 </StackPanel>
 
                 <!-- 완료됨 탭 날짜 기준 선택 -->
@@ -84,6 +85,7 @@
                         x:Name="NewTodoBox"
                         x:Uid="NewTodoBox"
                         Grid.Column="0"
+                        TextWrapping="Wrap"
                         MaxLength="200" />
                     <Button
                         x:Uid="Btn_Add"
@@ -126,6 +128,7 @@
                                                             Checked="TodoCheckBox_Changed"
                                                             Unchecked="TodoCheckBox_Changed">
                                                             <TextBlock
+                                                                TextWrapping="Wrap"
                                                                 Text="{x:Bind Text, Mode=OneWay}"
                                                                 TextDecorations="{x:Bind local:TodoDialog.GetTextDecorations(IsCompleted), Mode=OneWay}"
                                                                 Opacity="{x:Bind local:TodoDialog.GetOpacity(IsCompleted), Mode=OneWay}" />
