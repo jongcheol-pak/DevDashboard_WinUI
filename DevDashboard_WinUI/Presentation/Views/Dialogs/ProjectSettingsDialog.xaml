@@ -51,8 +51,8 @@
                         AcceptsReturn="True"
                         TextWrapping="Wrap"
                         ScrollViewer.VerticalScrollBarVisibility="Auto"
-                        Height="200"
-                        helpers:TextBoxHelper.MaxLines="5"
+                        Height="150"
+                        helpers:TextBoxHelper.MaxLines="10"
                         MaxLength="500" />
                 </StackPanel>
 

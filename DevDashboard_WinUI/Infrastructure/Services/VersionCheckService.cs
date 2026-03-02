@@ -1,28 +1,16 @@
 using System.Diagnostics;
-using System.Net.Http;
-using System.Text.Json;
+using Windows.Services.Store;
 
 namespace DevDashboard.Infrastructure.Services;
 
 /// <summary>
-/// GitHub 릴리스 최신 버전 확인 및 브라우저 URL 열기 기능을 제공하는 서비스.
-/// 소켓 고갈 방지를 위해 HttpClient 인스턴스를 정적으로 공유합니다.
+/// MS Store를 통한 최신 버전 확인 및 스토어 페이지 열기 기능을 제공하는 서비스.
+/// 세션 동안 스토어 조회 결과를 캐시하여 중복 호출을 방지합니다.
 /// </summary>
 public static class VersionCheckService
 {
-    private const string GitHubOwner = "jongcheol-pak";
-    private const string GitHubRepo = "DevDashboard";
-
-    /// <summary>소켓 고갈 방지를 위해 정적으로 공유하는 HttpClient</summary>
-    private static readonly HttpClient _httpClient = new()
-    {
-        Timeout = TimeSpan.FromSeconds(10)
-    };
-
-    static VersionCheckService()
-    {
-        _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("DevDashboard");
-    }
+    /// <summary>세션 단위 캐시 — 첫 호출의 Task를 재사용하여 스토어 중복 조회 방지</summary>
+    private static Task<VersionCheckResult?>? _cachedTask;
 
     /// <summary>MSIX 패키지 ID에서 현재 앱 버전을 읽어옵니다.</summary>
     public static string ReadCurrentVersion()
@@ -39,52 +27,37 @@ public static class VersionCheckService
     }
 
     /// <summary>
-    /// GitHub Releases API를 통해 최신 버전을 확인합니다.
+    /// MS Store를 통해 최신 버전 업데이트 여부를 확인합니다.
+    /// 세션 내 첫 호출만 스토어에 조회하고, 이후 호출은 캐시된 결과를 즉시 반환합니다.
     /// </summary>
     /// <returns>업데이트가 있으면 <see cref="VersionCheckResult"/>, 없으면 null</returns>
-    public static async Task<VersionCheckResult?> CheckLatestVersionAsync()
+    public static Task<VersionCheckResult?> CheckLatestVersionAsync()
+    {
+        return _cachedTask ??= CheckLatestVersionCoreAsync();
+    }
+
+    private static async Task<VersionCheckResult?> CheckLatestVersionCoreAsync()
     {
         try
         {
-            var url = $"https://api.github.com/repos/{GitHubOwner}/{GitHubRepo}/releases/latest";
-            using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-            if (!response.IsSuccessStatusCode) return null;
+            var storeContext = StoreContext.GetDefault();
+            var updates = await storeContext.GetAppAndOptionalStorePackageUpdatesAsync();
 
-            using var stream = await response.Content.ReadAsStreamAsync();
-            using var doc = await JsonDocument.ParseAsync(stream);
-            var root = doc.RootElement;
+            if (updates.Count == 0) return null;
 
-            var tagName = root.GetProperty("tag_name").GetString() ?? string.Empty;
-            var htmlUrl = root.GetProperty("html_url").GetString() ?? string.Empty;
+            var v = updates[0].Package.Id.Version;
+            var versionStr = $"{v.Major}.{v.Minor}.{v.Build}";
 
-            // "v1.0.0" 또는 "1.0.0" 형식 모두 지원
-            var versionStr = tagName.StartsWith('v') ? tagName[1..] : tagName;
-            var currentStr = ReadCurrentVersion();
-
-            if (Version.TryParse(versionStr, out var latestVer)
-                && Version.TryParse(currentStr, out var currentVer)
-                && latestVer > currentVer)
-            {
-                return new VersionCheckResult(versionStr, htmlUrl);
-            }
+            return new VersionCheckResult(versionStr, "ms-windows-store://updates");
         }
-        catch (HttpRequestException)
+        catch (Exception)
         {
-            // 네트워크 오류 — 무시
+            // 스토어 연결 오류 — 무시
+            return null;
         }
-        catch (JsonException)
-        {
-            // JSON 파싱 오류 — 무시
-        }
-        catch (TaskCanceledException)
-        {
-            // 타임아웃 — 무시
-        }
-
-        return null;
     }
 
-    /// <summary>지정된 URL을 기본 브라우저로 엽니다.</summary>
+    /// <summary>지정된 URL을 기본 브라우저 또는 셸 핸들러로 엽니다.</summary>
     public static void OpenUrl(string url)
     {
         if (string.IsNullOrWhiteSpace(url)) return;
@@ -101,5 +74,5 @@ public static class VersionCheckService
 
 /// <summary>버전 확인 결과 값 객체</summary>
 /// <param name="VersionText">최신 버전 문자열 (예: "1.1.0")</param>
-/// <param name="ReleaseUrl">GitHub 릴리스 페이지 URL</param>
+/// <param name="ReleaseUrl">MS Store 업데이트 페이지 URI</param>
 public record VersionCheckResult(string VersionText, string ReleaseUrl);

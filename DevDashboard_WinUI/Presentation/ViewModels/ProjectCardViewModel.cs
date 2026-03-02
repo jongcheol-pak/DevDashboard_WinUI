@@ -18,6 +18,11 @@ public partial class ProjectCardViewModel : ObservableObject
     private static readonly ConcurrentDictionary<string, Lazy<Task<BitmapImage?>>> _iconLoadTasks
         = new(StringComparer.OrdinalIgnoreCase);
 
+    // git 프로세스 동시 생성 비용이 크므로 최대 8개로 제한
+    private static readonly SemaphoreSlim _gitProbeSemaphore = new(8, 8);
+    // 파일 I/O는 git보다 빠르므로 최대 16개 허용
+    private static readonly SemaphoreSlim _validationSemaphore = new(16, 16);
+
     /// <summary>아이콘 캐시를 비웁니다. Refresh/HardRefresh 시 호출하여 메모리 누적을 방지합니다.</summary>
     internal static void ClearIconCache() => _iconLoadTasks.Clear();
 
@@ -222,8 +227,16 @@ public partial class ProjectCardViewModel : ObservableObject
         var workingDir = ResolveWorkingDirectory(Path);
         if (workingDir is null) { IsGitRepo = false; return; }
 
-        var (isRepo, _) = await GitHelper.IsRepositoryAsync(workingDir);
-        IsGitRepo = isRepo;
+        await _gitProbeSemaphore.WaitAsync();
+        try
+        {
+            var (isRepo, _) = await GitHelper.IsRepositoryAsync(workingDir);
+            IsGitRepo = isRepo;
+        }
+        finally
+        {
+            _gitProbeSemaphore.Release();
+        }
     }
 
     /// <summary>Git 상태를 비동기로 로드합니다. View에서 호출합니다.</summary>
@@ -308,11 +321,19 @@ public partial class ProjectCardViewModel : ObservableObject
 
     private async Task ValidatePathsAsync()
     {
-        var devToolValid = await Task.Run(CheckDevToolValid);
-        var projectPathValid = await Task.Run(CheckProjectPathValid);
-        IsDevToolValid = devToolValid;
-        IsProjectPathValid = projectPathValid;
-        OpenFolderCommand.NotifyCanExecuteChanged();
+        await _validationSemaphore.WaitAsync();
+        try
+        {
+            var devToolValid = await Task.Run(CheckDevToolValid);
+            var projectPathValid = await Task.Run(CheckProjectPathValid);
+            IsDevToolValid = devToolValid;
+            IsProjectPathValid = projectPathValid;
+            OpenFolderCommand.NotifyCanExecuteChanged();
+        }
+        finally
+        {
+            _validationSemaphore.Release();
+        }
     }
 
     /// <summary>GroupId를 변경합니다.</summary>

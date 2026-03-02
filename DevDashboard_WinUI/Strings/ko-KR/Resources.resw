@@ -107,7 +107,7 @@
   <data name="Btn_Browse.Content" xml:space="preserve"><value>찾아보기</value></data>
   <data name="Btn_Close.Content" xml:space="preserve"><value>닫기</value></data>
   <data name="Btn_Clear.Content" xml:space="preserve"><value>지우기</value></data>
-  <data name="Btn_Download.Content" xml:space="preserve"><value>다운로드</value></data>
+  <data name="Btn_Download.Content" xml:space="preserve"><value>MS 스토어에서 보기</value></data>
   <data name="Btn_GitHub.Content" xml:space="preserve"><value>GitHub</value></data>
   <data name="Btn_ExportMarkdown.Content" xml:space="preserve"><value>마크다운 내보내기</value></data>
 
@@ -128,7 +128,7 @@
   <data name="AddGroupButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>그룹 추가</value></data>
   <data name="RefreshButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>새로고침</value></data>
   <data name="HardRefreshItem.Text" xml:space="preserve"><value>전체 새로고침 (DB 재로드)</value></data>
-  <data name="NewVersionBanner.Content" xml:space="preserve"><value>새 버전 출시됨 — 클릭하여 다운로드</value></data>
+  <data name="NewVersionBanner.Content" xml:space="preserve"><value>새 버전 출시됨 — 스토어에서 업데이트</value></data>
 
   <!-- ===== XAML x:Uid — DashboardView ===== -->
   <data name="PathInvalidIcon.[ToolTipService.ToolTip]" xml:space="preserve"><value>프로젝트 경로를 찾을 수 없습니다</value></data>
@@ -184,6 +184,12 @@
   <data name="CategoryDescText.Text" xml:space="preserve"><value>사용자 정의 카테고리 (기본 카테고리는 변경 불가)</value></data>
   <data name="CategoryInputBox.PlaceholderText" xml:space="preserve"><value>새 카테고리 입력...</value></data>
   <data name="OpenSourceLabelText.Text" xml:space="preserve"><value>오픈소스 라이브러리</value></data>
+  <data name="AppSettings_DataLabel.Text" xml:space="preserve"><value>데이터</value></data>
+  <data name="ResetSettingsCard.Header" xml:space="preserve"><value>설정 초기화</value></data>
+  <data name="ResetSettingsCard.Description" xml:space="preserve"><value>앱의 모든 설정을 초기화 합니다. (프로젝트 목록은 초기화되지 않습니다)</value></data>
+  <data name="ResetProjectsCard.Header" xml:space="preserve"><value>프로젝트 초기화</value></data>
+  <data name="ResetProjectsCard.Description" xml:space="preserve"><value>프로젝트의 모든 설정을 초기화 합니다. (프로젝트 목록 삭제)</value></data>
+  <data name="Btn_Reset.Content" xml:space="preserve"><value>초기화</value></data>
   <!-- 아이콘 버튼 툴팁 (코드비하인드/x:Bind에서 LocalizationService.Get으로 사용 — x:Uid 패턴 사용 금지) -->
   <data name="IconDeleteBtn_Tooltip" xml:space="preserve"><value>삭제</value></data>
   <data name="IconEditBtn_Tooltip" xml:space="preserve"><value>수정</value></data>
@@ -313,5 +319,6 @@
   <data name="Import_CompleteTitle" xml:space="preserve"><value>가져오기 완료</value></data>
   <data name="Import_Failed" xml:space="preserve"><value>가져오기 실패: {0}</value></data>
   <data name="Import_FailedTitle" xml:space="preserve"><value>가져오기 오류</value></data>
+  <data name="Import_GroupsCreatedFormat" xml:space="preserve"><value>{0}그룹 {1}개 자동 생성됨</value></data>
 
 </root>

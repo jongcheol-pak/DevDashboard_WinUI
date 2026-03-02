@@ -133,6 +133,11 @@ public sealed class DatabaseContext
                 CreatedAt   TEXT NOT NULL DEFAULT '',
                 FOREIGN KEY (ProjectId) REFERENCES Projects(Id) ON DELETE CASCADE
             );
+
+            CREATE TABLE IF NOT EXISTS Groups (
+                Id   TEXT PRIMARY KEY,
+                Name TEXT NOT NULL DEFAULT ''
+            );
             """;
         cmd.ExecuteNonQuery();
     }

@@ -44,4 +44,7 @@ public interface IProjectRepository
 
     /// <summary>기존 프로젝트를 삭제하고 새 프로젝트를 추가합니다 (덮어쓰기).</summary>
     void DeleteByNameAndInsert(string existingId, ProjectItem project);
+
+    /// <summary>DB Groups 테이블을 지정된 그룹 목록으로 동기화합니다 (내보내기/가져오기 지원).</summary>
+    void SyncGroups(IReadOnlyList<ProjectGroup> groups);
 }

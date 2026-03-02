@@ -163,18 +163,18 @@
                                 IsOn="{x:Bind Vm.ShowWorkLogPopupOnTodoComplete, Mode=TwoWay}" />   
                         </toolkit:SettingsCard>
 
-                        <TextBlock Text="데이터" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,8,0,0" />
-                        <toolkit:SettingsCard Header="설정 초기화" Description="앱의 모든 설정을 초기화 합니다. (프로젝트 목록은 초기화되지 않습니다)">
+                        <TextBlock x:Uid="AppSettings_DataLabel" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,8,0,0" />
+                        <toolkit:SettingsCard x:Uid="ResetSettingsCard">
                             <toolkit:SettingsCard.HeaderIcon>
                                 <FontIcon Glyph="&#xE713;" />
                             </toolkit:SettingsCard.HeaderIcon>
-                            <Button Content="초기화" Click="ResetSettings_Click" />
+                            <Button x:Uid="Btn_Reset" Click="ResetSettings_Click" />
                         </toolkit:SettingsCard>
-                        <toolkit:SettingsCard Header="프로젝트 초기화" Description="프로젝트의 모든 설정을 초기화 합니다. (프로젝트 목록 삭제)">
+                        <toolkit:SettingsCard x:Uid="ResetProjectsCard">
                             <toolkit:SettingsCard.HeaderIcon>
                                 <FontIcon Glyph="&#xE8A5;" />
                             </toolkit:SettingsCard.HeaderIcon>
-                            <Button Content="초기화" Click="ResetProjects_Click" />
+                            <Button x:Uid="Btn_Reset" Click="ResetProjects_Click" />
                         </toolkit:SettingsCard>
                     </StackPanel>
 

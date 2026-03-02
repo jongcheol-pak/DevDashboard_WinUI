@@ -55,7 +55,7 @@ public partial class AppSettingsDialogViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasNewVersion;
 
-    /// <summary>GitHub Releases API를 통해 최신 버전을 확인합니다.</summary>
+    /// <summary>MS Store를 통해 최신 버전을 확인합니다 (세션 내 캐시 적용).</summary>
     public async Task CheckLatestVersionAsync()
     {
         var result = await VersionCheckService.CheckLatestVersionAsync();
@@ -67,7 +67,7 @@ public partial class AppSettingsDialogViewModel : ObservableObject
         }
     }
 
-    /// <summary>GitHub 릴리스 페이지를 기본 브라우저로 엽니다.</summary>
+    /// <summary>MS Store 업데이트 페이지를 엽니다.</summary>
     [RelayCommand]
     private void OpenLatestRelease() => VersionCheckService.OpenUrl(LatestReleaseUrl);
 

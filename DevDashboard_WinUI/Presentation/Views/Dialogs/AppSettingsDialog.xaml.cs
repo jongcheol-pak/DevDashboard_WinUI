@@ -53,7 +53,7 @@ public sealed partial class AppSettingsDialog : WindowEx
 
         Closed += async (_, _) =>
         {
-            await Vm.ApplyStartupTaskAsync(Vm.RunOnStartup);
+            // 결과를 먼저 확정하고 TCS 즉시 해제 → 호출자(MainWindow)가 지연 없이 실행됨
             var settings = new AppSettings();
             Vm.ApplyTo(settings);
             // Close() 전에 확정한 언어 값으로 덮어쓰기 (XAML 소멸 시 바인딩 리셋 대응)
@@ -61,6 +61,9 @@ public sealed partial class AppSettingsDialog : WindowEx
                 settings.Language = lang;
             ResultSettings = settings;
             _closedTcs.TrySetResult();
+
+            // StartupTask API는 OS 호출이므로 TCS 해제 후 별도로 처리
+            await Vm.ApplyStartupTaskAsync(Vm.RunOnStartup);
         };
     }
 
@@ -76,7 +79,7 @@ public sealed partial class AppSettingsDialog : WindowEx
         if (_initialized) return;
         _initialized = true;
         await Vm.LoadStartupStateAsync();
-        await Vm.CheckLatestVersionAsync();
+        _ = Vm.CheckLatestVersionAsync();
     }
 
     private void RefreshToolList()
@@ -173,16 +176,14 @@ public sealed partial class AppSettingsDialog : WindowEx
         {
             _pendingLanguage = null;
             LanguageChanged = false;
-            App.ApplyLanguageSetting(_initialLanguage);
-            LocalizationService.Reset();
             return;
         }
 
+        // 재시작 방식으로 적용하므로 선택 시점에는 플래그만 기록.
+        // (즉시 ApplyLanguageSetting/Reset 호출 시 ResourceContext 재평가로 검은 화면 + 느림 유발)
         // Close() 시 XAML 소멸로 TwoWay 바인딩이 SelectedLanguageItem을 null로 리셋하므로
         // 확정된 언어 값을 별도 필드에 보관
         _pendingLanguage = langItem.Value;
-        App.ApplyLanguageSetting(langItem.Value);
-        LocalizationService.Reset();
         LanguageChanged = true;
     }
 

@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using Microsoft.UI;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -20,6 +21,7 @@ internal static class DialogWindowHost
     private const uint WM_NCHITTEST = 0x0084;
     private const nint HTCLIENT = 1;
     private const nuint SUBCLASS_ID = 1;
+    private const int DWMWA_CLOAK = 13;
 
     private static nint _ownerHwnd;
     private static Panel? _contentRoot;
@@ -58,6 +60,10 @@ internal static class DialogWindowHost
         HwndExtensions.SetWindowSize(hwnd, width, height);
         HwndExtensions.CenterOnScreen(hwnd);
 
+        // 첫 렌더 전 검은 화면 방지: DWM 클로킹으로 창을 숨긴 채 활성화
+        int cloaked = 1;
+        DwmSetWindowAttribute(hwnd, DWMWA_CLOAK, ref cloaked, sizeof(int));
+
         // 소유자 창 모달 입력 차단 시작
         PushModal();
 
@@ -70,8 +76,15 @@ internal static class DialogWindowHost
         }
         dialog.Closed += OnClosed;
 
-        // 모든 창 속성 설정 후 활성화 → 첫 표시 시 올바른 크기/위치로 나타남
+        // 창 활성화 → XAML 렌더링 시작 (창은 클로킹 상태라 화면에 보이지 않음)
         dialog.Activate();
+
+        // 낮은 우선순위 큐: XAML 첫 렌더 패스 완료 후 클로킹 해제 → 렌더된 상태로 표시
+        dialog.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () =>
+        {
+            int uncloaked = 0;
+            DwmSetWindowAttribute(hwnd, DWMWA_CLOAK, ref uncloaked, sizeof(int));
+        });
     }
 
     /// <summary>소유자 창에 모달 입력 차단을 적용합니다.</summary>
@@ -146,6 +159,9 @@ internal static class DialogWindowHost
 
     [DllImport("user32.dll")]
     private static extern bool SetForegroundWindow(nint hWnd);
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(nint hwnd, int dwAttribute, ref int pvAttribute, int cbAttribute);
 
     [DllImport("comctl32.dll")]
     private static extern bool SetWindowSubclass(

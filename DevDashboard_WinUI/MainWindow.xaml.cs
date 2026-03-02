@@ -5,6 +5,7 @@ using DevDashboard.Infrastructure.Services;
 using DevDashboard.Presentation.ViewModels;
 using DevDashboard.Presentation.Views;
 using DevDashboard.Presentation.Views.Dialogs;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -86,7 +87,10 @@ public sealed partial class MainWindow : WindowEx
 
         // 비동기 초기화
         await _viewModel.InitializeAsync();
-        _ = _viewModel.CheckLatestVersionAsync();
+
+        // UI 준비 완료 후 Low 우선순위로 버전 체크 실행 (StoreContext 초기화 지연)
+        DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low,
+            () => _ = _viewModel.CheckLatestVersionAsync());
 
         // 저장된 그룹 탭 선택 복원 (ItemsRepeater 레이아웃 완료 후 실행)
         DispatcherQueue.TryEnqueue(RestoreGroupTabSelection);
@@ -332,9 +336,11 @@ public sealed partial class MainWindow : WindowEx
         if (file is null) return;
 
         List<ProjectItem> importProjects;
+        List<ProjectGroup> importGroups;
         try
         {
             importProjects = SqliteProjectRepository.ReadAllFromDb(file.Path);
+            importGroups   = SqliteProjectRepository.ReadGroupsFromDb(file.Path);
         }
         catch
         {
@@ -342,6 +348,41 @@ public sealed partial class MainWindow : WindowEx
                 LocalizationService.Get("Import_InvalidFile"),
                 LocalizationService.Get("Import_InvalidFileTitle"));
             return;
+        }
+
+        // ─── 그룹 이름 기준 매핑 (최대 10개 제한 준수) ──────────────────────
+        // importedGroupId → 실제 사용할 GroupId
+        // 이름이 같은 그룹이 있으면 기존 Id로 리매핑, 없으면 신규 생성
+        var existingGroups = _viewModel.GetGroups();
+        var existingByName = existingGroups.ToDictionary(g => g.Name, g => g.Id, StringComparer.OrdinalIgnoreCase);
+        var groupIdRemap   = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var groupsCreatedCount = 0;
+
+        foreach (var group in importGroups)
+        {
+            if (existingByName.TryGetValue(group.Name, out var existingId))
+            {
+                // 이름이 같은 그룹 존재 → 기존 Id로 리매핑
+                groupIdRemap[group.Id] = existingId;
+            }
+            else if (_viewModel.CanAddGroup)
+            {
+                // 신규 그룹 생성 — 가져온 UUID 그대로 사용
+                _viewModel.AddOrUpdateGroup(group);
+                existingByName[group.Name] = group.Id;
+                groupIdRemap[group.Id] = group.Id;
+                groupsCreatedCount++;
+            }
+            // CanAddGroup == false: 10개 초과 → GroupId를 빈 문자열로 리매핑
+        }
+
+        // 가져올 프로젝트의 GroupId를 리매핑된 Id로 교체
+        foreach (var project in importProjects)
+        {
+            if (!string.IsNullOrEmpty(project.GroupId))
+                project.GroupId = groupIdRemap.TryGetValue(project.GroupId, out var remapped)
+                    ? remapped
+                    : string.Empty;
         }
 
         var totalCount = importProjects.Count;
@@ -372,10 +413,14 @@ public sealed partial class MainWindow : WindowEx
             }
         }
 
-        await DialogService.ShowErrorAsync(
-            string.Format(LocalizationService.Get("Import_CompleteFormat"),
-                Environment.NewLine, totalCount, addedCount, overwrittenCount, skippedCount),
-            LocalizationService.Get("Import_CompleteTitle"));
+        var message = string.Format(LocalizationService.Get("Import_CompleteFormat"),
+            Environment.NewLine, totalCount, addedCount, overwrittenCount, skippedCount);
+
+        if (groupsCreatedCount > 0)
+            message += string.Format(LocalizationService.Get("Import_GroupsCreatedFormat"),
+                Environment.NewLine, groupsCreatedCount);
+
+        await DialogService.ShowErrorAsync(message, LocalizationService.Get("Import_CompleteTitle"));
 
         // 목록 새로고침
         _viewModel.HardRefreshCommand.Execute(null);

@@ -582,6 +582,35 @@ public sealed class SqliteProjectRepository : IProjectRepository
         return projects;
     }
 
+    /// <summary>지정된 DB 파일의 Groups 테이블에서 그룹 목록을 읽어옵니다.
+    /// Groups 테이블이 없는 구버전 DB는 빈 목록을 반환합니다.</summary>
+    public static List<ProjectGroup> ReadGroupsFromDb(string dbPath)
+    {
+        using var conn = DatabaseContext.CreateConnectionForPath(dbPath);
+
+        // 구버전 DB에는 Groups 테이블이 없을 수 있으므로 존재 여부 먼저 확인
+        using var checkCmd = conn.CreateCommand();
+        checkCmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='Groups'";
+        if (checkCmd.ExecuteScalar() is null)
+            return [];
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT Id, Name FROM Groups";
+        using var reader = cmd.ExecuteReader();
+
+        var list = new List<ProjectGroup>();
+        while (reader.Read())
+        {
+            list.Add(new ProjectGroup
+            {
+                Id   = reader.GetString(reader.GetOrdinal("Id")),
+                Name = reader.GetString(reader.GetOrdinal("Name"))
+            });
+        }
+
+        return list;
+    }
+
     /// <summary>프로젝트를 삭제(관련 하위 데이터 포함)하고 새로 추가합니다 (덮어쓰기용).</summary>
     public void DeleteAndInsert(ProjectItem project)
     {
@@ -687,5 +716,32 @@ public sealed class SqliteProjectRepository : IProjectRepository
         }
 
         return list;
+    }
+
+    /// <summary>DB Groups 테이블을 지정된 그룹 목록으로 전체 교체합니다 (AppSettings → DB 동기화).</summary>
+    public void SyncGroups(IReadOnlyList<ProjectGroup> groups)
+    {
+        using var conn = _db.CreateConnection();
+        using var tx = conn.BeginTransaction();
+
+        using (var delCmd = conn.CreateCommand())
+        {
+            delCmd.CommandText = "DELETE FROM Groups";
+            delCmd.ExecuteNonQuery();
+        }
+
+        using var insCmd = conn.CreateCommand();
+        insCmd.CommandText = "INSERT INTO Groups (Id, Name) VALUES (@id, @name)";
+        var idParam   = insCmd.Parameters.Add("@id",   SqliteType.Text);
+        var nameParam = insCmd.Parameters.Add("@name", SqliteType.Text);
+
+        foreach (var g in groups)
+        {
+            idParam.Value   = g.Id;
+            nameParam.Value = g.Name;
+            insCmd.ExecuteNonQuery();
+        }
+
+        tx.Commit();
     }
 }

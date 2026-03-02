@@ -55,7 +55,7 @@ public partial class MainViewModel : ObservableObject
 
     private string _latestReleaseUrl = string.Empty;
 
-    /// <summary>GitHub Releases API를 통해 최신 버전을 확인합니다.</summary>
+    /// <summary>MS Store를 통해 최신 버전을 확인합니다 (세션 내 캐시 적용).</summary>
     public async Task CheckLatestVersionAsync()
     {
         var result = await VersionCheckService.CheckLatestVersionAsync();
@@ -149,21 +149,24 @@ public partial class MainViewModel : ObservableObject
 
         _allCards.Clear();
         foreach (var card in cards)
-        {
             AddCardInternal(card);
-            card.StartIconLoad();
-            card.StartGitStatusLoad();
-            card.StartValidation();
-        }
         vmSw.Stop();
 
         var bindSw = Stopwatch.StartNew();
         ApplyFilterAndSort();
         bindSw.Stop();
 
+        // UI를 먼저 표시한 후 동시성 제한된 백그라운드 작업 시작
         IsInitializing = false;
         initSw.Stop();
         PerfLog($"Initialize: cards={projects.Count}, db+tools={dbSw.ElapsedMilliseconds}ms, vm={vmSw.ElapsedMilliseconds}ms, bind={bindSw.ElapsedMilliseconds}ms, total={initSw.ElapsedMilliseconds}ms");
+
+        foreach (var card in _allCards)
+        {
+            card.StartIconLoad();
+            card.StartGitStatusLoad();
+            card.StartValidation();
+        }
     }
 
     partial void OnSearchTextChanged(string value)
@@ -452,6 +455,7 @@ public partial class MainViewModel : ObservableObject
             Groups.Add(group);
 
         SaveSettings();
+        _projectRepository.SyncGroups([.. Groups]);
     }
 
     /// <summary>그룹을 삭제하고 해당 그룹에 속한 프로젝트의 GroupId를 초기화합니다.</summary>
@@ -481,6 +485,7 @@ public partial class MainViewModel : ObservableObject
 
         ApplyFilterAndSort();
         SaveSettings();
+        _projectRepository.SyncGroups([.. Groups]);
     }
 
     public int GroupCount => Groups.Count;
@@ -530,19 +535,24 @@ public partial class MainViewModel : ObservableObject
             });
 
             foreach (var card in cards)
-            {
                 AddCardInternal(card);
-                card.StartIconLoad();
-                card.StartGitStatusLoad();
-                card.StartValidation();
-            }
 
             ApplyFilterAndSort();
             refreshSw.Stop();
             PerfLog($"Refresh: cards={models.Count}, total={refreshSw.ElapsedMilliseconds}ms");
+
+            // UI를 먼저 표시한 후 동시성 제한된 백그라운드 작업 시작
+            IsInitializing = false;
+            foreach (var card in _allCards)
+            {
+                card.StartIconLoad();
+                card.StartGitStatusLoad();
+                card.StartValidation();
+            }
         }
         finally
         {
+            // 예외 발생 시 IsInitializing이 true로 남지 않도록 보장
             IsInitializing = false;
         }
     }
@@ -582,19 +592,24 @@ public partial class MainViewModel : ObservableObject
             });
 
             foreach (var card in cards)
-            {
                 AddCardInternal(card);
-                card.StartIconLoad();
-                card.StartGitStatusLoad();
-                card.StartValidation();
-            }
 
             ApplyFilterAndSort();
             hardSw.Stop();
             PerfLog($"HardRefresh: cards={projects.Count}, total={hardSw.ElapsedMilliseconds}ms");
+
+            // UI를 먼저 표시한 후 동시성 제한된 백그라운드 작업 시작
+            IsInitializing = false;
+            foreach (var card in _allCards)
+            {
+                card.StartIconLoad();
+                card.StartGitStatusLoad();
+                card.StartValidation();
+            }
         }
         finally
         {
+            // 예외 발생 시 IsInitializing이 true로 남지 않도록 보장
             IsInitializing = false;
         }
     }

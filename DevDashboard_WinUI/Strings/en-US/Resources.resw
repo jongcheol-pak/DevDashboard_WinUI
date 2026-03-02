@@ -107,7 +107,7 @@
   <data name="Btn_Browse.Content" xml:space="preserve"><value>Browse</value></data>
   <data name="Btn_Close.Content" xml:space="preserve"><value>Close</value></data>
   <data name="Btn_Clear.Content" xml:space="preserve"><value>Clear</value></data>
-  <data name="Btn_Download.Content" xml:space="preserve"><value>Download</value></data>
+  <data name="Btn_Download.Content" xml:space="preserve"><value>View in MS Store</value></data>
   <data name="Btn_GitHub.Content" xml:space="preserve"><value>GitHub</value></data>
   <data name="Btn_ExportMarkdown.Content" xml:space="preserve"><value>Export to Markdown</value></data>
 
@@ -128,7 +128,7 @@
   <data name="AddGroupButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>Add Group</value></data>
   <data name="RefreshButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>Refresh</value></data>
   <data name="HardRefreshItem.Text" xml:space="preserve"><value>Refresh All (Reload DB)</value></data>
-  <data name="NewVersionBanner.Content" xml:space="preserve"><value>New version available — click to download</value></data>
+  <data name="NewVersionBanner.Content" xml:space="preserve"><value>New version available — click to update in Store</value></data>
 
   <!-- ===== XAML x:Uid — DashboardView ===== -->
   <data name="PathInvalidIcon.[ToolTipService.ToolTip]" xml:space="preserve"><value>Project path not found</value></data>
@@ -184,6 +184,12 @@
   <data name="CategoryDescText.Text" xml:space="preserve"><value>User-defined categories (default categories cannot be changed)</value></data>
   <data name="CategoryInputBox.PlaceholderText" xml:space="preserve"><value>New category...</value></data>
   <data name="OpenSourceLabelText.Text" xml:space="preserve"><value>Open Source Libraries</value></data>
+  <data name="AppSettings_DataLabel.Text" xml:space="preserve"><value>Data</value></data>
+  <data name="ResetSettingsCard.Header" xml:space="preserve"><value>Reset Settings</value></data>
+  <data name="ResetSettingsCard.Description" xml:space="preserve"><value>Resets all app settings. (Project list is not affected)</value></data>
+  <data name="ResetProjectsCard.Header" xml:space="preserve"><value>Reset Projects</value></data>
+  <data name="ResetProjectsCard.Description" xml:space="preserve"><value>Resets all project settings. (Deletes the project list)</value></data>
+  <data name="Btn_Reset.Content" xml:space="preserve"><value>Reset</value></data>
   <!-- 아이콘 버튼 툴팁 (코드비하인드/x:Bind에서 LocalizationService.Get으로 사용 — x:Uid 패턴 사용 금지) -->
   <data name="IconDeleteBtn_Tooltip" xml:space="preserve"><value>Delete</value></data>
   <data name="IconEditBtn_Tooltip" xml:space="preserve"><value>Edit</value></data>
@@ -313,5 +319,6 @@
   <data name="Import_CompleteTitle" xml:space="preserve"><value>Import Complete</value></data>
   <data name="Import_Failed" xml:space="preserve"><value>Import failed: {0}</value></data>
   <data name="Import_FailedTitle" xml:space="preserve"><value>Import Error</value></data>
+  <data name="Import_GroupsCreatedFormat" xml:space="preserve"><value>{0}{1} group(s) auto-created</value></data>
 
 </root>
