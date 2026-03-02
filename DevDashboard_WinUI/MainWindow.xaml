@@ -29,7 +29,8 @@
         </Grid.RowDefinitions>
 
         <!-- ===== 헤더 (타이틀 바 영역) ===== -->
-        <Border Grid.Row="0"
+        <Border x:Name="HeaderBorder"
+                Grid.Row="0"
                 Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
                 BorderThickness="0,0,0,1"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
@@ -65,7 +66,8 @@
                                 KeyDown="SearchBox_KeyDown" />
 
                 <!-- 우: 버튼 영역 -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
+                <StackPanel x:Name="HeaderButtonsPanel"
+                            Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
                             Spacing="6">
 
                     <!-- 정렬 버튼 -->

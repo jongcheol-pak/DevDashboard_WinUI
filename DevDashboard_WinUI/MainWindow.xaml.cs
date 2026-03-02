@@ -39,9 +39,8 @@ public sealed partial class MainWindow : WindowEx
         // 윈도우 타이틀을 로컬라이즈된 앱 이름으로 설정
         Title = LocalizationService.Get("AppDisplayName");
 
-        // 타이틀 바 확장 설정
+        // 타이틀 바 확장 설정 — SetDragRectangles로 드래그 영역 직접 관리
         ExtendsContentIntoTitleBar = true;
-        SetTitleBar(AppTitleBar);
 
         // 초기 창 크기 및 위치
         AppWindow.Resize(new Windows.Graphics.SizeInt32(1280, 800));
@@ -63,6 +62,10 @@ public sealed partial class MainWindow : WindowEx
 
         // [ToolTipService.ToolTip] x:Uid는 런타임 오류를 발생시키므로 코드비하인드로 설정
         ApplyToolTips();
+
+        // 타이틀바 드래그 영역 초기 계산 및 창 크기 변경 시 재계산
+        UpdateTitleBarDragRegion();
+        HeaderBorder.SizeChanged += (_, _) => UpdateTitleBarDragRegion();
 
         // DB 초기화 오류 처리
         if (_dbErrorMessage is not null)
@@ -120,6 +123,51 @@ public sealed partial class MainWindow : WindowEx
             _viewModel.EditProjectRequested -= OnEditProjectRequested;
             _viewModel.AddProjectRequested -= OnAddProjectRequested;
         }
+    }
+
+    /// <summary>SearchBox·버튼 영역을 제외한 헤더 빈 공간만 드래그 영역으로 등록합니다.
+    /// 창 크기 변경 시 재호출되어 좌표를 갱신합니다.</summary>
+    private void UpdateTitleBarDragRegion()
+    {
+        if (AppWindow?.TitleBar is null || RootGrid.XamlRoot is null) return;
+        if (SearchBox.ActualWidth == 0 || HeaderButtonsPanel.ActualWidth == 0) return;
+
+        var scale = (float)RootGrid.XamlRoot.RasterizationScale;
+        var headerHeight = (int)(48 * scale);
+
+        // RootGrid 기준 DIP 좌표 → 물리 픽셀 변환
+        var searchOrigin = SearchBox.TransformToVisual(RootGrid)
+            .TransformPoint(new Windows.Foundation.Point(0, 0));
+        var buttonsOrigin = HeaderButtonsPanel.TransformToVisual(RootGrid)
+            .TransformPoint(new Windows.Foundation.Point(0, 0));
+
+        int searchLeft  = (int)(searchOrigin.X * scale);
+        int searchRight = (int)((searchOrigin.X + SearchBox.ActualWidth) * scale);
+        int buttonsLeft = (int)(buttonsOrigin.X * scale);
+        int buttonsRight = (int)((buttonsOrigin.X + HeaderButtonsPanel.ActualWidth) * scale);
+
+        var rects = new List<Windows.Graphics.RectInt32>();
+
+        // 헤더 좌측 ~ SearchBox 시작 전 (AppTitleBar + 좌측 여백)
+        if (searchLeft > 0)
+            rects.Add(new Windows.Graphics.RectInt32(0, 0, searchLeft, headerHeight));
+
+        // SearchBox 끝 ~ 버튼 StackPanel 시작 전 빈 공간
+        if (buttonsLeft > searchRight)
+            rects.Add(new Windows.Graphics.RectInt32(searchRight, 0, buttonsLeft - searchRight, headerHeight));
+
+        // 버튼 StackPanel 끝 ~ 창 컨트롤 버튼(닫기/최대화/최소화) 좌측 사이 빈 공간
+        int rightInset = AppWindow.TitleBar.RightInset;
+        int windowWidth = AppWindow.Size.Width;
+        if (windowWidth - rightInset > buttonsRight)
+            rects.Add(new Windows.Graphics.RectInt32(buttonsRight, 0, windowWidth - rightInset - buttonsRight, headerHeight));
+
+        // 창 컨트롤 버튼 아래 빈 공간 (버튼 높이가 헤더보다 낮을 때 생기는 영역)
+        int captionButtonHeight = AppWindow.TitleBar.Height;
+        if (headerHeight > captionButtonHeight && rightInset > 0)
+            rects.Add(new Windows.Graphics.RectInt32(windowWidth - rightInset, captionButtonHeight, rightInset, headerHeight - captionButtonHeight));
+
+        AppWindow.TitleBar.SetDragRectangles([.. rects]);
     }
 
     /// <summary>[ToolTipService.ToolTip] x:Uid는 런타임 XamlParseException을 발생시키므로
