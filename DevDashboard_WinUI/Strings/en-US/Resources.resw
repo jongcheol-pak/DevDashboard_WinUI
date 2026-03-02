@@ -13,6 +13,10 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
 
+  <!-- ===== App Identity ===== -->
+  <data name="AppDisplayName" xml:space="preserve"><value>Project Dashboard</value></data>
+  <data name="AppTitleText.Text" xml:space="preserve"><value>Project Dashboard</value></data>
+
   <!-- ===== C# LocalizationService.Get() Keys ===== -->
   <!-- Used for ContentDialog button text in code (dotted x:Uid keys cannot be retrieved via ResourceLoader) -->
   <data name="Dialog_Close" xml:space="preserve"><value>Close</value></data>
@@ -76,6 +80,16 @@
   <data name="ToolTip_AppSettings" xml:space="preserve"><value>App Settings</value></data>
   <data name="ToolTip_AddGroup" xml:space="preserve"><value>Add Group</value></data>
   <data name="ToolTip_Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="ToolTip_ProjectPathNotFound" xml:space="preserve"><value>Project path not found</value></data>
+  <data name="ToolTip_PinUnpin" xml:space="preserve"><value>Pin/Unpin</value></data>
+  <data name="ToolTip_Run" xml:space="preserve"><value>Run</value></data>
+  <data name="ToolTip_OpenFolder" xml:space="preserve"><value>Open Folder</value></data>
+  <data name="ToolTip_CardSettings" xml:space="preserve"><value>Settings</value></data>
+  <data name="ToolTip_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="ToolTip_GitStatus" xml:space="preserve"><value>Git Status</value></data>
+  <data name="ToolTip_ToDo" xml:space="preserve"><value>To-Do</value></data>
+  <data name="ToolTip_WorkHistory" xml:space="preserve"><value>Work History</value></data>
+  <data name="ToolTip_Terminal" xml:space="preserve"><value>Terminal</value></data>
 
   <!-- ===== XAML x:Uid Common Buttons (Content) ===== -->
   <data name="Btn_Save.Content" xml:space="preserve"><value>Save</value></data>
@@ -125,6 +139,7 @@
   <data name="TodoButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>To-Do List</value></data>
   <data name="HistoryButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>Work History</value></data>
   <data name="TerminalButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>Open Terminal</value></data>
+  <data name="TerminalPowerShellMenuItem.Text" xml:space="preserve"><value>Run PowerShell</value></data>
   <data name="AddNewProjectText.Text" xml:space="preserve"><value>Add New Project</value></data>
   <data name="LoadingText.Text" xml:space="preserve"><value>Loading...</value></data>
 

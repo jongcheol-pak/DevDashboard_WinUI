@@ -8,9 +8,9 @@ namespace DevDashboard.Presentation.Views.Dialogs;
 
 public sealed partial class GroupDialog : WindowEx
 {
-    private const int MinW = 350;
-    private const int InitW = 500;
-    private const int InitH = 300;
+ 
+    private const int InitW = 400;
+    private const int InitH = 250;
 
     private readonly IReadOnlyList<ProjectGroup> _existingGroups;
     private GroupDialogViewModel Vm { get; } = new();
@@ -27,7 +27,7 @@ public sealed partial class GroupDialog : WindowEx
         { p.IsMinimizable = false; p.IsMaximizable = false; }
 
         var manager = WindowManager.Get(this);
-        manager.MinWidth = MinW;
+       
 
         if (existing is not null)
             Vm.LoadFrom(existing);

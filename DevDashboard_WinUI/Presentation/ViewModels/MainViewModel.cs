@@ -153,6 +153,7 @@ public partial class MainViewModel : ObservableObject
             AddCardInternal(card);
             card.StartIconLoad();
             card.StartGitStatusLoad();
+            card.StartValidation();
         }
         vmSw.Stop();
 

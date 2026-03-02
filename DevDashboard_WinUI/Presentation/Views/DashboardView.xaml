@@ -23,6 +23,54 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="RootBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{TemplateBinding CornerRadius}">
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal" />
+                                    <VisualState x:Name="PointerOver">
+                                        <Storyboard>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder" Storyboard.TargetProperty="Background">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder" Storyboard.TargetProperty="BorderBrush">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource ControlStrokeColorSecondaryBrush}" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <Storyboard>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder" Storyboard.TargetProperty="Background">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SubtleFillColorTertiaryBrush}" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="Disabled">
+                                        <Storyboard>
+                                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RootBorder" Storyboard.TargetProperty="Opacity">
+                                                <DiscreteDoubleKeyFrame KeyTime="0" Value="0.3" />
+                                            </DoubleAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              Padding="{TemplateBinding Padding}" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!-- ───── 프로젝트 카드 DataTemplate ───── -->
@@ -57,7 +105,7 @@
                         </Grid.ColumnDefinitions>
 
                         <!-- 경로 오류 경고 -->
-                        <FontIcon ToolTipService.ToolTip="Project path not found"
+                        <FontIcon ToolTipService.ToolTip="{StaticResource ToolTip_ProjectPathNotFound}"
                                   Grid.Column="0" Glyph="&#xE7BA;" FontSize="16"
                                   Foreground="{ThemeResource SystemFillColorCriticalBrush}"
                                   VerticalAlignment="Center" Margin="0,0,4,0"
@@ -81,7 +129,7 @@
                                    Margin="0,0,8,0" />
 
                         <!-- 핀 버튼 -->
-                        <Button ToolTipService.ToolTip="Pin/Unpin"
+                        <Button ToolTipService.ToolTip="{StaticResource ToolTip_PinUnpin}"
                                 Grid.Column="3"
                                 Style="{StaticResource CardIconButtonStyle}"
                                 Command="{Binding TogglePinCommand}">
@@ -130,10 +178,20 @@
                                     CornerRadius="6" Padding="10,0" Height="34"
                                     HorizontalAlignment="Stretch" Margin="0,0,8,0">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="5">
-                                    
-                                    <FontIcon Glyph="&#xEC7A;" FontSize="14"
-                                              Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                    <FontIcon Glyph="&#xE7BA;" FontSize="13"
+                                    <Grid VerticalAlignment="Center"
+                                          Visibility="{Binding IsDevToolValid, Converter={StaticResource BoolToVisibility}}">
+                                        <FontIcon Glyph="&#xEC7A;" FontSize="14"
+                                                  VerticalAlignment="Center"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                                        <FontIcon Glyph="&#xEB59;" FontSize="16"
+                                                VerticalAlignment="Center"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Visibility="{Binding RunAsAdmin, Converter={StaticResource BoolToVisibility}}" />
+                                    </Grid>
+                                 
+                                    <FontIcon Glyph="&#xE7BA;" FontSize="14"
+                                              VerticalAlignment="Center"
                                               Foreground="{ThemeResource SystemFillColorCriticalBrush}"
                                               Visibility="{Binding IsDevToolValid, Converter={StaticResource InverseBoolToVisibility}}" />
                                     <TextBlock Text="{Binding DevToolName}"
@@ -146,7 +204,7 @@
                             <!-- 아이콘 버튼 그룹 -->
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2" >
                                 <!-- 실행 버튼 -->
-                                <Button ToolTipService.ToolTip="Run"
+                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_Run}"
                                        Margin="0,0,4,0"
                                         Style="{StaticResource CardIconButtonStyle}"
                                         Command="{Binding OpenInDevToolCommand}">
@@ -161,8 +219,9 @@
                                 </Button>
 
                                 <!-- 폴더 열기 -->
-                                <Button ToolTipService.ToolTip="Open Folder"
+                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_OpenFolder}"
                                         Margin="0,0,4,0"
+                                      
                                         Style="{StaticResource CardIconButtonStyle}"
                                         Command="{Binding OpenFolderCommand}">
                                     <FontIcon Glyph="&#xE838;" FontSize="13"
@@ -170,7 +229,7 @@
                                 </Button>
 
                                 <!-- 편집 -->
-                                <Button ToolTipService.ToolTip="Settings"
+                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_CardSettings}"
                                         Margin="0,0,4,0"
                                         Style="{StaticResource CardIconButtonStyle}"
                                         Command="{Binding EditCommand}">
@@ -179,7 +238,7 @@
                                 </Button>
 
                                 <!-- 삭제 -->
-                                <Button ToolTipService.ToolTip="Delete"
+                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_Delete}"
                                         Style="{StaticResource CardIconButtonStyle}"
                                         Command="{Binding DeleteCommand}">
                                     <FontIcon Glyph="&#xE74D;" FontSize="13"
@@ -237,6 +296,12 @@
                                                       FontFamily="Segoe MDL2 Assets"
                                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                                                       Visibility="{Binding HasCmd0Icon, Converter={StaticResource BoolToVisibility}}" />
+
+
+                                            <FontIcon Glyph="&#xEB59;" FontSize="16"
+           VerticalAlignment="Center"
+           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+           Visibility="{Binding IsCmd0RunAsAdmin, Converter={StaticResource BoolToVisibility}}"/>
                                         </Grid>
                                     </Grid>
                                 </Button>
@@ -278,6 +343,11 @@ Visibility="{Binding HasCmd1Icon, Converter={StaticResource InverseBoolToVisibil
                                                       FontFamily="Segoe MDL2 Assets"
                                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                                                       Visibility="{Binding HasCmd1Icon, Converter={StaticResource BoolToVisibility}}" />
+
+                                            <FontIcon Glyph="&#xEB59;" FontSize="16"
+VerticalAlignment="Center"
+Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+Visibility="{Binding IsCmd1RunAsAdmin, Converter={StaticResource BoolToVisibility}}" />
                                         </Grid>
                                     </Grid>
                                 </Button>
@@ -319,6 +389,11 @@ Visibility="{Binding HasCmd2Icon, Converter={StaticResource InverseBoolToVisibil
                                                       FontFamily="Segoe MDL2 Assets"
                                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                                                       Visibility="{Binding HasCmd2Icon, Converter={StaticResource BoolToVisibility}}" />
+
+                                            <FontIcon Glyph="&#xEB59;" FontSize="16"
+VerticalAlignment="Center"
+Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+Visibility="{Binding IsCmd2RunAsAdmin, Converter={StaticResource BoolToVisibility}}" />
                                         </Grid>
                                     </Grid>
                                 </Button>
@@ -359,6 +434,11 @@ Visibility="{Binding HasCmd3Icon, Converter={StaticResource InverseBoolToVisibil
                                                       FontFamily="Segoe MDL2 Assets"
                                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                                                       Visibility="{Binding HasCmd3Icon, Converter={StaticResource BoolToVisibility}}" />
+
+                                            <FontIcon Glyph="&#xEB59;" FontSize="16"
+VerticalAlignment="Center"
+Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+Visibility="{Binding IsCmd3RunAsAdmin, Converter={StaticResource BoolToVisibility}}" />
                                         </Grid>
                                     </Grid>
                                 </Button>
@@ -368,7 +448,7 @@ Visibility="{Binding HasCmd3Icon, Converter={StaticResource InverseBoolToVisibil
                             <StackPanel Grid.Column="1" Orientation="Horizontal"
                                         HorizontalAlignment="Right" Spacing="2">
                                 <!-- Git 상태 (레포인 경우만) -->
-                                <Button ToolTipService.ToolTip="Git Status"
+                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_GitStatus}"
                                          Margin="0,0,4,0"
                                         Style="{StaticResource CardIconButtonStyle}"
                                         Command="{Binding ShowGitStatusCommand}"
@@ -380,7 +460,7 @@ Visibility="{Binding HasCmd3Icon, Converter={StaticResource InverseBoolToVisibil
                                 </Button>
 
                                 <!-- To-Do -->
-                                <Button ToolTipService.ToolTip="To-Do"
+                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_ToDo}"
                                          Margin="0,0,4,0"
                                         Style="{StaticResource CardIconButtonStyle}"
                                         Command="{Binding OpenTodoCommand}">
@@ -389,7 +469,7 @@ Visibility="{Binding HasCmd3Icon, Converter={StaticResource InverseBoolToVisibil
                                 </Button>
 
                                 <!-- 작업 기록 -->
-                                <Button ToolTipService.ToolTip="Work History"
+                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_WorkHistory}"
                                          Margin="0,0,4,0"
                                         Style="{StaticResource CardIconButtonStyle}"
                                         Command="{Binding OpenHistoryCommand}">
@@ -398,9 +478,15 @@ Visibility="{Binding HasCmd3Icon, Converter={StaticResource InverseBoolToVisibil
                                 </Button>
 
                                 <!-- 터미널 열기 -->
-                                <Button ToolTipService.ToolTip="Terminal"
+                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_Terminal}"
                                         Style="{StaticResource CardIconButtonStyle}"
                                         Command="{Binding OpenTerminalCommand}">
+                                    <Button.ContextFlyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem x:Uid="TerminalPowerShellMenuItem"
+                                                           Command="{Binding OpenTerminalWithPowerShellCommand}" />
+                                        </MenuFlyout>
+                                    </Button.ContextFlyout>
                                     <FontIcon Glyph="&#xE756;" FontSize="13"
                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                                 </Button>

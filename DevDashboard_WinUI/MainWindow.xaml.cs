@@ -34,6 +34,9 @@ public sealed partial class MainWindow : WindowEx
 
         InitializeComponent();
 
+        // 윈도우 타이틀을 로컬라이즈된 앱 이름으로 설정
+        Title = LocalizationService.Get("AppDisplayName");
+
         // 타이틀 바 확장 설정
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);

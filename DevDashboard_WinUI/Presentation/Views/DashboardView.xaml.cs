@@ -29,8 +29,26 @@ public sealed partial class DashboardView : UserControl
 
     public DashboardView()
     {
+        InitializeLocalizedResources();
         InitializeComponent();
         DataContextChanged += OnDataContextChanged;
+    }
+
+    /// <summary>DataTemplate 내 요소는 x:Name 접근이 불가하여 InitializeComponent() 전
+    /// this.Resources에 직접 주입합니다. StaticResource는 XAML 파싱 시 한 번만 resolve되므로
+    /// 파싱 전에 값이 있어야 현지화가 적용됩니다.</summary>
+    private void InitializeLocalizedResources()
+    {
+        this.Resources["ToolTip_ProjectPathNotFound"] = LocalizationService.Get("ToolTip_ProjectPathNotFound");
+        this.Resources["ToolTip_PinUnpin"]            = LocalizationService.Get("ToolTip_PinUnpin");
+        this.Resources["ToolTip_Run"]                 = LocalizationService.Get("ToolTip_Run");
+        this.Resources["ToolTip_OpenFolder"]          = LocalizationService.Get("ToolTip_OpenFolder");
+        this.Resources["ToolTip_CardSettings"]        = LocalizationService.Get("ToolTip_CardSettings");
+        this.Resources["ToolTip_Delete"]              = LocalizationService.Get("ToolTip_Delete");
+        this.Resources["ToolTip_GitStatus"]           = LocalizationService.Get("ToolTip_GitStatus");
+        this.Resources["ToolTip_ToDo"]                = LocalizationService.Get("ToolTip_ToDo");
+        this.Resources["ToolTip_WorkHistory"]         = LocalizationService.Get("ToolTip_WorkHistory");
+        this.Resources["ToolTip_Terminal"]            = LocalizationService.Get("ToolTip_Terminal");
     }
 
     // ─── DataContext 변경 시 카드 이벤트 구독 관리 ──────────────────────

@@ -112,6 +112,18 @@ public partial class ProjectCardViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasCmd3Icon;
 
+    [ObservableProperty]
+    private bool _isCmd0RunAsAdmin;
+
+    [ObservableProperty]
+    private bool _isCmd1RunAsAdmin;
+
+    [ObservableProperty]
+    private bool _isCmd2RunAsAdmin;
+
+    [ObservableProperty]
+    private bool _isCmd3RunAsAdmin;
+
     // --- 슬롯 표시 여부 ---
 
     public bool IsCmd1SlotVisible => IsCmd0Configured || IsCmd1Configured;
@@ -202,6 +214,9 @@ public partial class ProjectCardViewModel : ObservableObject
     /// <summary>Git 상태 비동기 로드를 시작합니다.</summary>
     public void StartGitStatusLoad() => _ = ProbeGitRepositoryAsync();
 
+    /// <summary>파일 시스템 유효성 검사를 비동기로 시작합니다.</summary>
+    public void StartValidation() => _ = ValidatePathsAsync();
+
     private async Task ProbeGitRepositoryAsync()
     {
         var workingDir = ResolveWorkingDirectory(Path);
@@ -288,6 +303,16 @@ public partial class ProjectCardViewModel : ObservableObject
     {
         IsDevToolValid = CheckDevToolValid();
         IsProjectPathValid = CheckProjectPathValid();
+        OpenFolderCommand.NotifyCanExecuteChanged();
+    }
+
+    private async Task ValidatePathsAsync()
+    {
+        var devToolValid = await Task.Run(CheckDevToolValid);
+        var projectPathValid = await Task.Run(CheckProjectPathValid);
+        IsDevToolValid = devToolValid;
+        IsProjectPathValid = projectPathValid;
+        OpenFolderCommand.NotifyCanExecuteChanged();
     }
 
     /// <summary>GroupId를 변경합니다.</summary>
@@ -377,17 +402,38 @@ public partial class ProjectCardViewModel : ObservableObject
     [RelayCommand]
     private void OpenTerminal()
     {
-        if (string.IsNullOrWhiteSpace(Path)) return;
-        TryStartProcess("powershell.exe", $"-NoExit -Command \"Set-Location '{Path}'\"");
+        var folderPath = ResolveTerminalFolder();
+        TryStartProcess("cmd.exe", folderPath is not null ? $"/k cd /d \"{folderPath}\"" : string.Empty);
     }
 
     [RelayCommand]
+    private void OpenTerminalWithPowerShell()
+    {
+        var folderPath = ResolveTerminalFolder();
+        TryStartProcess("powershell.exe", folderPath is not null ? $"-NoExit -Command \"Set-Location '{folderPath}'\"" : string.Empty);
+    }
+
+    private string? ResolveTerminalFolder()
+    {
+        if (string.IsNullOrWhiteSpace(Path)) return null;
+        if (Directory.Exists(Path)) return Path;
+        var dir = System.IO.Path.GetDirectoryName(Path);
+        return !string.IsNullOrWhiteSpace(dir) && Directory.Exists(dir) ? dir : null;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanOpenFolder))]
     private void OpenFolder()
     {
-        if (string.IsNullOrWhiteSpace(Path)) return;
         var folderPath = Directory.Exists(Path) ? Path : System.IO.Path.GetDirectoryName(Path);
-        if (string.IsNullOrWhiteSpace(folderPath)) return;
-        TryStartProcess("explorer.exe", folderPath);
+        TryStartProcess("explorer.exe", folderPath!);
+    }
+
+    private bool CanOpenFolder()
+    {
+        if (string.IsNullOrWhiteSpace(Path)) return false;
+        if (Directory.Exists(Path)) return true;
+        var dir = System.IO.Path.GetDirectoryName(Path);
+        return !string.IsNullOrWhiteSpace(dir) && Directory.Exists(dir);
     }
 
     [RelayCommand]
@@ -583,18 +629,22 @@ public partial class ProjectCardViewModel : ObservableObject
                 case 0:
                     IsCmd0Configured = configured; Cmd0Tooltip = tooltip;
                     Cmd0Icon = glyph; HasCmd0Icon = hasIcon;
+                    IsCmd0RunAsAdmin = script?.RunAsAdmin ?? false;
                     break;
                 case 1:
                     IsCmd1Configured = configured; Cmd1Tooltip = tooltip;
                     Cmd1Icon = glyph; HasCmd1Icon = hasIcon;
+                    IsCmd1RunAsAdmin = script?.RunAsAdmin ?? false;
                     break;
                 case 2:
                     IsCmd2Configured = configured; Cmd2Tooltip = tooltip;
                     Cmd2Icon = glyph; HasCmd2Icon = hasIcon;
+                    IsCmd2RunAsAdmin = script?.RunAsAdmin ?? false;
                     break;
                 case 3:
                     IsCmd3Configured = configured; Cmd3Tooltip = tooltip;
                     Cmd3Icon = glyph; HasCmd3Icon = hasIcon;
+                    IsCmd3RunAsAdmin = script?.RunAsAdmin ?? false;
                     break;
             }
         }

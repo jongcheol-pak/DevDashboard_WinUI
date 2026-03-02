@@ -12,7 +12,7 @@
     xmlns:helpers="using:DevDashboard.Presentation.Helpers"
     mc:Ignorable="d"
 
-    Title="DevDashboard"
+    Title="Project Dashboard"
     MinWidth="1000"
     MinHeight="700">
 
@@ -46,7 +46,7 @@
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Image Source="/Assets/DevDashboard.png" Width="24" Height="24"
                                Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,8,0" />
-                        <TextBlock Text="DevDashboard" FontSize="15" FontWeight="SemiBold"
+                        <TextBlock x:Uid="AppTitleText" FontSize="15" FontWeight="SemiBold"
                                    VerticalAlignment="Center" />
                     </StackPanel>
                 </Border>

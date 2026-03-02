@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
@@ -17,7 +17,7 @@
   <mp:PhoneIdentity PhoneProductId="06628865-3859-4c09-8f44-cd48eb6f2366" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>DevDashboard</DisplayName>
+    <DisplayName>ms-resource:AppDisplayName</DisplayName>
     <PublisherDisplayName>jongc</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -36,8 +36,8 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="DevDashboard"
-        Description="DevDashboard"
+        DisplayName="ms-resource:AppDisplayName"
+        Description="ms-resource:AppDisplayName"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png">
@@ -46,7 +46,7 @@
       </uap:VisualElements>
       <Extensions>
         <uap5:Extension Category="windows.startupTask" Executable="$targetnametoken$.exe" EntryPoint="$targetentrypoint$">
-          <uap5:StartupTask TaskId="DevDashboardStartup" Enabled="false" DisplayName="DevDashboard" />
+          <uap5:StartupTask TaskId="DevDashboardStartup" Enabled="false" DisplayName="ms-resource:AppDisplayName" />
         </uap5:Extension>
       </Extensions>
     </Application>

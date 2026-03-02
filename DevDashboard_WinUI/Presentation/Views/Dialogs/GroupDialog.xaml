@@ -3,6 +3,8 @@
     x:Class="DevDashboard.Presentation.Views.Dialogs.GroupDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    MinHeight="250"
+    MinWidth="400"
     xmlns:winuiex="using:WinUIEx">
 
     <Grid>
@@ -31,7 +33,7 @@
                 x:Name="NameBox"
                 x:Uid="GroupNameBox"
                 Text="{x:Bind Vm.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                MaxLength="50" />
+                MaxLength="20" />
             <TextBlock
                 x:Name="ErrorText"
                 Foreground="{ThemeResource SystemFillColorCriticalBrush}"
