@@ -19,6 +19,7 @@
     <Content Remove="Assets\DevDashboard_3.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Assets\dashboard.ico" />
     <None Remove="Assets\DevDashboard.png" />
     <None Remove="Assets\DevDashboard_2.png" />
     <None Remove="Assets\DevDashboard_3.png" />
@@ -32,6 +33,7 @@
     <Content Include="Assets\Square44x44Logo.scale-200.png" />
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
+    <Content Include="dashboard.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -85,5 +87,6 @@
     <AppxBundle>Never</AppxBundle>
     <GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+    <ApplicationIcon>dashboard.ico</ApplicationIcon>
   </PropertyGroup>
 </Project>

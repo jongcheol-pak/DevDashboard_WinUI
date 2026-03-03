@@ -36,6 +36,7 @@ public sealed partial class MainWindow : WindowEx
 
         InitializeComponent();
 
+        this.SetIcon("Assets/dashboard.ico");
         // 윈도우 타이틀을 로컬라이즈된 앱 이름으로 설정
         Title = LocalizationService.Get("AppDisplayName");
 
