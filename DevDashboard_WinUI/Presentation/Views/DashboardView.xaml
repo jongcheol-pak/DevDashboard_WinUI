@@ -66,6 +66,8 @@
                                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                               Content="{TemplateBinding Content}"
                                               ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"               
                                               Padding="{TemplateBinding Padding}" />
                         </Border>
                     </ControlTemplate>
@@ -215,7 +217,7 @@
                                                            Command="{Binding OpenInDevToolAsAdminCommand}" />
                                         </MenuFlyout>
                                     </Button.ContextFlyout>
-                                    <FontIcon Glyph="&#xE768;" FontSize="13"
+                                    <FontIcon Glyph="&#xE768;" FontSize="14"
                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                                 </Button>
 
@@ -225,7 +227,7 @@
                                       
                                         Style="{StaticResource CardIconButtonStyle}"
                                         Command="{Binding OpenFolderCommand}">
-                                    <FontIcon Glyph="&#xE838;" FontSize="13"
+                                    <FontIcon Glyph="&#xE838;" FontSize="14"
                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                                 </Button>
 
@@ -234,7 +236,7 @@
                                         Margin="0,0,4,0"
                                         Style="{StaticResource CardIconButtonStyle}"
                                         Command="{Binding EditCommand}">
-                                    <FontIcon Glyph="&#xE70F;" FontSize="13"
+                                    <FontIcon Glyph="&#xE70F;" FontSize="14"
                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                                 </Button>
 
@@ -242,7 +244,7 @@
                                 <Button ToolTipService.ToolTip="{StaticResource ToolTip_Delete}"
                                         Style="{StaticResource CardIconButtonStyle}"
                                         Command="{Binding DeleteCommand}">
-                                    <FontIcon Glyph="&#xE74D;" FontSize="13"
+                                    <FontIcon Glyph="&#xE74D;" FontSize="14" 
                                               Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
                                 </Button>
                             </StackPanel>
@@ -282,16 +284,16 @@
                                     </Button.ContextFlyout>
                                     <Grid>
                                         <!-- 미설정: + 아이콘 -->
-                                        <FontIcon Glyph="&#xE710;" FontSize="13"
+                                        <FontIcon Glyph="&#xE710;" FontSize="14"
                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                   Visibility="{Binding IsCmd0Configured, Converter={StaticResource InverseBoolToVisibility}}" />
                                         <!-- 설정됨: 아이콘 유무에 따라 분기 -->
                                         <Grid Visibility="{Binding IsCmd0Configured, Converter={StaticResource BoolToVisibility}}">
-                                   
+
                                             <FontIcon Glyph="&#xE756;" FontSize="14"           
             Foreground="{ThemeResource TextFillColorPrimaryBrush}"
  Visibility="{Binding HasCmd0Icon, Converter={StaticResource InverseBoolToVisibility}}" />
-                                            
+
 
                                             <FontIcon Glyph="{Binding Cmd0Icon}" FontSize="14"
                                                       FontFamily="Segoe MDL2 Assets"
@@ -299,7 +301,7 @@
                                                       Visibility="{Binding HasCmd0Icon, Converter={StaticResource BoolToVisibility}}" />
 
 
-                                            <FontIcon Glyph="&#xEB59;" FontSize="16"
+                                            <FontIcon Glyph="&#xEB59;" FontSize="14"
            VerticalAlignment="Center"
            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
            Visibility="{Binding IsCmd0RunAsAdmin, Converter={StaticResource BoolToVisibility}}"/>
@@ -332,20 +334,20 @@
                                         </MenuFlyout>
                                     </Button.ContextFlyout>
                                     <Grid>
-                                        <FontIcon Glyph="&#xE710;" FontSize="13"
+                                        <FontIcon Glyph="&#xE710;" FontSize="14"
                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                   Visibility="{Binding IsCmd1Configured, Converter={StaticResource InverseBoolToVisibility}}" />
                                         <Grid Visibility="{Binding IsCmd1Configured, Converter={StaticResource BoolToVisibility}}">
                                             <FontIcon Glyph="&#xE756;" FontSize="14"           
            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
 Visibility="{Binding HasCmd1Icon, Converter={StaticResource InverseBoolToVisibility}}" />
-                                         
+
                                             <FontIcon Glyph="{Binding Cmd1Icon}" FontSize="14"
                                                       FontFamily="Segoe MDL2 Assets"
                                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                                                       Visibility="{Binding HasCmd1Icon, Converter={StaticResource BoolToVisibility}}" />
 
-                                            <FontIcon Glyph="&#xEB59;" FontSize="16"
+                                            <FontIcon Glyph="&#xEB59;" FontSize="14"
 VerticalAlignment="Center"
 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
 Visibility="{Binding IsCmd1RunAsAdmin, Converter={StaticResource BoolToVisibility}}" />
@@ -378,20 +380,20 @@ Visibility="{Binding IsCmd1RunAsAdmin, Converter={StaticResource BoolToVisibilit
                                         </MenuFlyout>
                                     </Button.ContextFlyout>
                                     <Grid>
-                                        <FontIcon Glyph="&#xE710;" FontSize="13"
+                                        <FontIcon Glyph="&#xE710;" FontSize="14"
                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                   Visibility="{Binding IsCmd2Configured, Converter={StaticResource InverseBoolToVisibility}}" />
                                         <Grid Visibility="{Binding IsCmd2Configured, Converter={StaticResource BoolToVisibility}}">
                                             <FontIcon Glyph="&#xE756;" FontSize="14"           
            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
 Visibility="{Binding HasCmd2Icon, Converter={StaticResource InverseBoolToVisibility}}" />
-                                         
+
                                             <FontIcon Glyph="{Binding Cmd2Icon}" FontSize="14"
                                                       FontFamily="Segoe MDL2 Assets"
                                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                                                       Visibility="{Binding HasCmd2Icon, Converter={StaticResource BoolToVisibility}}" />
 
-                                            <FontIcon Glyph="&#xEB59;" FontSize="16"
+                                            <FontIcon Glyph="&#xEB59;" FontSize="14"
 VerticalAlignment="Center"
 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
 Visibility="{Binding IsCmd2RunAsAdmin, Converter={StaticResource BoolToVisibility}}" />
@@ -423,7 +425,7 @@ Visibility="{Binding IsCmd2RunAsAdmin, Converter={StaticResource BoolToVisibilit
                                         </MenuFlyout>
                                     </Button.ContextFlyout>
                                     <Grid>
-                                        <FontIcon Glyph="&#xE710;" FontSize="13"
+                                        <FontIcon Glyph="&#xE710;" FontSize="14"
                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                   Visibility="{Binding IsCmd3Configured, Converter={StaticResource InverseBoolToVisibility}}" />
                                         <Grid Visibility="{Binding IsCmd3Configured, Converter={StaticResource BoolToVisibility}}">
@@ -436,7 +438,7 @@ Visibility="{Binding HasCmd3Icon, Converter={StaticResource InverseBoolToVisibil
                                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                                                       Visibility="{Binding HasCmd3Icon, Converter={StaticResource BoolToVisibility}}" />
 
-                                            <FontIcon Glyph="&#xEB59;" FontSize="16"
+                                            <FontIcon Glyph="&#xEB59;" FontSize="14"
 VerticalAlignment="Center"
 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
 Visibility="{Binding IsCmd3RunAsAdmin, Converter={StaticResource BoolToVisibility}}" />
@@ -465,7 +467,7 @@ Visibility="{Binding IsCmd3RunAsAdmin, Converter={StaticResource BoolToVisibilit
                                          Margin="0,0,4,0"
                                         Style="{StaticResource CardIconButtonStyle}"
                                         Command="{Binding OpenTodoCommand}">
-                                    <FontIcon Glyph="&#xEE92;" FontSize="13"
+                                    <FontIcon Glyph="&#xEE92;" FontSize="14"
                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                                 </Button>
 
@@ -474,7 +476,7 @@ Visibility="{Binding IsCmd3RunAsAdmin, Converter={StaticResource BoolToVisibilit
                                          Margin="0,0,4,0"
                                         Style="{StaticResource CardIconButtonStyle}"
                                         Command="{Binding OpenHistoryCommand}">
-                                    <FontIcon Glyph="&#xE81C;" FontSize="13"
+                                    <FontIcon Glyph="&#xE81C;" FontSize="14"
                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                                 </Button>
 
@@ -488,7 +490,7 @@ Visibility="{Binding IsCmd3RunAsAdmin, Converter={StaticResource BoolToVisibilit
                                                            Command="{Binding OpenTerminalWithPowerShellCommand}" />
                                         </MenuFlyout>
                                     </Button.ContextFlyout>
-                                    <FontIcon Glyph="&#xE756;" FontSize="13"
+                                    <FontIcon Glyph="&#xE756;" FontSize="14"
                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                                 </Button>
                             </StackPanel>
