@@ -417,17 +417,36 @@
 
                 <!-- 3: 정보 패널 -->
                 <StackPanel x:Name="PanelInfo" Spacing="12" Visibility="Collapsed" DataContext="{x:Bind Vm}">
-                    <TextBlock Text="{x:Bind Vm.AppVersion}" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                    <StackPanel
-                        Orientation="Horizontal"
-                        Spacing="8"
-                        Visibility="{Binding HasNewVersion, Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock Text="{x:Bind Vm.LatestVersionText, Mode=OneWay}" VerticalAlignment="Center" />
-                        <HyperlinkButton
-                            x:Uid="Btn_Download"
-                            Command="{x:Bind Vm.OpenLatestReleaseCommand}" />
-                    </StackPanel>
-                    <Rectangle Style="{StaticResource SeparatorStyle}" Margin="0,8" />
+                        <TextBlock x:Uid="AppSettings_InfoLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <Border
+   Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+   Padding="12"
+   CornerRadius="4" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="{x:Bind Vm.AppVersion}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <StackPanel Margin="0,2,0,2"
+    Orientation="Horizontal"
+    Spacing="8"
+    Visibility="{Binding HasNewVersion, Converter={StaticResource BoolToVisibility}}">
+                                    <TextBlock Text="{x:Bind Vm.LatestVersionText, Mode=OneWay}" VerticalAlignment="Center" />
+                                    <HyperlinkButton
+        x:Uid="Btn_Download"
+        Command="{x:Bind Vm.OpenLatestReleaseCommand}" />
+                                </StackPanel>
+
+
+                                <TextBlock Margin="0,12,0,0" TextAlignment="Left" HorizontalAlignment="Stretch" Foreground="{StaticResource TextFillColorSecondaryBrush}">
+                                    <Run x:Uid="AppSettings_InfoLinkPrefix" />
+                                    <Hyperlink NavigateUri="https://jongcheol-pak.github.io/projects/devdashboard-winui/">
+                                        <Run x:Uid="AppSettings_InfoLinkText" />
+                                    </Hyperlink>
+                                    <Run x:Uid="AppSettings_InfoLinkSuffix" />
+                                </TextBlock>
+
+                            </StackPanel>
+                        </Border>
+
+                        
                     <TextBlock x:Uid="OpenSourceLabelText" Style="{StaticResource BodyStrongTextBlockStyle}" />
                     <ItemsControl ItemsSource="{x:Bind Vm.OpenSourceLibraries}">
                         <ItemsControl.ItemTemplate>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
@@ -10,15 +10,15 @@
   IgnorableNamespaces="uap rescap systemai uap5">
 
   <Identity
-    Name="06628865-3859-4c09-8f44-cd48eb6f2366"
-    Publisher="CN=jongc"
-    Version="1.0.0.0" />
+    Name="JongCheol.54127D4E99526"
+    Publisher="CN=C4E87E75-D777-4282-B3A5-57BFD2309B52"
+    Version="1.0.1.0" />
 
-  <mp:PhoneIdentity PhoneProductId="06628865-3859-4c09-8f44-cd48eb6f2366" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="d3c49c8d-ad07-47e7-9966-a039f26aea16" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>ms-resource:AppDisplayName</DisplayName>
-    <PublisherDisplayName>jongc</PublisherDisplayName>
+    <PublisherDisplayName>JongCheol</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
@@ -45,7 +45,7 @@
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
       <Extensions>
-        <uap5:Extension Category="windows.startupTask" Executable="$targetnametoken$.exe" EntryPoint="$targetentrypoint$">
+        <uap5:Extension Category="windows.startupTask" Executable="DevDashboard.exe" EntryPoint="$targetentrypoint$">
           <uap5:StartupTask TaskId="DevDashboardStartup" Enabled="false" DisplayName="ms-resource:AppDisplayName" />
         </uap5:Extension>
       </Extensions>

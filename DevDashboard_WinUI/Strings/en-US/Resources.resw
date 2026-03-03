@@ -183,6 +183,10 @@
   <data name="CategoryLabelText.Text" xml:space="preserve"><value>Category</value></data>
   <data name="CategoryDescText.Text" xml:space="preserve"><value>User-defined categories (default categories cannot be changed)</value></data>
   <data name="CategoryInputBox.PlaceholderText" xml:space="preserve"><value>New category...</value></data>
+  <data name="AppSettings_InfoLabel.Text" xml:space="preserve"><value>Information</value></data>
+  <data name="AppSettings_InfoLinkPrefix.Text" xml:space="preserve"><value>For more details, visit </value></data>
+  <data name="AppSettings_InfoLinkText.Text" xml:space="preserve"><value>Project Dashboard Website</value></data>
+  <data name="AppSettings_InfoLinkSuffix.Text" xml:space="preserve"><value>.</value></data>
   <data name="OpenSourceLabelText.Text" xml:space="preserve"><value>Open Source Libraries</value></data>
   <data name="AppSettings_DataLabel.Text" xml:space="preserve"><value>Data</value></data>
   <data name="ResetSettingsCard.Header" xml:space="preserve"><value>Reset Settings</value></data>
