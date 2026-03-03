@@ -54,8 +54,8 @@ internal static class GitHelper
         return (result.Output.Trim(), string.Empty);
     }
 
-    /// <summary>커밋 로그를 GitFileStatus 목록으로 반환합니다. 실패 시 Error에 메시지 반환.</summary>
-    public static async Task<(IReadOnlyList<GitFileStatus> Files, string Error)> GetStatusAsync(string workingDirectory, CancellationToken ct = default)
+    /// <summary>커밋 로그를 GitCommit 목록으로 반환합니다. 실패 시 Error에 메시지 반환.</summary>
+    public static async Task<(IReadOnlyList<GitCommit> Commits, string Error)> GetCommitsAsync(string workingDirectory, CancellationToken ct = default)
     {
         var resultOutput = await RunGitDetailedAsync(workingDirectory, "--no-pager log --no-color --date=iso-strict --format=%H%n%an%n%ae%n%ad%n%B%n", ct);
         if (!resultOutput.Success)
@@ -64,7 +64,7 @@ internal static class GitHelper
         if (string.IsNullOrWhiteSpace(resultOutput.Output))
             return ([], string.Empty);
 
-        var result = new List<GitFileStatus>();
+        var result = new List<GitCommit>();
         var lines = resultOutput.Output.Replace("\r\n", "\n").Split('\n', StringSplitOptions.None);
         for (var i = 0; i < lines.Length;)
         {
@@ -85,7 +85,7 @@ internal static class GitHelper
 
             var authorName = lines[i + 1].Trim();
             var authorEmail = lines[i + 2].Trim();
-            var authorDate = lines[i + 3].Trim();
+            var authorDateStr = lines[i + 3].Trim();
             i += 4;
 
             var messageLines = new List<string>();
@@ -102,16 +102,8 @@ internal static class GitHelper
                 ? "(no message)"
                 : string.Join("\n", messageLines);
 
-            var display = string.Join("\n",
-            [
-                commitHash,
-                authorName,
-                authorEmail,
-                authorDate,
-                message
-            ]);
-
-            result.Add(new GitFileStatus("M ", display));
+            DateTimeOffset.TryParse(authorDateStr, out var date);
+            result.Add(new GitCommit(commitHash, authorName, authorEmail, date, message));
         }
 
         return (result, string.Empty);

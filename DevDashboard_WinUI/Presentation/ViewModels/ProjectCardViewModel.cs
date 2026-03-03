@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevDashboard.Infrastructure.Services;
+using DevDashboard.Presentation.Models;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace DevDashboard.Presentation.ViewModels;
@@ -61,9 +62,9 @@ public partial class ProjectCardViewModel : ObservableObject
     [ObservableProperty]
     private string _gitBranch = string.Empty;
 
-    /// <summary>변경된 파일 목록</summary>
+    /// <summary>날짜별로 그룹화된 커밋 목록</summary>
     [ObservableProperty]
-    private IReadOnlyList<GitFileStatus> _gitChangedFiles = [];
+    private IReadOnlyList<GitCommitGroup> _gitCommitGroups = [];
 
     // --- 커맨드 스크립트 슬롯별 설정 상태 ---
 
@@ -250,13 +251,21 @@ public partial class ProjectCardViewModel : ObservableObject
         var gitWorkingDir = string.IsNullOrWhiteSpace(repositoryRoot) ? workingDir : repositoryRoot;
 
         var (branch, branchError) = await GitHelper.GetBranchAsync(gitWorkingDir, ct);
-        var (files, statusError) = await GitHelper.GetStatusAsync(gitWorkingDir, ct);
-        if (!string.IsNullOrWhiteSpace(statusError)) return statusError;
+        var (commits, commitsError) = await GitHelper.GetCommitsAsync(gitWorkingDir, ct);
+        if (!string.IsNullOrWhiteSpace(commitsError)) return commitsError;
         if (!string.IsNullOrWhiteSpace(branchError)) return branchError;
 
         GitBranch = string.IsNullOrWhiteSpace(branch) ? "(detached HEAD)" : branch;
-        GitChangedFiles = files;
+        GitCommitGroups = GroupCommitsByDate(commits);
         return null;
+    }
+
+    private static IReadOnlyList<GitCommitGroup> GroupCommitsByDate(IReadOnlyList<GitCommit> commits)
+    {
+        return [.. commits
+            .GroupBy(c => c.Date.LocalDateTime.Date)
+            .OrderByDescending(g => g.Key)
+            .Select(g => new GitCommitGroup(g.Key.ToString("yyyy-MM-dd"), g))];
     }
 
     private static string? ResolveWorkingDirectory(string path)

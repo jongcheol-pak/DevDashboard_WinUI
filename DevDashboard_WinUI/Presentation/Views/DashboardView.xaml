@@ -160,6 +160,7 @@
                     <ctrl:MarqueeTagsControl Grid.Row="2"
                         Tags="{Binding Tags}"
                         IsAnimationEnabled="{Binding EnableTagAnimation}"
+                        MaxTagLength="20"
                         Margin="0,4,0,4" />
 
                     <!-- 카드 하단 -->

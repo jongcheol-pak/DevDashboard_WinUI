@@ -320,6 +320,14 @@ public partial class AppSettingsDialogViewModel : ObservableObject
             root.RequestedTheme = theme;
     }
 
+    /// <summary>ThemeMode를 ElementTheme으로 변환합니다.</summary>
+    public static ElementTheme ToElementTheme(ThemeMode mode) => mode switch
+    {
+        ThemeMode.Dark => ElementTheme.Dark,
+        ThemeMode.Light => ElementTheme.Light,
+        _ => ElementTheme.Default
+    };
+
     /// <summary>StartupTask API를 통해 자동 실행 상태를 비동기로 읽습니다.</summary>
     public async Task LoadStartupStateAsync()
     {

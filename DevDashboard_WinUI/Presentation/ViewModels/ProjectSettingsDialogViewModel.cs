@@ -230,7 +230,8 @@ public partial class ProjectSettingsDialogViewModel : ObservableObject
             UseWorkingDirectory = IsShellTool && UseWorkingDirectory,
             ShellWorkingDirectory = IsShellTool ? ShellWorkingDirectory.Trim() : string.Empty,
             Tags = AvailableTags.Where(t => t.IsSelected).Select(t => t.Name)
-                .Concat(Tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                .Concat(Tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Select(t => t.ToLowerInvariant()))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList(),
             Category = Category,

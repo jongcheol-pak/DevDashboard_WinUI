@@ -46,10 +46,21 @@ public sealed partial class AppSettingsDialog : WindowEx
         var manager = WindowManager.Get(this);
 
 
+        _initialLanguage = settings.Language;
         Vm.LoadFrom(settings);
-        _initialLanguage = Vm.SelectedLanguageItem?.Value ?? LanguageSetting.SystemDefault;
         RefreshToolList();
         Vm.Tools.CollectionChanged += (_, _) => RefreshToolList();
+
+        // 팝업 창 자체에도 테마 변경을 즉시 반영
+        Vm.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(AppSettingsDialogViewModel.SelectedThemeModeItem)
+                && Vm.SelectedThemeModeItem is { } item
+                && Content is FrameworkElement root)
+            {
+                root.RequestedTheme = AppSettingsDialogViewModel.ToElementTheme(item.Value);
+            }
+        };
 
         Closed += async (_, _) =>
         {
@@ -169,7 +180,9 @@ public sealed partial class AppSettingsDialog : WindowEx
 
     private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (Vm.SelectedLanguageItem is not { } langItem) return;
+        // Vm.SelectedLanguageItem 대신 e.AddedItems 사용:
+        // x:Bind TwoWay 내부 핸들러와 실행 순서가 보장되지 않아 ViewModel이 아직 이전 값일 수 있음
+        if (e.AddedItems.Count == 0 || e.AddedItems[0] is not LanguageItem langItem) return;
 
         // 초기 언어로 되돌린 경우 — 변경 플래그 초기화
         if (langItem.Value == _initialLanguage)

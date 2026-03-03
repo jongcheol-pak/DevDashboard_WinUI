@@ -60,6 +60,22 @@ public sealed partial class MarqueeTagsControl : UserControl
         set => SetValue(IsAnimationEnabledProperty, value);
     }
 
+    // ─── DependencyProperty: MaxTagLength ────────────────────────────────────
+
+    public static readonly DependencyProperty MaxTagLengthProperty =
+        DependencyProperty.Register(
+            nameof(MaxTagLength),
+            typeof(int),
+            typeof(MarqueeTagsControl),
+            new PropertyMetadata(0, OnMaxTagLengthChanged));
+
+    /// <summary>태그 텍스트 최대 표시 길이. 0이면 제한 없음.</summary>
+    public int MaxTagLength
+    {
+        get => (int)GetValue(MaxTagLengthProperty);
+        set => SetValue(MaxTagLengthProperty, value);
+    }
+
     // ─── DP 변경 콜백 ───────────────────────────────────────────────────────
 
     private static void OnTagsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -67,6 +83,20 @@ public sealed partial class MarqueeTagsControl : UserControl
 
     private static void OnIsAnimationEnabledChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         => ((MarqueeTagsControl)d).Refresh();
+
+    private static void OnMaxTagLengthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        => ((MarqueeTagsControl)d).Refresh();
+
+    // ─── 헬퍼 ────────────────────────────────────────────────────────────────
+
+    /// <summary>MaxTagLength 설정에 따라 잘린 태그 목록을 반환합니다. 0이면 원본 반환.</summary>
+    private IReadOnlyList<string>? GetDisplayTags()
+    {
+        if (Tags is null) return null;
+        int max = MaxTagLength;
+        if (max <= 0) return Tags;
+        return Tags.Select(t => t.Length > max ? t[..max] + "\u2026" : t).ToList();
+    }
 
     // ─── 생성자 ─────────────────────────────────────────────────────────────
 
@@ -131,7 +161,7 @@ public sealed partial class MarqueeTagsControl : UserControl
 
         // 애니메이션 즉시 중단 + 아이템 소스 최신 값으로 업데이트
         StopMarquee();
-        Rep1.ItemsSource = Tags;
+        Rep1.ItemsSource = GetDisplayTags();
         Rep2.ItemsSource = null;
         Spacer.Visibility = Rep2.Visibility = Visibility.Collapsed;
 
@@ -154,7 +184,7 @@ public sealed partial class MarqueeTagsControl : UserControl
             if (IsAnimationEnabled && Tags is { Count: > 0 } && contentWidth > viewportWidth)
             {
                 // 마키 모드: Rep2·Spacer 활성화 후 애니메이션 시작
-                Rep2.ItemsSource = Tags;
+                Rep2.ItemsSource = GetDisplayTags();
                 Spacer.Visibility = Rep2.Visibility = Visibility.Visible;
                 StartMarquee(contentWidth + 30.0); // +30 = Spacer Width
             }

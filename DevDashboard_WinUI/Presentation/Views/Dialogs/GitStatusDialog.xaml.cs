@@ -74,9 +74,9 @@ public sealed partial class GitStatusDialog : WindowEx
         }
 
         BranchText.Text = _card.GitBranch;
-        CommitList.ItemsSource = _card.GitChangedFiles;
+        CommitList.ItemsSource = _card.GitCommitGroups;
 
-        NoCommitsText.Visibility = _card.GitChangedFiles.Count == 0
+        NoCommitsText.Visibility = _card.GitCommitGroups.Count == 0
             ? Visibility.Visible
             : Visibility.Collapsed;
 
