@@ -244,10 +244,10 @@
                 </StackPanel>
 
                 <TextBox
+                    x:Uid="ProjExtraTagsBox"
                     Margin="0,4,0,0"
                     MaxLength="100"
                     HorizontalAlignment="Stretch"
-                    PlaceholderText="추가 태그 예) java,python,..."
                     Text="{x:Bind Vm.Tags, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
             </StackPanel>

@@ -130,7 +130,7 @@ public partial class MainViewModel : ObservableObject
         var dbTask = Task.Run(() =>
         {
             try { return _projectRepository.GetAll(); }
-            catch { return new List<ProjectItem>(); }
+            catch (Exception ex) { Debug.WriteLine($"[MainViewModel] DB 로드 실패: {ex.Message}"); return new List<ProjectItem>(); }
         });
         var toolTask = Task.Run(() => GetTools());
         await Task.WhenAll(dbTask, toolTask);
@@ -572,7 +572,7 @@ public partial class MainViewModel : ObservableObject
             var dbTask = Task.Run(() =>
             {
                 try { return _projectRepository.GetAll(); }
-                catch { return new List<ProjectItem>(); }
+                catch (Exception ex) { Debug.WriteLine($"[MainViewModel] HardRefresh DB 로드 실패: {ex.Message}"); return new List<ProjectItem>(); }
             });
             var toolTask = Task.Run(() => GetTools());
             await Task.WhenAll(dbTask, toolTask);

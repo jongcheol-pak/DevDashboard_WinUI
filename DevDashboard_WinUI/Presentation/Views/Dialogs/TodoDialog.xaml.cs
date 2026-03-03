@@ -191,7 +191,7 @@ public sealed partial class TodoDialog : WindowEx
     {
         if (sender is not Button { Tag: TodoItem todo }) return;
 
-        var textBox = new TextBox { Text = todo.Text, MaxLength = 100 };
+        var textBox = new TextBox { Text = todo.Text, MaxLength = 200 };
 
         var dialog = new ContentDialog
         {

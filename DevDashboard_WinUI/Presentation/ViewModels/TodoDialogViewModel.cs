@@ -18,7 +18,7 @@ public partial class TodoDialogViewModel : ObservableObject
 
     /// <summary>현재 탭 필터 ("All", "Active", "Completed")</summary>
     [ObservableProperty]
-    private string _selectedTab = "All";
+    private string _selectedTab = "Active";
 
     /// <summary>완료됨 탭에서 그룹화 기준 ("CreatedAt", "CompletedAt")</summary>
     [ObservableProperty]

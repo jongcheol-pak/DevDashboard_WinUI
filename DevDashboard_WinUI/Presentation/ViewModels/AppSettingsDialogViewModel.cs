@@ -74,8 +74,10 @@ public partial class AppSettingsDialogViewModel : ObservableObject
     /// <summary>사용 중인 오픈소스 라이브러리 목록</summary>
     public OpenSourceItem[] OpenSourceLibraries { get; } =
     [
+        new("Microsoft.WindowsAppSDK", "MIT License", "https://github.com/microsoft/WindowsAppSDK"),
         new("WinUIEx", "MIT License", "https://github.com/dotMorten/WinUIEx"),
         new("CommunityToolkit.Mvvm", "MIT License", "https://github.com/CommunityToolkit/dotnet"),
+        new("CommunityToolkit.WinUI", "MIT License", "https://github.com/CommunityToolkit/Windows"),
         new("Microsoft.Data.Sqlite", "MIT License", "https://github.com/dotnet/efcore"),
     ];
 

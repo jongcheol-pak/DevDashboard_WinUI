@@ -76,7 +76,7 @@
                 </StackPanel>
 
                 <!-- 새 항목 추가 (진행 중 탭에서만 표시) -->
-                <Grid x:Name="AddTodoPanel" ColumnSpacing="8" Visibility="Collapsed">
+                <Grid x:Name="AddTodoPanel" ColumnSpacing="8" Visibility="Visible">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />

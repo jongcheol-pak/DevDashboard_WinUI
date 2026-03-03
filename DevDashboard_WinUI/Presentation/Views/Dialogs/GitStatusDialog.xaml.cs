@@ -29,7 +29,7 @@ public sealed partial class GitStatusDialog : WindowEx
         manager.MinWidth = MinW;
 
         // 프로젝트명을 포함한 동적 타이틀 설정
-        Title = $"Git 상태 — {card.Name}";
+        Title = string.Format(LocalizationService.Get("GitStatusDialog_TitleFormat"), card.Name);
 
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);

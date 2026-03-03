@@ -244,7 +244,7 @@ public partial class ProjectCardViewModel : ObservableObject
     public async Task<string?> LoadGitStatusAsync(CancellationToken ct = default)
     {
         var workingDir = ResolveWorkingDirectory(Path);
-        if (workingDir is null) return "프로젝트 경로를 확인할 수 없습니다.";
+        if (workingDir is null) return LocalizationService.Get("GitPathNotResolved");
 
         var (repositoryRoot, rootError) = await GitHelper.GetRepositoryRootAsync(workingDir, ct);
         if (!string.IsNullOrWhiteSpace(rootError)) return rootError;

@@ -138,6 +138,9 @@ public sealed class DatabaseContext
                 Id   TEXT PRIMARY KEY,
                 Name TEXT NOT NULL DEFAULT ''
             );
+
+            CREATE INDEX IF NOT EXISTS IX_Todos_ProjectId ON Todos(ProjectId);
+            CREATE INDEX IF NOT EXISTS IX_Histories_ProjectId ON Histories(ProjectId);
             """;
         cmd.ExecuteNonQuery();
     }

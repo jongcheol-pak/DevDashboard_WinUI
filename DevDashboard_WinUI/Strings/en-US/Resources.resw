@@ -220,6 +220,7 @@
   <data name="ProjIconLabel.Text" xml:space="preserve"><value>Icon Image</value></data>
   <data name="ProjIconBox.PlaceholderText" xml:space="preserve"><value>Image file path (optional)</value></data>
   <data name="ProjTagsLabel.Text" xml:space="preserve"><value>Tech Stack Tags</value></data>
+  <data name="ProjExtraTagsBox.PlaceholderText" xml:space="preserve"><value>Additional tags e.g. java,python,...</value></data>
 
   <!-- ===== XAML x:Uid — CommandScriptDialog ===== -->
   <data name="CommandScriptDialogTitle" xml:space="preserve"><value>Command Script Settings</value></data>
@@ -252,6 +253,9 @@
   <data name="Dialog_Delete" xml:space="preserve"><value>Delete</value></data>
   <data name="Dialog_Yes" xml:space="preserve"><value>Yes</value></data>
   <data name="Dialog_No" xml:space="preserve"><value>No</value></data>
+  <data name="Dialog_OK" xml:space="preserve"><value>OK</value></data>
+  <data name="Dialog_DefaultErrorTitle" xml:space="preserve"><value>Error</value></data>
+  <data name="Dialog_DefaultConfirmTitle" xml:space="preserve"><value>Confirm</value></data>
   <data name="ResetSettingsConfirmTitle" xml:space="preserve"><value>Reset Settings</value></data>
   <data name="ResetSettingsConfirmMessage" xml:space="preserve"><value>Do you want to reset the app settings?</value></data>
   <data name="ResetProjectsConfirmTitle" xml:space="preserve"><value>Reset Projects</value></data>
@@ -265,6 +269,8 @@
   <data name="TodoGroupByCreated.Content" xml:space="preserve"><value>Start Date</value></data>
 
   <!-- ===== XAML x:Uid — GitStatusDialog ===== -->
+  <data name="GitStatusDialog_TitleFormat" xml:space="preserve"><value>Git Status — {0}</value></data>
+  <data name="GitPathNotResolved" xml:space="preserve"><value>Cannot resolve project path.</value></data>
   <data name="GitStatusDialog.Title" xml:space="preserve"><value>Git Status</value></data>
   <data name="GitStatusDialog.CloseButtonText" xml:space="preserve"><value>Close</value></data>
   <data name="GitLoadingText.Text" xml:space="preserve"><value>Loading Git status...</value></data>
