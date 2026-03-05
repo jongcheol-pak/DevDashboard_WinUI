@@ -588,7 +588,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
     {
         using var conn = DatabaseContext.CreateConnectionForPath(dbPath);
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT Id, Name FROM Groups";
+        cmd.CommandText = "SELECT Id, Name, IsDefault FROM Groups";
         using var reader = cmd.ExecuteReader();
 
         var list = new List<ProjectGroup>();
@@ -596,8 +596,9 @@ public sealed class SqliteProjectRepository : IProjectRepository
         {
             list.Add(new ProjectGroup
             {
-                Id   = reader.GetString(reader.GetOrdinal("Id")),
-                Name = reader.GetString(reader.GetOrdinal("Name"))
+                Id        = reader.GetString(reader.GetOrdinal("Id")),
+                Name      = reader.GetString(reader.GetOrdinal("Name")),
+                IsDefault = reader.GetInt32(reader.GetOrdinal("IsDefault")) != 0
             });
         }
 
@@ -724,14 +725,16 @@ public sealed class SqliteProjectRepository : IProjectRepository
         }
 
         using var insCmd = conn.CreateCommand();
-        insCmd.CommandText = "INSERT INTO Groups (Id, Name) VALUES (@id, @name)";
+        insCmd.CommandText = "INSERT INTO Groups (Id, Name, IsDefault) VALUES (@id, @name, @isDefault)";
         var idParam   = insCmd.Parameters.Add("@id",   SqliteType.Text);
         var nameParam = insCmd.Parameters.Add("@name", SqliteType.Text);
+        var defParam  = insCmd.Parameters.Add("@isDefault", SqliteType.Integer);
 
         foreach (var g in groups)
         {
             idParam.Value   = g.Id;
             nameParam.Value = g.Name;
+            defParam.Value  = g.IsDefault ? 1 : 0;
             insCmd.ExecuteNonQuery();
         }
 

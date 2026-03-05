@@ -104,7 +104,7 @@ public partial class MainViewModel : ObservableObject
             CurrentSortOrder = _settings.SortOrder;
 
             if (_settings.Groups.Count == 0)
-                _settings.Groups.Add(new ProjectGroup { Name = LocalizationService.Get("DefaultGroupName") });
+                _settings.Groups.Add(new ProjectGroup { Name = LocalizationService.Get("DefaultGroupName"), IsDefault = true });
 
             Groups.Clear();
             foreach (var g in _settings.Groups)
@@ -467,7 +467,7 @@ public partial class MainViewModel : ObservableObject
     public void DeleteGroup(string groupId)
     {
         var group = Groups.FirstOrDefault(g => g.Id == groupId);
-        if (group is null) return;
+        if (group is null || group.IsDefault) return;
 
         Groups.Remove(group);
 
@@ -493,10 +493,11 @@ public partial class MainViewModel : ObservableObject
         _projectRepository.SyncGroups([.. Groups]);
     }
 
-    public int GroupCount => Groups.Count;
+    /// <summary>사용자 추가 그룹 수 (기본 그룹 제외)</summary>
+    public int UserGroupCount => Groups.Count(g => !g.IsDefault);
 
-    /// <summary>그룹 추가 가능 여부 (최대 10개 제한)</summary>
-    public bool CanAddGroup => Groups.Count < 10;
+    /// <summary>그룹 추가 가능 여부 (사용자 그룹 최대 10개)</summary>
+    public bool CanAddGroup => UserGroupCount < 10;
 
     [RelayCommand]
     private void RequestAddProject() => AddProjectRequested?.Invoke(this, EventArgs.Empty);
@@ -682,7 +683,7 @@ public partial class MainViewModel : ObservableObject
     /// <summary>그룹을 기본값으로 초기화하고 모든 카드를 기본 그룹에 재배치합니다.</summary>
     public void ResetGroups()
     {
-        var defaultGroup = new ProjectGroup { Name = LocalizationService.Get("DefaultGroupName") };
+        var defaultGroup = new ProjectGroup { Name = LocalizationService.Get("DefaultGroupName"), IsDefault = true };
 
         _suppressReactiveUpdates = true;
         try

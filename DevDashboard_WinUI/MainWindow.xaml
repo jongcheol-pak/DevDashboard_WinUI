@@ -137,14 +137,30 @@
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
             <Grid Margin="12,0">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
+                <!-- 그룹 탭 좌측 스크롤 버튼 -->
+                <Button x:Name="GroupScrollLeftButton"
+                        Margin="0,0,12,0"
+                        Grid.Column="0"
+                        Width="30" Height="30" Padding="0"
+                        VerticalAlignment="Center"
+                        Background="Transparent" BorderThickness="0"
+                        Visibility="Collapsed"
+                        Click="GroupScrollLeft_Click">
+                    <FontIcon Glyph="&#xF08D;" FontSize="24" />
+                </Button>
+
                 <!-- 그룹 탭 스크롤 영역 -->
-                <ScrollViewer Grid.Column="0"
+                <ScrollViewer x:Name="GroupTabsScrollViewer"
+                              Grid.Column="1"
                               HorizontalScrollBarVisibility="Hidden"
-                              VerticalScrollBarVisibility="Disabled">
+                              VerticalScrollBarVisibility="Disabled"
+                              ViewChanged="GroupTabsScrollViewer_ViewChanged">
                     <StackPanel x:Name="GroupTabsPanel" Orientation="Horizontal">
 
                         <!-- 전체 탭 -->
@@ -174,7 +190,8 @@
                                                 <MenuFlyoutItem x:Uid="GroupTabRenameItem"
                                                                Click="GroupTabRename_Click" />
                                                 <MenuFlyoutItem x:Uid="GroupTabDeleteItem"
-                                                               Click="GroupTabDelete_Click" />
+                                                               Click="GroupTabDelete_Click"
+                                                               Visibility="{Binding IsDefault, Converter={StaticResource InverseBoolToVisibility}}" />
                                             </MenuFlyout>
                                         </RadioButton.ContextFlyout>
                                     </RadioButton>
@@ -185,15 +202,30 @@
                         <!-- 그룹 추가 버튼 -->
                         <Button x:Name="AddGroupButton"
                                 Style="{StaticResource GroupAddButtonStyle}"
-                                Click="AddGroupButton_Click">
+                                Click="AddGroupButton_Click"
+                                Visibility="{Binding CanAddGroup, Converter={StaticResource BoolToVisibility}}">
                             <FontIcon Glyph="&#xE710;" FontSize="14" />
                         </Button>
                     </StackPanel>
                 </ScrollViewer>
 
+                <!-- 그룹 탭 우측 스크롤 버튼 -->
+                <Button x:Name="GroupScrollRightButton"
+                        Margin="12,0,0,0"
+                        Grid.Column="2"
+                        Padding="0"
+                        Width="32" Height="32"
+                        VerticalAlignment="Center"
+                        Background="Transparent" BorderThickness="0"
+                        Visibility="Collapsed"
+                        Click="GroupScrollRight_Click">
+                    <FontIcon Glyph="&#xF08F;" FontSize="24" />
+                </Button>
+
                 <!-- 새로고침 버튼 -->
                 <Button x:Name="RefreshButton"
-                        Grid.Column="1"
+                        Margin="12,0,0,0"
+                        Grid.Column="3"
                         Width="32" Height="32" Padding="0"
                         VerticalAlignment="Center"
                         Command="{Binding RefreshCommand}">

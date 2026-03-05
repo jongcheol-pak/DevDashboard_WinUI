@@ -70,6 +70,9 @@ public sealed partial class MainWindow : WindowEx
             UpdateTitleBarDragRegion();
             HeaderBorder.SizeChanged += (_, _) => UpdateTitleBarDragRegion();
 
+            // 그룹 탭 콘텐츠 크기 변경 시 스크롤 버튼 가시성 재계산
+            GroupTabsPanel.SizeChanged += (_, _) => UpdateGroupScrollButtonVisibility();
+
             // DB 초기화 오류 처리
             if (_dbErrorMessage is not null)
             {
@@ -211,7 +214,42 @@ public sealed partial class MainWindow : WindowEx
         _viewModel.SearchText = filtered;
     }
 
-   
+
+    // ─── 그룹 탭 스크롤 ──────────────────────────────────────────────────
+
+    /// <summary>1회 클릭당 스크롤 이동량 (DIP)</summary>
+    private const double GroupScrollStep = 120;
+
+    private void GroupScrollLeft_Click(object sender, RoutedEventArgs e)
+    {
+        GroupTabsScrollViewer.ChangeView(
+            Math.Max(0, GroupTabsScrollViewer.HorizontalOffset - GroupScrollStep), null, null);
+    }
+
+    private void GroupScrollRight_Click(object sender, RoutedEventArgs e)
+    {
+        GroupTabsScrollViewer.ChangeView(
+            GroupTabsScrollViewer.HorizontalOffset + GroupScrollStep, null, null);
+    }
+
+    private void GroupTabsScrollViewer_ViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)
+    {
+        UpdateGroupScrollButtonVisibility();
+    }
+
+    /// <summary>스크롤 위치에 따라 좌/우 화살표 버튼 가시성을 업데이트합니다.</summary>
+    private void UpdateGroupScrollButtonVisibility()
+    {
+        var canScrollLeft = GroupTabsScrollViewer.HorizontalOffset > 0;
+        var canScrollRight = GroupTabsScrollViewer.HorizontalOffset
+            < GroupTabsScrollViewer.ScrollableWidth - 1;
+
+        GroupScrollLeftButton.Visibility = canScrollLeft
+            ? Visibility.Visible : Visibility.Collapsed;
+        GroupScrollRightButton.Visibility = canScrollRight
+            ? Visibility.Visible : Visibility.Collapsed;
+    }
+
     // ─── 그룹 탭 ────────────────────────────────────────────────────────
 
     private void AllGroupTab_Checked(object sender, RoutedEventArgs e)
@@ -288,7 +326,20 @@ public sealed partial class MainWindow : WindowEx
             var dialog = new GroupDialog(_viewModel.GetGroups(), existing);
             await dialog.ShowAsync();
             if (dialog.ResultGroup is not null)
+            {
                 _viewModel.AddOrUpdateGroup(dialog.ResultGroup);
+
+                // 새 그룹 추가 시 스크롤을 오른쪽 끝으로 이동하여 새 탭이 보이도록 함
+                if (existing is null)
+                {
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        GroupTabsScrollViewer.UpdateLayout();
+                        GroupTabsScrollViewer.ChangeView(
+                            GroupTabsScrollViewer.ScrollableWidth, null, null);
+                    });
+                }
+            }
         }
         catch (Exception ex)
         {

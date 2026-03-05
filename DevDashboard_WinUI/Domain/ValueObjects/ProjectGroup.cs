@@ -12,4 +12,7 @@ public record ProjectGroup
 
     /// <summary>그룹 표시 이름</summary>
     public string Name { get; init; } = string.Empty;
+
+    /// <summary>시스템 기본 그룹 여부 — true이면 삭제 불가</summary>
+    public bool IsDefault { get; init; }
 }

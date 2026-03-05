@@ -77,6 +77,25 @@ public sealed class DatabaseContext
         }
 
         EnsureTablesCreated(connection);
+        MigrateSchema(connection);
+    }
+
+    /// <summary>기존 테이블에 누락된 컬럼을 추가합니다. 이미 존재하면 무시됩니다.</summary>
+    private static void MigrateSchema(SqliteConnection connection)
+    {
+        AddColumnIfNotExists(connection, "Groups", "IsDefault", "INTEGER NOT NULL DEFAULT 0");
+    }
+
+    private static void AddColumnIfNotExists(SqliteConnection connection, string table, string column, string definition)
+    {
+        using var checkCmd = connection.CreateCommand();
+        checkCmd.CommandText = $"SELECT COUNT(*) FROM pragma_table_info('{table}') WHERE name='{column}'";
+        var exists = Convert.ToInt64(checkCmd.ExecuteScalar()) > 0;
+        if (exists) return;
+
+        using var alterCmd = connection.CreateCommand();
+        alterCmd.CommandText = $"ALTER TABLE {table} ADD COLUMN {column} {definition}";
+        alterCmd.ExecuteNonQuery();
     }
 
     /// <summary>테이블이 없으면 생성합니다. CREATE TABLE IF NOT EXISTS를 사용하므로 멱등성이 보장됩니다.</summary>
@@ -147,8 +166,9 @@ public sealed class DatabaseContext
             );
 
             CREATE TABLE IF NOT EXISTS Groups (
-                Id   TEXT PRIMARY KEY,
-                Name TEXT NOT NULL DEFAULT ''
+                Id        TEXT PRIMARY KEY,
+                Name      TEXT NOT NULL DEFAULT '',
+                IsDefault INTEGER NOT NULL DEFAULT 0
             );
 
             CREATE INDEX IF NOT EXISTS IX_Todos_ProjectId ON Todos(ProjectId);
