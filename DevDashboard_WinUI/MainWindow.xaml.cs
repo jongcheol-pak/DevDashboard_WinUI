@@ -308,13 +308,16 @@ public sealed partial class MainWindow : WindowEx
             await dialog.ShowAsync();
             if (dialog.ResultSettings is not null)
                 _viewModel.SaveAppSettings(dialog.ResultSettings);
+            // ProjectsReset을 SettingsReset보다 먼저 처리:
+            // ResetGroups()는 _allCards를 순회하며 DB Update를 호출하므로,
+            // DB가 삭제된 상태에서 실행하면 FK 제약 조건 위반 발생
+            if (dialog.ProjectsReset)
+                await _viewModel.HardRefreshCommand.ExecuteAsync(null);
             if (dialog.SettingsReset)
             {
                 _viewModel.ResetGroups();
                 AllGroupTab.IsChecked = true;
             }
-            if (dialog.ProjectsReset)
-                await _viewModel.HardRefreshCommand.ExecuteAsync(null);
             if (dialog.LanguageChanged)
                 await HandleLanguageChangedAsync();
         }
