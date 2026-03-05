@@ -330,5 +330,6 @@
   <data name="Import_Failed" xml:space="preserve"><value>Import failed: {0}</value></data>
   <data name="Import_FailedTitle" xml:space="preserve"><value>Import Error</value></data>
   <data name="Import_GroupsCreatedFormat" xml:space="preserve"><value>{0}{1} group(s) auto-created</value></data>
+  <data name="UnexpectedError" xml:space="preserve"><value>An unexpected error occurred: {0}</value></data>
 
 </root>

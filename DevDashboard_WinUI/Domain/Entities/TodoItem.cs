@@ -13,19 +13,19 @@ public partial class TodoItem : ObservableObject
 
     /// <summary>할 일 본문 텍스트</summary>
     [ObservableProperty]
-    private string _text = string.Empty;
+    public partial string Text { get; set; } = string.Empty;
 
     /// <summary>완료 여부</summary>
     [ObservableProperty]
-    private bool _isCompleted;
+    public partial bool IsCompleted { get; set; }
 
     /// <summary>완료 처리된 일시 (미완료이면 null)</summary>
     [ObservableProperty]
-    private DateTime? _completedAt;
+    public partial DateTime? CompletedAt { get; set; }
 
     /// <summary>상세 설명 (최대 300자)</summary>
     [ObservableProperty]
-    private string _description = string.Empty;
+    public partial string Description { get; set; } = string.Empty;
 
     /// <summary>항목 등록 일시</summary>
     public DateTime CreatedAt { get; set; } = DateTime.Now;

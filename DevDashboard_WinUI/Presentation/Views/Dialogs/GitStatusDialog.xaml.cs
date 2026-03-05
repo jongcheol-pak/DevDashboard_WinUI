@@ -51,36 +51,44 @@ public sealed partial class GitStatusDialog : WindowEx
 
     private async void OnRootLoaded(object sender, RoutedEventArgs e)
     {
-        if (_initialized) return;
-        _initialized = true;
-
-        string? error;
         try
         {
-            error = await _card.LoadGitStatusAsync(_cts.Token);
+            if (_initialized) return;
+            _initialized = true;
+
+            string? error;
+            try
+            {
+                error = await _card.LoadGitStatusAsync(_cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            LoadingPanel.Visibility = Visibility.Collapsed;
+
+            if (error is not null)
+            {
+                ErrorBar.Message = error;
+                ErrorBar.IsOpen = true;
+                return;
+            }
+
+            BranchText.Text = _card.GitBranch;
+            CommitList.ItemsSource = _card.GitCommitGroups;
+
+            NoCommitsText.Visibility = _card.GitCommitGroups.Count == 0
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+
+            ContentPanel.Visibility = Visibility.Visible;
         }
-        catch (OperationCanceledException)
+        catch (Exception ex)
         {
-            return;
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
         }
-
-        LoadingPanel.Visibility = Visibility.Collapsed;
-
-        if (error is not null)
-        {
-            ErrorBar.Message = error;
-            ErrorBar.IsOpen = true;
-            return;
-        }
-
-        BranchText.Text = _card.GitBranch;
-        CommitList.ItemsSource = _card.GitCommitGroups;
-
-        NoCommitsText.Visibility = _card.GitCommitGroups.Count == 0
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-
-        ContentPanel.Visibility = Visibility.Visible;
     }
 
     private void OnClose(object sender, RoutedEventArgs e) => Close();

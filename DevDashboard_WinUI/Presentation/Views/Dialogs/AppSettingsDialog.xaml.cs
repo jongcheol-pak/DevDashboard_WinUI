@@ -23,6 +23,9 @@ public sealed partial class AppSettingsDialog : WindowEx
     /// <summary>프로젝트 초기화가 수행되었는지 여부 (호출자가 목록 새로고침에 사용)</summary>
     public bool ProjectsReset { get; private set; }
 
+    /// <summary>설정 초기화가 수행되었는지 여부 (호출자가 그룹 초기화에 사용)</summary>
+    public bool SettingsReset { get; private set; }
+
     /// <summary>언어가 변경되었는지 여부 (호출자가 UI 새로고침에 사용)</summary>
     public bool LanguageChanged { get; private set; }
 
@@ -87,10 +90,18 @@ public sealed partial class AppSettingsDialog : WindowEx
     private bool _initialized;
     private async void OnRootLoaded(object sender, RoutedEventArgs e)
     {
-        if (_initialized) return;
-        _initialized = true;
-        await Vm.LoadStartupStateAsync();
-        _ = Vm.CheckLatestVersionAsync();
+        try
+        {
+            if (_initialized) return;
+            _initialized = true;
+            await Vm.LoadStartupStateAsync();
+            _ = Vm.CheckLatestVersionAsync();
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+        }
     }
 
     private void RefreshToolList()
@@ -202,48 +213,65 @@ public sealed partial class AppSettingsDialog : WindowEx
 
     private async void ResetSettings_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new ContentDialog
+        try
         {
-            Title = LocalizationService.Get("ResetSettingsConfirmTitle"),
-            Content = LocalizationService.Get("ResetSettingsConfirmMessage"),
-            PrimaryButtonText = LocalizationService.Get("Dialog_Yes"),
-            CloseButtonText = LocalizationService.Get("Dialog_No"),
-            DefaultButton = ContentDialogButton.Close,
-            XamlRoot = Content.XamlRoot
-        };
+            var dialog = new ContentDialog
+            {
+                Title = LocalizationService.Get("ResetSettingsConfirmTitle"),
+                Content = LocalizationService.Get("ResetSettingsConfirmMessage"),
+                PrimaryButtonText = LocalizationService.Get("Dialog_Yes"),
+                CloseButtonText = LocalizationService.Get("Dialog_No"),
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = Content.XamlRoot
+            };
 
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
 
-        var defaultSettings = new AppSettings();
-        Vm.LoadFrom(defaultSettings);
-        new JsonStorageService().Save(defaultSettings);
-        RefreshToolList();
+            var defaultSettings = new AppSettings();
+            Vm.LoadFrom(defaultSettings);
+            new JsonStorageService().Save(defaultSettings);
+            RefreshToolList();
+            SettingsReset = true;
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+        }
     }
 
     private async void ResetProjects_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new ContentDialog
+        try
         {
-            Title = LocalizationService.Get("ResetProjectsConfirmTitle"),
-            Content = LocalizationService.Get("ResetProjectsConfirmMessage"),
-            PrimaryButtonText = LocalizationService.Get("Dialog_Yes"),
-            CloseButtonText = LocalizationService.Get("Dialog_No"),
-            DefaultButton = ContentDialogButton.Close,
-            XamlRoot = Content.XamlRoot
-        };
+            var dialog = new ContentDialog
+            {
+                Title = LocalizationService.Get("ResetProjectsConfirmTitle"),
+                Content = LocalizationService.Get("ResetProjectsConfirmMessage"),
+                PrimaryButtonText = LocalizationService.Get("Dialog_Yes"),
+                CloseButtonText = LocalizationService.Get("Dialog_No"),
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = Content.XamlRoot
+            };
 
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
 
-        var dbPath = DatabaseContext.GetDbPath();
-        SqliteConnection.ClearAllPools();
+            var dbPath = DatabaseContext.GetDbPath();
+            SqliteConnection.ClearAllPools();
 
-        foreach (var file in Directory.GetFiles(Path.GetDirectoryName(dbPath)!, Path.GetFileName(dbPath) + "*"))
-        {
-            try { File.Delete(file); }
-            catch { /* WAL/SHM 파일 삭제 실패 시 무시 */ }
+            foreach (var file in Directory.GetFiles(Path.GetDirectoryName(dbPath)!, Path.GetFileName(dbPath) + "*"))
+            {
+                try { File.Delete(file); }
+                catch { /* WAL/SHM 파일 삭제 실패 시 무시 */ }
+            }
+
+            ProjectsReset = true;
+            Close();
         }
-
-        ProjectsReset = true;
-        Close();
+        catch (Exception ex)
+        {
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+        }
     }
 }

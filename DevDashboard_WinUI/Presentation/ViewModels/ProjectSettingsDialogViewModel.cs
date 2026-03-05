@@ -17,47 +17,47 @@ public partial class ProjectSettingsDialogViewModel : ObservableObject
     public const string CmdToolName = "CMD";
 
     [ObservableProperty]
-    private string _name = string.Empty;
+    public partial string Name { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _description = string.Empty;
+    public partial string Description { get; set; } = string.Empty;
 
     /// <summary>프로젝트 아이콘 이미지 파일 경로</summary>
     [ObservableProperty]
-    private string _iconPath = string.Empty;
+    public partial string IconPath { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _path = string.Empty;
+    public partial string Path { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _options = string.Empty;
+    public partial string Options { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _command = string.Empty;
+    public partial string Command { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _useWorkingDirectory;
+    public partial bool UseWorkingDirectory { get; set; }
 
     [ObservableProperty]
-    private string _shellWorkingDirectory = string.Empty;
+    public partial string ShellWorkingDirectory { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private ExternalTool? _selectedDevTool;
+    public partial ExternalTool? SelectedDevTool { get; set; }
 
     [ObservableProperty]
-    private bool _isShellTool;
+    public partial bool IsShellTool { get; set; }
 
     [ObservableProperty]
-    private bool _runAsAdmin;
+    public partial bool RunAsAdmin { get; set; }
 
     [ObservableProperty]
-    private string _tags = string.Empty;
+    public partial string Tags { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _category = string.Empty;
+    public partial string Category { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _selectedGroupId = string.Empty;
+    public partial string SelectedGroupId { get; set; } = string.Empty;
 
     private DateTime _originalCreatedAt = DateTime.Now;
 
@@ -69,7 +69,7 @@ public partial class ProjectSettingsDialogViewModel : ObservableObject
 
     /// <summary>읽기 모드 여부</summary>
     [ObservableProperty]
-    private bool _isViewMode;
+    public partial bool IsViewMode { get; set; }
 
     /// <summary>등록 날짜 표시 텍스트</summary>
     public string CreatedAtText { get; private set; } = string.Empty;

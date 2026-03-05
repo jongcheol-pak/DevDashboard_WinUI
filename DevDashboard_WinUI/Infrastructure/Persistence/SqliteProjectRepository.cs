@@ -587,13 +587,6 @@ public sealed class SqliteProjectRepository : IProjectRepository
     public static List<ProjectGroup> ReadGroupsFromDb(string dbPath)
     {
         using var conn = DatabaseContext.CreateConnectionForPath(dbPath);
-
-        // 구버전 DB에는 Groups 테이블이 없을 수 있으므로 존재 여부 먼저 확인
-        using var checkCmd = conn.CreateCommand();
-        checkCmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='Groups'";
-        if (checkCmd.ExecuteScalar() is null)
-            return [];
-
         using var cmd = conn.CreateCommand();
         cmd.CommandText = "SELECT Id, Name FROM Groups";
         using var reader = cmd.ExecuteReader();

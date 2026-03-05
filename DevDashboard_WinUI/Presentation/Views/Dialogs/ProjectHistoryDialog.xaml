@@ -53,6 +53,7 @@
                     <Button
                         x:Uid="AddProjectHistoryBtn"
                         Grid.Column="1"
+                        IsEnabled="{x:Bind Vm.CanAddHistory, Mode=OneWay}"
                         Click="ToggleAddPanel_Click" />
                   
                 </Grid>

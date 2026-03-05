@@ -115,101 +115,125 @@ public sealed partial class TodoDialog : WindowEx
 
     private async void TodoCheckBox_Changed(object sender, RoutedEventArgs e)
     {
-        if (_isRefreshing) return;
-        if (sender is not CheckBox { DataContext: TodoItem todo } checkBox) return;
-
-        var isChecked = checkBox.IsChecked == true;
-
-        // 바인딩 초기화에 의한 중복 이벤트 무시 (체크박스 상태와 모델 상태가 이미 일치)
-        if (isChecked == todo.IsCompleted) return;
-
-        if (isChecked)
+        try
         {
-            // 완료 처리 — _isRefreshing 가드로 내부 RefreshFilter 이벤트 재진입 방지
-            _isRefreshing = true;
-            Vm.ToggleTodoCommand.Execute(todo);
-            _isRefreshing = false;
+            if (_isRefreshing) return;
+            if (sender is not CheckBox { DataContext: TodoItem todo } checkBox) return;
 
-            // 설정에 따라 작업 기록 팝업 표시
-            var settings = new JsonStorageService().Load();
-            if (settings.ShowWorkLogPopupOnTodoComplete)
+            var isChecked = checkBox.IsChecked == true;
+
+            // 바인딩 초기화에 의한 중복 이벤트 무시 (체크박스 상태와 모델 상태가 이미 일치)
+            if (isChecked == todo.IsCompleted) return;
+
+            if (isChecked)
             {
-                var historyVm = new HistoryDialogViewModel(Vm.ProjectItem);
-                var historyDialog = new HistoryDialog(historyVm);
-                historyDialog.OpenAddPanel(todo.Text);
-                await historyDialog.ShowAsync();
+                // 완료 처리 — _isRefreshing 가드로 내부 RefreshFilter 이벤트 재진입 방지
+                _isRefreshing = true;
+                Vm.ToggleTodoCommand.Execute(todo);
+                _isRefreshing = false;
 
-                // SaveToModel() 미호출 — OnTodoDialogClosed의 AddRange에서 신규 항목만 추가됨
-                NewHistories.AddRange(historyVm.NewEntries);
+                // 설정에 따라 작업 기록 팝업 표시
+                var settings = new JsonStorageService().Load();
+                if (settings.ShowWorkLogPopupOnTodoComplete)
+                {
+                    var historyVm = new HistoryDialogViewModel(Vm.ProjectItem);
+                    var historyDialog = new HistoryDialog(historyVm);
+                    historyDialog.OpenAddPanel(todo.Text);
+                    await historyDialog.ShowAsync();
+
+                    // SaveToModel() 미호출 — OnTodoDialogClosed의 AddRange에서 신규 항목만 추가됨
+                    NewHistories.AddRange(historyVm.NewEntries);
+                }
             }
+            else
+            {
+                // 완료 해제 확인
+                var dialog = new ContentDialog
+                {
+                    Title = LocalizationService.Get("TodoUncompleteConfirmTitle"),
+                    Content = LocalizationService.Get("TodoUncompleteConfirmMessage"),
+                    PrimaryButtonText = LocalizationService.Get("Dialog_Yes"),
+                    CloseButtonText = LocalizationService.Get("Dialog_Cancel"),
+                    DefaultButton = ContentDialogButton.Primary,
+                    XamlRoot = Content.XamlRoot
+                };
+
+                if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+                {
+                    _isRefreshing = true;
+                    Vm.ToggleTodoCommand.Execute(todo);
+                    _isRefreshing = false;
+                }
+            }
+
+            RefreshList();
         }
-        else
+        catch (Exception ex)
         {
-            // 완료 해제 확인
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+        }
+    }
+
+    private async void DeleteTodo_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is not Button { Tag: TodoItem todo }) return;
+
             var dialog = new ContentDialog
             {
-                Title = LocalizationService.Get("TodoUncompleteConfirmTitle"),
-                Content = LocalizationService.Get("TodoUncompleteConfirmMessage"),
-                PrimaryButtonText = LocalizationService.Get("Dialog_Yes"),
+                Title = LocalizationService.Get("DeleteConfirmTitle"),
+                Content = LocalizationService.Get("DeleteConfirmMessage"),
+                PrimaryButtonText = LocalizationService.Get("Dialog_Delete"),
+                CloseButtonText = LocalizationService.Get("Dialog_Cancel"),
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = Content.XamlRoot
+            };
+
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+
+            Vm.DeleteTodoCommand.Execute(todo);
+            RefreshList();
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+        }
+    }
+
+    private async void EditTodo_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is not Button { Tag: TodoItem todo }) return;
+
+            var textBox = new TextBox { Text = todo.Text, MaxLength = 200 };
+
+            var dialog = new ContentDialog
+            {
+                Title = LocalizationService.Get("TodoEditTitle"),
+                Content = textBox,
+                PrimaryButtonText = LocalizationService.Get("Dialog_Save"),
                 CloseButtonText = LocalizationService.Get("Dialog_Cancel"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = Content.XamlRoot
             };
 
-            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
-            {
-                _isRefreshing = true;
-                Vm.ToggleTodoCommand.Execute(todo);
-                _isRefreshing = false;
-            }
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+
+            var newText = textBox.Text.Trim();
+            if (string.IsNullOrWhiteSpace(newText)) return;
+
+            Vm.EditTodo(todo, newText);
+            RefreshList();
         }
-
-        RefreshList();
-    }
-
-    private async void DeleteTodo_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not Button { Tag: TodoItem todo }) return;
-
-        var dialog = new ContentDialog
+        catch (Exception ex)
         {
-            Title = LocalizationService.Get("DeleteConfirmTitle"),
-            Content = LocalizationService.Get("DeleteConfirmMessage"),
-            PrimaryButtonText = LocalizationService.Get("Dialog_Delete"),
-            CloseButtonText = LocalizationService.Get("Dialog_Cancel"),
-            DefaultButton = ContentDialogButton.Close,
-            XamlRoot = Content.XamlRoot
-        };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
-
-        Vm.DeleteTodoCommand.Execute(todo);
-        RefreshList();
-    }
-
-    private async void EditTodo_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not Button { Tag: TodoItem todo }) return;
-
-        var textBox = new TextBox { Text = todo.Text, MaxLength = 200 };
-
-        var dialog = new ContentDialog
-        {
-            Title = LocalizationService.Get("TodoEditTitle"),
-            Content = textBox,
-            PrimaryButtonText = LocalizationService.Get("Dialog_Save"),
-            CloseButtonText = LocalizationService.Get("Dialog_Cancel"),
-            DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = Content.XamlRoot
-        };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
-
-        var newText = textBox.Text.Trim();
-        if (string.IsNullOrWhiteSpace(newText)) return;
-
-        Vm.EditTodo(todo, newText);
-        RefreshList();
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+        }
     }
 
     private void OnClose(object sender, RoutedEventArgs e) => Close();

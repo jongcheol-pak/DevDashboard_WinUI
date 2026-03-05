@@ -38,7 +38,7 @@ public partial class HistoryEntryViewModel : ObservableObject
 
     /// <summary>상세 정보 표시 여부</summary>
     [ObservableProperty]
-    private bool _isExpanded;
+    public partial bool IsExpanded { get; set; }
 
     /// <summary>상세 정보 존재 여부</summary>
     public bool HasDescription => !string.IsNullOrWhiteSpace(Model.Description);
@@ -86,7 +86,7 @@ public partial class HistoryDialogViewModel : ObservableObject
 
     /// <summary>검색어</summary>
     [ObservableProperty]
-    private string _searchText = string.Empty;
+    public partial string SearchText { get; set; } = string.Empty;
 
     /// <summary>날짜별 그룹 목록</summary>
     public ObservableCollection<HistoryDateGroup> DateGroups { get; } = [];

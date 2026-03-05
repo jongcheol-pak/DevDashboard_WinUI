@@ -55,49 +55,56 @@ public sealed partial class MainWindow : WindowEx
     {
         RootGrid.Loaded -= OnRootGridLoaded;
 
-        // 다이얼로그 독립 창의 소유자 창 등록 (RootGrid를 전달하여 XAML 오버레이 입력 차단에 사용)
-        DialogWindowHost.SetOwnerWindow(this, RootGrid);
-
-        // Run.Text는 x:Uid를 지원하지 않으므로 ResourceLoader로 직접 설정
-        ProjectCountSuffixRun.Text = LocalizationService.Get("MainWindow_ProjectCountSuffix");
-
-        // [ToolTipService.ToolTip] x:Uid는 런타임 오류를 발생시키므로 코드비하인드로 설정
-        ApplyToolTips();
-
-        // 타이틀바 드래그 영역 초기 계산 및 창 크기 변경 시 재계산
-        UpdateTitleBarDragRegion();
-        HeaderBorder.SizeChanged += (_, _) => UpdateTitleBarDragRegion();
-
-        // DB 초기화 오류 처리
-        if (_dbErrorMessage is not null)
+        try
         {
-            await DialogService.ShowErrorAsync(
-                string.Format(LocalizationService.Get("DatabaseInitError"), _dbErrorMessage),
-                LocalizationService.Get("StartupError"));
-            Close();
-            return;
+            // 다이얼로그 독립 창의 소유자 창 등록 (RootGrid를 전달하여 XAML 오버레이 입력 차단에 사용)
+            DialogWindowHost.SetOwnerWindow(this, RootGrid);
+
+            // Run.Text는 x:Uid를 지원하지 않으므로 ResourceLoader로 직접 설정
+            ProjectCountSuffixRun.Text = LocalizationService.Get("MainWindow_ProjectCountSuffix");
+
+            // [ToolTipService.ToolTip] x:Uid는 런타임 오류를 발생시키므로 코드비하인드로 설정
+            ApplyToolTips();
+
+            // 타이틀바 드래그 영역 초기 계산 및 창 크기 변경 시 재계산
+            UpdateTitleBarDragRegion();
+            HeaderBorder.SizeChanged += (_, _) => UpdateTitleBarDragRegion();
+
+            // DB 초기화 오류 처리
+            if (_dbErrorMessage is not null)
+            {
+                await DialogService.ShowErrorAsync(
+                    string.Format(LocalizationService.Get("DatabaseInitError"), _dbErrorMessage),
+                    LocalizationService.Get("StartupError"));
+                Close();
+                return;
+            }
+
+            // ViewModel 초기화
+            _viewModel = new MainViewModel(_settings, _storageService, _projectRepository!);
+            RootGrid.DataContext = _viewModel;
+
+            // 이벤트 구독
+            _viewModel.EditProjectRequested += OnEditProjectRequested;
+            _viewModel.AddProjectRequested += OnAddProjectRequested;
+
+            // DashboardView 주입
+            DashboardContent.Content = new DashboardView { DataContext = _viewModel };
+
+            // 비동기 초기화
+            await _viewModel.InitializeAsync();
+
+            // UI 준비 완료 후 Low 우선순위로 버전 체크 실행 (StoreContext 초기화 지연)
+            DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low,
+                () => _ = _viewModel.CheckLatestVersionAsync());
+
+            // 저장된 그룹 탭 선택 복원 (ItemsRepeater 레이아웃 완료 후 실행)
+            DispatcherQueue.TryEnqueue(RestoreGroupTabSelection);
         }
-
-        // ViewModel 초기화
-        _viewModel = new MainViewModel(_settings, _storageService, _projectRepository!);
-        RootGrid.DataContext = _viewModel;
-
-        // 이벤트 구독
-        _viewModel.EditProjectRequested += OnEditProjectRequested;
-        _viewModel.AddProjectRequested += OnAddProjectRequested;
-
-        // DashboardView 주입
-        DashboardContent.Content = new DashboardView { DataContext = _viewModel };
-
-        // 비동기 초기화
-        await _viewModel.InitializeAsync();
-
-        // UI 준비 완료 후 Low 우선순위로 버전 체크 실행 (StoreContext 초기화 지연)
-        DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low,
-            () => _ = _viewModel.CheckLatestVersionAsync());
-
-        // 저장된 그룹 탭 선택 복원 (ItemsRepeater 레이아웃 완료 후 실행)
-        DispatcherQueue.TryEnqueue(RestoreGroupTabSelection);
+        catch (Exception ex)
+        {
+            await ShowUnexpectedErrorAsync(ex);
+        }
     }
 
     /// <summary>앱 재시작 시 저장된 그룹 탭 선택을 RadioButton 시각 상태에 복원합니다.</summary>
@@ -226,25 +233,39 @@ public sealed partial class MainWindow : WindowEx
 
     private async void GroupTabRename_Click(object sender, RoutedEventArgs e)
     {
-        var group = GetGroupFromMenuFlyoutItem(sender);
-        if (group is not null)
-            await OpenGroupDialogAsync(group);
+        try
+        {
+            var group = GetGroupFromMenuFlyoutItem(sender);
+            if (group is not null)
+                await OpenGroupDialogAsync(group);
+        }
+        catch (Exception ex)
+        {
+            await ShowUnexpectedErrorAsync(ex);
+        }
     }
 
     private async void GroupTabDelete_Click(object sender, RoutedEventArgs e)
     {
-        if (_viewModel is null) return;
-        var group = GetGroupFromMenuFlyoutItem(sender);
-        if (group is null) return;
-
-        var confirmed = await DialogService.ShowConfirmAsync(
-            string.Format(LocalizationService.Get("DeleteGroupConfirmFormat"), group.Name, Environment.NewLine),
-            LocalizationService.Get("DeleteGroupTitle"));
-
-        if (confirmed)
+        try
         {
-            _viewModel.DeleteGroup(group.Id);
-            AllGroupTab.IsChecked = true;
+            if (_viewModel is null) return;
+            var group = GetGroupFromMenuFlyoutItem(sender);
+            if (group is null) return;
+
+            var confirmed = await DialogService.ShowConfirmAsync(
+                string.Format(LocalizationService.Get("DeleteGroupConfirmFormat"), group.Name, Environment.NewLine),
+                LocalizationService.Get("DeleteGroupTitle"));
+
+            if (confirmed)
+            {
+                _viewModel.DeleteGroup(group.Id);
+                AllGroupTab.IsChecked = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            await ShowUnexpectedErrorAsync(ex);
         }
     }
 
@@ -260,28 +281,47 @@ public sealed partial class MainWindow : WindowEx
 
     private async Task OpenGroupDialogAsync(ProjectGroup? existing)
     {
-        if (_viewModel is null) return;
+        try
+        {
+            if (_viewModel is null) return;
 
-        var dialog = new GroupDialog(_viewModel.GetGroups(), existing);
-        await dialog.ShowAsync();
-        if (dialog.ResultGroup is not null)
-            _viewModel.AddOrUpdateGroup(dialog.ResultGroup);
+            var dialog = new GroupDialog(_viewModel.GetGroups(), existing);
+            await dialog.ShowAsync();
+            if (dialog.ResultGroup is not null)
+                _viewModel.AddOrUpdateGroup(dialog.ResultGroup);
+        }
+        catch (Exception ex)
+        {
+            await ShowUnexpectedErrorAsync(ex);
+        }
     }
 
     // ─── 앱 설정 ────────────────────────────────────────────────────────
 
     private async void AppSettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_viewModel is null) return;
+        try
+        {
+            if (_viewModel is null) return;
 
-        var dialog = new AppSettingsDialog(_viewModel.GetSettings());
-        await dialog.ShowAsync();
-        if (dialog.ResultSettings is not null)
-            _viewModel.SaveAppSettings(dialog.ResultSettings);
-        if (dialog.ProjectsReset)
-            await _viewModel.HardRefreshCommand.ExecuteAsync(null);
-        if (dialog.LanguageChanged)
-            await HandleLanguageChangedAsync();
+            var dialog = new AppSettingsDialog(_viewModel.GetSettings());
+            await dialog.ShowAsync();
+            if (dialog.ResultSettings is not null)
+                _viewModel.SaveAppSettings(dialog.ResultSettings);
+            if (dialog.SettingsReset)
+            {
+                _viewModel.ResetGroups();
+                AllGroupTab.IsChecked = true;
+            }
+            if (dialog.ProjectsReset)
+                await _viewModel.HardRefreshCommand.ExecuteAsync(null);
+            if (dialog.LanguageChanged)
+                await HandleLanguageChangedAsync();
+        }
+        catch (Exception ex)
+        {
+            await ShowUnexpectedErrorAsync(ex);
+        }
     }
 
     // ─── 전체 작업 기록 ─────────────────────────────────────────────────
@@ -317,147 +357,168 @@ public sealed partial class MainWindow : WindowEx
 
     private async void ProjectHistoryButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_viewModel is null) return;
+        try
+        {
+            if (_viewModel is null) return;
 
-        var projects = _viewModel.GetAllProjectItemsWithHistories();
-        var dialog = new ProjectHistoryDialog(projects, _viewModel.GetProjectRepository());
-        await dialog.ShowAsync();
+            var projects = _viewModel.GetAllProjectItemsWithHistories();
+            var dialog = new ProjectHistoryDialog(projects, _viewModel.GetProjectRepository());
+            await dialog.ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            await ShowUnexpectedErrorAsync(ex);
+        }
     }
 
     // ─── 내보내기 / 가져오기 ─────────────────────────────────────────────
 
     private async void ExportButton_Click(object sender, RoutedEventArgs e)
     {
-        var picker = new Windows.Storage.Pickers.FileSavePicker();
-        picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
-        picker.SuggestedFileName = "projects";
-        picker.FileTypeChoices.Add("Database", [".db"]);
-
-        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
-        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-
-        var file = await picker.PickSaveFileAsync();
-        if (file is null) return;
-
         try
         {
-            // VACUUM INTO: WAL 포함 완전한 스냅샷을 단일 파일로 내보내기
-            await Task.Run(() => DatabaseContext.ExportTo(file.Path));
+            var picker = new Windows.Storage.Pickers.FileSavePicker();
+            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
+            picker.SuggestedFileName = "projects";
+            picker.FileTypeChoices.Add("Database", [".db"]);
 
-            await DialogService.ShowErrorAsync(
-                LocalizationService.Get("Export_Success"),
-                LocalizationService.Get("Export_SuccessTitle"));
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+            var file = await picker.PickSaveFileAsync();
+            if (file is null) return;
+
+            try
+            {
+                // VACUUM INTO: WAL 포함 완전한 스냅샷을 단일 파일로 내보내기
+                await Task.Run(() => DatabaseContext.ExportTo(file.Path));
+
+                await DialogService.ShowErrorAsync(
+                    LocalizationService.Get("Export_Success"),
+                    LocalizationService.Get("Export_SuccessTitle"));
+            }
+            catch (Exception ex)
+            {
+                await DialogService.ShowErrorAsync(
+                    string.Format(LocalizationService.Get("Export_Failed"), ex.Message),
+                    LocalizationService.Get("Export_FailedTitle"));
+            }
         }
         catch (Exception ex)
         {
-            await DialogService.ShowErrorAsync(
-                string.Format(LocalizationService.Get("Export_Failed"), ex.Message),
-                LocalizationService.Get("Export_FailedTitle"));
+            await ShowUnexpectedErrorAsync(ex);
         }
     }
 
     private async void ImportButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_viewModel is null || _projectRepository is null) return;
-
-        var picker = new Windows.Storage.Pickers.FileOpenPicker();
-        picker.FileTypeFilter.Add(".db");
-
-        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
-        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-
-        var file = await picker.PickSingleFileAsync();
-        if (file is null) return;
-
-        List<ProjectItem> importProjects;
-        List<ProjectGroup> importGroups;
         try
         {
-            importProjects = SqliteProjectRepository.ReadAllFromDb(file.Path);
-            importGroups   = SqliteProjectRepository.ReadGroupsFromDb(file.Path);
-        }
-        catch
-        {
-            await DialogService.ShowErrorAsync(
-                LocalizationService.Get("Import_InvalidFile"),
-                LocalizationService.Get("Import_InvalidFileTitle"));
-            return;
-        }
+            if (_viewModel is null || _projectRepository is null) return;
 
-        // ─── 그룹 이름 기준 매핑 (최대 10개 제한 준수) ──────────────────────
-        // importedGroupId → 실제 사용할 GroupId
-        // 이름이 같은 그룹이 있으면 기존 Id로 리매핑, 없으면 신규 생성
-        var existingGroups = _viewModel.GetGroups();
-        var existingByName = existingGroups.ToDictionary(g => g.Name, g => g.Id, StringComparer.OrdinalIgnoreCase);
-        var groupIdRemap   = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        var groupsCreatedCount = 0;
+            var picker = new Windows.Storage.Pickers.FileOpenPicker();
+            picker.FileTypeFilter.Add(".db");
 
-        foreach (var group in importGroups)
-        {
-            if (existingByName.TryGetValue(group.Name, out var existingId))
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+            var file = await picker.PickSingleFileAsync();
+            if (file is null) return;
+
+            List<ProjectItem> importProjects;
+            List<ProjectGroup> importGroups;
+            try
             {
-                // 이름이 같은 그룹 존재 → 기존 Id로 리매핑
-                groupIdRemap[group.Id] = existingId;
+                importProjects = SqliteProjectRepository.ReadAllFromDb(file.Path);
+                importGroups   = SqliteProjectRepository.ReadGroupsFromDb(file.Path);
             }
-            else if (_viewModel.CanAddGroup)
+            catch
             {
-                // 신규 그룹 생성 — 가져온 UUID 그대로 사용
-                _viewModel.AddOrUpdateGroup(group);
-                existingByName[group.Name] = group.Id;
-                groupIdRemap[group.Id] = group.Id;
-                groupsCreatedCount++;
+                await DialogService.ShowErrorAsync(
+                    LocalizationService.Get("Import_InvalidFile"),
+                    LocalizationService.Get("Import_InvalidFileTitle"));
+                return;
             }
-            // CanAddGroup == false: 10개 초과 → GroupId를 빈 문자열로 리매핑
-        }
 
-        // 가져올 프로젝트의 GroupId를 리매핑된 Id로 교체
-        foreach (var project in importProjects)
-        {
-            if (!string.IsNullOrEmpty(project.GroupId))
-                project.GroupId = groupIdRemap.TryGetValue(project.GroupId, out var remapped)
-                    ? remapped
-                    : string.Empty;
-        }
+            // ─── 그룹 이름 기준 매핑 (최대 10개 제한 준수) ──────────────────────
+            // importedGroupId → 실제 사용할 GroupId
+            // 이름이 같은 그룹이 있으면 기존 Id로 리매핑, 없으면 신규 생성
+            var existingGroups = _viewModel.GetGroups();
+            var existingByName = existingGroups.ToDictionary(g => g.Name, g => g.Id, StringComparer.OrdinalIgnoreCase);
+            var groupIdRemap   = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var groupsCreatedCount = 0;
 
-        var totalCount = importProjects.Count;
-        var addedCount = 0;
-        var overwrittenCount = 0;
-        var skippedCount = 0;
-
-        foreach (var project in importProjects)
-        {
-            var existingId = _projectRepository.FindProjectIdByName(project.Name);
-            if (existingId is not null)
+            foreach (var group in importGroups)
             {
-                var result = await ShowOverwriteDialogAsync(project.Name);
-                if (result == ContentDialogResult.Primary)
+                if (existingByName.TryGetValue(group.Name, out var existingId))
                 {
-                    _projectRepository.DeleteByNameAndInsert(existingId, project);
-                    overwrittenCount++;
+                    // 이름이 같은 그룹 존재 → 기존 Id로 리매핑
+                    groupIdRemap[group.Id] = existingId;
+                }
+                else if (_viewModel.CanAddGroup)
+                {
+                    // 신규 그룹 생성 — 가져온 UUID 그대로 사용
+                    _viewModel.AddOrUpdateGroup(group);
+                    existingByName[group.Name] = group.Id;
+                    groupIdRemap[group.Id] = group.Id;
+                    groupsCreatedCount++;
+                }
+                // CanAddGroup == false: 10개 초과 → GroupId를 빈 문자열로 리매핑
+            }
+
+            // 가져올 프로젝트의 GroupId를 리매핑된 Id로 교체
+            foreach (var project in importProjects)
+            {
+                if (!string.IsNullOrEmpty(project.GroupId))
+                    project.GroupId = groupIdRemap.TryGetValue(project.GroupId, out var remapped)
+                        ? remapped
+                        : string.Empty;
+            }
+
+            var totalCount = importProjects.Count;
+            var addedCount = 0;
+            var overwrittenCount = 0;
+            var skippedCount = 0;
+
+            foreach (var project in importProjects)
+            {
+                var existingId = _projectRepository.FindProjectIdByName(project.Name);
+                if (existingId is not null)
+                {
+                    var result = await ShowOverwriteDialogAsync(project.Name);
+                    if (result == ContentDialogResult.Primary)
+                    {
+                        _projectRepository.DeleteByNameAndInsert(existingId, project);
+                        overwrittenCount++;
+                    }
+                    else
+                    {
+                        skippedCount++;
+                    }
                 }
                 else
                 {
-                    skippedCount++;
+                    _projectRepository.Add(project);
+                    addedCount++;
                 }
             }
-            else
-            {
-                _projectRepository.Add(project);
-                addedCount++;
-            }
+
+            var message = string.Format(LocalizationService.Get("Import_CompleteFormat"),
+                Environment.NewLine, totalCount, addedCount, overwrittenCount, skippedCount);
+
+            if (groupsCreatedCount > 0)
+                message += string.Format(LocalizationService.Get("Import_GroupsCreatedFormat"),
+                    Environment.NewLine, groupsCreatedCount);
+
+            await DialogService.ShowErrorAsync(message, LocalizationService.Get("Import_CompleteTitle"));
+
+            // 목록 새로고침
+            _viewModel.HardRefreshCommand.Execute(null);
         }
-
-        var message = string.Format(LocalizationService.Get("Import_CompleteFormat"),
-            Environment.NewLine, totalCount, addedCount, overwrittenCount, skippedCount);
-
-        if (groupsCreatedCount > 0)
-            message += string.Format(LocalizationService.Get("Import_GroupsCreatedFormat"),
-                Environment.NewLine, groupsCreatedCount);
-
-        await DialogService.ShowErrorAsync(message, LocalizationService.Get("Import_CompleteTitle"));
-
-        // 목록 새로고침
-        _viewModel.HardRefreshCommand.Execute(null);
+        catch (Exception ex)
+        {
+            await ShowUnexpectedErrorAsync(ex);
+        }
     }
 
     private static async Task<ContentDialogResult> ShowOverwriteDialogAsync(string projectName)
@@ -489,15 +550,28 @@ public sealed partial class MainWindow : WindowEx
 
     private async Task OpenProjectSettingsDialogAsync(ProjectCardViewModel? card)
     {
-        if (_viewModel is null) return;
+        try
+        {
+            if (_viewModel is null) return;
 
-        var existingNames = _viewModel.GetProjectNames();
-        var dialog = new ProjectSettingsDialog(
-            _viewModel.GetGroups(), _viewModel.GetTools(), existingNames,
-            _viewModel.GetSettings(), card?.ToModel(),
-            card is null ? _viewModel.SelectedGroupId : null);
-        await dialog.ShowAsync();
-        if (dialog.ResultItem is not null)
-            _viewModel.AddOrUpdateProject(dialog.ResultItem);
+            var existingNames = _viewModel.GetProjectNames();
+            var dialog = new ProjectSettingsDialog(
+                _viewModel.GetGroups(), _viewModel.GetTools(), existingNames,
+                _viewModel.GetSettings(), card?.ToModel(),
+                card is null ? _viewModel.SelectedGroupId : null);
+            await dialog.ShowAsync();
+            if (dialog.ResultItem is not null)
+                _viewModel.AddOrUpdateProject(dialog.ResultItem);
+        }
+        catch (Exception ex)
+        {
+            await ShowUnexpectedErrorAsync(ex);
+        }
+    }
+
+    private static async Task ShowUnexpectedErrorAsync(Exception ex)
+    {
+        await DialogService.ShowErrorAsync(
+            string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
     }
 }

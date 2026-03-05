@@ -13,7 +13,7 @@ public partial class TagBadgeItem : ObservableObject
 
     /// <summary>선택 여부</summary>
     [ObservableProperty]
-    private bool _isSelected;
+    public partial bool IsSelected { get; set; }
 
     public TagBadgeItem(string name)
     {

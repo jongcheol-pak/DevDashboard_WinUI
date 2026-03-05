@@ -47,25 +47,33 @@ public sealed partial class IconPickerDialog : WindowEx
 
     private async void OnRootLoaded(object sender, RoutedEventArgs e)
     {
-        if (_initialized) return;
-        _initialized = true;
-
-        await _vm.LoadIconsAsync();
-
-        LoadingRing.Visibility = Visibility.Collapsed;
-        IconScrollViewer.Visibility = Visibility.Visible;
-
-        IconRepeater.ItemsSource = _vm.FilteredIcons;
-        UpdateCounts();
-
-        _vm.PropertyChanged += (_, e) =>
+        try
         {
-            if (e.PropertyName == nameof(IconPickerDialogViewModel.FilteredIcons))
+            if (_initialized) return;
+            _initialized = true;
+
+            await _vm.LoadIconsAsync();
+
+            LoadingRing.Visibility = Visibility.Collapsed;
+            IconScrollViewer.Visibility = Visibility.Visible;
+
+            IconRepeater.ItemsSource = _vm.FilteredIcons;
+            UpdateCounts();
+
+            _vm.PropertyChanged += (_, e) =>
             {
-                IconRepeater.ItemsSource = _vm.FilteredIcons;
-                UpdateCounts();
-            }
-        };
+                if (e.PropertyName == nameof(IconPickerDialogViewModel.FilteredIcons))
+                {
+                    IconRepeater.ItemsSource = _vm.FilteredIcons;
+                    UpdateCounts();
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+        }
     }
 
     private void UpdateCounts()
@@ -76,8 +84,16 @@ public sealed partial class IconPickerDialog : WindowEx
 
     private async void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
-        if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
-            await _vm.UpdateSearchAsync(sender.Text);
+        try
+        {
+            if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
+                await _vm.UpdateSearchAsync(sender.Text);
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+        }
     }
 
     private void IconButton_Click(object sender, RoutedEventArgs e)

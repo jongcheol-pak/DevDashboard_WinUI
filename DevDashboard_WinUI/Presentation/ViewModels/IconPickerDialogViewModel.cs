@@ -17,19 +17,19 @@ public partial class IconPickerDialogViewModel : ObservableObject
     private CancellationTokenSource? _searchCts;
 
     [ObservableProperty]
-    private string _searchText = string.Empty;
+    public partial string SearchText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private ObservableCollection<IconItem> _filteredIcons = [];
+    public partial ObservableCollection<IconItem> FilteredIcons { get; set; } = [];
 
     [ObservableProperty]
-    private bool _isLoading = true;
+    public partial bool IsLoading { get; set; } = true;
 
     [ObservableProperty]
-    private int _totalIconCount;
+    public partial int TotalIconCount { get; set; }
 
     [ObservableProperty]
-    private int _visibleIconCount;
+    public partial int VisibleIconCount { get; set; }
 
     /// <summary>선택된 아이콘 글리프 문자 (null이면 선택 취소/기본값)</summary>
     public string? SelectedGlyph { get; private set; }
@@ -139,7 +139,7 @@ public partial class IconPickerDialogViewModel : ObservableObject
             new Uri("ms-appx:///Data/IconsData.json"));
         var json = await FileIO.ReadTextAsync(file);
 
-        var entries = JsonSerializer.Deserialize<List<IconJsonEntry>>(json, JsonOptions);
+        var entries = JsonSerializer.Deserialize(json, IconJsonContext.Default.ListIconJsonEntry);
         if (entries is null)
             return [];
 
@@ -157,11 +157,6 @@ public partial class IconPickerDialogViewModel : ObservableObject
         return items;
     }
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
-
     /// <summary>IconsData.json 역직렬화용 DTO</summary>
     private sealed record IconJsonEntry
     {
@@ -172,4 +167,9 @@ public partial class IconPickerDialogViewModel : ObservableObject
         [JsonPropertyName("IsSegoeFluentOnly")]
         public bool IsSegoeFluentOnly { get; init; }
     }
+
+    /// <summary>IconJsonEntry 직렬화용 소스 생성기 컨텍스트</summary>
+    [JsonSourceGenerationOptions(PropertyNameCaseInsensitive = true)]
+    [JsonSerializable(typeof(List<IconJsonEntry>))]
+    private partial class IconJsonContext : JsonSerializerContext;
 }

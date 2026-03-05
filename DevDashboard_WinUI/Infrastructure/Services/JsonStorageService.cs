@@ -11,13 +11,6 @@ public class JsonStorageService
 {
     private const string SettingsKey = "AppSettings";
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        WriteIndented = false,
-        PropertyNameCaseInsensitive = true,
-        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
-    };
-
     private static Windows.Storage.ApplicationDataContainer LocalSettings =>
         Windows.Storage.ApplicationData.Current.LocalSettings;
 
@@ -32,7 +25,7 @@ public class JsonStorageService
             if (LocalSettings.Values[SettingsKey] is not string json)
                 return new AppSettings();
 
-            return JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? new AppSettings();
+            return JsonSerializer.Deserialize(json, AppJsonContext.Default.AppSettings) ?? new AppSettings();
         }
         catch (Exception)
         {
@@ -45,7 +38,7 @@ public class JsonStorageService
     {
         ArgumentNullException.ThrowIfNull(settings);
 
-        var json = JsonSerializer.Serialize(settings, JsonOptions);
+        var json = JsonSerializer.Serialize(settings, AppJsonContext.Default.AppSettings);
         LocalSettings.Values[SettingsKey] = json;
     }
 }

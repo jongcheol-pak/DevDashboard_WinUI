@@ -12,15 +12,15 @@ public partial class HistoryEntryDialogViewModel : ObservableObject
 
     /// <summary>작업 완료 날짜 (null이면 오늘로 처리)</summary>
     [ObservableProperty]
-    private DateTime? _completedAt = DateTime.Today;
+    public partial DateTime? CompletedAt { get; set; } = DateTime.Today;
 
     /// <summary>작업 제목</summary>
     [ObservableProperty]
-    private string _title = string.Empty;
+    public partial string Title { get; set; } = string.Empty;
 
     /// <summary>상세 설명</summary>
     [ObservableProperty]
-    private string _description = string.Empty;
+    public partial string Description { get; set; } = string.Empty;
 
     public HistoryEntryDialogViewModel(HistoryEntry? existing = null)
     {
@@ -28,9 +28,9 @@ public partial class HistoryEntryDialogViewModel : ObservableObject
 
         if (existing is not null)
         {
-            _completedAt = (DateTime?)existing.CompletedAt;
-            _title = existing.Title;
-            _description = existing.Description;
+            CompletedAt = (DateTime?)existing.CompletedAt;
+            Title = existing.Title;
+            Description = existing.Description;
         }
     }
 

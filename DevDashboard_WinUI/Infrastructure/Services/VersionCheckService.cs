@@ -40,6 +40,12 @@ public static class VersionCheckService
     {
         try
         {
+            // Store 서명 패키지만 Store API 호출 허용 (그 외는 COMException/Stowed Exception 방지)
+            if (Debugger.IsAttached
+                || Windows.ApplicationModel.Package.Current.SignatureKind
+                    != Windows.ApplicationModel.PackageSignatureKind.Store)
+                return null;
+
             var storeContext = StoreContext.GetDefault();
             var updates = await storeContext.GetAppAndOptionalStorePackageUpdatesAsync();
 

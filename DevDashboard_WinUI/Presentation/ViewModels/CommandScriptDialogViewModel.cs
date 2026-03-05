@@ -14,27 +14,27 @@ public partial class CommandScriptDialogViewModel : ObservableObject
 
     /// <summary>스크립트 설명</summary>
     [ObservableProperty]
-    private string _description = string.Empty;
+    public partial string Description { get; set; } = string.Empty;
 
     /// <summary>선택된 셸 타입</summary>
     [ObservableProperty]
-    private ShellType _selectedShellType = ShellType.Cmd;
+    public partial ShellType SelectedShellType { get; set; } = ShellType.Cmd;
 
     /// <summary>관리자 권한으로 실행 여부</summary>
     [ObservableProperty]
-    private bool _runAsAdmin;
+    public partial bool RunAsAdmin { get; set; }
 
     /// <summary>실행할 스크립트 내용</summary>
     [ObservableProperty]
-    private string _script = string.Empty;
+    public partial string Script { get; set; } = string.Empty;
 
     /// <summary>실행 폴더 사용 여부</summary>
     [ObservableProperty]
-    private bool _useWorkingDirectory;
+    public partial bool UseWorkingDirectory { get; set; }
 
     /// <summary>실행 폴더 경로</summary>
     [ObservableProperty]
-    private string _workingDirectory = string.Empty;
+    public partial string WorkingDirectory { get; set; } = string.Empty;
 
     /// <summary>기존 설정을 로드합니다.</summary>
     public void LoadFrom(CommandScript source)

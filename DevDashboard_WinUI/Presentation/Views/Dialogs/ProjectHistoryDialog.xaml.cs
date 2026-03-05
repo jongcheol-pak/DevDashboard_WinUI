@@ -92,38 +92,46 @@ public sealed partial class ProjectHistoryDialog : WindowEx
 
     private async void EditEntry_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button { Tag: HistoryEntryViewModel entryVm }) return;
-
-        var titleBox = new TextBox { Text = entryVm.Model.Title, MaxLength = 200 };
-        var descBox = new TextBox
+        try
         {
-            Text = entryVm.Model.Description,
-            AcceptsReturn = true,
-            MinHeight = 70,
-            TextWrapping = TextWrapping.Wrap
-        };
-        ScrollViewer.SetVerticalScrollBarVisibility(descBox, ScrollBarVisibility.Auto);
+            if (sender is not Button { Tag: HistoryEntryViewModel entryVm }) return;
 
-        var panel = new StackPanel { Spacing = 10 };
-        panel.Children.Add(titleBox);
-        panel.Children.Add(descBox);
+            var titleBox = new TextBox { Text = entryVm.Model.Title, MaxLength = 200 };
+            var descBox = new TextBox
+            {
+                Text = entryVm.Model.Description,
+                AcceptsReturn = true,
+                MinHeight = 70,
+                TextWrapping = TextWrapping.Wrap
+            };
+            ScrollViewer.SetVerticalScrollBarVisibility(descBox, ScrollBarVisibility.Auto);
 
-        var dialog = new ContentDialog
+            var panel = new StackPanel { Spacing = 10 };
+            panel.Children.Add(titleBox);
+            panel.Children.Add(descBox);
+
+            var dialog = new ContentDialog
+            {
+                Title = LocalizationService.Get("HistoryEditHeader"),
+                Content = panel,
+                PrimaryButtonText = LocalizationService.Get("Dialog_Save"),
+                CloseButtonText = LocalizationService.Get("Dialog_Cancel"),
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = Content.XamlRoot
+            };
+
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+
+            var title = titleBox.Text.Trim();
+            if (string.IsNullOrWhiteSpace(title)) return;
+
+            Vm.UpdateEntry(entryVm, title, descBox.Text.Trim(), entryVm.Model.CompletedAt);
+        }
+        catch (Exception ex)
         {
-            Title = LocalizationService.Get("HistoryEditHeader"),
-            Content = panel,
-            PrimaryButtonText = LocalizationService.Get("Dialog_Save"),
-            CloseButtonText = LocalizationService.Get("Dialog_Cancel"),
-            DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = Content.XamlRoot
-        };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
-
-        var title = titleBox.Text.Trim();
-        if (string.IsNullOrWhiteSpace(title)) return;
-
-        Vm.UpdateEntry(entryVm, title, descBox.Text.Trim(), entryVm.Model.CompletedAt);
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+        }
     }
 
     private void SaveAdd_Click(object sender, RoutedEventArgs e)
@@ -176,19 +184,27 @@ public sealed partial class ProjectHistoryDialog : WindowEx
 
     private async void Export_Click(object sender, RoutedEventArgs e)
     {
-        if (Vm.SelectedProject is null) return;
+        try
+        {
+            if (Vm.SelectedProject is null) return;
 
-        var picker = new FileSavePicker();
-        picker.FileTypeChoices.Add(LocalizationService.Get("HistoryDialog_MarkdownType"), [".md"]);
-        picker.SuggestedFileName = $"{Vm.SelectedProject.Name}_history";
+            var picker = new FileSavePicker();
+            picker.FileTypeChoices.Add(LocalizationService.Get("HistoryDialog_MarkdownType"), [".md"]);
+            picker.SuggestedFileName = $"{Vm.SelectedProject.Name}_history";
 
-        // FileSavePicker hwnd는 이 다이얼로그 창 자체를 사용
-        var hwnd = WindowNative.GetWindowHandle(this);
-        InitializeWithWindow.Initialize(picker, hwnd);
+            // FileSavePicker hwnd는 이 다이얼로그 창 자체를 사용
+            var hwnd = WindowNative.GetWindowHandle(this);
+            InitializeWithWindow.Initialize(picker, hwnd);
 
-        var file = await picker.PickSaveFileAsync();
-        if (file is not null)
-            await FileIO.WriteTextAsync(file, Vm.ExportToMarkdown());
+            var file = await picker.PickSaveFileAsync();
+            if (file is not null)
+                await FileIO.WriteTextAsync(file, Vm.ExportToMarkdown());
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+        }
     }
 
     private void OnClose(object sender, RoutedEventArgs e) => Close();

@@ -36,7 +36,7 @@ public partial class AppSettingsDialogViewModel : ObservableObject
 
     /// <summary>선택된 메뉴 인덱스 (0: 설정, 1: 도구, 2: 코드, 3: 정보)</summary>
     [ObservableProperty]
-    private int _selectedMenuIndex;
+    public partial int SelectedMenuIndex { get; set; }
 
     // --- 정보 탭 ---
 
@@ -45,15 +45,15 @@ public partial class AppSettingsDialogViewModel : ObservableObject
 
     /// <summary>최신 버전 문자열</summary>
     [ObservableProperty]
-    private string _latestVersionText = string.Empty;
+    public partial string LatestVersionText { get; set; } = string.Empty;
 
     /// <summary>최신 버전 다운로드 URL</summary>
     [ObservableProperty]
-    private string _latestReleaseUrl = string.Empty;
+    public partial string LatestReleaseUrl { get; set; } = string.Empty;
 
     /// <summary>최신 버전이 존재하는지 여부</summary>
     [ObservableProperty]
-    private bool _hasNewVersion;
+    public partial bool HasNewVersion { get; set; }
 
     /// <summary>MS Store를 통해 최신 버전을 확인합니다 (세션 내 캐시 적용).</summary>
     public async Task CheckLatestVersionAsync()
@@ -88,15 +88,15 @@ public partial class AppSettingsDialogViewModel : ObservableObject
     // --- 설정 탭 ---
 
     [ObservableProperty]
-    private bool _runOnStartup;
+    public partial bool RunOnStartup { get; set; }
 
     /// <summary>진행 중인 To-Do 완료 시 작업 기록 팝업 표시 여부</summary>
     [ObservableProperty]
-    private bool _showWorkLogPopupOnTodoComplete;
+    public partial bool ShowWorkLogPopupOnTodoComplete { get; set; }
 
     /// <summary>태그 마키 애니메이션 활성화 여부</summary>
     [ObservableProperty]
-    private bool _enableTagAnimation = true;
+    public partial bool EnableTagAnimation { get; set; } = true;
 
     /// <summary>ComboBox 바인딩용 언어 선택 항목 목록</summary>
     public LanguageItem[] LanguageItems { get; } =
@@ -108,7 +108,7 @@ public partial class AppSettingsDialogViewModel : ObservableObject
 
     /// <summary>ComboBox에서 선택된 언어 항목</summary>
     [ObservableProperty]
-    private LanguageItem? _selectedLanguageItem;
+    public partial LanguageItem? SelectedLanguageItem { get; set; }
 
     /// <summary>ComboBox 바인딩용 테마 선택 항목 목록</summary>
     public ThemeModeItem[] ThemeModeItems { get; } =
@@ -120,7 +120,7 @@ public partial class AppSettingsDialogViewModel : ObservableObject
 
     /// <summary>ComboBox에서 선택된 테마 항목</summary>
     [ObservableProperty]
-    private ThemeModeItem? _selectedThemeModeItem;
+    public partial ThemeModeItem? SelectedThemeModeItem { get; set; }
 
     /// <summary>테마 변경 시 즉시 적용</summary>
     partial void OnSelectedThemeModeItemChanged(ThemeModeItem? value)
@@ -165,7 +165,7 @@ public partial class AppSettingsDialogViewModel : ObservableObject
 
     /// <summary>인라인 입력 — 새 태그 텍스트</summary>
     [ObservableProperty]
-    private string _newTagText = string.Empty;
+    public partial string NewTagText { get; set; } = string.Empty;
 
     /// <summary>NewTagText 값을 TechStackTags에 추가합니다.</summary>
     [RelayCommand]
@@ -199,7 +199,7 @@ public partial class AppSettingsDialogViewModel : ObservableObject
 
     /// <summary>인라인 입력 — 새 카테고리 텍스트</summary>
     [ObservableProperty]
-    private string _newCategoryText = string.Empty;
+    public partial string NewCategoryText { get; set; } = string.Empty;
 
     /// <summary>NewCategoryText 값을 Categories에 추가합니다.</summary>
     [RelayCommand]

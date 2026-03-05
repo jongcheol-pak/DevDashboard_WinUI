@@ -15,17 +15,21 @@ public partial class ProjectHistoryDialogViewModel : ObservableObject
 
     /// <summary>검색어</summary>
     [ObservableProperty]
-    private string _searchText = string.Empty;
+    public partial string SearchText { get; set; } = string.Empty;
 
     /// <summary>선택된 프로젝트</summary>
     [ObservableProperty]
-    private ProjectItem? _selectedProject;
+    [NotifyPropertyChangedFor(nameof(CanAddHistory))]
+    public partial ProjectItem? SelectedProject { get; set; }
 
     /// <summary>ComboBox에 표시할 프로젝트 목록</summary>
     public ObservableCollection<ProjectItem> Projects { get; }
 
     /// <summary>날짜별 그룹 목록</summary>
     public ObservableCollection<HistoryDateGroup> DateGroups { get; } = [];
+
+    /// <summary>프로젝트가 선택되어 기록 추가가 가능한지 여부</summary>
+    public bool CanAddHistory => SelectedProject is not null;
 
     /// <summary>선택된 프로젝트의 작업 기록 존재 여부</summary>
     public bool HasEntries => _currentEntries.Count > 0;

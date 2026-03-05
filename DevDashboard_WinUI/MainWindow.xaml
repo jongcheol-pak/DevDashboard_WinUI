@@ -71,7 +71,8 @@
 
                     <!-- 정렬 버튼 -->
                     <Button x:Name="SortButton"
-                            Width="36" Height="36" Padding="0">
+                            Width="36" Height="36" Padding="0"
+                            IsEnabled="{Binding HasAnyProjects}">
                         <Button.Flyout>
                             <MenuFlyout>
                                 <MenuFlyoutItem x:Uid="SortByNameItem"
@@ -91,6 +92,7 @@
                     <!-- 전체 작업 기록 버튼 -->
                     <Button x:Name="AllHistoryButton"
                             Width="36" Height="36" Padding="0"
+                            IsEnabled="{Binding HasAnyProjects}"
                             Click="ProjectHistoryButton_Click">
                         <FontIcon Glyph="&#xE81C;" FontSize="16" />
                     </Button>

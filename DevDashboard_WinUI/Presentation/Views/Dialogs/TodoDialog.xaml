@@ -100,7 +100,7 @@
                             <StackPanel Margin="0,0,0,8">
                                 <!-- 날짜 그룹 헤더 -->
                                 <TextBlock
-                                    Text="{x:Bind DateLabel, Mode=OneWay}"
+                                    Text="{x:Bind DateLabel}"
                                     FontSize="13" FontWeight="SemiBold"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Margin="4,4,0,6" />

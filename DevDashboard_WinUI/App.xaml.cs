@@ -24,9 +24,6 @@ public partial class App : Application
         // 언어 설정 적용 — ResourceLoader 생성 전에 호출해야 함
         ApplyLanguageSetting(settings.Language);
 
-        // 테마 즉시 적용
-        AppSettingsDialogViewModel.ApplyTheme(settings.ThemeMode);
-
         // SQLite 프로젝트 저장소 초기화
         SqliteProjectRepository? projectRepository = null;
         string? dbErrorMessage = null;
@@ -42,6 +39,10 @@ public partial class App : Application
 
         var mainWindow = new MainWindow(settings, storageService, projectRepository, dbErrorMessage);
         MainWindow = mainWindow;
+
+        // 테마 적용 — MainWindow.Content가 생성된 후 호출해야 root 요소에 RequestedTheme 설정 가능
+        AppSettingsDialogViewModel.ApplyTheme(settings.ThemeMode);
+
         mainWindow.Activate();
     }
 

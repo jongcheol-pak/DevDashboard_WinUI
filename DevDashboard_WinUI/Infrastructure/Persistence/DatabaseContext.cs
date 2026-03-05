@@ -25,11 +25,16 @@ public sealed class DatabaseContext
         InitializeDatabase();
     }
 
-    /// <summary>새 연결을 생성하여 반환합니다. 호출자가 using으로 해제해야 합니다.</summary>
+    /// <summary>새 연결을 생성하여 반환합니다. 호출자가 using으로 해제해야 합니다.
+    /// DB 파일이 삭제된 경우(설정에서 초기화 등) 테이블을 자동으로 재생성합니다.</summary>
     public SqliteConnection CreateConnection()
     {
+        // DB 파일이 삭제된 후 Open()이 빈 파일을 새로 생성하므로, 사전에 감지하여 테이블 재초기화
+        var needsInit = !File.Exists(DbPath);
         var connection = new SqliteConnection(_connectionString);
         connection.Open();
+        if (needsInit)
+            EnsureTablesCreated(connection);
         return connection;
     }
 
@@ -58,10 +63,11 @@ public sealed class DatabaseContext
         cmd.ExecuteNonQuery();
     }
 
-    /// <summary>테이블이 없으면 생성하고 스키마 마이그레이션을 실행합니다.</summary>
+    /// <summary>앱 시작 시 테이블 초기화 + WAL 모드 활성화를 수행합니다.</summary>
     private void InitializeDatabase()
     {
-        using var connection = CreateConnection();
+        using var connection = new SqliteConnection(_connectionString);
+        connection.Open();
 
         // WAL 모드 활성화: 동시 읽기 성능 향상
         using (var walCmd = connection.CreateCommand())
@@ -70,6 +76,12 @@ public sealed class DatabaseContext
             walCmd.ExecuteNonQuery();
         }
 
+        EnsureTablesCreated(connection);
+    }
+
+    /// <summary>테이블이 없으면 생성합니다. CREATE TABLE IF NOT EXISTS를 사용하므로 멱등성이 보장됩니다.</summary>
+    private static void EnsureTablesCreated(SqliteConnection connection)
+    {
         using var cmd = connection.CreateCommand();
         cmd.CommandText = """
             CREATE TABLE IF NOT EXISTS Projects (

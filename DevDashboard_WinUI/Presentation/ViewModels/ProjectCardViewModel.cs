@@ -33,102 +33,102 @@ public partial class ProjectCardViewModel : ObservableObject
 
     /// <summary>설정된 개발 도구가 유효한지 여부</summary>
     [ObservableProperty]
-    private bool _isDevToolValid = true;
+    public partial bool IsDevToolValid { get; set; } = true;
 
     /// <summary>프로젝트 경로가 유효한지 여부</summary>
     [ObservableProperty]
-    private bool _isProjectPathValid = true;
+    public partial bool IsProjectPathValid { get; set; } = true;
 
     /// <summary>커맨드 스크립트 슬롯 수</summary>
     public const int CommandSlotCount = 4;
 
     /// <summary>태그 마키 애니메이션 활성화 여부 — AppSettings에서 전달</summary>
     [ObservableProperty]
-    private bool _enableTagAnimation;
+    public partial bool EnableTagAnimation { get; set; }
 
     [ObservableProperty]
-    private bool _isPinned;
+    public partial bool IsPinned { get; set; }
 
     [ObservableProperty]
-    private BitmapImage? _iconSource;
+    public partial BitmapImage? IconSource { get; set; }
 
     // --- Git 상태 ---
 
     /// <summary>git repo 여부 — false이면 Git 버튼 숨김</summary>
     [ObservableProperty]
-    private bool _isGitRepo;
+    public partial bool IsGitRepo { get; set; }
 
     /// <summary>현재 브랜치명</summary>
     [ObservableProperty]
-    private string _gitBranch = string.Empty;
+    public partial string GitBranch { get; set; } = string.Empty;
 
     /// <summary>날짜별로 그룹화된 커밋 목록</summary>
     [ObservableProperty]
-    private IReadOnlyList<GitCommitGroup> _gitCommitGroups = [];
+    public partial IReadOnlyList<GitCommitGroup> GitCommitGroups { get; set; } = [];
 
     // --- 커맨드 스크립트 슬롯별 설정 상태 ---
 
     [ObservableProperty]
-    private bool _isCmd0Configured;
+    public partial bool IsCmd0Configured { get; set; }
 
     [ObservableProperty]
-    private bool _isCmd1Configured;
+    public partial bool IsCmd1Configured { get; set; }
 
     [ObservableProperty]
-    private bool _isCmd2Configured;
+    public partial bool IsCmd2Configured { get; set; }
 
     [ObservableProperty]
-    private bool _isCmd3Configured;
+    public partial bool IsCmd3Configured { get; set; }
 
     [ObservableProperty]
-    private string _cmd0Tooltip = string.Empty;
+    public partial string Cmd0Tooltip { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _cmd1Tooltip = string.Empty;
+    public partial string Cmd1Tooltip { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _cmd2Tooltip = string.Empty;
+    public partial string Cmd2Tooltip { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _cmd3Tooltip = string.Empty;
+    public partial string Cmd3Tooltip { get; set; } = string.Empty;
 
     // --- 커맨드 스크립트 슬롯별 아이콘 글리프 (Segoe MDL2 Assets 유니코드) ---
 
     [ObservableProperty]
-    private string _cmd0Icon = string.Empty;
+    public partial string Cmd0Icon { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _cmd1Icon = string.Empty;
+    public partial string Cmd1Icon { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _cmd2Icon = string.Empty;
+    public partial string Cmd2Icon { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _cmd3Icon = string.Empty;
+    public partial string Cmd3Icon { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _hasCmd0Icon;
+    public partial bool HasCmd0Icon { get; set; }
 
     [ObservableProperty]
-    private bool _hasCmd1Icon;
+    public partial bool HasCmd1Icon { get; set; }
 
     [ObservableProperty]
-    private bool _hasCmd2Icon;
+    public partial bool HasCmd2Icon { get; set; }
 
     [ObservableProperty]
-    private bool _hasCmd3Icon;
+    public partial bool HasCmd3Icon { get; set; }
 
     [ObservableProperty]
-    private bool _isCmd0RunAsAdmin;
+    public partial bool IsCmd0RunAsAdmin { get; set; }
 
     [ObservableProperty]
-    private bool _isCmd1RunAsAdmin;
+    public partial bool IsCmd1RunAsAdmin { get; set; }
 
     [ObservableProperty]
-    private bool _isCmd2RunAsAdmin;
+    public partial bool IsCmd2RunAsAdmin { get; set; }
 
     [ObservableProperty]
-    private bool _isCmd3RunAsAdmin;
+    public partial bool IsCmd3RunAsAdmin { get; set; }
 
     // --- 슬롯 표시 여부 ---
 
@@ -209,8 +209,8 @@ public partial class ProjectCardViewModel : ObservableObject
         _tools = tools;
         _repository = repository;
         _settings = settings;
-        _isPinned = item.IsPinned;
-        _enableTagAnimation = settings.EnableTagAnimation;
+        IsPinned = item.IsPinned;
+        EnableTagAnimation = settings.EnableTagAnimation;
         RefreshCommandSlotStates();
     }
 

@@ -22,36 +22,40 @@ public partial class MainViewModel : ObservableObject
         => Debug.WriteLine($"[Perf][MainViewModel] {message}");
 
     [ObservableProperty]
-    private bool _isInitializing = true;
+    public partial bool IsInitializing { get; set; } = true;
 
     // 전체 카드 원본 목록 (필터/정렬 전)
     private readonly List<ProjectCardViewModel> _allCards = [];
 
     [ObservableProperty]
-    private BulkObservableCollection<ProjectCardViewModel> _filteredCards = [];
+    public partial BulkObservableCollection<ProjectCardViewModel> FilteredCards { get; set; } = [];
 
     /// <summary>UI에 바인딩되는 카드 목록 (FilteredCards + AddCardPlaceholder 마지막 항목)</summary>
     public BulkObservableCollection<object> DisplayCards { get; } = [];
 
     [ObservableProperty]
-    private ObservableCollection<ProjectGroup> _groups = [];
+    public partial ObservableCollection<ProjectGroup> Groups { get; set; } = [];
 
     [ObservableProperty]
-    private string? _selectedGroupId;
+    public partial string? SelectedGroupId { get; set; }
 
     [ObservableProperty]
-    private string _searchText = string.Empty;
+    public partial string SearchText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private SortOrder _currentSortOrder = SortOrder.Name;
+    public partial SortOrder CurrentSortOrder { get; set; } = SortOrder.Name;
 
     [ObservableProperty]
-    private int _projectCount;
+    public partial int ProjectCount { get; set; }
+
+    /// <summary>프로젝트가 하나 이상 존재하는지 여부</summary>
+    [ObservableProperty]
+    public partial bool HasAnyProjects { get; set; }
 
     // --- 최신 버전 확인 ---
 
     [ObservableProperty]
-    private bool _hasNewVersion;
+    public partial bool HasNewVersion { get; set; }
 
     private string _latestReleaseUrl = string.Empty;
 
@@ -222,6 +226,7 @@ public partial class MainViewModel : ObservableObject
         var sorted = pinned.Concat(sortedUnpinned).ToList();
         FilteredCards.ResetWith(sorted);
         ProjectCount = sorted.Count;
+        HasAnyProjects = _allCards.Count > 0;
         DisplayCards.ResetWith(sorted.Cast<object>().Append(_addCardPlaceholder));
 
         sw.Stop();
@@ -672,5 +677,34 @@ public partial class MainViewModel : ObservableObject
             card.EnableTagAnimation = settings.EnableTagAnimation;
         InvalidateToolsCache();
         SaveSettings();
+    }
+
+    /// <summary>그룹을 기본값으로 초기화하고 모든 카드를 기본 그룹에 재배치합니다.</summary>
+    public void ResetGroups()
+    {
+        var defaultGroup = new ProjectGroup { Name = LocalizationService.Get("DefaultGroupName") };
+
+        _suppressReactiveUpdates = true;
+        try
+        {
+            Groups.Clear();
+            Groups.Add(defaultGroup);
+            SelectedGroupId = null;
+        }
+        finally
+        {
+            _suppressReactiveUpdates = false;
+        }
+
+        foreach (var card in _allCards)
+        {
+            card.UpdateGroupId(defaultGroup.Id);
+            try { _projectRepository.Update(card.ToModel()); }
+            catch (Exception ex) { ShowDbError(ex); }
+        }
+
+        ApplyFilterAndSort();
+        SaveSettings();
+        _projectRepository.SyncGroups([.. Groups]);
     }
 }

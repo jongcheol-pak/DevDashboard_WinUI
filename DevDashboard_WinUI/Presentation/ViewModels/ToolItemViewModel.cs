@@ -18,27 +18,27 @@ public partial class ToolItemViewModel : ObservableObject
 
     /// <summary>도구 표시 이름</summary>
     [ObservableProperty]
-    private string _name = string.Empty;
+    public partial string Name { get; set; } = string.Empty;
 
     /// <summary>실행 파일 경로</summary>
     [ObservableProperty]
-    private string _executablePath = string.Empty;
+    public partial string ExecutablePath { get; set; } = string.Empty;
 
     /// <summary>아코디언 확장 여부</summary>
     [ObservableProperty]
-    private bool _isExpanded;
+    public partial bool IsExpanded { get; set; }
 
     /// <summary>편집 모드 여부</summary>
     [ObservableProperty]
-    private bool _isEditing;
+    public partial bool IsEditing { get; set; }
 
     /// <summary>편집 중인 도구 이름</summary>
     [ObservableProperty]
-    private string _editName = string.Empty;
+    public partial string EditName { get; set; } = string.Empty;
 
     /// <summary>편집 중인 실행 파일 경로</summary>
     [ObservableProperty]
-    private string _editExecutablePath = string.Empty;
+    public partial string EditExecutablePath { get; set; } = string.Empty;
 
     public ToolItemViewModel(
         Action<ToolItemViewModel> onRequestExpand,
@@ -75,7 +75,7 @@ public partial class ToolItemViewModel : ObservableObject
 
     /// <summary>편집 저장 시 표시할 오류 메시지 (인라인 표시)</summary>
     [ObservableProperty]
-    private string _editErrorText = string.Empty;
+    public partial string EditErrorText { get; set; } = string.Empty;
 
     /// <summary>편집 저장</summary>
     [RelayCommand]

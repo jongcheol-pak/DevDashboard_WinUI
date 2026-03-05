@@ -16,19 +16,19 @@ public partial class TodoDetailDialogViewModel : ObservableObject
 
     /// <summary>현재 편집 모드 여부</summary>
     [ObservableProperty]
-    private bool _isEditing;
+    public partial bool IsEditing { get; set; }
 
     [ObservableProperty]
-    private string _description;
+    public partial string Description { get; set; }
 
     public TodoDetailDialogViewModel(TodoItem todoItem)
     {
         _todoItem = todoItem;
-        _description = todoItem.Description;
+        Description = todoItem.Description;
         _originalDescription = todoItem.Description;
 
         // 저장된 값이 없으면 수정 모드로 시작
-        _isEditing = string.IsNullOrWhiteSpace(todoItem.Description);
+        IsEditing = string.IsNullOrWhiteSpace(todoItem.Description);
     }
 
     /// <summary>수정 모드 진입</summary>

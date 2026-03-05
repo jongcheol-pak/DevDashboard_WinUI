@@ -66,22 +66,30 @@ public sealed partial class ProjectSettingsDialog : WindowEx
 
     private async void OnSave(object sender, RoutedEventArgs e)
     {
-        var error = Vm.Validate();
-        if (error is not null)
+        try
         {
-            var dialog = new ContentDialog
+            var error = Vm.Validate();
+            if (error is not null)
             {
-                Title = LocalizationService.Get("InputRequired"),
-                Content = error,
-                CloseButtonText = LocalizationService.Get("Dialog_Close"),
-                XamlRoot = Content.XamlRoot
-            };
-            await dialog.ShowAsync();
-            return;
-        }
+                var dialog = new ContentDialog
+                {
+                    Title = LocalizationService.Get("InputRequired"),
+                    Content = error,
+                    CloseButtonText = LocalizationService.Get("Dialog_Close"),
+                    XamlRoot = Content.XamlRoot
+                };
+                await dialog.ShowAsync();
+                return;
+            }
 
-        ResultItem = Vm.ToProjectItem();
-        Close();
+            ResultItem = Vm.ToProjectItem();
+            Close();
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+        }
     }
 
     private void OnCancel(object sender, RoutedEventArgs e) => Close();

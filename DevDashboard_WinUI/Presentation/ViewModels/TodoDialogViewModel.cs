@@ -14,15 +14,15 @@ public partial class TodoDialogViewModel : ObservableObject
     public ProjectItem ProjectItem => _projectItem;
 
     [ObservableProperty]
-    private string _newTodoText = string.Empty;
+    public partial string NewTodoText { get; set; } = string.Empty;
 
     /// <summary>현재 탭 필터 ("All", "Active", "Completed")</summary>
     [ObservableProperty]
-    private string _selectedTab = "Active";
+    public partial string SelectedTab { get; set; } = "Active";
 
     /// <summary>완료됨 탭에서 그룹화 기준 ("CreatedAt", "CompletedAt")</summary>
     [ObservableProperty]
-    private string _completedGroupBy = "CompletedAt";
+    public partial string CompletedGroupBy { get; set; } = "CompletedAt";
 
     public ObservableCollection<TodoItem> Todos { get; }
 

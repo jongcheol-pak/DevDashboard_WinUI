@@ -6,7 +6,7 @@ namespace DevDashboard.Presentation.ViewModels;
 public partial class GroupDialogViewModel : ObservableObject
 {
     [ObservableProperty]
-    private string _name = string.Empty;
+    public partial string Name { get; set; } = string.Empty;
 
     /// <summary>편집 중인 그룹 Id (null이면 신규 추가)</summary>
     public string? EditingGroupId { get; private set; }

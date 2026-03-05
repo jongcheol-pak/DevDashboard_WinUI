@@ -142,46 +142,86 @@ public sealed partial class DashboardView : UserControl
 
     private async void OnShowGitStatusRequested(object? sender, EventArgs e)
     {
-        if (sender is not ProjectCardViewModel card) return;
-        var dialog = new GitStatusDialog(card);
-        await dialog.ShowAsync();
+        try
+        {
+            if (sender is not ProjectCardViewModel card) return;
+            var dialog = new GitStatusDialog(card);
+            await dialog.ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+        }
     }
 
     private async void OnOpenTodoRequested(object? sender, EventArgs e)
     {
-        if (sender is not ProjectCardViewModel card) return;
-        var dialogVm = card.CreateTodoDialogViewModel();
-        var dialog = new TodoDialog(dialogVm);
-        await dialog.ShowAsync();
-        card.OnTodoDialogClosed(dialogVm, dialog.NewHistories);
+        try
+        {
+            if (sender is not ProjectCardViewModel card) return;
+            var dialogVm = card.CreateTodoDialogViewModel();
+            var dialog = new TodoDialog(dialogVm);
+            await dialog.ShowAsync();
+            card.OnTodoDialogClosed(dialogVm, dialog.NewHistories);
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+        }
     }
 
     private async void OnOpenHistoryRequested(object? sender, EventArgs e)
     {
-        if (sender is not ProjectCardViewModel card) return;
-        var dialogVm = card.CreateHistoryDialogViewModel();
-        var dialog = new HistoryDialog(dialogVm);
-        await dialog.ShowAsync();
-        card.OnHistoryDialogClosed(dialogVm);
+        try
+        {
+            if (sender is not ProjectCardViewModel card) return;
+            var dialogVm = card.CreateHistoryDialogViewModel();
+            var dialog = new HistoryDialog(dialogVm);
+            await dialog.ShowAsync();
+            card.OnHistoryDialogClosed(dialogVm);
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+        }
     }
 
     private async void OnConfigureCommandSlotRequested(object? sender, int slotIndex)
     {
-        if (sender is not ProjectCardViewModel card) return;
-        var existing = card.GetCommandScriptForDialog(slotIndex);
-        var dialog = new CommandScriptDialog(existing);
-        await dialog.ShowAsync();
-        if (dialog.ResultScript is not null)
-            card.ApplyCommandScriptResult(slotIndex, dialog.ResultScript);
+        try
+        {
+            if (sender is not ProjectCardViewModel card) return;
+            var existing = card.GetCommandScriptForDialog(slotIndex);
+            var dialog = new CommandScriptDialog(existing);
+            await dialog.ShowAsync();
+            if (dialog.ResultScript is not null)
+                card.ApplyCommandScriptResult(slotIndex, dialog.ResultScript);
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+        }
     }
 
     private async void OnChangeCommandIconRequested(object? sender, int slotIndex)
     {
-        if (sender is not ProjectCardViewModel card) return;
-        var dialog = new IconPickerDialog();
-        await dialog.ShowAsync();
-        if (dialog.SelectedGlyph is not null)
-            card.ApplyCommandIconResult(slotIndex, dialog.SelectedGlyph);
+        try
+        {
+            if (sender is not ProjectCardViewModel card) return;
+            var dialog = new IconPickerDialog();
+            await dialog.ShowAsync();
+            if (dialog.SelectedGlyph is not null)
+                card.ApplyCommandIconResult(slotIndex, dialog.SelectedGlyph);
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+        }
     }
 
     /// <summary>
