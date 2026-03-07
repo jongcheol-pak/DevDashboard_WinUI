@@ -1,7 +1,9 @@
 ﻿using System.Globalization;
+using System.Runtime.InteropServices;
 using DevDashboard.Infrastructure.Persistence;
 using DevDashboard.Infrastructure.Services;
 using DevDashboard.Presentation.ViewModels;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 
 namespace DevDashboard;
@@ -11,9 +13,12 @@ public partial class App : Application
     /// <summary>메인 창 참조 — FileOpenPicker/FolderPicker hwnd 획득 등에 사용</summary>
     public static Window? MainWindow { get; private set; }
 
+    private static DispatcherQueue? _dispatcherQueue;
+
     public App()
     {
         InitializeComponent();
+        _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
@@ -57,4 +62,35 @@ public partial class App : Application
         Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride =
             useEnglish ? "en-US" : "ko-KR";
     }
+
+    /// <summary>다른 인스턴스 실행 시 기존 메인 창을 포그라운드로 활성화합니다.</summary>
+    internal static void BringMainWindowToForeground()
+    {
+        _dispatcherQueue?.TryEnqueue(() =>
+        {
+            if (MainWindow is null) return;
+
+            MainWindow.Activate();
+
+            // 최소화 상태 복원 및 포그라운드 전환
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(MainWindow);
+            if (IsIconic(hwnd))
+                ShowWindow(hwnd, SW_RESTORE);
+            SetForegroundWindow(hwnd);
+        });
+    }
+
+    private const int SW_RESTORE = 9;
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetForegroundWindow(nint hWnd);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool ShowWindow(nint hWnd, int nCmdShow);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool IsIconic(nint hWnd);
 }
