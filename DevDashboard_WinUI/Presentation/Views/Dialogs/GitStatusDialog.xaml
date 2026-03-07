@@ -5,7 +5,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:models="using:DevDashboard.Domain.ValueObjects"
     xmlns:pmodels="using:DevDashboard.Presentation.Models"
-    xmlns:winuiex="using:WinUIEx">
+    xmlns:winuiex="using:WinUIEx"
+    MinHeight="550" MinWidth="700"
+    >
 
     <Grid>
         <Grid.RowDefinitions>

@@ -6,7 +6,9 @@
     xmlns:vm="using:DevDashboard.Presentation.ViewModels"
     xmlns:models="using:DevDashboard.Domain.ValueObjects"
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
-    xmlns:winuiex="using:WinUIEx">
+    xmlns:winuiex="using:WinUIEx"
+    MinHeight="640" MinWidth="800"
+    >
     
 
     <Grid>

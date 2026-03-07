@@ -10,7 +10,7 @@ namespace DevDashboard.Presentation.Views.Dialogs;
 
 public sealed partial class TodoDialog : WindowEx
 {
-    private const int MinW = 500;
+  
     private const int InitW = 700;
     private const int InitH = 550;
 
@@ -37,7 +37,7 @@ public sealed partial class TodoDialog : WindowEx
         AppTitleBarText.Text = Title;
 
         var manager = WindowManager.Get(this);
-        manager.MinWidth = MinW;
+       
 
         RefreshList();
         Closed += (_, _) => _closedTcs.TrySetResult();

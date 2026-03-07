@@ -9,7 +9,7 @@ namespace DevDashboard.Presentation.Views.Dialogs;
 
 public sealed partial class CommandScriptDialog : WindowEx
 {
-    private const int MinW = 480;
+  
     private const int InitW = 600;
     private const int InitH = 500;
 
@@ -31,7 +31,7 @@ public sealed partial class CommandScriptDialog : WindowEx
         AppTitleBarText.Text = Title;
 
         var manager = WindowManager.Get(this);
-        manager.MinWidth = MinW;
+      
 
         if (existing is not null)
             Vm.LoadFrom(existing);

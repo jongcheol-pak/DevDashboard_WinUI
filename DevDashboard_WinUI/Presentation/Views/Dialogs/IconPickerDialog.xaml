@@ -5,7 +5,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:DevDashboard.Presentation.ViewModels"
     xmlns:helpers="using:DevDashboard.Presentation.Helpers"
-    xmlns:winuiex="using:WinUIEx">
+    xmlns:winuiex="using:WinUIEx"
+    MinHeight="500" MinWidth="600"
+    >
 
     <Grid>
         <Grid.RowDefinitions>
@@ -26,92 +28,100 @@
         </Border>
 
         <!-- Row 1: 내용 -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="12" Padding="16,12" Loaded="OnRootLoaded">
-
-                <!-- 기본값 복원 버튼 -->
-                <Button
+        <Grid Grid.Row="1" RowSpacing="12" Padding="16,12" Loaded="OnRootLoaded">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            
+            <!-- 기본값 복원 버튼 -->
+            <Button
+                Grid.Row="0"
     x:Uid="RemoveIconBtn"
     HorizontalAlignment="Left"
     Click="ResetButton_Click" />
-            
-            
-                <!-- 검색 + 카운트 -->
-        <Grid ColumnSpacing="12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <AutoSuggestBox
+
+
+            <!-- 검색 + 카운트 -->
+            <Grid Grid.Row="1" ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <AutoSuggestBox
                 helpers:AutoSuggestBoxHelper.MaxLength="20"
                 x:Uid="IconSearchBox"
                 Grid.Column="0"
                 QueryIcon="Find"
                 TextChanged="SearchBox_TextChanged" />
-            <TextBlock
+                <TextBlock
                 Grid.Column="1"
                 VerticalAlignment="Center"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}">
                 <Run x:Name="VisibleCountRun" />
                 <Run Text=" / " />
                 <Run x:Name="TotalCountRun" />
-            </TextBlock>
-        </Grid>
+                </TextBlock>
+            </Grid>
 
-        
-        <!-- 로딩 -->
-        <ProgressRing
+
+            <!-- 로딩 -->
+            <ProgressRing
             x:Name="LoadingRing"
+            Grid.Row="2"
             IsActive="True"
             Width="32" Height="32"
             HorizontalAlignment="Center"
+                VerticalAlignment="Center"
             Margin="0,24" />
 
-        <!-- 아이콘 그리드 -->
-        <ScrollViewer
+            <!-- 아이콘 그리드 -->
+            <ScrollViewer
+                Grid.Row="2"
             x:Name="IconScrollViewer"
-            Height="360"
+            HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
             VerticalScrollBarVisibility="Auto"
             Visibility="Collapsed">
-            <ItemsRepeater x:Name="IconRepeater">
-                <ItemsRepeater.Layout>
-                    <UniformGridLayout
+                <ItemsRepeater x:Name="IconRepeater">
+                    <ItemsRepeater.Layout>
+                        <UniformGridLayout
                         MinItemWidth="64"
                         MinItemHeight="64"
                         ItemsJustification="Start"
                         ItemsStretch="None" />
-                </ItemsRepeater.Layout>
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="vm:IconItem">
-                        <Button
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="vm:IconItem">
+                            <Button
                             Width="64" Height="64"
                             Padding="4"
                             Background="Transparent"
                             BorderThickness="0"
                             Click="IconButton_Click"
                             Tag="{x:Bind}">
-                            <ToolTipService.ToolTip>
-                                <ToolTip Content="{x:Bind Name}" />
-                            </ToolTipService.ToolTip>
-                            <StackPanel Spacing="4" HorizontalAlignment="Center">
-                                <FontIcon
+                                <ToolTipService.ToolTip>
+                                    <ToolTip Content="{x:Bind Name}" />
+                                </ToolTipService.ToolTip>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <FontIcon
                                     Glyph="{x:Bind Glyph}"
                                     FontSize="24"
                                     HorizontalAlignment="Center" />
-                                <TextBlock
+                                    <TextBlock
                                     Text="{x:Bind Name}"
                                     FontSize="9"
                                     HorizontalAlignment="Center"
                                     TextTrimming="CharacterEllipsis" />
-                            </StackPanel>
-                        </Button>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
-        </ScrollViewer>
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </ScrollViewer>
 
-        </StackPanel>
-        </ScrollViewer>
+        </Grid>
 
     </Grid>
 

@@ -8,7 +8,7 @@ namespace DevDashboard.Presentation.Views.Dialogs;
 
 public sealed partial class GitStatusDialog : WindowEx
 {
-    private const int MinW = 560;
+   
     private const int InitW = 700;
     private const int InitH = 500;
 
@@ -26,8 +26,7 @@ public sealed partial class GitStatusDialog : WindowEx
         { p.IsMinimizable = false; p.IsMaximizable = false; }
 
         var manager = WindowManager.Get(this);
-        manager.MinWidth = MinW;
-
+    
         // 프로젝트명을 포함한 동적 타이틀 설정
         Title = string.Format(LocalizationService.Get("GitStatusDialog_TitleFormat"), card.Name);
 

@@ -9,7 +9,6 @@ namespace DevDashboard.Presentation.Views.Dialogs;
 
 public sealed partial class IconPickerDialog : WindowEx
 {
-    private const int MinW = 580;
     private const int InitW = 700;
     private const int InitH = 500;
 
@@ -33,7 +32,7 @@ public sealed partial class IconPickerDialog : WindowEx
         AppTitleBarText.Text = Title;
 
         var manager = WindowManager.Get(this);
-        manager.MinWidth = MinW;
+       
 
         _vm.CloseRequested += OnVmCloseRequested;
         Closed += (_, _) => _closedTcs.TrySetResult();

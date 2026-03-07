@@ -6,7 +6,9 @@
     xmlns:vm="using:DevDashboard.Presentation.ViewModels"
     xmlns:models="using:DevDashboard.Domain.Enums"
     xmlns:helpers="using:DevDashboard.Presentation.Helpers"
-    xmlns:winuiex="using:WinUIEx">
+    xmlns:winuiex="using:WinUIEx"
+    MinHeight="500" MinWidth="600"
+    >
 
     <Grid>
         <Grid.RowDefinitions>

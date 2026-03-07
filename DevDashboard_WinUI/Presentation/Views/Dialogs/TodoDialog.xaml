@@ -7,7 +7,9 @@
     xmlns:models="using:DevDashboard.Domain.Entities"
     xmlns:pmodels="using:DevDashboard.Presentation.Models"
     xmlns:local="using:DevDashboard.Presentation.Views.Dialogs"
-    xmlns:winuiex="using:WinUIEx">
+    xmlns:winuiex="using:WinUIEx"
+    MinHeight="550" MinWidth="700"
+    >
 
     <Grid>
         <Grid.RowDefinitions>

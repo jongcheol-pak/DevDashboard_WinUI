@@ -13,7 +13,7 @@ namespace DevDashboard.Presentation.Views.Dialogs;
 
 public sealed partial class ProjectHistoryDialog : WindowEx
 {
-    private const int MinW = 620;
+  
     private const int InitW = 900;
     private const int InitH = 650;
 
@@ -33,7 +33,7 @@ public sealed partial class ProjectHistoryDialog : WindowEx
         AppTitleBarText.Text = Title;
 
         var manager = WindowManager.Get(this);
-        manager.MinWidth = MinW;
+     
 
         GroupList.ItemsSource = Vm.DateGroups;
         Vm.PropertyChanged += (_, _) => RefreshList();

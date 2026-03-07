@@ -13,7 +13,7 @@ namespace DevDashboard.Presentation.Views.Dialogs;
 
 public sealed partial class HistoryDialog : WindowEx
 {
-    private const int MinW = 580;
+ 
     private const int InitW = 800;
     private const int InitH = 600;
 
@@ -28,7 +28,7 @@ public sealed partial class HistoryDialog : WindowEx
         { p.IsMinimizable = false; p.IsMaximizable = false; }
 
         var manager = WindowManager.Get(this);
-        manager.MinWidth = MinW;
+      
 
         // 프로젝트명을 포함한 동적 타이틀 설정
         Title = string.Format(LocalizationService.Get("HistoryDialog_TitleFormat"), vm.ProjectName);
