@@ -27,7 +27,7 @@
   <data name="DatabaseInitError" xml:space="preserve"><value>An error occurred during database initialization.{0}{1}</value></data>
   <data name="StartupError" xml:space="preserve"><value>Startup Error</value></data>
   <data name="VersionPrefix" xml:space="preserve"><value>Version: </value></data>
-  <data name="LatestVersionPrefix" xml:space="preserve"><value>Latest Version: </value></data>
+  <data name="UpdateAvailableText" xml:space="preserve"><value>Update available.</value></data>
   <data name="ProjectNameInputRequired" xml:space="preserve"><value>Please enter a project name.</value></data>
   <data name="ProjectNameDuplicateFormat" xml:space="preserve"><value>'{0}' already exists.</value></data>
   <data name="DevToolInputRequired" xml:space="preserve"><value>Please select a development tool.</value></data>

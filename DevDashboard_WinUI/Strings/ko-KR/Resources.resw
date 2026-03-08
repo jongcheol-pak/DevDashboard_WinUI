@@ -27,7 +27,7 @@
   <data name="DatabaseInitError" xml:space="preserve"><value>데이터베이스 초기화 중 오류가 발생했습니다.{0}{1}</value></data>
   <data name="StartupError" xml:space="preserve"><value>시작 오류</value></data>
   <data name="VersionPrefix" xml:space="preserve"><value>버전: </value></data>
-  <data name="LatestVersionPrefix" xml:space="preserve"><value>최신 버전: </value></data>
+  <data name="UpdateAvailableText" xml:space="preserve"><value>새 업데이트가 있습니다.</value></data>
   <data name="ProjectNameInputRequired" xml:space="preserve"><value>프로젝트 이름을 입력하세요.</value></data>
   <data name="ProjectNameDuplicateFormat" xml:space="preserve"><value>'{0}' 이름이 이미 존재합니다.</value></data>
   <data name="DevToolInputRequired" xml:space="preserve"><value>개발 도구를 선택하세요.</value></data>

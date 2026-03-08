@@ -61,7 +61,7 @@ public partial class AppSettingsDialogViewModel : ObservableObject
         var result = await VersionCheckService.CheckLatestVersionAsync();
         if (result is not null)
         {
-            LatestVersionText = LocalizationService.Get("LatestVersionPrefix") + result.VersionText;
+            LatestVersionText = LocalizationService.Get("UpdateAvailableText");
             LatestReleaseUrl = result.ReleaseUrl;
             HasNewVersion = true;
         }

@@ -51,10 +51,7 @@ public static class VersionCheckService
 
             if (updates.Count == 0) return null;
 
-            var v = updates[0].Package.Id.Version;
-            var versionStr = $"{v.Major}.{v.Minor}.{v.Build}";
-
-            return new VersionCheckResult(versionStr, "ms-windows-store://updates");
+            return new VersionCheckResult("ms-windows-store://updates");
         }
         catch (Exception)
         {
@@ -79,6 +76,5 @@ public static class VersionCheckService
 }
 
 /// <summary>버전 확인 결과 값 객체</summary>
-/// <param name="VersionText">최신 버전 문자열 (예: "1.1.0")</param>
 /// <param name="ReleaseUrl">MS Store 업데이트 페이지 URI</param>
-public record VersionCheckResult(string VersionText, string ReleaseUrl);
+public record VersionCheckResult(string ReleaseUrl);
