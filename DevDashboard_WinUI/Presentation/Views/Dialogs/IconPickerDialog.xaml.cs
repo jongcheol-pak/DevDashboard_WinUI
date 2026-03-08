@@ -15,6 +15,7 @@ public sealed partial class IconPickerDialog : WindowEx
     private readonly IconPickerDialogViewModel _vm = new();
     private readonly TaskCompletionSource _closedTcs = new();
     private bool _initialized;
+    private System.ComponentModel.PropertyChangedEventHandler? _vmPropertyChangedHandler;
 
     /// <summary>선택된 아이콘 글리프. null이면 선택 취소, 빈 문자열이면 기본값 복원.</summary>
     public string? SelectedGlyph { get; private set; }
@@ -35,7 +36,14 @@ public sealed partial class IconPickerDialog : WindowEx
        
 
         _vm.CloseRequested += OnVmCloseRequested;
-        Closed += (_, _) => _closedTcs.TrySetResult();
+        Closed += (_, _) =>
+        {
+            if (_vmPropertyChangedHandler is not null)
+                _vm.PropertyChanged -= _vmPropertyChangedHandler;
+            _vm.CloseRequested -= OnVmCloseRequested;
+            _vm.Dispose();
+            _closedTcs.TrySetResult();
+        };
     }
 
     internal Task ShowAsync()
@@ -59,7 +67,7 @@ public sealed partial class IconPickerDialog : WindowEx
             IconRepeater.ItemsSource = _vm.FilteredIcons;
             UpdateCounts();
 
-            _vm.PropertyChanged += (_, e) =>
+            _vmPropertyChangedHandler = (_, e) =>
             {
                 if (e.PropertyName == nameof(IconPickerDialogViewModel.FilteredIcons))
                 {
@@ -67,6 +75,7 @@ public sealed partial class IconPickerDialog : WindowEx
                     UpdateCounts();
                 }
             };
+            _vm.PropertyChanged += _vmPropertyChangedHandler;
         }
         catch (Exception ex)
         {

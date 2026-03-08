@@ -9,11 +9,21 @@ namespace DevDashboard.Infrastructure.Services;
 /// </summary>
 public static class LocalizationService
 {
-    private static ResourceLoader? _loader;
+    private static volatile ResourceLoader? _loader;
+    private static readonly object _loaderLock = new();
 
-    /// <summary>ResourceLoader 인스턴스를 지연 초기화하여 반환합니다.</summary>
-    private static ResourceLoader Loader =>
-        _loader ??= new ResourceLoader();
+    /// <summary>ResourceLoader 인스턴스를 스레드 안전하게 지연 초기화하여 반환합니다.</summary>
+    private static ResourceLoader Loader
+    {
+        get
+        {
+            if (_loader is not null) return _loader;
+            lock (_loaderLock)
+            {
+                return _loader ??= new ResourceLoader();
+            }
+        }
+    }
 
     /// <summary>캐시된 ResourceLoader를 초기화하고 리소스 시스템에 새 언어를 알립니다.</summary>
     public static void Reset()

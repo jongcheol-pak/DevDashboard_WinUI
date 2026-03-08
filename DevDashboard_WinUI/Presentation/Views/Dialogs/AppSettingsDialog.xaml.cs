@@ -17,6 +17,8 @@ public sealed partial class AppSettingsDialog : WindowEx
 
     private AppSettingsDialogViewModel Vm { get; } = new();
     private readonly TaskCompletionSource _closedTcs = new();
+    private readonly System.Collections.Specialized.NotifyCollectionChangedEventHandler _toolsCollectionChangedHandler;
+    private readonly System.ComponentModel.PropertyChangedEventHandler _vmPropertyChangedHandler;
 
     public AppSettings? ResultSettings { get; private set; }
 
@@ -52,10 +54,11 @@ public sealed partial class AppSettingsDialog : WindowEx
         _initialLanguage = settings.Language;
         Vm.LoadFrom(settings);
         RefreshToolList();
-        Vm.Tools.CollectionChanged += (_, _) => RefreshToolList();
+        _toolsCollectionChangedHandler = (_, _) => RefreshToolList();
+        Vm.Tools.CollectionChanged += _toolsCollectionChangedHandler;
 
         // 팝업 창 자체에도 테마 변경을 즉시 반영
-        Vm.PropertyChanged += (_, e) =>
+        _vmPropertyChangedHandler = (_, e) =>
         {
             if (e.PropertyName == nameof(AppSettingsDialogViewModel.SelectedThemeModeItem)
                 && Vm.SelectedThemeModeItem is { } item
@@ -64,9 +67,13 @@ public sealed partial class AppSettingsDialog : WindowEx
                 root.RequestedTheme = AppSettingsDialogViewModel.ToElementTheme(item.Value);
             }
         };
+        Vm.PropertyChanged += _vmPropertyChangedHandler;
 
         Closed += async (_, _) =>
         {
+            // 이벤트 핸들러 해제
+            Vm.Tools.CollectionChanged -= _toolsCollectionChangedHandler;
+            Vm.PropertyChanged -= _vmPropertyChangedHandler;
             // 결과를 먼저 확정하고 TCS 즉시 해제 → 호출자(MainWindow)가 지연 없이 실행됨
             var settings = new AppSettings();
             Vm.ApplyTo(settings);

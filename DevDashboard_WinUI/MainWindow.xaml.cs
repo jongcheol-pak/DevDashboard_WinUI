@@ -20,6 +20,8 @@ public sealed partial class MainWindow : WindowEx
     private readonly JsonStorageService _storageService;
     private readonly IProjectRepository? _projectRepository;
     private readonly string? _dbErrorMessage;
+    private SizeChangedEventHandler? _headerBorderSizeChanged;
+    private SizeChangedEventHandler? _groupTabsPanelSizeChanged;
 
     // SortOrder 상수 — XAML x:Bind CommandParameter용
     public SortOrder SortByName { get; } = SortOrder.Name;
@@ -57,6 +59,8 @@ public sealed partial class MainWindow : WindowEx
 
         try
         {
+            Program.WriteCrashLog("[OnRootGridLoaded] Step A: Start");
+
             // 다이얼로그 독립 창의 소유자 창 등록 (RootGrid를 전달하여 XAML 오버레이 입력 차단에 사용)
             DialogWindowHost.SetOwnerWindow(this, RootGrid);
 
@@ -68,10 +72,14 @@ public sealed partial class MainWindow : WindowEx
 
             // 타이틀바 드래그 영역 초기 계산 및 창 크기 변경 시 재계산
             UpdateTitleBarDragRegion();
-            HeaderBorder.SizeChanged += (_, _) => UpdateTitleBarDragRegion();
+            _headerBorderSizeChanged = (_, _) => UpdateTitleBarDragRegion();
+            HeaderBorder.SizeChanged += _headerBorderSizeChanged;
 
             // 그룹 탭 콘텐츠 크기 변경 시 스크롤 버튼 가시성 재계산
-            GroupTabsPanel.SizeChanged += (_, _) => UpdateGroupScrollButtonVisibility();
+            _groupTabsPanelSizeChanged = (_, _) => UpdateGroupScrollButtonVisibility();
+            GroupTabsPanel.SizeChanged += _groupTabsPanelSizeChanged;
+
+            Program.WriteCrashLog("[OnRootGridLoaded] Step B: UI setup done");
 
             // DB 초기화 오류 처리
             if (_dbErrorMessage is not null)
@@ -94,19 +102,40 @@ public sealed partial class MainWindow : WindowEx
             // DashboardView 주입
             DashboardContent.Content = new DashboardView { DataContext = _viewModel };
 
+            Program.WriteCrashLog("[OnRootGridLoaded] Step C: ViewModel + DashboardView created");
+
             // 비동기 초기화
             await _viewModel.InitializeAsync();
 
+            Program.WriteCrashLog("[OnRootGridLoaded] Step D: InitializeAsync done");
+
             // UI 준비 완료 후 Low 우선순위로 버전 체크 실행 (StoreContext 초기화 지연)
             DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low,
-                () => _ = _viewModel.CheckLatestVersionAsync());
+                () => _ = CheckLatestVersionWithLogAsync());
 
             // 저장된 그룹 탭 선택 복원 (ItemsRepeater 레이아웃 완료 후 실행)
             DispatcherQueue.TryEnqueue(RestoreGroupTabSelection);
+
+            Program.WriteCrashLog("[OnRootGridLoaded] Step E: All enqueued");
         }
         catch (Exception ex)
         {
+            Program.WriteCrashLog($"[OnRootGridLoaded] EXCEPTION: {ex}");
             await ShowUnexpectedErrorAsync(ex);
+        }
+    }
+
+    private async Task CheckLatestVersionWithLogAsync()
+    {
+        try
+        {
+            Program.WriteCrashLog("[VersionCheck] Step F: Start");
+            await _viewModel!.CheckLatestVersionAsync();
+            Program.WriteCrashLog("[VersionCheck] Step G: Done");
+        }
+        catch (Exception ex)
+        {
+            Program.WriteCrashLog($"[VersionCheck] EXCEPTION: {ex}");
         }
     }
 
@@ -129,6 +158,11 @@ public sealed partial class MainWindow : WindowEx
 
     private void OnWindowClosed(object sender, WindowEventArgs args)
     {
+        if (_headerBorderSizeChanged is not null)
+            HeaderBorder.SizeChanged -= _headerBorderSizeChanged;
+        if (_groupTabsPanelSizeChanged is not null)
+            GroupTabsPanel.SizeChanged -= _groupTabsPanelSizeChanged;
+
         if (_viewModel is not null)
         {
             _viewModel.EditProjectRequested -= OnEditProjectRequested;

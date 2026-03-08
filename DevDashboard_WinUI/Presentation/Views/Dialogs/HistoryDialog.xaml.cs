@@ -19,6 +19,7 @@ public sealed partial class HistoryDialog : WindowEx
 
     private HistoryDialogViewModel Vm { get; }
     private readonly TaskCompletionSource _closedTcs = new();
+    private readonly System.ComponentModel.PropertyChangedEventHandler _vmPropertyChangedHandler;
     public HistoryDialog(HistoryDialogViewModel vm)
     {
         Vm = vm;
@@ -38,10 +39,15 @@ public sealed partial class HistoryDialog : WindowEx
         AppTitleBarText.Text = Title;
 
         GroupList.ItemsSource = Vm.DateGroups;
-        Vm.PropertyChanged += (_, _) => RefreshList();
+        _vmPropertyChangedHandler = (_, _) => RefreshList();
+        Vm.PropertyChanged += _vmPropertyChangedHandler;
         RefreshList();
 
-        Closed += (_, _) => _closedTcs.TrySetResult();
+        Closed += (_, _) =>
+        {
+            Vm.PropertyChanged -= _vmPropertyChangedHandler;
+            _closedTcs.TrySetResult();
+        };
     }
 
     internal Task ShowAsync()

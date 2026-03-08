@@ -215,13 +215,20 @@ public partial class ProjectCardViewModel : ObservableObject
     }
 
     /// <summary>아이콘 비동기 로드를 시작합니다.</summary>
-    public void StartIconLoad() => _ = LoadIconAsync();
+    public void StartIconLoad() => _ = SafeFireAndForget(LoadIconAsync());
 
     /// <summary>Git 상태 비동기 로드를 시작합니다.</summary>
-    public void StartGitStatusLoad() => _ = ProbeGitRepositoryAsync();
+    public void StartGitStatusLoad() => _ = SafeFireAndForget(ProbeGitRepositoryAsync());
 
     /// <summary>파일 시스템 유효성 검사를 비동기로 시작합니다.</summary>
-    public void StartValidation() => _ = ValidatePathsAsync();
+    public void StartValidation() => _ = SafeFireAndForget(ValidatePathsAsync());
+
+    /// <summary>fire-and-forget 비동기 작업의 예외를 안전하게 처리합니다.</summary>
+    private static async Task SafeFireAndForget(Task task)
+    {
+        try { await task; }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[ProjectCard] 백그라운드 작업 오류: {ex.Message}"); }
+    }
 
     private async Task ProbeGitRepositoryAsync()
     {
@@ -705,7 +712,7 @@ public partial class ProjectCardViewModel : ObservableObject
                 Arguments = arguments,
                 UseShellExecute = true,
                 Verb = runAsAdmin ? "runas" : string.Empty
-            });
+            })?.Dispose();
         }
         catch (OperationCanceledException)
         {

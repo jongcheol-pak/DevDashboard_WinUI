@@ -11,7 +11,7 @@ namespace DevDashboard.Presentation.ViewModels;
 public sealed record IconItem(string Name, string Glyph, IReadOnlyList<string> Tags);
 
 /// <summary>아이콘 선택 다이얼로그 뷰모델 — IconsData.json 기반 아이콘 목록 표시</summary>
-public partial class IconPickerDialogViewModel : ObservableObject
+public partial class IconPickerDialogViewModel : ObservableObject, IDisposable
 {
     private IReadOnlyList<IconItem> _allIcons = [];
     private CancellationTokenSource? _searchCts;
@@ -155,6 +155,13 @@ public partial class IconPickerDialogViewModel : ObservableObject
         }
 
         return items;
+    }
+
+    public void Dispose()
+    {
+        _searchCts?.Cancel();
+        _searchCts?.Dispose();
+        _searchCts = null;
     }
 
     /// <summary>IconsData.json 역직렬화용 DTO</summary>

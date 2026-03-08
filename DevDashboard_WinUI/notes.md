@@ -4,6 +4,7 @@
 
 | 날짜 | 내용 |
 |------|------|
+| 2026-07 | **자동실행 시 RPC_E_WRONG_THREAD 크래시 수정** — `Program.cs`의 STA 스레드 워크어라운드(새 스레드 생성 후 Main 재귀 호출) 제거. WinUI 3 `Application.Start`는 프로세스 메인 스레드에서만 호출 가능하므로 `[STAThread]`에 위임 |
 | 2026-07 | **CommandScripts DB 삭제 버그 수정** — `ProjectSettingsDialog` 저장 시 `ToProjectItem()`이 `CommandScripts`를 포함하지 않아 `Update()`에서 전부 삭제되던 문제. `AddOrUpdateProject` 업데이트 분기에서 기존 카드의 `CommandScripts`를 보존하도록 수정 |
 | 2026-07 | **CommandScriptDialog 실행폴더 UI 개선 + 저장 버그 수정**
 | 2026-07 | **MSIX StartupTask + LocalSettings 마이그레이션**
@@ -32,7 +33,7 @@
 
 ## 미해결 이슈
 
-없음
+- **부팅 시 자동실행 크래시** — DXGI 준비 대기 로직 추가 완료, 실행 미검증 (상세: [memory/boot-startup-crash.md])
 
 ## 주의 사항
 

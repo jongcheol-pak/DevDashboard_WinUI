@@ -5,6 +5,7 @@ using DevDashboard.Infrastructure.Services;
 using DevDashboard.Presentation.ViewModels;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
+using Microsoft.Windows.AppLifecycle;
 
 namespace DevDashboard;
 
@@ -17,38 +18,64 @@ public partial class App : Application
 
     public App()
     {
+        Program.WriteCrashLog("12");
         InitializeComponent();
+        Program.WriteCrashLog("13");
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+        Program.WriteCrashLog("14");
+        UnhandledException += OnUnhandledException;
+    }
+
+    private static void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    {
+        Program.WriteCrashLog($"[UnhandledException] {e.Exception}");
+        e.Handled = false;
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        var storageService = new JsonStorageService();
-        var settings = storageService.Load();
-
-        // 언어 설정 적용 — ResourceLoader 생성 전에 호출해야 함
-        ApplyLanguageSetting(settings.Language);
-
-        // SQLite 프로젝트 저장소 초기화
-        SqliteProjectRepository? projectRepository = null;
-        string? dbErrorMessage = null;
         try
         {
-            var dbContext = new DatabaseContext();
-            projectRepository = new SqliteProjectRepository(dbContext);
+            Program.WriteCrashLog("[OnLaunched] Step 1: RegisterSingleInstanceActivation");
+            RegisterSingleInstanceActivation();
+
+            Program.WriteCrashLog("[OnLaunched] Step 2: JsonStorageService.Load");
+            var storageService = new JsonStorageService();
+            var settings = storageService.Load();
+
+            Program.WriteCrashLog("[OnLaunched] Step 3: ApplyLanguageSetting");
+            ApplyLanguageSetting(settings.Language);
+
+            Program.WriteCrashLog("[OnLaunched] Step 4: DatabaseContext");
+            SqliteProjectRepository? projectRepository = null;
+            string? dbErrorMessage = null;
+            try
+            {
+                var dbContext = new DatabaseContext();
+                projectRepository = new SqliteProjectRepository(dbContext);
+            }
+            catch (Exception ex)
+            {
+                dbErrorMessage = ex.Message;
+            }
+
+            Program.WriteCrashLog("[OnLaunched] Step 5: new MainWindow");
+            var mainWindow = new MainWindow(settings, storageService, projectRepository, dbErrorMessage);
+            MainWindow = mainWindow;
+
+            Program.WriteCrashLog("[OnLaunched] Step 6: ApplyTheme");
+            AppSettingsDialogViewModel.ApplyTheme(settings.ThemeMode);
+
+            Program.WriteCrashLog("[OnLaunched] Step 7: Activate");
+            mainWindow.Activate();
+
+            Program.WriteCrashLog("[OnLaunched] Step 8: Done");
         }
         catch (Exception ex)
         {
-            dbErrorMessage = ex.Message;
+            Program.WriteCrashLog($"[OnLaunched] {ex}");
+            throw;
         }
-
-        var mainWindow = new MainWindow(settings, storageService, projectRepository, dbErrorMessage);
-        MainWindow = mainWindow;
-
-        // 테마 적용 — MainWindow.Content가 생성된 후 호출해야 root 요소에 RequestedTheme 설정 가능
-        AppSettingsDialogViewModel.ApplyTheme(settings.ThemeMode);
-
-        mainWindow.Activate();
     }
 
     /// <summary>언어 설정에 따라 PrimaryLanguageOverride를 지정합니다.
@@ -78,6 +105,20 @@ public partial class App : Application
                 ShowWindow(hwnd, SW_RESTORE);
             SetForegroundWindow(hwnd);
         });
+    }
+
+    /// <summary>AppInstance에 단일 인스턴스 키를 등록하여 다른 인스턴스의 활성화 요청을 수신합니다.</summary>
+    private static void RegisterSingleInstanceActivation()
+    {
+        try
+        {
+            var appInstance = AppInstance.FindOrRegisterForKey("DevDashboard_SingleInstance");
+            appInstance.Activated += (_, _) => BringMainWindowToForeground();
+        }
+        catch
+        {
+            // 부팅 직후 COM 서브시스템이 미초기화 상태일 수 있음 — 무시 (Mutex가 단일 인스턴스를 보장)
+        }
     }
 
     private const int SW_RESTORE = 9;

@@ -32,6 +32,23 @@ public sealed partial class DashboardView : UserControl
         InitializeLocalizedResources();
         InitializeComponent();
         DataContextChanged += OnDataContextChanged;
+        Unloaded += OnUnloaded;
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        Unloaded -= OnUnloaded;
+        DataContextChanged -= OnDataContextChanged;
+
+        // 이전 VM 구독 해제
+        if (_subscribedVm is not null)
+        {
+            _subscribedVm.DisplayCards.CollectionChanged -= OnDisplayCardsChanged;
+            foreach (var card in _subscribedCards)
+                UnsubscribeCardEvents(card);
+            _subscribedCards.Clear();
+            _subscribedVm = null;
+        }
     }
 
     /// <summary>DataTemplate 내 요소는 x:Name 접근이 불가하여 InitializeComponent() 전

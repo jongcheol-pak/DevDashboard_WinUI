@@ -86,8 +86,25 @@ public sealed class DatabaseContext
         AddColumnIfNotExists(connection, "Groups", "IsDefault", "INTEGER NOT NULL DEFAULT 0");
     }
 
+    /// <summary>허용된 테이블/컬럼 이름 — SQL Injection 방지용 화이트리스트</summary>
+    private static readonly HashSet<string> AllowedIdentifiers = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Projects", "ProjectTags", "CommandScripts", "Todos", "Histories", "Groups",
+        "Id", "Name", "Description", "IconPath", "Path", "DevToolName", "Options",
+        "Command", "GitStatus", "IsPinned", "PinOrder", "RunAsAdmin", "GroupId",
+        "Category", "CreatedAt", "UseWorkingDirectory", "ShellWorkingDirectory",
+        "ProjectId", "Tag", "SlotIndex", "ShellType", "Script", "WorkingDirectory",
+        "IconSymbol", "Text", "IsCompleted", "CompletedAt", "Title", "IsDefault"
+    };
+
     private static void AddColumnIfNotExists(SqliteConnection connection, string table, string column, string definition)
     {
+        // 화이트리스트 검증으로 SQL Injection 방지
+        if (!AllowedIdentifiers.Contains(table))
+            throw new ArgumentException($"허용되지 않은 테이블 이름: {table}", nameof(table));
+        if (!AllowedIdentifiers.Contains(column))
+            throw new ArgumentException($"허용되지 않은 컬럼 이름: {column}", nameof(column));
+
         using var checkCmd = connection.CreateCommand();
         checkCmd.CommandText = $"SELECT COUNT(*) FROM pragma_table_info('{table}') WHERE name='{column}'";
         var exists = Convert.ToInt64(checkCmd.ExecuteScalar()) > 0;

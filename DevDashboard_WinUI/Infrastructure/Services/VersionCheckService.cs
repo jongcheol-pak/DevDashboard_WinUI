@@ -46,16 +46,20 @@ public static class VersionCheckService
                     != Windows.ApplicationModel.PackageSignatureKind.Store)
                 return null;
 
+            Program.WriteCrashLog("[VersionCheck] StoreContext.GetDefault()");
             var storeContext = StoreContext.GetDefault();
+
+            Program.WriteCrashLog("[VersionCheck] GetAppAndOptionalStorePackageUpdatesAsync()");
             var updates = await storeContext.GetAppAndOptionalStorePackageUpdatesAsync();
 
+            Program.WriteCrashLog($"[VersionCheck] updates.Count={updates.Count}");
             if (updates.Count == 0) return null;
 
             return new VersionCheckResult("ms-windows-store://updates");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // 스토어 연결 오류 — 무시
+            Program.WriteCrashLog($"[VersionCheck] CATCH: {ex.GetType().Name}: {ex.Message}");
             return null;
         }
     }
