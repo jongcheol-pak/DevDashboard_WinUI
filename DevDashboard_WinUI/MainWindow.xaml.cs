@@ -59,8 +59,6 @@ public sealed partial class MainWindow : WindowEx
 
         try
         {
-            Program.WriteCrashLog("[OnRootGridLoaded] Step A: Start");
-
             // 다이얼로그 독립 창의 소유자 창 등록 (RootGrid를 전달하여 XAML 오버레이 입력 차단에 사용)
             DialogWindowHost.SetOwnerWindow(this, RootGrid);
 
@@ -78,8 +76,6 @@ public sealed partial class MainWindow : WindowEx
             // 그룹 탭 콘텐츠 크기 변경 시 스크롤 버튼 가시성 재계산
             _groupTabsPanelSizeChanged = (_, _) => UpdateGroupScrollButtonVisibility();
             GroupTabsPanel.SizeChanged += _groupTabsPanelSizeChanged;
-
-            Program.WriteCrashLog("[OnRootGridLoaded] Step B: UI setup done");
 
             // DB 초기화 오류 처리
             if (_dbErrorMessage is not null)
@@ -102,40 +98,19 @@ public sealed partial class MainWindow : WindowEx
             // DashboardView 주입
             DashboardContent.Content = new DashboardView { DataContext = _viewModel };
 
-            Program.WriteCrashLog("[OnRootGridLoaded] Step C: ViewModel + DashboardView created");
-
             // 비동기 초기화
             await _viewModel.InitializeAsync();
 
-            Program.WriteCrashLog("[OnRootGridLoaded] Step D: InitializeAsync done");
-
             // UI 준비 완료 후 Low 우선순위로 버전 체크 실행 (StoreContext 초기화 지연)
             DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low,
-                () => _ = CheckLatestVersionWithLogAsync());
+                () => _ = _viewModel.CheckLatestVersionAsync());
 
             // 저장된 그룹 탭 선택 복원 (ItemsRepeater 레이아웃 완료 후 실행)
             DispatcherQueue.TryEnqueue(RestoreGroupTabSelection);
-
-            Program.WriteCrashLog("[OnRootGridLoaded] Step E: All enqueued");
         }
         catch (Exception ex)
         {
-            Program.WriteCrashLog($"[OnRootGridLoaded] EXCEPTION: {ex}");
             await ShowUnexpectedErrorAsync(ex);
-        }
-    }
-
-    private async Task CheckLatestVersionWithLogAsync()
-    {
-        try
-        {
-            Program.WriteCrashLog("[VersionCheck] Step F: Start");
-            await _viewModel!.CheckLatestVersionAsync();
-            Program.WriteCrashLog("[VersionCheck] Step G: Done");
-        }
-        catch (Exception ex)
-        {
-            Program.WriteCrashLog($"[VersionCheck] EXCEPTION: {ex}");
         }
     }
 

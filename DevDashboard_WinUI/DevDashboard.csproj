@@ -27,6 +27,9 @@
     <None Remove="Assets\DevDashboard_3.png" />
     <None Remove="Data\IconsData.json" />
   </ItemGroup>
+  <ItemGroup>
+    <Page Remove="App.xaml" />
+  </ItemGroup>
 
   <ItemGroup>
     <Content Include="Assets\SplashScreen.scale-200.png" />
@@ -89,5 +92,6 @@
     <GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
     <ApplicationIcon>dashboard.ico</ApplicationIcon>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 </Project>

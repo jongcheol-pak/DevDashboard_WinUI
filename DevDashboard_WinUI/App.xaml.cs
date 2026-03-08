@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using DevDashboard.Infrastructure.Persistence;
 using DevDashboard.Infrastructure.Services;
@@ -18,64 +18,36 @@ public partial class App : Application
 
     public App()
     {
-        Program.WriteCrashLog("12");
         InitializeComponent();
-        Program.WriteCrashLog("13");
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-        Program.WriteCrashLog("14");
-        UnhandledException += OnUnhandledException;
-    }
-
-    private static void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
-    {
-        Program.WriteCrashLog($"[UnhandledException] {e.Exception}");
-        e.Handled = false;
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        RegisterSingleInstanceActivation();
+
+        var storageService = new JsonStorageService();
+        var settings = storageService.Load();
+
+        ApplyLanguageSetting(settings.Language);
+
+        SqliteProjectRepository? projectRepository = null;
+        string? dbErrorMessage = null;
         try
         {
-            Program.WriteCrashLog("[OnLaunched] Step 1: RegisterSingleInstanceActivation");
-            RegisterSingleInstanceActivation();
-
-            Program.WriteCrashLog("[OnLaunched] Step 2: JsonStorageService.Load");
-            var storageService = new JsonStorageService();
-            var settings = storageService.Load();
-
-            Program.WriteCrashLog("[OnLaunched] Step 3: ApplyLanguageSetting");
-            ApplyLanguageSetting(settings.Language);
-
-            Program.WriteCrashLog("[OnLaunched] Step 4: DatabaseContext");
-            SqliteProjectRepository? projectRepository = null;
-            string? dbErrorMessage = null;
-            try
-            {
-                var dbContext = new DatabaseContext();
-                projectRepository = new SqliteProjectRepository(dbContext);
-            }
-            catch (Exception ex)
-            {
-                dbErrorMessage = ex.Message;
-            }
-
-            Program.WriteCrashLog("[OnLaunched] Step 5: new MainWindow");
-            var mainWindow = new MainWindow(settings, storageService, projectRepository, dbErrorMessage);
-            MainWindow = mainWindow;
-
-            Program.WriteCrashLog("[OnLaunched] Step 6: ApplyTheme");
-            AppSettingsDialogViewModel.ApplyTheme(settings.ThemeMode);
-
-            Program.WriteCrashLog("[OnLaunched] Step 7: Activate");
-            mainWindow.Activate();
-
-            Program.WriteCrashLog("[OnLaunched] Step 8: Done");
+            var dbContext = new DatabaseContext();
+            projectRepository = new SqliteProjectRepository(dbContext);
         }
         catch (Exception ex)
         {
-            Program.WriteCrashLog($"[OnLaunched] {ex}");
-            throw;
+            dbErrorMessage = ex.Message;
         }
+
+        var mainWindow = new MainWindow(settings, storageService, projectRepository, dbErrorMessage);
+        MainWindow = mainWindow;
+
+        AppSettingsDialogViewModel.ApplyTheme(settings.ThemeMode);
+        mainWindow.Activate();
     }
 
     /// <summary>언어 설정에 따라 PrimaryLanguageOverride를 지정합니다.
