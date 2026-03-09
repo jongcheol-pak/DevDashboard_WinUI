@@ -2,19 +2,12 @@ using DevDashboard.Infrastructure.Services;
 using DevDashboard.Presentation.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
-using WinUIEx;
 
 namespace DevDashboard.Presentation.Views.Dialogs;
 
-public sealed partial class ProjectSettingsDialog : WindowEx
+public sealed partial class ProjectSettingsDialog : ContentDialog
 {
-    
-    private const int InitW = 600;
-    private const int InitH = 650;
-
     private ProjectSettingsDialogViewModel Vm { get; } = new();
-    private readonly TaskCompletionSource _closedTcs = new();
 
     public ProjectItem? ResultItem { get; private set; }
 
@@ -27,9 +20,6 @@ public sealed partial class ProjectSettingsDialog : WindowEx
         string? defaultGroupId)
     {
         InitializeComponent();
-        SystemBackdrop = new MicaBackdrop();
-        if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p)
-        { p.IsMinimizable = false; p.IsMaximizable = false; }
 
         Vm.LoadGroups(groups);
         Vm.LoadTools(tools);
@@ -39,7 +29,6 @@ public sealed partial class ProjectSettingsDialog : WindowEx
         if (existing is not null)
         {
             Vm.LoadFrom(existing, groups, tools);
-            // LoadFrom 이후 호출해야 EditingProjectId가 설정되어 자기 자신 이름이 중복 목록에서 제외됨
             Vm.SetExistingNames(existingNames);
             Title = LocalizationService.Get("ProjectSettingsDialog_TitleEdit");
         }
@@ -51,46 +40,27 @@ public sealed partial class ProjectSettingsDialog : WindowEx
                 Vm.SelectedGroupId = defaultGroupId;
         }
 
-        ExtendsContentIntoTitleBar = true;
-        SetTitleBar(AppTitleBar);
-        AppTitleBarText.Text = Title;
-
-        Closed += (_, _) => _closedTcs.TrySetResult();
+        PrimaryButtonText = LocalizationService.Get("Dialog_Save");
+        CloseButtonText = LocalizationService.Get("Dialog_Cancel");
     }
 
-    internal Task ShowAsync()
+    internal new async Task<ContentDialogResult> ShowAsync()
     {
-        DialogWindowHost.Show(this, InitW, InitH);
-        return _closedTcs.Task;
+        XamlRoot = App.MainWindow?.Content?.XamlRoot;
+        return await base.ShowAsync();
     }
 
-    private async void OnSave(object sender, RoutedEventArgs e)
+    private void OnSave(ContentDialog sender, ContentDialogButtonClickEventArgs args)
     {
-        try
+        var error = Vm.Validate();
+        if (error is not null)
         {
-            var error = Vm.Validate();
-            if (error is not null)
-            {
-                var dialog = new ContentDialog
-                {
-                    Title = LocalizationService.Get("InputRequired"),
-                    Content = error,
-                    CloseButtonText = LocalizationService.Get("Dialog_Close"),
-                    XamlRoot = Content.XamlRoot
-                };
-                await dialog.ShowAsync();
-                return;
-            }
+            ErrorText.Text = error;
+            ErrorText.Visibility = Visibility.Visible;
+            args.Cancel = true;
+            return;
+        }
 
-            ResultItem = Vm.ToProjectItem();
-            Close();
-        }
-        catch (Exception ex)
-        {
-            await DialogService.ShowErrorAsync(
-                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
-        }
+        ResultItem = Vm.ToProjectItem();
     }
-
-    private void OnCancel(object sender, RoutedEventArgs e) => Close();
 }

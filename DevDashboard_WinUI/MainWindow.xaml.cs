@@ -59,9 +59,6 @@ public sealed partial class MainWindow : WindowEx
 
         try
         {
-            // 다이얼로그 독립 창의 소유자 창 등록 (RootGrid를 전달하여 XAML 오버레이 입력 차단에 사용)
-            DialogWindowHost.SetOwnerWindow(this, RootGrid);
-
             // Run.Text는 x:Uid를 지원하지 않으므로 ResourceLoader로 직접 설정
             ProjectCountSuffixRun.Text = LocalizationService.Get("MainWindow_ProjectCountSuffix");
 

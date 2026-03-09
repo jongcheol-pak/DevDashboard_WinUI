@@ -3,65 +3,87 @@ using DevDashboard.Presentation.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
-using WinUIEx;
 
 namespace DevDashboard.Presentation.Views.Dialogs;
 
-public sealed partial class ProjectHistoryDialog : WindowEx
+public sealed partial class ProjectHistoryDialog : ContentDialog
 {
-  
-    private const int InitW = 900;
-    private const int InitH = 650;
-
     private ProjectHistoryDialogViewModel Vm { get; }
-    private readonly TaskCompletionSource _closedTcs = new();
+    private TaskCompletionSource<bool>? _nestedTcs;
+    private readonly System.ComponentModel.PropertyChangedEventHandler _vmPropertyChangedHandler;
+
     public ProjectHistoryDialog(IReadOnlyList<ProjectItem> projects, IProjectRepository repository)
     {
         Vm = new ProjectHistoryDialogViewModel(projects.ToList(), repository);
         InitializeComponent();
+
         Title = LocalizationService.Get("ProjectHistoryDialogTitle");
-        SystemBackdrop = new MicaBackdrop();
-        if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p)
-        { p.IsMinimizable = false; p.IsMaximizable = false; }
-
-        ExtendsContentIntoTitleBar = true;
-        SetTitleBar(AppTitleBar);
-        AppTitleBarText.Text = Title;
-
-        var manager = WindowManager.Get(this);
-     
+        CloseButtonText = LocalizationService.Get("Dialog_Close");
 
         GroupList.ItemsSource = Vm.DateGroups;
-        Vm.PropertyChanged += (_, _) => RefreshList();
+        _vmPropertyChangedHandler = (_, _) => RefreshList();
+        Vm.PropertyChanged += _vmPropertyChangedHandler;
         RefreshList();
 
-        // 창 닫힐 때 SaveAll 호출 후 Task 완료
-        // SaveAll 실패 시에도 _closedTcs.TrySetResult()가 반드시 호출되도록 finally 보장
-        Closed += (_, _) =>
+        Closing += (_, _) =>
         {
+            Vm.PropertyChanged -= _vmPropertyChangedHandler;
             try
             {
                 Vm.SaveAll();
             }
-            catch (Exception ex)
+            catch
             {
-                _ = DialogService.ShowErrorAsync(ex.Message, LocalizationService.Get("SaveError"));
-            }
-            finally
-            {
-                _closedTcs.TrySetResult();
+                // Closing 이벤트에서는 중첩 ContentDialog 표시 불가 — 에러 무시
             }
         };
     }
 
-    internal Task ShowAsync()
+    internal new async Task<ContentDialogResult> ShowAsync()
     {
-        DialogWindowHost.Show(this, InitW, InitH);
-        return _closedTcs.Task;
+        XamlRoot = App.MainWindow?.Content?.XamlRoot;
+        ContentDialogResult result;
+        do
+        {
+            result = await base.ShowAsync();
+            if (_nestedTcs is not null)
+            {
+                await _nestedTcs.Task;
+                _nestedTcs = null;
+                continue;
+            }
+            break;
+        } while (true);
+        return result;
+    }
+
+    private async Task<ContentDialogResult> ShowNestedDialogAsync(ContentDialog dialog)
+    {
+        _nestedTcs = new TaskCompletionSource<bool>();
+        Hide();
+        dialog.XamlRoot = App.MainWindow?.Content?.XamlRoot;
+        try
+        {
+            return await dialog.ShowAsync();
+        }
+        finally
+        {
+            _nestedTcs.TrySetResult(true);
+        }
+    }
+
+    private Task ShowNestedErrorAsync(string message)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = LocalizationService.Get("Dialog_DefaultErrorTitle"),
+            Content = string.Format(LocalizationService.Get("UnexpectedError"), message),
+            CloseButtonText = LocalizationService.Get("Dialog_OK"),
+        };
+        return ShowNestedDialogAsync(dialog);
     }
 
     // ObservableCollection이 CollectionChanged로 자동 갱신하므로 ItemsSource 재할당 불필요
@@ -117,10 +139,9 @@ public sealed partial class ProjectHistoryDialog : WindowEx
                 PrimaryButtonText = LocalizationService.Get("Dialog_Save"),
                 CloseButtonText = LocalizationService.Get("Dialog_Cancel"),
                 DefaultButton = ContentDialogButton.Primary,
-                XamlRoot = Content.XamlRoot
             };
 
-            if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+            if (await ShowNestedDialogAsync(dialog) != ContentDialogResult.Primary) return;
 
             var title = titleBox.Text.Trim();
             if (string.IsNullOrWhiteSpace(title)) return;
@@ -129,8 +150,7 @@ public sealed partial class ProjectHistoryDialog : WindowEx
         }
         catch (Exception ex)
         {
-            await DialogService.ShowErrorAsync(
-                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+            await ShowNestedErrorAsync(ex.Message);
         }
     }
 
@@ -192,8 +212,8 @@ public sealed partial class ProjectHistoryDialog : WindowEx
             picker.FileTypeChoices.Add(LocalizationService.Get("HistoryDialog_MarkdownType"), [".md"]);
             picker.SuggestedFileName = $"{Vm.SelectedProject.Name}_history";
 
-            // FileSavePicker hwnd는 이 다이얼로그 창 자체를 사용
-            var hwnd = WindowNative.GetWindowHandle(this);
+            // FileSavePicker hwnd는 MainWindow를 사용
+            var hwnd = WindowNative.GetWindowHandle(App.MainWindow);
             InitializeWithWindow.Initialize(picker, hwnd);
 
             var file = await picker.PickSaveFileAsync();
@@ -202,10 +222,7 @@ public sealed partial class ProjectHistoryDialog : WindowEx
         }
         catch (Exception ex)
         {
-            await DialogService.ShowErrorAsync(
-                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+            await ShowNestedErrorAsync(ex.Message);
         }
     }
-
-    private void OnClose(object sender, RoutedEventArgs e) => Close();
 }

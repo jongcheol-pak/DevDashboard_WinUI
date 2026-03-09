@@ -13,7 +13,7 @@
     mc:Ignorable="d"
     Title="Project Dashboard"
     MinWidth="1000"
-    MinHeight="700">
+    MinHeight="750">
 
     <Window.SystemBackdrop>
         <MicaBackdrop />

@@ -36,6 +36,9 @@ public partial class CommandScriptDialogViewModel : ObservableObject
     [ObservableProperty]
     public partial string WorkingDirectory { get; set; } = string.Empty;
 
+    /// <summary>기존 아이콘 글리프 (편집 시 보존용)</summary>
+    private string _iconSymbol = string.Empty;
+
     /// <summary>기존 설정을 로드합니다.</summary>
     public void LoadFrom(CommandScript source)
     {
@@ -47,6 +50,7 @@ public partial class CommandScriptDialogViewModel : ObservableObject
         Script = source.Script;
         UseWorkingDirectory = source.UseWorkingDirectory;
         WorkingDirectory = source.WorkingDirectory;
+        _iconSymbol = source.IconSymbol;
     }
 
     /// <summary>입력값을 CommandScript로 변환합니다.</summary>
@@ -59,7 +63,8 @@ public partial class CommandScriptDialogViewModel : ObservableObject
             RunAsAdmin = RunAsAdmin,
             Script = Script,
             UseWorkingDirectory = UseWorkingDirectory,
-            WorkingDirectory = WorkingDirectory.Trim()
+            WorkingDirectory = WorkingDirectory.Trim(),
+            IconSymbol = _iconSymbol
         };
     }
 

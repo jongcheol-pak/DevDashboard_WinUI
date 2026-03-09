@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<winuiex:WindowEx
+<ContentDialog
     x:Class="DevDashboard.Presentation.Views.Dialogs.ProjectSettingsDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -7,262 +7,243 @@
     xmlns:models="using:DevDashboard.Domain.Entities"
     xmlns:vo="using:DevDashboard.Domain.ValueObjects"
     xmlns:helpers="using:DevDashboard.Presentation.Helpers"
-    MinWidth="600" MinHeight="600"
-    xmlns:winuiex="using:WinUIEx">
+    DefaultButton="Primary"
+    CornerRadius="8"    
+    PrimaryButtonClick="OnSave">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="40"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <ContentDialog.Resources>
+        <x:Double x:Key="ContentDialogMinWidth">600</x:Double>
+        <x:Double x:Key="ContentDialogMaxWidth">600</x:Double>
+        <x:Double x:Key="ContentDialogMaxHeight">700</x:Double>
+        <x:Double x:Key="ContentDialogMinHeight">700</x:Double>
+    </ContentDialog.Resources>
 
-        <!-- Row 0: 타이틀 바 (MainWindow 스타일) -->
-        <Border x:Name="AppTitleBar"
-                Grid.Row="0"
-                Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="0,0,0,1">
-            <TextBlock x:Name="AppTitleBarText"
-                       FontSize="13" FontWeight="SemiBold"
-                       VerticalAlignment="Center"
-                       Margin="12,0,148,0"/>
-        </Border>
+    <StackPanel Spacing="12">
+        <!-- 인라인 유효성 오류 (스크롤 영향 없음) -->
+        <TextBlock
+            x:Name="ErrorText"
+            Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+            Visibility="Collapsed"
+            TextWrapping="Wrap" />
 
-        <!-- Row 1: 내용 -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="16,12,16,12" >
-            <StackPanel Spacing="16" DataContext="{x:Bind Vm}">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="530">
+            <StackPanel Spacing="16" DataContext="{x:Bind Vm}" Margin="0,0,12,12">
 
-                <!-- 이름 -->
-                <StackPanel Spacing="4">
-                    <TextBlock x:Uid="ProjNameLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                    <TextBox
-                        x:Uid="ProjNameBox"
-                        Text="{x:Bind Vm.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        MaxLength="30" />
-                </StackPanel>
+            <!-- 이름 -->
+            <StackPanel Spacing="4">
+                <TextBlock x:Uid="ProjNameLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <TextBox
+                    x:Uid="ProjNameBox"
+                    Text="{x:Bind Vm.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    MaxLength="30" />
+            </StackPanel>
 
-                <!-- 설명 -->
-                <StackPanel Spacing="4">
-                    <TextBlock x:Uid="ProjDescLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                    <TextBox
-                        x:Uid="ProjDescBox"
-                        Text="{x:Bind Vm.Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        AcceptsReturn="True"
-                        TextWrapping="Wrap"
-                        ScrollViewer.VerticalScrollBarVisibility="Auto"
-                        Height="150"
-                        helpers:TextBoxHelper.MaxLines="10"
-                        MaxLength="500" />
-                </StackPanel>
+            <!-- 설명 -->
+            <StackPanel Spacing="4">
+                <TextBlock x:Uid="ProjDescLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <TextBox
+                    x:Uid="ProjDescBox"
+                    Text="{x:Bind Vm.Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    AcceptsReturn="True"
+                    TextWrapping="Wrap"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                    Height="150"
+                    helpers:TextBoxHelper.MaxLines="10"
+                    MaxLength="500" />
+            </StackPanel>
 
-                <!-- 그룹 + 카테고리 -->
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0" Spacing="4">
-                        <TextBlock x:Uid="ProjGroupLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                        <ComboBox
-                            x:Uid="ProjGroupCombo"
-                            ItemsSource="{x:Bind Vm.Groups, Mode=OneWay}"
-                            SelectedValuePath="Id"
-                            SelectedValue="{x:Bind Vm.SelectedGroupId, Mode=TwoWay}"
-                            HorizontalAlignment="Stretch">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate x:DataType="vo:ProjectGroup">
-                                    <TextBlock Text="{x:Bind Name}" />
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" Spacing="4">
-                        <TextBlock x:Uid="ProjCategoryLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                        <ComboBox
-                            x:Uid="ProjCategoryCombo"
-                            ItemsSource="{x:Bind Vm.Categories, Mode=OneWay}"
-                            SelectedItem="{x:Bind Vm.Category, Mode=TwoWay}"
-                            HorizontalAlignment="Stretch" />
-                    </StackPanel>
-                </Grid>
-
-                <!-- 개발 도구 -->
-                <StackPanel Spacing="4">
-                    <TextBlock x:Uid="ProjDevToolLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
+            <!-- 그룹 + 카테고리 -->
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Spacing="4">
+                    <TextBlock x:Uid="ProjGroupLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
                     <ComboBox
-                        x:Uid="ProjDevToolCombo"
-                        ItemsSource="{x:Bind Vm.DevTools, Mode=OneWay}"
-                        SelectedItem="{x:Bind Vm.SelectedDevTool, Mode=TwoWay}"
+                        x:Uid="ProjGroupCombo"
+                        ItemsSource="{x:Bind Vm.Groups, Mode=OneWay}"
+                        SelectedValuePath="Id"
+                        SelectedValue="{x:Bind Vm.SelectedGroupId, Mode=TwoWay}"
                         HorizontalAlignment="Stretch">
                         <ComboBox.ItemTemplate>
-                            <DataTemplate x:DataType="models:ExternalTool">
+                            <DataTemplate x:DataType="vo:ProjectGroup">
                                 <TextBlock Text="{x:Bind Name}" />
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
                 </StackPanel>
+                <StackPanel Grid.Column="1" Spacing="4">
+                    <TextBlock x:Uid="ProjCategoryLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <ComboBox
+                        x:Uid="ProjCategoryCombo"
+                        ItemsSource="{x:Bind Vm.Categories, Mode=OneWay}"
+                        SelectedItem="{x:Bind Vm.Category, Mode=TwoWay}"
+                        HorizontalAlignment="Stretch" />
+                </StackPanel>
+            </Grid>
 
-                <!-- 셸 도구 전용: 명령어 + 실행 폴더 -->
-                <StackPanel
-                    Spacing="12"
-                    Visibility="{Binding IsShellTool, Converter={StaticResource BoolToVisibility}}">
-                    <StackPanel Spacing="4">
-                        <TextBlock x:Uid="ProjCommandLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                        <TextBox
-                            x:Uid="ProjCommandBox"
-                            Text="{x:Bind Vm.Command, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            FontFamily="Consolas" />
-                    </StackPanel>
-                    <CheckBox
-                        x:Uid="ProjUseWorkingDirCheck"
-                        IsChecked="{x:Bind Vm.UseWorkingDirectory, Mode=TwoWay}" />
-                    <Grid
-                        ColumnSpacing="8"
-                        Visibility="{Binding UseWorkingDirectory, Converter={StaticResource BoolToVisibility}}">
+            <!-- 개발 도구 -->
+            <StackPanel Spacing="4">
+                <TextBlock x:Uid="ProjDevToolLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <ComboBox
+                    x:Uid="ProjDevToolCombo"
+                    ItemsSource="{x:Bind Vm.DevTools, Mode=OneWay}"
+                    SelectedItem="{x:Bind Vm.SelectedDevTool, Mode=TwoWay}"
+                    HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="models:ExternalTool">
+                            <TextBlock Text="{x:Bind Name}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+
+            <!-- 셸 도구 전용: 명령어 + 실행 폴더 -->
+            <StackPanel
+                Spacing="12"
+                Visibility="{Binding IsShellTool, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel Spacing="4">
+                    <TextBlock x:Uid="ProjCommandLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBox
+                        x:Uid="ProjCommandBox"
+                        Text="{x:Bind Vm.Command, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        FontFamily="Consolas" />
+                </StackPanel>
+                <CheckBox
+                    x:Uid="ProjUseWorkingDirCheck"
+                    IsChecked="{x:Bind Vm.UseWorkingDirectory, Mode=TwoWay}" />
+                <Grid
+                    ColumnSpacing="8"
+                    Visibility="{Binding UseWorkingDirectory, Converter={StaticResource BoolToVisibility}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        x:Uid="ProjWorkingDirBox"
+                        Grid.Column="0"
+                        Text="{x:Bind Vm.ShellWorkingDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button
+                        x:Uid="Btn_Browse"
+                        Grid.Column="1"
+                        Command="{x:Bind Vm.BrowseShellWorkingDirectoryCommand}" />
+                </Grid>
+            </StackPanel>
+
+            <!-- 일반 도구 전용: 경로 + 옵션 -->
+            <StackPanel
+                Spacing="12"
+                Visibility="{Binding IsShellTool, Converter={StaticResource InverseBoolToVisibility}}">
+                <StackPanel Spacing="4">
+                    <TextBlock x:Uid="ProjPathLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <TextBox
-                            x:Uid="ProjWorkingDirBox"
-                            Grid.Column="0"
-                            Text="{x:Bind Vm.ShellWorkingDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                        <Button
-                            x:Uid="Btn_Browse"
-                            Grid.Column="1"
-                            Command="{x:Bind Vm.BrowseShellWorkingDirectoryCommand}" />
-                    </Grid>
-                </StackPanel>
-
-                <!-- 일반 도구 전용: 경로 + 옵션 -->
-                <StackPanel
-                    Spacing="12"
-                    Visibility="{Binding IsShellTool, Converter={StaticResource InverseBoolToVisibility}}">
-                    <StackPanel Spacing="4">
-                        <TextBlock x:Uid="ProjPathLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                        <Grid ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBox
-                                x:Uid="ProjPathBox"
-                                IsReadOnly="True"
-                                Grid.Column="0"
-                                Text="{x:Bind Vm.Path, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-
-                            <!-- 폴더 / 파일 선택 버튼 -->
-                            <Button Grid.Column="1"  Width="36" Height="36" Padding="0">
-                                <Button.Flyout>
-                                    <MenuFlyout>
-                                        <MenuFlyoutItem x:Uid="ProjPathFolderBtn"
-                                                        Command="{x:Bind Vm.BrowseFolderCommand}" />
-
-                                        <MenuFlyoutItem x:Uid="ProjPathFileBtn"
-                               Command="{x:Bind Vm.BrowseFileCommand}" />
-                                    </MenuFlyout>
-                                </Button.Flyout>
-                                <FontIcon Glyph="&#xE712;" FontSize="16" />
-                            </Button>
-                        </Grid>
-                    </StackPanel>
-                    <StackPanel Spacing="4">
-                        <TextBlock x:Uid="ProjOptionsLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                        <TextBox
-                            x:Uid="ProjOptionsBox"
-                            Text="{x:Bind Vm.Options, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                    </StackPanel>
-                </StackPanel>
-
-                <!-- 관리자 권한 -->
-                <CheckBox
-                    x:Uid="ProjRunAsAdminCheck"
-                    IsChecked="{x:Bind Vm.RunAsAdmin, Mode=TwoWay}" />
-
-                <!-- 아이콘 -->
-                <StackPanel Spacing="4">                   
-                    <TextBlock x:Uid="ProjIconLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                    <Grid ColumnSpacing="8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />                          
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <!-- 아이콘 이미지 미리보기 -->
-                        <Grid Grid.Column="0" Width="48" Height="48">
-                            <FontIcon Glyph="&#xE91B;" FontSize="24"
-                                      Visibility="{Binding IconPath, Converter={StaticResource StringEmptyToVisibility}}" />
-                            <Border CornerRadius="8"
-                                    Visibility="{Binding IconPath, Converter={StaticResource StringNotEmptyToVisibility}}">
-                                <Image
-                                    Source="{Binding IconPath, Converter={StaticResource ImagePathToSource}}"
-                                    Stretch="Uniform" />
-                            </Border>
-                        </Grid>
-                        <TextBox
-                            x:Uid="ProjIconBox"
-                            Grid.Column="1"
+                            x:Uid="ProjPathBox"
                             IsReadOnly="True"
-                         VerticalAlignment="Center"
-                            Text="{x:Bind Vm.IconPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
-                            <Button
-                            x:Uid="Btn_Browse"
-                        
-                            Command="{x:Bind Vm.BrowseIconCommand}" />
-                            <Button
-                      
-                            Command="{x:Bind Vm.ClearIconCommand}" >
-                                <FontIcon Glyph="&#xE74D;" FontSize="13"
-          Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
-                            </Button>
-                        </StackPanel>
+                            Grid.Column="0"
+                            Text="{x:Bind Vm.Path, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <!-- 폴더 / 파일 선택 버튼 -->
+                        <Button Grid.Column="1"  Width="36" Height="36" Padding="0">
+                            <Button.Flyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem x:Uid="ProjPathFolderBtn"
+                                                    Command="{x:Bind Vm.BrowseFolderCommand}" />
+                                    <MenuFlyoutItem x:Uid="ProjPathFileBtn"
+                                           Command="{x:Bind Vm.BrowseFileCommand}" />
+                                </MenuFlyout>
+                            </Button.Flyout>
+                            <FontIcon Glyph="&#xE712;" FontSize="16" />
+                        </Button>
                     </Grid>
                 </StackPanel>
-
-                <!-- 기술 스택 태그 -->
-                <StackPanel Spacing="8">
-                    <TextBlock x:Uid="ProjTagsLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                    <ItemsRepeater ItemsSource="{x:Bind Vm.AvailableTags, Mode=OneWay}">
-                        <ItemsRepeater.Layout>
-                            <LinedFlowLayout MinItemSpacing="6" LineSpacing="6" />
-                        </ItemsRepeater.Layout>
-                        <ItemsRepeater.ItemTemplate>
-                            <DataTemplate x:DataType="vm:TagBadgeItem">
-                                <ToggleButton
-                                    Content="{x:Bind DisplayName}"
-                                    IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
-                                    Padding="10,4"
-                                    CornerRadius="12"
-                                    MinWidth="30"
-                                    FontSize="12" />
-                            </DataTemplate>
-                        </ItemsRepeater.ItemTemplate>
-                    </ItemsRepeater>
+                <StackPanel Spacing="4">
+                    <TextBlock x:Uid="ProjOptionsLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBox
+                        x:Uid="ProjOptionsBox"
+                        Text="{x:Bind Vm.Options, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
+            </StackPanel>
 
-                <TextBox
-                    x:Uid="ProjExtraTagsBox"
-                    Margin="0,4,0,0"
-                    MaxLength="100"
-                    HorizontalAlignment="Stretch"
-                    Text="{x:Bind Vm.Tags, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <!-- 관리자 권한 -->
+            <CheckBox
+                x:Uid="ProjRunAsAdminCheck"
+                IsChecked="{x:Bind Vm.RunAsAdmin, Mode=TwoWay}" />
+
+            <!-- 아이콘 -->
+            <StackPanel Spacing="4">
+                <TextBlock x:Uid="ProjIconLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <!-- 아이콘 이미지 미리보기 -->
+                    <Grid Grid.Column="0" Width="48" Height="48">
+                        <FontIcon Glyph="&#xE91B;" FontSize="24"
+                                  Visibility="{Binding IconPath, Converter={StaticResource StringEmptyToVisibility}}" />
+                        <Border CornerRadius="8"
+                                Visibility="{Binding IconPath, Converter={StaticResource StringNotEmptyToVisibility}}">
+                            <Image
+                                Source="{Binding IconPath, Converter={StaticResource ImagePathToSource}}"
+                                Stretch="Uniform" />
+                        </Border>
+                    </Grid>
+                    <TextBox
+                        x:Uid="ProjIconBox"
+                        Grid.Column="1"
+                        IsReadOnly="True"
+                     VerticalAlignment="Center"
+                        Text="{x:Bind Vm.IconPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
+                        <Button
+                        x:Uid="Btn_Browse"
+                        Command="{x:Bind Vm.BrowseIconCommand}" />
+                        <Button
+                        Command="{x:Bind Vm.ClearIconCommand}" >
+                            <FontIcon Glyph="&#xE74D;" FontSize="13"
+      Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+
+            <!-- 기술 스택 태그 -->
+            <StackPanel Spacing="8">
+                <TextBlock x:Uid="ProjTagsLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <ItemsRepeater ItemsSource="{x:Bind Vm.AvailableTags, Mode=OneWay}">
+                    <ItemsRepeater.Layout>
+                        <LinedFlowLayout MinItemSpacing="6" LineSpacing="6" />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="vm:TagBadgeItem">
+                            <ToggleButton
+                                Content="{x:Bind DisplayName}"
+                                IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                Padding="10,4"
+                                CornerRadius="12"
+                                MinWidth="30"
+                                FontSize="12" />
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </StackPanel>
+
+            <TextBox
+                x:Uid="ProjExtraTagsBox"
+                Margin="0,4,0,0"
+                MaxLength="100"
+                HorizontalAlignment="Stretch"
+                Text="{x:Bind Vm.Tags, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
             </StackPanel>
         </ScrollViewer>
+    </StackPanel>
 
-        <!-- Row 2: 버튼 패널 -->
-        <Border
-            Grid.Row="2"
-            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-            BorderThickness="0,1,0,0">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Padding="16,12">
-                <Button x:Uid="Btn_Save" Click="OnSave" Style="{StaticResource AccentButtonStyle}" />
-                <Button x:Uid="Btn_Cancel" Click="OnCancel" />
-            </StackPanel>
-        </Border>
-    </Grid>
-
-</winuiex:WindowEx>
+</ContentDialog>

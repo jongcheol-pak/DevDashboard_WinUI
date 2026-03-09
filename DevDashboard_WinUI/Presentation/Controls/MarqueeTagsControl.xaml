@@ -6,7 +6,7 @@
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls">
 
     <!-- 뷰포트(Clip 경계) → Track(수평 이동, Translation 속성으로 Compositor 스레드 제어) → Rep1 | Spacer | Rep2 -->
-    <Grid x:Name="Viewport" Height="26">
+    <Grid x:Name="Viewport">
         <StackPanel x:Name="Track" Orientation="Horizontal" VerticalAlignment="Center">
 
             <!-- 원본 태그 그룹 -->
@@ -24,6 +24,15 @@
                     </DataTemplate>
                 </ItemsRepeater.ItemTemplate>
             </ItemsRepeater>
+
+            <!-- +N 배지 (비-애니메이션 overflow 시에만 표시) -->
+            <Border x:Name="OverflowBadge" Visibility="Collapsed"
+                    Padding="6,4" CornerRadius="4"
+                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                    VerticalAlignment="Center" Margin="4,0,0,0">
+                <TextBlock x:Name="OverflowText" FontSize="11"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </Border>
 
             <!-- 마키 반복 간격 (애니메이션 시에만 표시) -->
             <Border x:Name="Spacer" Width="30" Visibility="Collapsed" />

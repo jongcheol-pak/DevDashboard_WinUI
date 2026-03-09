@@ -1,60 +1,41 @@
 using DevDashboard.Infrastructure.Services;
 using DevDashboard.Presentation.ViewModels;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Media;
-using WinUIEx;
+using Microsoft.UI.Xaml.Controls;
 
 namespace DevDashboard.Presentation.Views.Dialogs;
 
-public sealed partial class GitStatusDialog : WindowEx
+public sealed partial class GitStatusDialog : ContentDialog
 {
-   
-    private const int InitW = 700;
-    private const int InitH = 500;
-
     private readonly ProjectCardViewModel _card;
-    private readonly TaskCompletionSource _closedTcs = new();
     private readonly CancellationTokenSource _cts = new();
-    private bool _initialized;
 
     public GitStatusDialog(ProjectCardViewModel card)
     {
         _card = card;
         InitializeComponent();
-        SystemBackdrop = new MicaBackdrop();
-        if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p)
-        { p.IsMinimizable = false; p.IsMaximizable = false; }
 
-        var manager = WindowManager.Get(this);
-    
         // 프로젝트명을 포함한 동적 타이틀 설정
         Title = string.Format(LocalizationService.Get("GitStatusDialog_TitleFormat"), card.Name);
+        CloseButtonText = LocalizationService.Get("Dialog_Close");
 
-        ExtendsContentIntoTitleBar = true;
-        SetTitleBar(AppTitleBar);
-        AppTitleBarText.Text = Title;
-
-        Closed += (_, _) =>
+        Closing += (_, _) =>
         {
             _cts.Cancel();
             _cts.Dispose();
-            _closedTcs.TrySetResult();
         };
     }
 
-    internal Task ShowAsync()
+    internal new async Task<ContentDialogResult> ShowAsync()
     {
-        DialogWindowHost.Show(this, InitW, InitH);
-        return _closedTcs.Task;
+        XamlRoot = App.MainWindow?.Content?.XamlRoot;
+        return await base.ShowAsync();
     }
 
-    private async void OnRootLoaded(object sender, RoutedEventArgs e)
+    private async void OnOpened(ContentDialog sender, ContentDialogOpenedEventArgs args)
     {
         try
         {
-            if (_initialized) return;
-            _initialized = true;
-
             string? error;
             try
             {
@@ -85,10 +66,9 @@ public sealed partial class GitStatusDialog : WindowEx
         }
         catch (Exception ex)
         {
-            await DialogService.ShowErrorAsync(
-                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+            LoadingPanel.Visibility = Visibility.Collapsed;
+            ErrorBar.Message = string.Format(LocalizationService.Get("UnexpectedError"), ex.Message);
+            ErrorBar.IsOpen = true;
         }
     }
-
-    private void OnClose(object sender, RoutedEventArgs e) => Close();
 }

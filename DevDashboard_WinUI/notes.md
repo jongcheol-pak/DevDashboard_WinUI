@@ -4,6 +4,11 @@
 
 | 날짜 | 내용 |
 |------|------|
+| 2026-03-09 | **Dialog 코드 품질 개선** — ProjectHistoryDialog PropertyChanged 이벤트 미해제 수정, IconPickerDialog 예외 무시→인라인 에러 표시, TodoDialog `_isRefreshing` try/finally 보장 + JsonStorageService 캐시, AppSettingsDialog Closing async 예외 try-catch 추가 |
+| 2026-03-09 | **중첩 ContentDialog 크래시 수정** — WinUI 3 단일 ContentDialog 제약 대응. Hide→중첩 표시→재표시 패턴 적용 (TodoDialog/HistoryDialog/ProjectHistoryDialog/AppSettingsDialog). GitStatusDialog/IconPickerDialog는 인라인 에러 처리 |
+| 2026-03-09 | **ContentDialog 너비 사이징 수정** — `MinWidth`/`Width` 속성 대신 `ContentDialogMinWidth` + `ContentDialogMaxWidth` ThemeResource 오버라이드로 변경 (ContentDialog 내부 템플릿이 직접 속성을 무시하는 WinUI 3 이슈) |
+| 2026-03-09 | **Dialog Window → ContentDialog 전환** — 9개 Dialog를 WindowEx 기반에서 WinUI 3 기본 ContentDialog로 전환. DialogWindowHost 제거, 커스텀 타이틀바/모달 오버레이 불필요. PrimaryButtonClick 검증 패턴 적용, FileSavePicker hwnd는 App.MainWindow 사용 |
+| 2026-03-09 | **MarqueeTagsControl 탭 이동 시 태그 잘림/애니메이션 미동작 수정** — Compositor Translation 잔여값 리셋, 비-애니메이션 overflow 시 +N 배지 표시, Viewport 고정 높이 제거 |
 | 2026-07 | **자동실행 시 RPC_E_WRONG_THREAD 크래시 수정** — `Program.cs`의 STA 스레드 워크어라운드(새 스레드 생성 후 Main 재귀 호출) 제거. WinUI 3 `Application.Start`는 프로세스 메인 스레드에서만 호출 가능하므로 `[STAThread]`에 위임 |
 | 2026-07 | **CommandScripts DB 삭제 버그 수정** — `ProjectSettingsDialog` 저장 시 `ToProjectItem()`이 `CommandScripts`를 포함하지 않아 `Update()`에서 전부 삭제되던 문제. `AddOrUpdateProject` 업데이트 분기에서 기존 카드의 `CommandScripts`를 보존하도록 수정 |
 | 2026-07 | **CommandScriptDialog 실행폴더 UI 개선 + 저장 버그 수정**
@@ -41,10 +46,9 @@
 - `[ToolTipService.ToolTip]` x:Uid 패턴은 WinUI 3에서 런타임 XamlParseException을 발생시킴 — MainWindow는 코드비하인드 `ApplyToolTips()`로, DataTemplate 내부는 직접 XAML 속성으로 처리
 - `<Run>` 요소는 x:Uid를 지원하지 않으므로 `MainWindow.xaml.cs`에서 `LocalizationService.Get`으로 처리
 - DashboardView.xaml DataTemplate 내 tooltip은 하드코딩 영문 문자열 (다국어 미지원)
-- **WinUI 3 Window에서 `{x:Bind Prop, Converter={StaticResource ...}}`는 CS1503 빌드 오류 발생** → `{Binding Prop, Converter=...}` + `DataContext="{x:Bind Vm}"`으로 대체 (Window ≠ FrameworkElement)
-- Dialog Window에서 `FileSavePicker` hwnd: `WindowNative.GetWindowHandle(this)` 사용 (App.MainWindow 아님)
-- `DialogWindowHost.Show(dialog, w, h)`: 창 속성 설정 후 `Activate()` 호출 순서 필수
-- **WinUI 3 Window.Title은 x:Uid로 설정 불가** — `Window.Title`은 CLR 속성으로 x:Uid DependencyProperty 할당 메커니즘 미지원 → `XamlParseException` 발생. Dialog Title은 코드비하인드에서 `LocalizationService.Get("욬XxxDialogTitle")`로 설정
+- Dialog는 ContentDialog 기반 — `XamlRoot = App.MainWindow?.Content?.XamlRoot` 설정 후 `ShowAsync()` 호출
+- **WinUI 3은 중첩 ContentDialog를 지원하지 않음** — Dialog 내부에서 확인/편집 팝업을 띄울 때 `ShowNestedDialogAsync()` 패턴 사용 (Hide → 중첩 표시 → TCS 대기 → 원래 다이얼로그 재표시)
+- Dialog FileSavePicker hwnd: `WindowNative.GetWindowHandle(App.MainWindow)` 사용
 - `ContentDialog`는 `App.MainWindow!.Content.XamlRoot` 사용 (DialogService, 오류 메시지용)
 - **중첩 DataTemplate 내 `{Binding ..., Converter={StaticResource ...}}`는 리소스 조회 실패 위험** — `x:DataType` 지정 DataTemplate에서는 `{x:Bind ComputedProperty}` 패턴 사용 (ViewModel에 `Visibility` 계산 속성 추가)
 - `ObservableCollection`이 `ItemsControl.ItemsSource`에 연결된 경우 `Clear()` + `Add()` 만으로 자동 갱신됨 — ItemsSource 재할당(null → 컬렉션) 불필요

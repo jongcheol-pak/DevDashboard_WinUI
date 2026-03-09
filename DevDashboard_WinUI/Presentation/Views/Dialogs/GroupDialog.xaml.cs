@@ -1,20 +1,14 @@
 using DevDashboard.Infrastructure.Services;
 using DevDashboard.Presentation.ViewModels;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Media;
-using WinUIEx;
+using Microsoft.UI.Xaml.Controls;
 
 namespace DevDashboard.Presentation.Views.Dialogs;
 
-public sealed partial class GroupDialog : WindowEx
+public sealed partial class GroupDialog : ContentDialog
 {
- 
-    private const int InitW = 400;
-    private const int InitH = 250;
-
     private readonly IReadOnlyList<ProjectGroup> _existingGroups;
     private GroupDialogViewModel Vm { get; } = new();
-    private readonly TaskCompletionSource _closedTcs = new();
 
     public ProjectGroup? ResultGroup { get; private set; }
 
@@ -22,40 +16,31 @@ public sealed partial class GroupDialog : WindowEx
     {
         _existingGroups = groups;
         InitializeComponent();
-        SystemBackdrop = new MicaBackdrop();
-        if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p)
-        { p.IsMinimizable = false; p.IsMaximizable = false; }
-
-        var manager = WindowManager.Get(this);
-       
 
         if (existing is not null)
             Vm.LoadFrom(existing);
 
-        // 추가/편집 모드에 따라 타이틀 설정
         Title = existing is null
             ? LocalizationService.Get("GroupDialog_TitleAdd")
             : LocalizationService.Get("GroupDialog_TitleEdit");
 
-        ExtendsContentIntoTitleBar = true;
-        SetTitleBar(AppTitleBar);
-        AppTitleBarText.Text = Title;
-
-        Closed += (_, _) => _closedTcs.TrySetResult();
+        PrimaryButtonText = LocalizationService.Get("Dialog_Save");
+        CloseButtonText = LocalizationService.Get("Dialog_Cancel");
     }
 
-    internal Task ShowAsync()
+    internal new async Task<ContentDialogResult> ShowAsync()
     {
-        DialogWindowHost.Show(this, InitW, InitH);
-        return _closedTcs.Task;
+        XamlRoot = App.MainWindow?.Content?.XamlRoot;
+        return await base.ShowAsync();
     }
 
-    private void OnSave(object sender, RoutedEventArgs e)
+    private void OnSave(ContentDialog sender, ContentDialogButtonClickEventArgs args)
     {
         var name = Vm.Name.Trim();
         if (string.IsNullOrWhiteSpace(name))
         {
             ShowError(LocalizationService.Get("GroupDialog_NameRequired"));
+            args.Cancel = true;
             return;
         }
 
@@ -64,6 +49,7 @@ public sealed partial class GroupDialog : WindowEx
             g.Id != Vm.EditingGroupId))
         {
             ShowError(string.Format(LocalizationService.Get("GroupDialog_DuplicateFormat"), name));
+            args.Cancel = true;
             return;
         }
 
@@ -72,10 +58,7 @@ public sealed partial class GroupDialog : WindowEx
             Id = Vm.EditingGroupId ?? Guid.NewGuid().ToString(),
             Name = name
         };
-        Close();
     }
-
-    private void OnCancel(object sender, RoutedEventArgs e) => Close();
 
     private void ShowError(string message)
     {

@@ -3,64 +3,80 @@ using DevDashboard.Presentation.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
-using WinUIEx;
 
 namespace DevDashboard.Presentation.Views.Dialogs;
 
-public sealed partial class HistoryDialog : WindowEx
+public sealed partial class HistoryDialog : ContentDialog
 {
- 
-    private const int InitW = 800;
-    private const int InitH = 600;
-
     private HistoryDialogViewModel Vm { get; }
-    private readonly TaskCompletionSource _closedTcs = new();
     private readonly System.ComponentModel.PropertyChangedEventHandler _vmPropertyChangedHandler;
+    private TaskCompletionSource<bool>? _nestedTcs;
+
     public HistoryDialog(HistoryDialogViewModel vm)
     {
         Vm = vm;
         InitializeComponent();
-        SystemBackdrop = new MicaBackdrop();
-        if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p)
-        { p.IsMinimizable = false; p.IsMaximizable = false; }
-
-        var manager = WindowManager.Get(this);
-      
 
         // 프로젝트명을 포함한 동적 타이틀 설정
         Title = string.Format(LocalizationService.Get("HistoryDialog_TitleFormat"), vm.ProjectName);
-
-        ExtendsContentIntoTitleBar = true;
-        SetTitleBar(AppTitleBar);
-        AppTitleBarText.Text = Title;
+        CloseButtonText = LocalizationService.Get("Dialog_Close");
 
         GroupList.ItemsSource = Vm.DateGroups;
         _vmPropertyChangedHandler = (_, _) => RefreshList();
         Vm.PropertyChanged += _vmPropertyChangedHandler;
         RefreshList();
 
-        Closed += (_, _) =>
+        Closing += (_, _) =>
         {
             Vm.PropertyChanged -= _vmPropertyChangedHandler;
-            _closedTcs.TrySetResult();
         };
     }
 
-    internal Task ShowAsync()
+    internal new async Task<ContentDialogResult> ShowAsync()
     {
-        DialogWindowHost.Show(this, InitW, InitH);
-        return _closedTcs.Task;
+        XamlRoot = App.MainWindow?.Content?.XamlRoot;
+        ContentDialogResult result;
+        do
+        {
+            result = await base.ShowAsync();
+            if (_nestedTcs is not null)
+            {
+                await _nestedTcs.Task;
+                _nestedTcs = null;
+                continue;
+            }
+            break;
+        } while (true);
+        return result;
     }
 
-    /// <summary>다이얼로그 타이틀을 사용자 정의 값으로 변경합니다.</summary>
-    internal void OverrideTitle(string title)
+    private async Task<ContentDialogResult> ShowNestedDialogAsync(ContentDialog dialog)
     {
-        Title = title;
-        AppTitleBarText.Text = title;
+        _nestedTcs = new TaskCompletionSource<bool>();
+        Hide();
+        dialog.XamlRoot = App.MainWindow?.Content?.XamlRoot;
+        try
+        {
+            return await dialog.ShowAsync();
+        }
+        finally
+        {
+            _nestedTcs.TrySetResult(true);
+        }
+    }
+
+    private Task ShowNestedErrorAsync(string message)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = LocalizationService.Get("Dialog_DefaultErrorTitle"),
+            Content = string.Format(LocalizationService.Get("UnexpectedError"), message),
+            CloseButtonText = LocalizationService.Get("Dialog_OK"),
+        };
+        return ShowNestedDialogAsync(dialog);
     }
 
     /// <summary>추가 폼을 펼치고 제목을 미리 채웁니다. Todo 완료 시 자동 호출됩니다.</summary>
@@ -126,10 +142,9 @@ public sealed partial class HistoryDialog : WindowEx
                 PrimaryButtonText = LocalizationService.Get("Dialog_Save"),
                 CloseButtonText = LocalizationService.Get("Dialog_Cancel"),
                 DefaultButton = ContentDialogButton.Primary,
-                XamlRoot = Content.XamlRoot
             };
 
-            if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+            if (await ShowNestedDialogAsync(dialog) != ContentDialogResult.Primary) return;
 
             var title = titleBox.Text.Trim();
             if (string.IsNullOrWhiteSpace(title)) return;
@@ -138,8 +153,7 @@ public sealed partial class HistoryDialog : WindowEx
         }
         catch (Exception ex)
         {
-            await DialogService.ShowErrorAsync(
-                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+            await ShowNestedErrorAsync(ex.Message);
         }
     }
 
@@ -199,8 +213,8 @@ public sealed partial class HistoryDialog : WindowEx
             picker.FileTypeChoices.Add(LocalizationService.Get("HistoryDialog_MarkdownType"), [".md"]);
             picker.SuggestedFileName = $"{Vm.ProjectName}_history";
 
-            // FileSavePicker hwnd는 이 다이얼로그 창 자체를 사용
-            var hwnd = WindowNative.GetWindowHandle(this);
+            // FileSavePicker hwnd는 MainWindow를 사용
+            var hwnd = WindowNative.GetWindowHandle(App.MainWindow);
             InitializeWithWindow.Initialize(picker, hwnd);
 
             var file = await picker.PickSaveFileAsync();
@@ -209,10 +223,7 @@ public sealed partial class HistoryDialog : WindowEx
         }
         catch (Exception ex)
         {
-            await DialogService.ShowErrorAsync(
-                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+            await ShowNestedErrorAsync(ex.Message);
         }
     }
-
-    private void OnClose(object sender, RoutedEventArgs e) => Close();
 }

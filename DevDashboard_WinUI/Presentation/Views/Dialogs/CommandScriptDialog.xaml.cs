@@ -2,76 +2,44 @@ using DevDashboard.Infrastructure.Services;
 using DevDashboard.Presentation.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
-using WinUIEx;
 
 namespace DevDashboard.Presentation.Views.Dialogs;
 
-public sealed partial class CommandScriptDialog : WindowEx
+public sealed partial class CommandScriptDialog : ContentDialog
 {
-  
-    private const int InitW = 600;
-    private const int InitH = 500;
-
     private CommandScriptDialogViewModel Vm { get; } = new();
-    private readonly TaskCompletionSource _closedTcs = new();
 
     public CommandScript? ResultScript { get; private set; }
 
     public CommandScriptDialog(CommandScript? existing)
     {
         InitializeComponent();
+
         Title = LocalizationService.Get("CommandScriptDialogTitle");
-        SystemBackdrop = new MicaBackdrop();
-        if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p)
-        { p.IsMinimizable = false; p.IsMaximizable = false; }
-
-        ExtendsContentIntoTitleBar = true;
-        SetTitleBar(AppTitleBar);
-        AppTitleBarText.Text = Title;
-
-        var manager = WindowManager.Get(this);
-      
+        PrimaryButtonText = LocalizationService.Get("Dialog_Save");
+        CloseButtonText = LocalizationService.Get("Dialog_Cancel");
 
         if (existing is not null)
             Vm.LoadFrom(existing);
-
-        Closed += (_, _) => _closedTcs.TrySetResult();
     }
 
-    internal Task ShowAsync()
+    internal new async Task<ContentDialogResult> ShowAsync()
     {
-        DialogWindowHost.Show(this, InitW, InitH);
-        return _closedTcs.Task;
+        XamlRoot = App.MainWindow?.Content?.XamlRoot;
+        return await base.ShowAsync();
     }
 
-    private async void OnSave(object sender, RoutedEventArgs e)
+    private void OnSave(ContentDialog sender, ContentDialogButtonClickEventArgs args)
     {
-        try
+        var error = Vm.Validate();
+        if (error is not null)
         {
-            var error = Vm.Validate();
-            if (error is not null)
-            {
-                var dialog = new ContentDialog
-                {
-                    Title = LocalizationService.Get("InputRequired"),
-                    Content = error,
-                    CloseButtonText = LocalizationService.Get("Dialog_Close"),
-                    XamlRoot = Content.XamlRoot
-                };
-                await dialog.ShowAsync();
-                return;
-            }
+            ErrorText.Text = error;
+            ErrorText.Visibility = Visibility.Visible;
+            args.Cancel = true;
+            return;
+        }
 
-            ResultScript = Vm.ToCommandScript();
-            Close();
-        }
-        catch (Exception ex)
-        {
-            await DialogService.ShowErrorAsync(
-                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
-        }
+        ResultScript = Vm.ToCommandScript();
     }
-
-    private void OnCancel(object sender, RoutedEventArgs e) => Close();
 }

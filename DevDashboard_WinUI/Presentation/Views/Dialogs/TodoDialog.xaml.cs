@@ -2,23 +2,22 @@ using DevDashboard.Infrastructure.Services;
 using DevDashboard.Presentation.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using Windows.UI.Text;
-using WinUIEx;
 
 namespace DevDashboard.Presentation.Views.Dialogs;
 
-public sealed partial class TodoDialog : WindowEx
+public sealed partial class TodoDialog : ContentDialog
 {
-  
-    private const int InitW = 700;
-    private const int InitH = 550;
-
     private TodoDialogViewModel Vm { get; }
-    private readonly TaskCompletionSource _closedTcs = new();
 
     /// <summary>초기화 완료 플래그 — 목록 바인딩 시 이벤트 핸들러 무시</summary>
     private bool _isRefreshing;
+
+    /// <summary>중첩 다이얼로그 완료 대기용 TCS</summary>
+    private TaskCompletionSource<bool>? _nestedTcs;
+
+    /// <summary>Todo 완료 시 작업 기록 팝업 표시 여부 (생성자에서 캐시)</summary>
+    private readonly bool _showWorkLogPopup;
 
     /// <summary>이번 세션에서 새로 생성된 작업 기록 항목</summary>
     public List<HistoryEntry> NewHistories { get; } = [];
@@ -26,27 +25,58 @@ public sealed partial class TodoDialog : WindowEx
     public TodoDialog(TodoDialogViewModel vm)
     {
         Vm = vm;
+        _showWorkLogPopup = new JsonStorageService().Load().ShowWorkLogPopupOnTodoComplete;
         InitializeComponent();
+
         Title = LocalizationService.Get("TodoDialogTitle");
-        SystemBackdrop = new MicaBackdrop();
-        if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p)
-        { p.IsMinimizable = false; p.IsMaximizable = false; }
-
-        ExtendsContentIntoTitleBar = true;
-        SetTitleBar(AppTitleBar);
-        AppTitleBarText.Text = Title;
-
-        var manager = WindowManager.Get(this);
-       
+        CloseButtonText = LocalizationService.Get("Dialog_Close");
 
         RefreshList();
-        Closed += (_, _) => _closedTcs.TrySetResult();
     }
 
-    internal Task ShowAsync()
+    internal new async Task<ContentDialogResult> ShowAsync()
     {
-        DialogWindowHost.Show(this, InitW, InitH);
-        return _closedTcs.Task;
+        XamlRoot = App.MainWindow?.Content?.XamlRoot;
+        ContentDialogResult result;
+        do
+        {
+            result = await base.ShowAsync();
+            if (_nestedTcs is not null)
+            {
+                await _nestedTcs.Task;
+                _nestedTcs = null;
+                continue;
+            }
+            break;
+        } while (true);
+        return result;
+    }
+
+    /// <summary>현재 다이얼로그를 숨기고 중첩 다이얼로그를 표시한 후 재표시합니다.</summary>
+    private async Task<ContentDialogResult> ShowNestedDialogAsync(ContentDialog dialog)
+    {
+        _nestedTcs = new TaskCompletionSource<bool>();
+        Hide();
+        dialog.XamlRoot = App.MainWindow?.Content?.XamlRoot;
+        try
+        {
+            return await dialog.ShowAsync();
+        }
+        finally
+        {
+            _nestedTcs.TrySetResult(true);
+        }
+    }
+
+    private Task ShowNestedErrorAsync(string message)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = LocalizationService.Get("Dialog_DefaultErrorTitle"),
+            Content = string.Format(LocalizationService.Get("UnexpectedError"), message),
+            CloseButtonText = LocalizationService.Get("Dialog_OK"),
+        };
+        return ShowNestedDialogAsync(dialog);
     }
 
     // --- x:Bind 함수 바인딩용 정적 헬퍼 ---
@@ -129,17 +159,16 @@ public sealed partial class TodoDialog : WindowEx
             {
                 // 완료 처리 — _isRefreshing 가드로 내부 RefreshFilter 이벤트 재진입 방지
                 _isRefreshing = true;
-                Vm.ToggleTodoCommand.Execute(todo);
-                _isRefreshing = false;
+                try { Vm.ToggleTodoCommand.Execute(todo); }
+                finally { _isRefreshing = false; }
 
                 // 설정에 따라 작업 기록 팝업 표시
-                var settings = new JsonStorageService().Load();
-                if (settings.ShowWorkLogPopupOnTodoComplete)
+                if (_showWorkLogPopup)
                 {
                     var historyVm = new HistoryDialogViewModel(Vm.ProjectItem);
                     var historyDialog = new HistoryDialog(historyVm);
                     historyDialog.OpenAddPanel(todo.Text);
-                    await historyDialog.ShowAsync();
+                    await ShowNestedDialogAsync(historyDialog);
 
                     // SaveToModel() 미호출 — OnTodoDialogClosed의 AddRange에서 신규 항목만 추가됨
                     NewHistories.AddRange(historyVm.NewEntries);
@@ -155,14 +184,13 @@ public sealed partial class TodoDialog : WindowEx
                     PrimaryButtonText = LocalizationService.Get("Dialog_Yes"),
                     CloseButtonText = LocalizationService.Get("Dialog_Cancel"),
                     DefaultButton = ContentDialogButton.Primary,
-                    XamlRoot = Content.XamlRoot
                 };
 
-                if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+                if (await ShowNestedDialogAsync(dialog) == ContentDialogResult.Primary)
                 {
                     _isRefreshing = true;
-                    Vm.ToggleTodoCommand.Execute(todo);
-                    _isRefreshing = false;
+                    try { Vm.ToggleTodoCommand.Execute(todo); }
+                    finally { _isRefreshing = false; }
                 }
             }
 
@@ -170,8 +198,7 @@ public sealed partial class TodoDialog : WindowEx
         }
         catch (Exception ex)
         {
-            await DialogService.ShowErrorAsync(
-                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+            await ShowNestedErrorAsync(ex.Message);
         }
     }
 
@@ -188,18 +215,16 @@ public sealed partial class TodoDialog : WindowEx
                 PrimaryButtonText = LocalizationService.Get("Dialog_Delete"),
                 CloseButtonText = LocalizationService.Get("Dialog_Cancel"),
                 DefaultButton = ContentDialogButton.Close,
-                XamlRoot = Content.XamlRoot
             };
 
-            if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+            if (await ShowNestedDialogAsync(dialog) != ContentDialogResult.Primary) return;
 
             Vm.DeleteTodoCommand.Execute(todo);
             RefreshList();
         }
         catch (Exception ex)
         {
-            await DialogService.ShowErrorAsync(
-                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+            await ShowNestedErrorAsync(ex.Message);
         }
     }
 
@@ -218,10 +243,9 @@ public sealed partial class TodoDialog : WindowEx
                 PrimaryButtonText = LocalizationService.Get("Dialog_Save"),
                 CloseButtonText = LocalizationService.Get("Dialog_Cancel"),
                 DefaultButton = ContentDialogButton.Primary,
-                XamlRoot = Content.XamlRoot
             };
 
-            if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+            if (await ShowNestedDialogAsync(dialog) != ContentDialogResult.Primary) return;
 
             var newText = textBox.Text.Trim();
             if (string.IsNullOrWhiteSpace(newText)) return;
@@ -231,10 +255,7 @@ public sealed partial class TodoDialog : WindowEx
         }
         catch (Exception ex)
         {
-            await DialogService.ShowErrorAsync(
-                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+            await ShowNestedErrorAsync(ex.Message);
         }
     }
-
-    private void OnClose(object sender, RoutedEventArgs e) => Close();
 }

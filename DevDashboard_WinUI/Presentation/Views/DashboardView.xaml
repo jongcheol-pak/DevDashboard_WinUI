@@ -236,7 +236,7 @@
                                         Margin="0,0,4,0"
                                         Style="{StaticResource CardIconButtonStyle}"
                                         Command="{Binding EditCommand}">
-                                    <FontIcon Glyph="&#xE70F;" FontSize="14"
+                                    <FontIcon Glyph="&#xE713;" FontSize="14"
                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                                 </Button>
 
