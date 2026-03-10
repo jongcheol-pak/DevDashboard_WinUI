@@ -10,6 +10,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:helpers="using:DevDashboard.Presentation.Helpers"
+    xmlns:ctrl="using:DevDashboard.Presentation.Controls"
     mc:Ignorable="d"
     Title="Project Dashboard"
     MinWidth="1000"
@@ -21,7 +22,6 @@
 
     <Grid x:Name="RootGrid">
         <Grid.RowDefinitions>
-            <RowDefinition Height="48" />
             <RowDefinition Height="48" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
@@ -59,7 +59,7 @@
                                 QueryIcon="Find"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center"
-                                MaxWidth="400"                                
+                                MaxWidth="400"
                                helpers:AutoSuggestBoxHelper.MaxLength="30"
                                 TextChanged="SearchBox_TextChanged"
                                />
@@ -131,122 +131,216 @@
             </Grid>
         </Border>
 
-        <!-- ===== 그룹 탭 영역 ===== -->
-        <Border Grid.Row="1"
-                Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
-                BorderThickness="0,0,0,1"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
-            <Grid Margin="12,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+        <!-- ===== 메인 영역 (런처 사이드바 + 탭/콘텐츠) ===== -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-                <!-- 그룹 탭 좌측 스크롤 버튼 -->
-                <Button x:Name="GroupScrollLeftButton"
-                        Margin="0,0,12,0"
-                        Grid.Column="0"
-                        Width="30" Height="30" Padding="0"
-                        VerticalAlignment="Center"
-                        Background="Transparent" BorderThickness="0"
-                        Visibility="Collapsed"
-                        Click="GroupScrollLeft_Click">
-                    <FontIcon Glyph="&#xF08D;" FontSize="24" />
-                </Button>
+            <!-- 좌: 런처 사이드바 (탭 + 콘텐츠 영역 전체 높이) -->
+            <Border Grid.Column="0"
+                    Width="56"
+                    BorderThickness="0,0,1,0"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    Background="{ThemeResource SolidBackgroundFillColorBaseBrush}">
 
-                <!-- 그룹 탭 스크롤 영역 -->
-                <ScrollViewer x:Name="GroupTabsScrollViewer"
-                              Grid.Column="1"
-                              
-                              HorizontalScrollBarVisibility="Hidden"
-                              VerticalScrollBarVisibility="Disabled"
-                              ViewChanged="GroupTabsScrollViewer_ViewChanged">
-                    <StackPanel x:Name="GroupTabsPanel" Orientation="Horizontal">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Spacing="4" Padding="0,8">
 
-                        <!-- 전체 탭 -->
-                        <RadioButton x:Name="AllGroupTab"
-                                     x:Uid="AllGroupTab"
-                                     GroupName="GroupTabs"
-                                     Style="{StaticResource GroupTabRadioButtonStyle}"
-                                     IsChecked="True"
-                                     Checked="AllGroupTab_Checked" />
-
-                        <!-- 사용자 그룹 탭 (코드비하인드에서 동적 추가) -->
-                        <ItemsRepeater x:Name="GroupTabsRepeater"
-                                       ItemsSource="{Binding Groups}">
+                        <ItemsRepeater x:Name="LauncherRepeater">
                             <ItemsRepeater.Layout>
-                                <StackLayout Orientation="Horizontal" />
+                                <StackLayout Orientation="Vertical" Spacing="4" />
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
-                                <DataTemplate x:DataType="models:ProjectGroup">
-                                    <RadioButton Content="{Binding Name}"
-                                                 GroupName="GroupTabs"
-                                                 Style="{StaticResource GroupTabRadioButtonStyle}"
-                                                 Tag="{Binding Id}"
-                                                 Checked="GroupTab_Checked"
-                                                 DoubleTapped="GroupTab_DoubleTapped">
-                                        <RadioButton.ContextFlyout>
-                                            <MenuFlyout>
-                                                <MenuFlyoutItem x:Uid="GroupTabRenameItem"
-                                                               Click="GroupTabRename_Click" />
-                                                <MenuFlyoutItem x:Uid="GroupTabDeleteItem"
-                                                               Click="GroupTabDelete_Click"
-                                                               Visibility="{Binding IsDefault, Converter={StaticResource InverseBoolToVisibility}}" />
-                                            </MenuFlyout>
-                                        </RadioButton.ContextFlyout>
-                                    </RadioButton>
-                                </DataTemplate>
+                                <ctrl:LauncherItemTemplateSelector>
+                                    <!-- 아이콘 템플릿 -->
+                                    <ctrl:LauncherItemTemplateSelector.IconTemplate>
+                                        <DataTemplate x:DataType="vm:LauncherItemViewModel">
+                                            <Grid Width="44" Height="44"
+                                                  HorizontalAlignment="Center"
+                                                  Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                                  BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                                                  BorderThickness="1"
+                                                  CornerRadius="4"
+                                                  ToolTipService.ToolTip="{Binding DisplayName}"
+                                                  CanDrag="True"
+                                                  AllowDrop="True"
+                                                  DragStarting="LauncherItem_DragStarting"
+                                                  DropCompleted="LauncherItem_DropCompleted"
+                                                  DragOver="LauncherItem_DragOver"
+                                                  Drop="LauncherItem_Drop"
+                                                  Tapped="LauncherItem_Tapped">
+                                                <Image Source="{Binding IconImage}"
+                                                       Width="28" Height="28"
+                                                       Stretch="Uniform"
+                                                       IsHitTestVisible="False" />
+                                                <Grid.ContextFlyout>
+                                                    <MenuFlyout>
+                                                        <MenuFlyoutItem x:Uid="LauncherRunAsAdmin"
+                                                                       Click="LauncherRunAsAdmin_Click" />
+                                                        <MenuFlyoutItem x:Uid="LauncherDelete"
+                                                                       Click="LauncherDelete_Click" />
+                                                    </MenuFlyout>
+                                                </Grid.ContextFlyout>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ctrl:LauncherItemTemplateSelector.IconTemplate>
+                                    <!-- 드롭 플레이스홀더 템플릿 -->
+                                    <ctrl:LauncherItemTemplateSelector.PlaceholderTemplate>
+                                        <DataTemplate x:DataType="models:DropPlaceholder">
+                                            <Border Width="44" Height="44"
+                                                    HorizontalAlignment="Center"
+                                                    Background="{ThemeResource ControlFillColorDisabledBrush}"
+                                                    BorderBrush="{ThemeResource AccentControlElevationBorderBrush}"
+                                                    BorderThickness="2"
+                                                    CornerRadius="4"
+                                                    AllowDrop="True"
+                                                    DragOver="LauncherPlaceholder_DragOver"
+                                                    Drop="LauncherPlaceholder_Drop" />
+                                        </DataTemplate>
+                                    </ctrl:LauncherItemTemplateSelector.PlaceholderTemplate>
+                                </ctrl:LauncherItemTemplateSelector>
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
 
-                        <!-- 그룹 추가 버튼 -->
-                        <Button x:Name="AddGroupButton"
-                                Style="{StaticResource GroupAddButtonStyle}"
-                                Click="AddGroupButton_Click"
-                                Visibility="{Binding CanAddGroup, Converter={StaticResource BoolToVisibility}}">
-                            <FontIcon Glyph="&#xE710;" FontSize="14" />
+                        <!-- 추가 버튼 -->
+                        <Button x:Name="LauncherAddButton"
+                                Width="44" Height="44" Padding="0"
+                                HorizontalAlignment="Center"
+                                Click="LauncherAdd_Click">
+                            <FontIcon Glyph="&#xF8AA;" FontSize="16" />
                         </Button>
                     </StackPanel>
                 </ScrollViewer>
+            </Border>
 
-                <!-- 그룹 탭 우측 스크롤 버튼 -->
-                <Button x:Name="GroupScrollRightButton"
-                        Margin="12,0,0,0"
-                        Grid.Column="2"
-                        Padding="0"
-                        Width="32" Height="32"
-                        VerticalAlignment="Center"
-                        Background="Transparent" BorderThickness="0"
-                        Visibility="Collapsed"
-                        Click="GroupScrollRight_Click">
-                    <FontIcon Glyph="&#xF08F;" FontSize="24" />
-                </Button>
+            <!-- 우: 그룹 탭 + 콘텐츠 -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="48" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-                <!-- 새로고침 버튼 -->
-                <Button x:Name="RefreshButton"
-                        Margin="12,0,0,0"
-                        Grid.Column="3"
-                        Width="32" Height="32" Padding="0"
-                        VerticalAlignment="Center"
-                        Command="{Binding RefreshCommand}">
-                    <Button.ContextFlyout>
-                        <MenuFlyout>
-                            <MenuFlyoutItem x:Uid="HardRefreshItem"
-                                           Command="{Binding HardRefreshCommand}" />
-                        </MenuFlyout>
-                    </Button.ContextFlyout>
-                    <FontIcon Glyph="&#xE72C;" FontSize="16" />
-                </Button>
+                <!-- 그룹 탭 영역 -->
+                <Border Grid.Row="0"
+                        Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+                        BorderThickness="0,0,0,1"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                    <Grid Margin="12,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- 그룹 탭 좌측 스크롤 버튼 -->
+                        <Button x:Name="GroupScrollLeftButton"
+                                Margin="0,0,12,0"
+                                Grid.Column="0"
+                                Width="30" Height="30" Padding="0"
+                                VerticalAlignment="Center"
+                                Background="Transparent" BorderThickness="0"
+                                Visibility="Collapsed"
+                                Click="GroupScrollLeft_Click">
+                            <FontIcon Glyph="&#xF08D;" FontSize="24" />
+                        </Button>
+
+                        <!-- 그룹 탭 스크롤 영역 -->
+                        <ScrollViewer x:Name="GroupTabsScrollViewer"
+                                      Grid.Column="1"
+
+                                      HorizontalScrollBarVisibility="Hidden"
+                                      VerticalScrollBarVisibility="Disabled"
+                                      ViewChanged="GroupTabsScrollViewer_ViewChanged">
+                            <StackPanel x:Name="GroupTabsPanel" Orientation="Horizontal">
+
+                                <!-- 전체 탭 -->
+                                <RadioButton x:Name="AllGroupTab"
+                                             x:Uid="AllGroupTab"
+                                             GroupName="GroupTabs"
+                                             Style="{StaticResource GroupTabRadioButtonStyle}"
+                                             IsChecked="True"
+                                             Checked="AllGroupTab_Checked" />
+
+                                <!-- 사용자 그룹 탭 (코드비하인드에서 동적 추가) -->
+                                <ItemsRepeater x:Name="GroupTabsRepeater"
+                                               ItemsSource="{Binding Groups}">
+                                    <ItemsRepeater.Layout>
+                                        <StackLayout Orientation="Horizontal" />
+                                    </ItemsRepeater.Layout>
+                                    <ItemsRepeater.ItemTemplate>
+                                        <DataTemplate x:DataType="models:ProjectGroup">
+                                            <RadioButton Content="{Binding Name}"
+                                                         GroupName="GroupTabs"
+                                                         Style="{StaticResource GroupTabRadioButtonStyle}"
+                                                         Tag="{Binding Id}"
+                                                         Checked="GroupTab_Checked"
+                                                         DoubleTapped="GroupTab_DoubleTapped">
+                                                <RadioButton.ContextFlyout>
+                                                    <MenuFlyout>
+                                                        <MenuFlyoutItem x:Uid="GroupTabRenameItem"
+                                                                       Click="GroupTabRename_Click" />
+                                                        <MenuFlyoutItem x:Uid="GroupTabDeleteItem"
+                                                                       Click="GroupTabDelete_Click"
+                                                                       Visibility="{Binding IsDefault, Converter={StaticResource InverseBoolToVisibility}}" />
+                                                    </MenuFlyout>
+                                                </RadioButton.ContextFlyout>
+                                            </RadioButton>
+                                        </DataTemplate>
+                                    </ItemsRepeater.ItemTemplate>
+                                </ItemsRepeater>
+
+                                <!-- 그룹 추가 버튼 -->
+                                <Button x:Name="AddGroupButton"
+                                        Style="{StaticResource GroupAddButtonStyle}"
+                                        Click="AddGroupButton_Click"
+                                        Visibility="{Binding CanAddGroup, Converter={StaticResource BoolToVisibility}}">
+                                    <FontIcon Glyph="&#xE710;" FontSize="14" />
+                                </Button>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- 그룹 탭 우측 스크롤 버튼 -->
+                        <Button x:Name="GroupScrollRightButton"
+                                Margin="12,0,0,0"
+                                Grid.Column="2"
+                                Padding="0"
+                                Width="32" Height="32"
+                                VerticalAlignment="Center"
+                                Background="Transparent" BorderThickness="0"
+                                Visibility="Collapsed"
+                                Click="GroupScrollRight_Click">
+                            <FontIcon Glyph="&#xF08F;" FontSize="24" />
+                        </Button>
+
+                        <!-- 새로고침 버튼 -->
+                        <Button x:Name="RefreshButton"
+                                Margin="12,0,0,0"
+                                Grid.Column="3"
+                                Width="32" Height="32" Padding="0"
+                                VerticalAlignment="Center"
+                                Command="{Binding RefreshCommand}">
+                            <Button.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem x:Uid="HardRefreshItem"
+                                                   Command="{Binding HardRefreshCommand}" />
+                                </MenuFlyout>
+                            </Button.ContextFlyout>
+                            <FontIcon Glyph="&#xE72C;" FontSize="16" />
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- 콘텐츠 영역 (DashboardView) -->
+                <ContentControl Grid.Row="1" x:Name="DashboardContent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"/>
             </Grid>
-        </Border>
-
-        <!-- ===== 콘텐츠 영역 (DashboardView) ===== -->
-        <ContentControl Grid.Row="2" x:Name="DashboardContent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"/>
+        </Grid>
 
         <!-- ===== 하단 상태 표시줄 ===== -->
-        <Border Grid.Row="3"
+        <Border Grid.Row="2"
                 Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
                 BorderThickness="0,1,0,0"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">

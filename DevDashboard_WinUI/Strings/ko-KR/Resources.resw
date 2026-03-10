@@ -331,5 +331,10 @@
   <data name="Import_FailedTitle" xml:space="preserve"><value>가져오기 오류</value></data>
   <data name="Import_GroupsCreatedFormat" xml:space="preserve"><value>{0}그룹 {1}개 자동 생성됨</value></data>
   <data name="UnexpectedError" xml:space="preserve"><value>예기치 않은 오류가 발생했습니다: {0}</value></data>
+  <data name="InstalledAppsDialogTitle" xml:space="preserve"><value>설치된 앱 선택</value></data>
+  <data name="InstalledAppsSearch.PlaceholderText" xml:space="preserve"><value>앱 검색...</value></data>
+  <data name="Dialog_Select" xml:space="preserve"><value>선택</value></data>
+  <data name="LauncherRunAsAdmin.Text" xml:space="preserve"><value>관리자 권한으로 실행</value></data>
+  <data name="LauncherDelete.Text" xml:space="preserve"><value>삭제</value></data>
 
 </root>

@@ -16,9 +16,11 @@ namespace DevDashboard;
 public sealed partial class MainWindow : WindowEx
 {
     private MainViewModel? _viewModel;
+    private LauncherViewModel? _launcherViewModel;
     private readonly AppSettings _settings;
     private readonly JsonStorageService _storageService;
     private readonly IProjectRepository? _projectRepository;
+    private readonly LauncherRepository? _launcherRepository;
     private readonly string? _dbErrorMessage;
     private SizeChangedEventHandler? _headerBorderSizeChanged;
     private SizeChangedEventHandler? _groupTabsPanelSizeChanged;
@@ -29,11 +31,13 @@ public sealed partial class MainWindow : WindowEx
     public SortOrder SortByDate { get; } = SortOrder.CreatedAt;
 
     public MainWindow(AppSettings settings, JsonStorageService storageService,
-        IProjectRepository? projectRepository, string? dbErrorMessage = null)
+        IProjectRepository? projectRepository, LauncherRepository? launcherRepository,
+        string? dbErrorMessage = null)
     {
         _settings = settings;
         _storageService = storageService;
         _projectRepository = projectRepository;
+        _launcherRepository = launcherRepository;
         _dbErrorMessage = dbErrorMessage;
 
         InitializeComponent();
@@ -95,6 +99,10 @@ public sealed partial class MainWindow : WindowEx
             // DashboardView 주입
             DashboardContent.Content = new DashboardView { DataContext = _viewModel };
 
+            // 런처 사이드바 초기화
+            _launcherViewModel = new LauncherViewModel(_launcherRepository);
+            LauncherRepeater.ItemsSource = _launcherViewModel.DisplayItems;
+
             // 비동기 초기화
             await _viewModel.InitializeAsync();
 
@@ -149,6 +157,9 @@ public sealed partial class MainWindow : WindowEx
         if (AppWindow?.TitleBar is null || RootGrid.XamlRoot is null) return;
         if (SearchBox.ActualWidth == 0 || HeaderButtonsPanel.ActualWidth == 0) return;
 
+        try
+        {
+
         var scale = (float)RootGrid.XamlRoot.RasterizationScale;
         var headerHeight = (int)(48 * scale);
 
@@ -185,6 +196,11 @@ public sealed partial class MainWindow : WindowEx
             rects.Add(new Windows.Graphics.RectInt32(windowWidth - rightInset, captionButtonHeight, rightInset, headerHeight - captionButtonHeight));
 
         AppWindow.TitleBar.SetDragRectangles([.. rects]);
+        }
+        catch (ArgumentException)
+        {
+            // 레이아웃 전환 중 TransformToVisual 좌표 계산 실패 — 다음 SizeChanged에서 재시도
+        }
     }
 
     /// <summary>[ToolTipService.ToolTip] x:Uid는 런타임 XamlParseException을 발생시키므로
@@ -246,14 +262,21 @@ public sealed partial class MainWindow : WindowEx
     /// <summary>스크롤 위치에 따라 좌/우 화살표 버튼 가시성을 업데이트합니다.</summary>
     private void UpdateGroupScrollButtonVisibility()
     {
-        var canScrollLeft = GroupTabsScrollViewer.HorizontalOffset > 0;
-        var canScrollRight = GroupTabsScrollViewer.HorizontalOffset
-            < GroupTabsScrollViewer.ScrollableWidth - 1;
+        try
+        {
+            var canScrollLeft = GroupTabsScrollViewer.HorizontalOffset > 0;
+            var canScrollRight = GroupTabsScrollViewer.HorizontalOffset
+                < GroupTabsScrollViewer.ScrollableWidth - 1;
 
-        GroupScrollLeftButton.Visibility = canScrollLeft
-            ? Visibility.Visible : Visibility.Collapsed;
-        GroupScrollRightButton.Visibility = canScrollRight
-            ? Visibility.Visible : Visibility.Collapsed;
+            GroupScrollLeftButton.Visibility = canScrollLeft
+                ? Visibility.Visible : Visibility.Collapsed;
+            GroupScrollRightButton.Visibility = canScrollRight
+                ? Visibility.Visible : Visibility.Collapsed;
+        }
+        catch (ArgumentException)
+        {
+            // 레이아웃 전환 중 시각적 트리 미연결 — 무시
+        }
     }
 
     // ─── 그룹 탭 ────────────────────────────────────────────────────────
@@ -633,5 +656,160 @@ public sealed partial class MainWindow : WindowEx
     {
         await DialogService.ShowErrorAsync(
             string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+    }
+
+    // ===== 런처 사이드바 이벤트 핸들러 =====
+
+    private async void LauncherAdd_Click(object sender, RoutedEventArgs e)
+    {
+        if (_launcherViewModel is null) return;
+        await _launcherViewModel.AddCommand.ExecuteAsync(null);
+    }
+
+    private void LauncherItem_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement fe || fe.DataContext is not LauncherItemViewModel item) return;
+        _launcherViewModel?.LaunchCommand.Execute(item);
+    }
+
+    private void LauncherRunAsAdmin_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement fe || fe.DataContext is not LauncherItemViewModel item) return;
+        _launcherViewModel?.LaunchAsAdminCommand.Execute(item);
+    }
+
+    private void LauncherDelete_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement fe || fe.DataContext is not LauncherItemViewModel item) return;
+        _launcherViewModel?.DeleteCommand.Execute(item);
+    }
+
+    // ===== 런처 사이드바 드래그&드롭 =====
+
+    private readonly DropPlaceholder _launcherDropPlaceholder = new();
+    private int _launcherDropPlaceholderIndex = -1;
+    private string? _launcherDropTargetId;
+    private bool _launcherDropIsAbove;
+    private string? _draggedLauncherId;
+
+    private void LauncherItem_DragStarting(UIElement sender, DragStartingEventArgs args)
+    {
+        if (sender is not FrameworkElement fe || fe.DataContext is not LauncherItemViewModel item) return;
+
+        _draggedLauncherId = item.Id;
+        args.Data.SetText(item.Id);
+        args.Data.RequestedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move;
+
+        if (!string.IsNullOrEmpty(item.IconCachePath) && File.Exists(item.IconCachePath))
+        {
+            var dragIcon = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(item.IconCachePath));
+            args.DragUI.SetContentFromBitmapImage(dragIcon);
+        }
+
+        // 드래그 중인 아이콘을 반투명으로 표시
+        sender.Opacity = 0.3;
+    }
+
+    private void LauncherItem_DropCompleted(UIElement sender, DropCompletedEventArgs args)
+    {
+        sender.Opacity = 1.0;
+        RemoveLauncherDropPlaceholder();
+        _draggedLauncherId = null;
+    }
+
+    private void LauncherItem_DragOver(object sender, DragEventArgs e)
+    {
+        if (_draggedLauncherId is null || _launcherViewModel is null) return;
+        if (sender is not FrameworkElement fe || fe.DataContext is not LauncherItemViewModel target) return;
+        if (target.Id == _draggedLauncherId) return;
+
+        e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move;
+        e.DragUIOverride.IsCaptionVisible = false;
+        e.DragUIOverride.IsGlyphVisible = false;
+        e.Handled = true;
+
+        var position = e.GetPosition(fe);
+        ShowLauncherDropPlaceholder(target, position);
+    }
+
+    private void LauncherItem_Drop(object sender, DragEventArgs e)
+    {
+        if (_draggedLauncherId is null || _launcherViewModel is null) return;
+        if (sender is not FrameworkElement fe || fe.DataContext is not LauncherItemViewModel target) return;
+
+        var draggedId = _draggedLauncherId;
+        var targetId = target.Id;
+        bool insertAfter = !_launcherDropIsAbove;
+
+        RemoveLauncherDropPlaceholder();
+
+        if (!string.IsNullOrEmpty(draggedId) && !string.IsNullOrEmpty(targetId) && draggedId != targetId)
+            _launcherViewModel.MoveItem(draggedId, targetId, insertAfter);
+
+        e.Handled = true;
+    }
+
+    private void LauncherPlaceholder_DragOver(object sender, DragEventArgs e)
+    {
+        e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move;
+        e.DragUIOverride.IsCaptionVisible = false;
+        e.DragUIOverride.IsGlyphVisible = false;
+        e.Handled = true;
+    }
+
+    private void LauncherPlaceholder_Drop(object sender, DragEventArgs e)
+    {
+        if (_draggedLauncherId is null || _launcherViewModel is null) return;
+
+        var draggedId = _draggedLauncherId;
+        var targetId = _launcherDropTargetId;
+        bool insertAfter = !_launcherDropIsAbove;
+
+        RemoveLauncherDropPlaceholder();
+
+        if (!string.IsNullOrEmpty(draggedId) && !string.IsNullOrEmpty(targetId) && draggedId != targetId)
+            _launcherViewModel.MoveItem(draggedId, targetId, insertAfter);
+
+        e.Handled = true;
+    }
+
+    private void ShowLauncherDropPlaceholder(LauncherItemViewModel target, Windows.Foundation.Point posInTarget)
+    {
+        // 상반부(Y < 22) → 위에 삽입, 하반부 → 아래에 삽입
+        bool isAbove = posInTarget.Y < 22;
+
+        if (_launcherDropTargetId == target.Id && _launcherDropIsAbove == isAbove)
+            return; // 동일 위치면 스킵
+
+        RemoveLauncherDropPlaceholder();
+
+        var displayItems = _launcherViewModel!.DisplayItems;
+        int targetIndex = -1;
+        for (int i = 0; i < displayItems.Count; i++)
+        {
+            if (displayItems[i] is LauncherItemViewModel vm && vm.Id == target.Id)
+            {
+                targetIndex = i;
+                break;
+            }
+        }
+        if (targetIndex < 0) return;
+
+        int insertIndex = isAbove ? targetIndex : targetIndex + 1;
+        displayItems.Insert(insertIndex, _launcherDropPlaceholder);
+
+        _launcherDropPlaceholderIndex = insertIndex;
+        _launcherDropTargetId = target.Id;
+        _launcherDropIsAbove = isAbove;
+    }
+
+    private void RemoveLauncherDropPlaceholder()
+    {
+        if (_launcherDropPlaceholderIndex >= 0)
+        {
+            _launcherViewModel?.DisplayItems.Remove(_launcherDropPlaceholder);
+            _launcherDropPlaceholderIndex = -1;
+            _launcherDropTargetId = null;
+        }
     }
 }

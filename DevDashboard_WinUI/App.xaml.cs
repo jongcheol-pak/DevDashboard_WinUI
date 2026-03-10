@@ -32,18 +32,20 @@ public partial class App : Application
         ApplyLanguageSetting(settings.Language);
 
         SqliteProjectRepository? projectRepository = null;
+        LauncherRepository? launcherRepository = null;
         string? dbErrorMessage = null;
         try
         {
             var dbContext = new DatabaseContext();
             projectRepository = new SqliteProjectRepository(dbContext);
+            launcherRepository = new LauncherRepository(dbContext);
         }
         catch (Exception ex)
         {
             dbErrorMessage = ex.Message;
         }
 
-        var mainWindow = new MainWindow(settings, storageService, projectRepository, dbErrorMessage);
+        var mainWindow = new MainWindow(settings, storageService, projectRepository, launcherRepository, dbErrorMessage);
         MainWindow = mainWindow;
 
         AppSettingsDialogViewModel.ApplyTheme(settings.ThemeMode);

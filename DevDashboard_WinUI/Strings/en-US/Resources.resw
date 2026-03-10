@@ -331,5 +331,10 @@
   <data name="Import_FailedTitle" xml:space="preserve"><value>Import Error</value></data>
   <data name="Import_GroupsCreatedFormat" xml:space="preserve"><value>{0}{1} group(s) auto-created</value></data>
   <data name="UnexpectedError" xml:space="preserve"><value>An unexpected error occurred: {0}</value></data>
+  <data name="InstalledAppsDialogTitle" xml:space="preserve"><value>Select Installed App</value></data>
+  <data name="InstalledAppsSearch.PlaceholderText" xml:space="preserve"><value>Search apps...</value></data>
+  <data name="Dialog_Select" xml:space="preserve"><value>Select</value></data>
+  <data name="LauncherRunAsAdmin.Text" xml:space="preserve"><value>Run as Administrator</value></data>
+  <data name="LauncherDelete.Text" xml:space="preserve"><value>Delete</value></data>
 
 </root>

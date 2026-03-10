@@ -1,60 +1,16 @@
-﻿# DevDashboard — 작업 노트 (인덱스)
-
-## 최근 변경 요약
-
-| 날짜 | 내용 |
-|------|------|
-| 2026-03-09 | **Dialog 코드 품질 개선** — ProjectHistoryDialog PropertyChanged 이벤트 미해제 수정, IconPickerDialog 예외 무시→인라인 에러 표시, TodoDialog `_isRefreshing` try/finally 보장 + JsonStorageService 캐시, AppSettingsDialog Closing async 예외 try-catch 추가 |
-| 2026-03-09 | **중첩 ContentDialog 크래시 수정** — WinUI 3 단일 ContentDialog 제약 대응. Hide→중첩 표시→재표시 패턴 적용 (TodoDialog/HistoryDialog/ProjectHistoryDialog/AppSettingsDialog). GitStatusDialog/IconPickerDialog는 인라인 에러 처리 |
-| 2026-03-09 | **ContentDialog 너비 사이징 수정** — `MinWidth`/`Width` 속성 대신 `ContentDialogMinWidth` + `ContentDialogMaxWidth` ThemeResource 오버라이드로 변경 (ContentDialog 내부 템플릿이 직접 속성을 무시하는 WinUI 3 이슈) |
-| 2026-03-09 | **Dialog Window → ContentDialog 전환** — 9개 Dialog를 WindowEx 기반에서 WinUI 3 기본 ContentDialog로 전환. DialogWindowHost 제거, 커스텀 타이틀바/모달 오버레이 불필요. PrimaryButtonClick 검증 패턴 적용, FileSavePicker hwnd는 App.MainWindow 사용 |
-| 2026-03-09 | **MarqueeTagsControl 탭 이동 시 태그 잘림/애니메이션 미동작 수정** — Compositor Translation 잔여값 리셋, 비-애니메이션 overflow 시 +N 배지 표시, Viewport 고정 높이 제거 |
-| 2026-07 | **자동실행 시 RPC_E_WRONG_THREAD 크래시 수정** — `Program.cs`의 STA 스레드 워크어라운드(새 스레드 생성 후 Main 재귀 호출) 제거. WinUI 3 `Application.Start`는 프로세스 메인 스레드에서만 호출 가능하므로 `[STAThread]`에 위임 |
-| 2026-07 | **CommandScripts DB 삭제 버그 수정** — `ProjectSettingsDialog` 저장 시 `ToProjectItem()`이 `CommandScripts`를 포함하지 않아 `Update()`에서 전부 삭제되던 문제. `AddOrUpdateProject` 업데이트 분기에서 기존 카드의 `CommandScripts`를 보존하도록 수정 |
-| 2026-07 | **CommandScriptDialog 실행폴더 UI 개선 + 저장 버그 수정**
-| 2026-07 | **MSIX StartupTask + LocalSettings 마이그레이션**
-| 2026-07 | **저장 경로 마이그레이션** — `AppContext.BaseDirectory`(MSIX 설치폴더, 읽기전용) → `ApplicationData.Current.LocalFolder.Path`로 변경 (settings.json → LocalSettings, projects.db → LocalFolder) |
-| 2026-07 | **ProjectHistoryDialog Closed 예외 미처리 수정** — `Vm.SaveAll()` 실패 시 `_closedTcs.TrySetResult()` 미호출 → 무한 대기 문제 수정. `try/catch/finally`로 항상 TCS 완료 보장 |
-| 2026-07 | **HistoryDialog/ProjectHistoryDialog 목록 미표시 및 팝업 오류 수정** — 중첩 DataTemplate 내 `{Binding HasDescription, Converter={StaticResource BoolToVisibility}}` → `{x:Bind DescriptionVisibility}` 변경 + `ItemsSource` 한 번만 설정, `RefreshList()` 단순화 |
-| 2026-07 | **HistoryDialog 아코디언 UI + 저장 즉시 표시** — 목록 클릭 시 상세 설명 펼침/접힘 구현, 삭제 버튼 Tapped 이벤트 전파 차단, `ExpandedVisibility`·`ExpandChevron` 프로퍼티 추가 |
-| 2026-07 | **HistoryDialog 삭제 버튼 ToolTip 다국어 수정** — DataTemplate 내 `x:Uid=[ToolTipService.ToolTip]` 패턴 → `HistoryEntryViewModel.DeleteTooltip` 프로퍼티 + `{x:Bind DeleteTooltip}` 직접 바인딩으로 변경 (XamlParseException 해결) |
-| 2026-07 | **HistoryDialog/ProjectHistoryDialog 저장 버튼 오류 수정** — `DatePicker.SelectedDate`(존재하지 않는 속성) → XAML `CalendarDatePicker`로 변경, 코드비하인드 `.SelectedDate` → `.Date` 수정 |
-| 2026-07 | **그리드/리스트 뷰 전환 기능 제거** — 헤더 GridViewButton/ListViewButton 삭제, ViewMode enum·AppSettings 프로퍼티·ViewModel 코드 전체 제거 |
-| 2026-07 | **DashboardView 개발 도구 아이콘 표시 방식 변경** — `&#xEC7A;` 항상 표시(보조색), `&#xE7BA;` 경고 아이콘을 도구 파일 미존재 시 추가 표시 (cmd/powershell 제외) |
-| 2026-07 | **Git 버튼 미표시 버그 수정** — MainViewModel.AddOrUpdateProject() 새 카드 추가 분기에서 StartGitStatusLoad() + StartIconLoad() 누락 수정 |
-| 2026-07 | **DashboardView Git 버튼 아이콘 교체** — FontIcon(Segoe MDL2 Assets) → GitHub 공식 SVG Path 요소로 변경 |
-| 2026-07 | **ProjectSettingsDialog 아이콘 미리보기 추가**
-| 2026-07 | **ProjectSettingsDialog 버그 수정** — 수정 모드에서 자기 자신 이름 중복 체크 문제 수정(SetExistingNames 호출 순서), 유효성 오류 메시지 ContentDialog 팝업으로 변경 |
-| 2026-07 | **Dialog 타이틀 바 스타일 통일** — 9개 다이얼로그에 AppTitleBar Border(40px) 추가, ExtendsContentIntoTitleBar + SetTitleBar 적용, MainWindow 스타일 통일 |
-| 2026-07 | **Dialog 모달 동작 추가** — DialogWindowHost.Show()에서 소유자 창 EnableWindow(false), 닫힐 때 EnableWindow(true) + SetForegroundWindow 복원 |
-| 2026-07 | **Dialog WindowEx 전환** — 9개 다이얼로그(AppSettings/CommandScript/GitStatus/Group/History/IconPicker/ProjectHistory/ProjectSettings/Todo) Window → WindowEx 변경 |
-| 2026-07 | **MainWindow WindowEx 전환** — WinUIEx `WindowEx` 베이스 클래스로 변경, `MinWidth=900`, `MinHeight=600` 적용 |
-| 2026-07 | **Window.Title x:Uid 버그 수정** — 5개 Dialog Window에서 x:Uid 제거, 코드비하인드에서 LocalizationService.Get으로 Title 설정 |
-| 2026-07 | **ContentDialog → Window 전환 완료** — 9개 Dialog 전면 교체, DialogWindowHost 단순화 |
-| 2026-07 | ContentDialog 독립 창 표시 — DialogWindowHost 추가, 창 크기 변경 시 ContentDialog 크기 동기화 추가 |
-| 2026-02-27 | 네임스페이스 DevDashboard_WinUI → DevDashboard 전체 변경 |
-| 2026-02-27 | [ToolTipService.ToolTip] x:Uid 패턴 전체 수정 (런타임 오류 해결) |
-| 2025-01 | WinUI 표준 지역화 방식으로 마이그레이션 (x:Uid + .resw) |
+## 최근 변경
+- 2026-03-10: 런처 드래그&드롭을 DropPlaceholder 패턴으로 전면 재작성 (아이콘 사이 드롭 지원)
+- 2026-03-10: 좌측 런처 사이드바 기능 구현 (설치된 앱 등록/실행/삭제)
+- 2026-03-09: ContentDialog 전환 및 중첩 다이얼로그 지원
+- 2026-03-09: 크래시 로그/예외 핸들러 제거 및 진입점 구조 단순화
+- 2026-03-09: 부팅 시 자동실행 크래시 대응
 
 ## 미해결 이슈
+- (없음)
 
-- **부팅 시 자동실행 크래시** — DXGI 준비 대기 로직 추가 완료, 실행 미검증 (상세: [memory/boot-startup-crash.md])
-
-## 주의 사항
-
-- `LocalizationService.Get(key)`는 내부적으로 `ResourceLoader`를 사용 (C# 코드 변경 불필요)
-- `[ToolTipService.ToolTip]` x:Uid 패턴은 WinUI 3에서 런타임 XamlParseException을 발생시킴 — MainWindow는 코드비하인드 `ApplyToolTips()`로, DataTemplate 내부는 직접 XAML 속성으로 처리
-- `<Run>` 요소는 x:Uid를 지원하지 않으므로 `MainWindow.xaml.cs`에서 `LocalizationService.Get`으로 처리
-- DashboardView.xaml DataTemplate 내 tooltip은 하드코딩 영문 문자열 (다국어 미지원)
-- Dialog는 ContentDialog 기반 — `XamlRoot = App.MainWindow?.Content?.XamlRoot` 설정 후 `ShowAsync()` 호출
-- **WinUI 3은 중첩 ContentDialog를 지원하지 않음** — Dialog 내부에서 확인/편집 팝업을 띄울 때 `ShowNestedDialogAsync()` 패턴 사용 (Hide → 중첩 표시 → TCS 대기 → 원래 다이얼로그 재표시)
-- Dialog FileSavePicker hwnd: `WindowNative.GetWindowHandle(App.MainWindow)` 사용
-- `ContentDialog`는 `App.MainWindow!.Content.XamlRoot` 사용 (DialogService, 오류 메시지용)
-- **중첩 DataTemplate 내 `{Binding ..., Converter={StaticResource ...}}`는 리소스 조회 실패 위험** — `x:DataType` 지정 DataTemplate에서는 `{x:Bind ComputedProperty}` 패턴 사용 (ViewModel에 `Visibility` 계산 속성 추가)
-- `ObservableCollection`이 `ItemsControl.ItemsSource`에 연결된 경우 `Clear()` + `Add()` 만으로 자동 갱신됨 — ItemsSource 재할당(null → 컬렉션) 불필요
-
-## 상세 로그 링크
-
-- [docs/notes/2026-07.md](docs/notes/2026-07.md)
-- [docs/notes/2026-02.md](docs/notes/2026-02.md)
-- [docs/notes/2025-01.md](docs/notes/2025-01.md)
+## 주의사항
+- System.Drawing.Common NuGet 패키지 추가됨 (아이콘 추출용)
+- LauncherItems 테이블이 SQLite에 추가됨 (기존 DB 자동 마이그레이션)
+- MainWindow 생성자에 LauncherRepository 파라미터 추가됨
+- 런처 아이템은 Button 대신 Grid 사용 (CanDrag 호환성 — Button은 포인터 캡처로 드래그 불가)
+- 런처 드래그&드롭: DashboardView와 동일한 DropPlaceholder 패턴 사용 (DisplayItems: ObservableCollection&lt;object&gt;)

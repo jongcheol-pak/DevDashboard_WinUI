@@ -89,12 +89,13 @@ public sealed class DatabaseContext
     /// <summary>허용된 테이블/컬럼 이름 — SQL Injection 방지용 화이트리스트</summary>
     private static readonly HashSet<string> AllowedIdentifiers = new(StringComparer.OrdinalIgnoreCase)
     {
-        "Projects", "ProjectTags", "CommandScripts", "Todos", "Histories", "Groups",
+        "Projects", "ProjectTags", "CommandScripts", "Todos", "Histories", "Groups", "LauncherItems",
         "Id", "Name", "Description", "IconPath", "Path", "DevToolName", "Options",
         "Command", "GitStatus", "IsPinned", "PinOrder", "RunAsAdmin", "GroupId",
         "Category", "CreatedAt", "UseWorkingDirectory", "ShellWorkingDirectory",
         "ProjectId", "Tag", "SlotIndex", "ShellType", "Script", "WorkingDirectory",
-        "IconSymbol", "Text", "IsCompleted", "CompletedAt", "Title", "IsDefault"
+        "IconSymbol", "Text", "IsCompleted", "CompletedAt", "Title", "IsDefault",
+        "DisplayName", "ExecutablePath", "IconCachePath", "SortOrder"
     };
 
     private static void AddColumnIfNotExists(SqliteConnection connection, string table, string column, string definition)
@@ -186,6 +187,14 @@ public sealed class DatabaseContext
                 Id        TEXT PRIMARY KEY,
                 Name      TEXT NOT NULL DEFAULT '',
                 IsDefault INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS LauncherItems (
+                Id             TEXT PRIMARY KEY,
+                DisplayName    TEXT NOT NULL DEFAULT '',
+                ExecutablePath TEXT NOT NULL DEFAULT '',
+                IconCachePath  TEXT NOT NULL DEFAULT '',
+                SortOrder      INTEGER NOT NULL DEFAULT 0
             );
 
             CREATE INDEX IF NOT EXISTS IX_Todos_ProjectId ON Todos(ProjectId);
