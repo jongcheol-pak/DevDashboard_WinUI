@@ -107,16 +107,16 @@
                             IsOn="{x:Bind Vm.EnableTagAnimation, Mode=TwoWay}" />
                     </toolkit:SettingsCard>
 
-                    <!-- 앱 실행 메뉴 -->
-                    <toolkit:SettingsCard Header="앱 실행 메뉴" Description="메인 화면에서 앱을 등록해서 실행할 수 있는 메뉴를 표시합니다." >
+                    <!-- 사이드 바 런처 앱 메뉴 -->
+                    <toolkit:SettingsCard x:Uid="LauncherSidebarCard" >
                         <toolkit:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xED35;" />
                         </toolkit:SettingsCard.HeaderIcon>
                         <ToggleSwitch
-             OnContent=""
-             OffContent=""
-             MinWidth="0"
-             />
+                            OnContent=""
+                            OffContent=""
+                            MinWidth="0"
+                            IsOn="{x:Bind Vm.ShowLauncherSidebar, Mode=TwoWay}" />
                     </toolkit:SettingsCard>
 
                     <toolkit:SettingsCard x:Uid="LanguageCard" >
@@ -176,6 +176,13 @@
                             <FontIcon Glyph="&#xE8A5;" />
                         </toolkit:SettingsCard.HeaderIcon>
                         <Button x:Uid="Btn_Reset" Click="ResetProjects_Click" />
+                    </toolkit:SettingsCard>
+
+                    <toolkit:SettingsCard x:Uid="ResetLauncherCard">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xED35;" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <Button x:Uid="Btn_Reset" Click="ResetLauncher_Click" />
                     </toolkit:SettingsCard>
                 </StackPanel>
 

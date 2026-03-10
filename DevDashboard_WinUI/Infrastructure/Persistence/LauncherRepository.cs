@@ -65,6 +65,37 @@ public sealed class LauncherRepository
         cmd.ExecuteNonQuery();
     }
 
+    /// <summary>지정된 DB 파일에서 런처 항목을 읽어옵니다 (가져오기용).
+    /// LauncherItems 테이블이 없는 구버전 DB는 빈 목록을 반환합니다.</summary>
+    public static List<LauncherItem> ReadAllFromDb(string dbPath)
+    {
+        using var conn = DatabaseContext.CreateConnectionForPath(dbPath);
+
+        // 테이블 존재 여부 확인 — 구버전 DB 호환
+        using var checkCmd = conn.CreateCommand();
+        checkCmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='LauncherItems'";
+        if (checkCmd.ExecuteScalar() is null)
+            return [];
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT Id, DisplayName, ExecutablePath, IconCachePath, SortOrder FROM LauncherItems ORDER BY SortOrder";
+        using var reader = cmd.ExecuteReader();
+
+        var list = new List<LauncherItem>();
+        while (reader.Read())
+        {
+            list.Add(new LauncherItem
+            {
+                Id = reader.GetString(0),
+                DisplayName = reader.GetString(1),
+                ExecutablePath = reader.GetString(2),
+                IconCachePath = reader.GetString(3),
+                SortOrder = reader.GetInt32(4)
+            });
+        }
+        return list;
+    }
+
     /// <summary>모든 항목의 SortOrder를 일괄 업데이트합니다.</summary>
     public void UpdateSortOrders(List<LauncherItem> items)
     {

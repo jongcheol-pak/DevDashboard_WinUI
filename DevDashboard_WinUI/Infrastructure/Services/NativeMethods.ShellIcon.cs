@@ -284,4 +284,72 @@ internal static class ShellIconNativeMethods
     }
 
     #endregion
+
+    #region 바로가기(.lnk) resolve
+
+    [ComImport]
+    [Guid("00021401-0000-0000-C000-000000000046")]
+    private class ShellLink { }
+
+    [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    [Guid("000214F9-0000-0000-C000-000000000046")]
+    private interface IShellLinkW
+    {
+        void GetPath([Out, MarshalAs(UnmanagedType.LPWStr)] System.Text.StringBuilder pszFile,
+            int cch, nint pfd, uint fFlags);
+        void GetIDList(out nint ppidl);
+        void SetIDList(nint pidl);
+        void GetDescription([Out, MarshalAs(UnmanagedType.LPWStr)] System.Text.StringBuilder pszName, int cch);
+        void SetDescription([MarshalAs(UnmanagedType.LPWStr)] string pszName);
+        void GetWorkingDirectory([Out, MarshalAs(UnmanagedType.LPWStr)] System.Text.StringBuilder pszDir, int cch);
+        void SetWorkingDirectory([MarshalAs(UnmanagedType.LPWStr)] string pszDir);
+        void GetArguments([Out, MarshalAs(UnmanagedType.LPWStr)] System.Text.StringBuilder pszArgs, int cch);
+        void SetArguments([MarshalAs(UnmanagedType.LPWStr)] string pszArgs);
+        void GetHotkey(out short pwHotkey);
+        void SetHotkey(short wHotkey);
+        void GetShowCmd(out int piShowCmd);
+        void SetShowCmd(int iShowCmd);
+        void GetIconLocation([Out, MarshalAs(UnmanagedType.LPWStr)] System.Text.StringBuilder pszIconPath,
+            int cch, out int piIcon);
+        void SetIconLocation([MarshalAs(UnmanagedType.LPWStr)] string pszIconPath, int iIcon);
+        void SetRelativePath([MarshalAs(UnmanagedType.LPWStr)] string pszPathRel, uint dwReserved);
+        void Resolve(nint hwnd, uint fFlags);
+        void SetPath([MarshalAs(UnmanagedType.LPWStr)] string pszFile);
+    }
+
+    [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    [Guid("0000010B-0000-0000-C000-000000000046")]
+    private interface IPersistFile
+    {
+        void GetClassID(out Guid pClassID);
+        [PreserveSig] int IsDirty();
+        void Load([MarshalAs(UnmanagedType.LPWStr)] string pszFileName, uint dwMode);
+        void Save([MarshalAs(UnmanagedType.LPWStr)] string pszFileName, [MarshalAs(UnmanagedType.Bool)] bool fRemember);
+        void SaveCompleted([MarshalAs(UnmanagedType.LPWStr)] string pszFileName);
+        void GetCurFile([MarshalAs(UnmanagedType.LPWStr)] out string ppszFileName);
+    }
+
+    /// <summary>바로가기(.lnk) 파일의 대상 경로를 반환합니다.
+    /// resolve 실패 시 null을 반환합니다.</summary>
+    public static string? ResolveShortcutTarget(string lnkPath)
+    {
+        try
+        {
+            var link = (IShellLinkW)new ShellLink();
+            ((IPersistFile)link).Load(lnkPath, 0);
+            // SLR_NO_UI(0x1) | SLR_NOUPDATE(0x8): UI 없이, 링크 파일 갱신 없이 resolve
+            link.Resolve(nint.Zero, 0x1 | 0x8);
+
+            var sb = new System.Text.StringBuilder(260);
+            link.GetPath(sb, sb.Capacity, nint.Zero, 0);
+            var target = sb.ToString();
+            return string.IsNullOrEmpty(target) ? null : target;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    #endregion
 }

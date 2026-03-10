@@ -63,6 +63,36 @@ public sealed class DatabaseContext
         cmd.ExecuteNonQuery();
     }
 
+    /// <summary>프로젝트 관련 테이블의 데이터만 삭제합니다 (LauncherItems 유지).</summary>
+    public static void ClearProjectData()
+    {
+        using var conn = new SqliteConnection($"Data Source={DbPath};Foreign Keys=True");
+        conn.Open();
+        using var tx = conn.BeginTransaction();
+
+        // FK CASCADE로 하위 테이블(ProjectTags, CommandScripts, Todos, Histories) 자동 삭제
+        foreach (var table in new[] { "Projects", "Groups" })
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = $"DELETE FROM {table}";
+            cmd.ExecuteNonQuery();
+        }
+
+        tx.Commit();
+    }
+
+    /// <summary>런처 항목 데이터만 삭제합니다 (프로젝트 데이터 유지).</summary>
+    public static void ClearLauncherData()
+    {
+        using var conn = new SqliteConnection($"Data Source={DbPath};Foreign Keys=True");
+        conn.Open();
+        using var tx = conn.BeginTransaction();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "DELETE FROM LauncherItems";
+        cmd.ExecuteNonQuery();
+        tx.Commit();
+    }
+
     /// <summary>앱 시작 시 테이블 초기화 + WAL 모드 활성화를 수행합니다.</summary>
     private void InitializeDatabase()
     {

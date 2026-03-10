@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using DevDashboard.Infrastructure.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -36,6 +37,7 @@ public sealed partial class InstalledAppsDialog : ContentDialog
     private async void OnOpened(ContentDialog sender, ContentDialogOpenedEventArgs args)
     {
         _loadingCts?.Cancel();
+        _loadingCts?.Dispose();
         _loadingCts = new CancellationTokenSource();
         var ct = _loadingCts.Token;
 
@@ -119,11 +121,15 @@ public sealed partial class InstalledAppsDialog : ContentDialog
         {
             ResultApp = AppListView.SelectedItem as InstalledAppInfo;
             if (ResultApp is null)
+            {
                 args.Cancel = true;
+                return;
+            }
         }
-        else
-        {
-            _loadingCts?.Cancel();
-        }
+
+        // Primary/Close 모두 백그라운드 아이콘 로딩 중지
+        _loadingCts?.Cancel();
+        _loadingCts?.Dispose();
+        _loadingCts = null;
     }
 }

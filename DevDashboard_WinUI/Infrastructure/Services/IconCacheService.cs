@@ -46,8 +46,7 @@ internal static class IconCacheService
         }
 
         // 캐시 미스 — 추출
-        if (_cache.ContainsKey(cacheKey))
-            _cache.TryRemove(cacheKey, out _);
+        _cache.TryRemove(cacheKey, out _);
 
         try
         {
@@ -57,10 +56,11 @@ internal static class IconCacheService
             string? extractedPath = await IconExtractor.ExtractIconAndSaveAsync(filePath, CacheFolder, 48, timeout);
             if (extractedPath is null || !File.Exists(extractedPath)) return null;
 
+            // 캐시 크기 초과 시 정리 후 추가
             if (_cache.Count >= MaxCacheSize)
                 await CleanupAsync();
 
-            _cache.TryAdd(cacheKey, (extractedPath, DateTime.Now));
+            _cache[cacheKey] = (extractedPath, DateTime.Now);
             _ = SaveCacheAsync();
             return extractedPath;
         }
@@ -104,7 +104,7 @@ internal static class IconCacheService
         if (!File.Exists(filePath)) return filePath;
 
         var fi = new FileInfo(filePath);
-        return $"{filePath}_{fi.LastWriteTimeUtc}_{fi.Length}";
+        return $"{filePath}_{fi.LastWriteTimeUtc.Ticks}_{fi.Length}";
     }
 
     private static void LoadCache()

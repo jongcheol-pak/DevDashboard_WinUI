@@ -65,6 +65,7 @@ public sealed partial class MainWindow : WindowEx
         {
             // Run.Text는 x:Uid를 지원하지 않으므로 ResourceLoader로 직접 설정
             ProjectCountSuffixRun.Text = LocalizationService.Get("MainWindow_ProjectCountSuffix");
+            LauncherCountSuffixRun.Text = LocalizationService.Get("MainWindow_LauncherCountSuffix");
 
             // [ToolTipService.ToolTip] x:Uid는 런타임 오류를 발생시키므로 코드비하인드로 설정
             ApplyToolTips();
@@ -102,6 +103,14 @@ public sealed partial class MainWindow : WindowEx
             // 런처 사이드바 초기화
             _launcherViewModel = new LauncherViewModel(_launcherRepository);
             LauncherRepeater.ItemsSource = _launcherViewModel.DisplayItems;
+            LauncherAddButton.DataContext = _launcherViewModel;
+            ApplyLauncherSidebarVisibility();
+            _launcherViewModel.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(LauncherViewModel.ItemCount))
+                    UpdateLauncherCount();
+            };
+            UpdateLauncherCount();
 
             // 비동기 초기화
             await _viewModel.InitializeAsync();
@@ -387,7 +396,10 @@ public sealed partial class MainWindow : WindowEx
             var dialog = new AppSettingsDialog(_viewModel.GetSettings());
             await dialog.ShowAsync();
             if (dialog.ResultSettings is not null)
+            {
                 _viewModel.SaveAppSettings(dialog.ResultSettings);
+                ApplyLauncherSidebarVisibility();
+            }
             // ProjectsReset을 SettingsReset보다 먼저 처리:
             // ResetGroups()는 _allCards를 순회하며 DB Update를 호출하므로,
             // DB가 삭제된 상태에서 실행하면 FK 제약 조건 위반 발생
@@ -398,6 +410,8 @@ public sealed partial class MainWindow : WindowEx
                 _viewModel.ResetGroups();
                 AllGroupTab.IsChecked = true;
             }
+            if (dialog.LauncherReset)
+                _launcherViewModel?.Clear();
             if (dialog.LanguageChanged)
                 await HandleLanguageChangedAsync();
         }
@@ -434,8 +448,22 @@ public sealed partial class MainWindow : WindowEx
         if (_viewModel is null) return;
 
         ProjectCountSuffixRun.Text = LocalizationService.Get("MainWindow_ProjectCountSuffix");
+        LauncherCountSuffixRun.Text = LocalizationService.Get("MainWindow_LauncherCountSuffix");
         ApplyToolTips();
         DashboardContent.Content = new DashboardView { DataContext = _viewModel };
+    }
+
+    private void UpdateLauncherCount()
+    {
+        LauncherCountRun.Text = (_launcherViewModel?.ItemCount ?? 0).ToString();
+    }
+
+    private void ApplyLauncherSidebarVisibility()
+    {
+        var settings = _viewModel?.GetSettings() ?? _settings;
+        LauncherSidebar.Visibility = settings.ShowLauncherSidebar
+            ? Microsoft.UI.Xaml.Visibility.Visible
+            : Microsoft.UI.Xaml.Visibility.Collapsed;
     }
 
     private async void ProjectHistoryButton_Click(object sender, RoutedEventArgs e)
@@ -455,6 +483,13 @@ public sealed partial class MainWindow : WindowEx
     }
 
     // ─── 내보내기 / 가져오기 ─────────────────────────────────────────────
+
+    private void ExportImportFlyout_Opening(object? sender, object e)
+    {
+        bool hasProjects = _viewModel?.HasAnyProjects == true;
+        bool hasLauncherItems = _launcherViewModel?.Items.Count > 0;
+        ExportMenuItem.IsEnabled = hasProjects || hasLauncherItems;
+    }
 
     private async void ExportButton_Click(object sender, RoutedEventArgs e)
     {
@@ -510,10 +545,12 @@ public sealed partial class MainWindow : WindowEx
 
             List<ProjectItem> importProjects;
             List<ProjectGroup> importGroups;
+            List<LauncherItem> importLauncherItems;
             try
             {
                 importProjects = SqliteProjectRepository.ReadAllFromDb(file.Path);
-                importGroups   = SqliteProjectRepository.ReadGroupsFromDb(file.Path);
+                importGroups = SqliteProjectRepository.ReadGroupsFromDb(file.Path);
+                importLauncherItems = LauncherRepository.ReadAllFromDb(file.Path);
             }
             catch
             {
@@ -523,80 +560,137 @@ public sealed partial class MainWindow : WindowEx
                 return;
             }
 
-            // ─── 그룹 이름 기준 매핑 (최대 10개 제한 준수) ──────────────────────
-            // importedGroupId → 실제 사용할 GroupId
-            // 이름이 같은 그룹이 있으면 기존 Id로 리매핑, 없으면 신규 생성
-            var existingGroups = _viewModel.GetGroups();
-            var existingByName = existingGroups.ToDictionary(g => g.Name, g => g.Id, StringComparer.OrdinalIgnoreCase);
-            var groupIdRemap   = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            var groupsCreatedCount = 0;
-
-            foreach (var group in importGroups)
-            {
-                if (existingByName.TryGetValue(group.Name, out var existingId))
-                {
-                    // 이름이 같은 그룹 존재 → 기존 Id로 리매핑
-                    groupIdRemap[group.Id] = existingId;
-                }
-                else if (_viewModel.CanAddGroup)
-                {
-                    // 신규 그룹 생성 — 가져온 UUID 그대로 사용
-                    _viewModel.AddOrUpdateGroup(group);
-                    existingByName[group.Name] = group.Id;
-                    groupIdRemap[group.Id] = group.Id;
-                    groupsCreatedCount++;
-                }
-                // CanAddGroup == false: 10개 초과 → GroupId를 빈 문자열로 리매핑
-            }
-
-            // 가져올 프로젝트의 GroupId를 리매핑된 Id로 교체
-            foreach (var project in importProjects)
-            {
-                if (!string.IsNullOrEmpty(project.GroupId))
-                    project.GroupId = groupIdRemap.TryGetValue(project.GroupId, out var remapped)
-                        ? remapped
-                        : string.Empty;
-            }
-
-            var totalCount = importProjects.Count;
+            var totalCount = 0;
             var addedCount = 0;
             var overwrittenCount = 0;
             var skippedCount = 0;
+            var groupsCreatedCount = 0;
 
-            foreach (var project in importProjects)
+            // ─── 1. 프로젝트 목록 가져오기 ───────────────────────────────────
+            if (importProjects.Count > 0)
             {
-                var existingId = _projectRepository.FindProjectIdByName(project.Name);
-                if (existingId is not null)
+                var addProjects = await DialogService.ShowConfirmAsync(
+                    LocalizationService.Get("Import_ConfirmProjects"),
+                    LocalizationService.Get("Import_Title"));
+
+                if (addProjects)
                 {
-                    var result = await ShowOverwriteDialogAsync(project.Name);
-                    if (result == ContentDialogResult.Primary)
+                    // 그룹 이름 기준 매핑 (최대 10개 제한 준수)
+                    var existingGroups = _viewModel.GetGroups();
+                    var existingByName = existingGroups.ToDictionary(g => g.Name, g => g.Id, StringComparer.OrdinalIgnoreCase);
+                    var groupIdRemap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+                    foreach (var group in importGroups)
                     {
-                        _projectRepository.DeleteByNameAndInsert(existingId, project);
-                        overwrittenCount++;
+                        if (existingByName.TryGetValue(group.Name, out var existingId))
+                        {
+                            groupIdRemap[group.Id] = existingId;
+                        }
+                        else if (_viewModel.CanAddGroup)
+                        {
+                            _viewModel.AddOrUpdateGroup(group);
+                            existingByName[group.Name] = group.Id;
+                            groupIdRemap[group.Id] = group.Id;
+                            groupsCreatedCount++;
+                        }
                     }
-                    else
+
+                    // 프로젝트 초기화 후 가져오기 시 DB Groups 테이블이 비어 있을 수 있으므로
+                    // 메모리의 그룹 목록을 DB에 동기화
+                    _viewModel.SyncGroupsToDb();
+
+                    foreach (var project in importProjects)
                     {
-                        skippedCount++;
+                        if (!string.IsNullOrEmpty(project.GroupId))
+                            project.GroupId = groupIdRemap.TryGetValue(project.GroupId, out var remapped)
+                                ? remapped
+                                : string.Empty;
                     }
-                }
-                else
-                {
-                    _projectRepository.Add(project);
-                    addedCount++;
+
+                    totalCount = importProjects.Count;
+                    foreach (var project in importProjects)
+                    {
+                        var existingId = _projectRepository.FindProjectIdByName(project.Name);
+                        if (existingId is not null)
+                        {
+                            var result = await ShowOverwriteDialogAsync(project.Name);
+                            if (result == ContentDialogResult.Primary)
+                            {
+                                _projectRepository.DeleteByNameAndInsert(existingId, project);
+                                overwrittenCount++;
+                            }
+                            else
+                            {
+                                skippedCount++;
+                            }
+                        }
+                        else
+                        {
+                            _projectRepository.Add(project);
+                            addedCount++;
+                        }
+                    }
                 }
             }
 
-            var message = string.Format(LocalizationService.Get("Import_CompleteFormat"),
-                Environment.NewLine, totalCount, addedCount, overwrittenCount, skippedCount);
+            // ─── 2. 런처 항목 가져오기 ───────────────────────────────────────
+            var launcherAddedCount = 0;
+            if (_launcherViewModel is not null && importLauncherItems.Count > 0)
+            {
+                var addLauncher = await DialogService.ShowConfirmAsync(
+                    LocalizationService.Get("Import_ConfirmLauncher"),
+                    LocalizationService.Get("Import_Title"));
+
+                if (addLauncher)
+                {
+                    foreach (var item in importLauncherItems)
+                    {
+                        if (!_launcherViewModel.CanAdd) break;
+
+                        // 앱이 설치되어 있지 않거나 파일이 없으면 건너뜀
+                        bool isUwpApp = item.ExecutablePath.StartsWith("shell:AppsFolder", StringComparison.OrdinalIgnoreCase);
+                        if (!isUwpApp && !File.Exists(item.ExecutablePath))
+                            continue;
+
+                        // 아이콘 캐시 파일이 없으면 ExecutablePath에서 재추출
+                        if (string.IsNullOrEmpty(item.IconCachePath) || !File.Exists(item.IconCachePath))
+                        {
+                            var newIconPath = await IconCacheService.GetIconPathAsync(item.ExecutablePath);
+                            item.IconCachePath = newIconPath ?? string.Empty;
+                        }
+
+                        item.SortOrder = _launcherViewModel.Items.Count;
+                        // AddItemAsync 내부에서 중복/100개 제한 체크
+                        if (await _launcherViewModel.AddItemAsync(item))
+                            launcherAddedCount++;
+                    }
+                }
+            }
+
+            // ─── 3. 결과 메시지 ──────────────────────────────────────────────
+            var messageParts = new List<string>();
+
+            if (totalCount > 0)
+                messageParts.Add(string.Format(LocalizationService.Get("Import_ProjectResultFormat"),
+                    totalCount, addedCount, overwrittenCount, skippedCount));
 
             if (groupsCreatedCount > 0)
-                message += string.Format(LocalizationService.Get("Import_GroupsCreatedFormat"),
-                    Environment.NewLine, groupsCreatedCount);
+                messageParts.Add(string.Format(LocalizationService.Get("Import_GroupsCreatedFormat"),
+                    string.Empty, groupsCreatedCount));
 
-            await DialogService.ShowErrorAsync(message, LocalizationService.Get("Import_CompleteTitle"));
+            if (launcherAddedCount > 0)
+                messageParts.Add(string.Format(LocalizationService.Get("Import_LauncherAddedFormat"),
+                    string.Empty, launcherAddedCount));
+
+            if (messageParts.Count > 0)
+            {
+                var message = string.Join(Environment.NewLine, messageParts);
+                await DialogService.ShowErrorAsync(message, LocalizationService.Get("Import_Title"));
+            }
 
             // 목록 새로고침
-            _viewModel.HardRefreshCommand.Execute(null);
+            if (totalCount > 0)
+                await _viewModel.HardRefreshCommand.ExecuteAsync(null);
         }
         catch (Exception ex)
         {
@@ -664,6 +758,53 @@ public sealed partial class MainWindow : WindowEx
     {
         if (_launcherViewModel is null) return;
         await _launcherViewModel.AddCommand.ExecuteAsync(null);
+    }
+
+    private void LauncherAddButton_DragOver(object sender, DragEventArgs e)
+    {
+        if (e.DataView.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.StorageItems))
+        {
+            e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Link;
+            e.DragUIOverride.Caption = LocalizationService.Get("Launcher_DropToAdd");
+        }
+    }
+
+    private async void LauncherAddButton_Drop(object sender, DragEventArgs e)
+    {
+        if (_launcherViewModel is null) return;
+        if (!e.DataView.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.StorageItems)) return;
+
+        var items = await e.DataView.GetStorageItemsAsync();
+        foreach (var storageItem in items)
+        {
+            if (storageItem is not Windows.Storage.StorageFile file) continue;
+            if (!_launcherViewModel.CanAdd) break;
+
+            var filePath = file.Path;
+            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) continue;
+
+            // .lnk 바로가기인 경우 대상 경로로 resolve
+            if (filePath.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase))
+            {
+                var target = ShellIconNativeMethods.ResolveShortcutTarget(filePath);
+                if (string.IsNullOrEmpty(target) || !File.Exists(target)) continue;
+                filePath = target;
+            }
+
+            // 아이콘 추출
+            var iconPath = await IconCacheService.GetIconPathAsync(filePath);
+
+            var launcherItem = new LauncherItem
+            {
+                DisplayName = Path.GetFileNameWithoutExtension(filePath),
+                ExecutablePath = filePath,
+                IconCachePath = iconPath ?? string.Empty,
+                SortOrder = _launcherViewModel.Items.Count
+            };
+
+            // AddItemAsync 내부에서 중복/100개 제한 체크
+            await _launcherViewModel.AddItemAsync(launcherItem);
+        }
     }
 
     private void LauncherItem_Tapped(object sender, TappedRoutedEventArgs e)

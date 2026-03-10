@@ -77,6 +77,7 @@
   <data name="ProjectHistoryDialog_TitleRequired" xml:space="preserve"><value>Please enter a title.</value></data>
   <data name="ProjectSettingsDialog_TitleAdd" xml:space="preserve"><value>Add Project</value></data>
   <data name="ProjectSettingsDialog_TitleEdit" xml:space="preserve"><value>Edit Project</value></data>
+  <data name="MainWindow_LauncherCountSuffix" xml:space="preserve"><value>Launcher Apps</value></data>
   <data name="MainWindow_ProjectCountSuffix" xml:space="preserve"><value>Projects</value></data>
 
   <!-- ===== C# ToolTipService code-behind keys ([ToolTipService.ToolTip] x:Uid causes runtime error) ===== -->
@@ -164,6 +165,8 @@
   <data name="AppSettings_SystemLabel.Text" xml:space="preserve"><value>System</value></data>
   <data name="TagAnimationCard.Header" xml:space="preserve"><value>Tag Animation</value></data>
   <data name="TagAnimationCard.Description" xml:space="preserve"><value>Shows a scrolling animation when a card has many tags.</value></data>
+  <data name="LauncherSidebarCard.Header" xml:space="preserve"><value>Launcher Apps</value></data>
+  <data name="LauncherSidebarCard.Description" xml:space="preserve"><value>Shows the launcher app menu on the left side of the main screen.</value></data>
   <data name="ThemeCard.Header" xml:space="preserve"><value>Theme</value></data>
   <data name="ThemeCard.Description" xml:space="preserve"><value>Change the current app theme.</value></data>
   <data name="AppSettings_TodoLabel.Text" xml:space="preserve"><value>To-Do</value></data>
@@ -264,6 +267,10 @@
   <data name="ResetSettingsConfirmMessage" xml:space="preserve"><value>Do you want to reset the app settings?</value></data>
   <data name="ResetProjectsConfirmTitle" xml:space="preserve"><value>Reset Projects</value></data>
   <data name="ResetProjectsConfirmMessage" xml:space="preserve"><value>Do you want to reset all projects?</value></data>
+  <data name="ResetLauncherCard.Header" xml:space="preserve"><value>Reset Launcher Apps</value></data>
+  <data name="ResetLauncherCard.Description" xml:space="preserve"><value>Resets the launcher app list.</value></data>
+  <data name="ResetLauncherConfirmTitle" xml:space="preserve"><value>Reset Launcher Apps</value></data>
+  <data name="ResetLauncherConfirmMessage" xml:space="preserve"><value>Do you want to reset all launcher apps?</value></data>
   <data name="TodoEditTitle" xml:space="preserve"><value>Edit To-Do</value></data>
   <data name="TodoUncompleteConfirmTitle" xml:space="preserve"><value>Confirm</value></data>
   <data name="TodoUncompleteConfirmMessage" xml:space="preserve"><value>Do you want to change this completed item back to in-progress?</value></data>
@@ -325,15 +332,19 @@
   <data name="Import_DuplicateTitle" xml:space="preserve"><value>Duplicate Item</value></data>
   <data name="Import_Overwrite" xml:space="preserve"><value>Overwrite</value></data>
   <data name="Import_Skip" xml:space="preserve"><value>Skip</value></data>
-  <data name="Import_CompleteFormat" xml:space="preserve"><value>Import completed.{0}Total: {1} / Added: {2} / Overwritten: {3} / Skipped: {4}</value></data>
-  <data name="Import_CompleteTitle" xml:space="preserve"><value>Import Complete</value></data>
+  <data name="Import_ConfirmProjects" xml:space="preserve"><value>Would you like to add the project list?</value></data>
+  <data name="Import_ConfirmLauncher" xml:space="preserve"><value>Would you like to add the launcher apps?</value></data>
+  <data name="Import_ProjectResultFormat" xml:space="preserve"><value>Projects: Total {0} / Added {1} / Overwritten {2} / Skipped {3}</value></data>
+  <data name="Import_Title" xml:space="preserve"><value>Import</value></data>
   <data name="Import_Failed" xml:space="preserve"><value>Import failed: {0}</value></data>
   <data name="Import_FailedTitle" xml:space="preserve"><value>Import Error</value></data>
   <data name="Import_GroupsCreatedFormat" xml:space="preserve"><value>{0}{1} group(s) auto-created</value></data>
+  <data name="Import_LauncherAddedFormat" xml:space="preserve"><value>{0}{1} launcher app(s) added</value></data>
   <data name="UnexpectedError" xml:space="preserve"><value>An unexpected error occurred: {0}</value></data>
   <data name="InstalledAppsDialogTitle" xml:space="preserve"><value>Select Installed App</value></data>
   <data name="InstalledAppsSearch.PlaceholderText" xml:space="preserve"><value>Search apps...</value></data>
   <data name="Dialog_Select" xml:space="preserve"><value>Select</value></data>
+  <data name="Launcher_DropToAdd" xml:space="preserve"><value>Add</value></data>
   <data name="LauncherRunAsAdmin.Text" xml:space="preserve"><value>Run as Administrator</value></data>
   <data name="LauncherDelete.Text" xml:space="preserve"><value>Delete</value></data>
 

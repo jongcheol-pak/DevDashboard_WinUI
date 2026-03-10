@@ -16,12 +16,21 @@ namespace DevDashboard.Presentation.ViewModels;
 public sealed partial class LauncherViewModel : ObservableObject
 {
     private readonly LauncherRepository? _repository;
+    private const int MaxItems = 100;
 
     /// <summary>등록된 런처 항목 목록 (데이터 소스)</summary>
     public ObservableCollection<LauncherItemViewModel> Items { get; } = [];
 
     /// <summary>UI 표시용 컬렉션 (아이템 + DropPlaceholder 혼합)</summary>
     public ObservableCollection<object> DisplayItems { get; } = [];
+
+    /// <summary>항목 추가 가능 여부 (최대 100개)</summary>
+    [ObservableProperty]
+    public partial bool CanAdd { get; set; } = true;
+
+    /// <summary>등록된 런처 항목 수</summary>
+    [ObservableProperty]
+    public partial int ItemCount { get; set; }
 
     public LauncherViewModel(LauncherRepository? repository)
     {
@@ -46,18 +55,29 @@ public sealed partial class LauncherViewModel : ObservableObject
         }
     }
 
+    /// <summary>모든 항목을 제거하고 UI를 초기화합니다 (설정에서 초기화 시 호출).</summary>
+    public void Clear()
+    {
+        Items.Clear();
+        SyncDisplayItems();
+    }
+
     /// <summary>Items → DisplayItems 동기화</summary>
     public void SyncDisplayItems()
     {
         DisplayItems.Clear();
         foreach (var item in Items)
             DisplayItems.Add(item);
+        ItemCount = Items.Count;
+        CanAdd = Items.Count < MaxItems;
     }
 
     /// <summary>설치된 앱 선택 다이얼로그를 표시하고 선택된 앱을 등록합니다.</summary>
     [RelayCommand]
     private async Task AddAsync()
     {
+        if (!CanAdd) return;
+
         var dialog = new InstalledAppsDialog();
         var result = await dialog.ShowAsync();
 
@@ -66,6 +86,10 @@ public sealed partial class LauncherViewModel : ObservableObject
 
         var selectedApp = dialog.ResultApp;
         if (selectedApp is null) return;
+
+        // 동일 경로의 앱이 이미 등록되어 있으면 추가하지 않음
+        if (Items.Any(x => string.Equals(x.ExecutablePath, selectedApp.ExecutablePath, StringComparison.OrdinalIgnoreCase)))
+            return;
 
         var launcherItem = new LauncherItem
         {
@@ -81,6 +105,23 @@ public sealed partial class LauncherViewModel : ObservableObject
         await vm.LoadIconAsync();
         Items.Add(vm);
         SyncDisplayItems();
+    }
+
+    /// <summary>외부에서 항목을 추가하고 아이콘을 로드합니다 (가져오기/드롭용).</summary>
+    public async Task<bool> AddItemAsync(LauncherItem item)
+    {
+        if (!CanAdd) return false;
+
+        // 동일 경로의 앱이 이미 등록되어 있으면 추가하지 않음
+        if (Items.Any(x => string.Equals(x.ExecutablePath, item.ExecutablePath, StringComparison.OrdinalIgnoreCase)))
+            return false;
+
+        _repository?.Add(item);
+        var vm = new LauncherItemViewModel(item);
+        await vm.LoadIconAsync();
+        Items.Add(vm);
+        SyncDisplayItems();
+        return true;
     }
 
     /// <summary>지정된 항목을 삭제합니다.</summary>

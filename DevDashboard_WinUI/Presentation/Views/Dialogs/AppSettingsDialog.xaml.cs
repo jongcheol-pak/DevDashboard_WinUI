@@ -1,7 +1,6 @@
 using DevDashboard.Infrastructure.Persistence;
 using DevDashboard.Infrastructure.Services;
 using DevDashboard.Presentation.ViewModels;
-using Microsoft.Data.Sqlite;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -21,6 +20,9 @@ public sealed partial class AppSettingsDialog : ContentDialog
 
     /// <summary>설정 초기화가 수행되었는지 여부 (호출자가 그룹 초기화에 사용)</summary>
     public bool SettingsReset { get; private set; }
+
+    /// <summary>런처 초기화가 수행되었는지 여부 (호출자가 사이드바 새로고침에 사용)</summary>
+    public bool LauncherReset { get; private set; }
 
     /// <summary>언어가 변경되었는지 여부 (호출자가 UI 새로고침에 사용)</summary>
     public bool LanguageChanged { get; private set; }
@@ -54,23 +56,19 @@ public sealed partial class AppSettingsDialog : ContentDialog
         };
         Vm.PropertyChanged += _vmPropertyChangedHandler;
 
-        Closing += async (_, _) =>
+        Closing += (_, _) =>
         {
             // 이벤트 핸들러 해제
             Vm.Tools.CollectionChanged -= _toolsCollectionChangedHandler;
             Vm.PropertyChanged -= _vmPropertyChangedHandler;
 
-            // 결과 확정
+            // 결과 확정 (동기 전용 — Closing은 deferral 미지원)
             var resultSettings = new AppSettings();
             Vm.ApplyTo(resultSettings);
             // Close() 전에 확정한 언어 값으로 덮어쓰기 (XAML 소멸 시 바인딩 리셋 대응)
             if (_pendingLanguage is { } lang)
                 resultSettings.Language = lang;
             ResultSettings = resultSettings;
-
-            // StartupTask API는 OS 호출이므로 별도로 처리 (실패해도 결과 설정은 보존)
-            try { await Vm.ApplyStartupTaskAsync(Vm.RunOnStartup); }
-            catch { /* Closing 이벤트에서 UI 표시 불가 — StartupTask 실패 무시 */ }
         };
     }
 
@@ -89,6 +87,11 @@ public sealed partial class AppSettingsDialog : ContentDialog
             }
             break;
         } while (true);
+
+        // StartupTask API는 OS 호출이므로 Dialog 닫힌 후 처리 (실패해도 결과 설정은 보존)
+        try { await Vm.ApplyStartupTaskAsync(Vm.RunOnStartup); }
+        catch { /* StartupTask 실패 무시 */ }
+
         return result;
     }
 
@@ -274,16 +277,35 @@ public sealed partial class AppSettingsDialog : ContentDialog
 
             if (await ShowNestedDialogAsync(dialog) != ContentDialogResult.Primary) return;
 
-            var dbPath = DatabaseContext.GetDbPath();
-            SqliteConnection.ClearAllPools();
-
-            foreach (var file in Directory.GetFiles(Path.GetDirectoryName(dbPath)!, Path.GetFileName(dbPath) + "*"))
-            {
-                try { File.Delete(file); }
-                catch { /* WAL/SHM 파일 삭제 실패 시 무시 */ }
-            }
+            DatabaseContext.ClearProjectData();
 
             ProjectsReset = true;
+            Hide();
+        }
+        catch (Exception ex)
+        {
+            await ShowNestedErrorAsync(ex.Message);
+        }
+    }
+
+    private async void ResetLauncher_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var dialog = new ContentDialog
+            {
+                Title = LocalizationService.Get("ResetLauncherConfirmTitle"),
+                Content = LocalizationService.Get("ResetLauncherConfirmMessage"),
+                PrimaryButtonText = LocalizationService.Get("Dialog_Yes"),
+                CloseButtonText = LocalizationService.Get("Dialog_No"),
+                DefaultButton = ContentDialogButton.Close,
+            };
+
+            if (await ShowNestedDialogAsync(dialog) != ContentDialogResult.Primary) return;
+
+            DatabaseContext.ClearLauncherData();
+
+            LauncherReset = true;
             Hide();
         }
         catch (Exception ex)

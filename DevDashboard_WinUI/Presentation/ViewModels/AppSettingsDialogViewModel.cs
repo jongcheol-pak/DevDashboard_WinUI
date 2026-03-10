@@ -98,6 +98,10 @@ public partial class AppSettingsDialogViewModel : ObservableObject
     [ObservableProperty]
     public partial bool EnableTagAnimation { get; set; } = true;
 
+    /// <summary>런처 사이드바 표시 여부</summary>
+    [ObservableProperty]
+    public partial bool ShowLauncherSidebar { get; set; } = true;
+
     /// <summary>ComboBox 바인딩용 언어 선택 항목 목록</summary>
     public LanguageItem[] LanguageItems { get; } =
     [
@@ -263,6 +267,7 @@ public partial class AppSettingsDialogViewModel : ObservableObject
 
         ShowWorkLogPopupOnTodoComplete = settings.ShowWorkLogPopupOnTodoComplete;
         EnableTagAnimation = settings.EnableTagAnimation;
+        ShowLauncherSidebar = settings.ShowLauncherSidebar;
         SelectedLanguageItem = LanguageItems.FirstOrDefault(l => l.Value == settings.Language)
             ?? LanguageItems[0];
         SelectedThemeModeItem = ThemeModeItems.FirstOrDefault(t => t.Value == settings.ThemeMode)
@@ -292,6 +297,7 @@ public partial class AppSettingsDialogViewModel : ObservableObject
 
         settings.ShowWorkLogPopupOnTodoComplete = ShowWorkLogPopupOnTodoComplete;
         settings.EnableTagAnimation = EnableTagAnimation;
+        settings.ShowLauncherSidebar = ShowLauncherSidebar;
         settings.Language = SelectedLanguageItem?.Value ?? LanguageSetting.SystemDefault;
         settings.ThemeMode = SelectedThemeModeItem?.Value ?? ThemeMode.Light;
 

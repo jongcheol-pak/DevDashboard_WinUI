@@ -450,6 +450,9 @@ public partial class MainViewModel : ObservableObject
         SaveSettings();
     }
 
+    /// <summary>현재 메모리의 그룹 목록을 DB에 동기화합니다 (가져오기 후 호출).</summary>
+    public void SyncGroupsToDb() => _projectRepository.SyncGroups([.. Groups]);
+
     /// <summary>그룹을 추가하거나 수정합니다.</summary>
     public void AddOrUpdateGroup(ProjectGroup group)
     {

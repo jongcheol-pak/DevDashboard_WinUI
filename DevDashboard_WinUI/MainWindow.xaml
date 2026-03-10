@@ -100,10 +100,10 @@
                     <!-- 내보내기 / 가져오기 버튼 -->
                     <Button x:Name="ExportImportButton" Width="36" Height="36" Padding="0">
                         <Button.Flyout>
-                            <MenuFlyout>
-                                <MenuFlyoutItem x:Uid="ExportItem"
-                                               Click="ExportButton_Click"
-                                               IsEnabled="{Binding HasAnyProjects}" />
+                            <MenuFlyout Opening="ExportImportFlyout_Opening">
+                                <MenuFlyoutItem x:Name="ExportMenuItem"
+                                               x:Uid="ExportItem"
+                                               Click="ExportButton_Click" />
                                 <MenuFlyoutItem x:Uid="ImportItem"
                                                Click="ImportButton_Click" />
                             </MenuFlyout>
@@ -139,19 +139,20 @@
             </Grid.ColumnDefinitions>
 
             <!-- 좌: 런처 사이드바 (탭 + 콘텐츠 영역 전체 높이) -->
-            <Border Grid.Column="0"
-                    Width="56"
+            <Border x:Name="LauncherSidebar"
+                    Grid.Column="0"
+                    Width="60"
                     BorderThickness="0,0,1,0"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                     Background="{ThemeResource SolidBackgroundFillColorBaseBrush}">
 
-                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                <ScrollViewer Margin="0,0,0,0" VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Spacing="4" Padding="0,8">
+                    <StackPanel Spacing="6" Padding="0,8">
 
                         <ItemsRepeater x:Name="LauncherRepeater">
                             <ItemsRepeater.Layout>
-                                <StackLayout Orientation="Vertical" Spacing="4" />
+                                <StackLayout Orientation="Vertical" Spacing="6" />
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <ctrl:LauncherItemTemplateSelector>
@@ -209,7 +210,11 @@
                         <Button x:Name="LauncherAddButton"
                                 Width="44" Height="44" Padding="0"
                                 HorizontalAlignment="Center"
-                                Click="LauncherAdd_Click">
+                                Click="LauncherAdd_Click"
+                                AllowDrop="True"
+                                DragOver="LauncherAddButton_DragOver"
+                                Drop="LauncherAddButton_Drop"
+                                Visibility="{Binding CanAdd, Converter={StaticResource BoolToVisibility}}">
                             <FontIcon Glyph="&#xF8AA;" FontSize="16" />
                         </Button>
                     </StackPanel>
@@ -350,9 +355,12 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <!-- 좌: 프로젝트 수 -->
+                <!-- 좌: 런처 앱 수 + 프로젝트 수 -->
                 <TextBlock Grid.Column="0" VerticalAlignment="Center"
                            FontSize="12" Padding="0,6">
+                    <Run x:Name="LauncherCountRun" />
+                    <Run x:Name="LauncherCountSuffixRun" />
+                    <Run Text="  " />
                     <Run Text="{Binding ProjectCount, Mode=OneWay}" />
                     <Run x:Name="ProjectCountSuffixRun" />
                 </TextBlock>

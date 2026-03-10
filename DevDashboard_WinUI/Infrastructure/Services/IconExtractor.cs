@@ -124,22 +124,29 @@ internal static class IconExtractor
             int hr = NM.SHCreateItemFromParsingName(filePath, 0, ref guid, out NM.IShellItemImageFactory factory);
             if (hr != 0 || factory is null) return null;
 
-            int[] sizes = size <= 32 ? [32] : size <= 48 ? [48, 32] : [256, 128, 64, 48, 32];
-            nint hBitmap = 0;
-
-            foreach (int trySize in sizes)
+            try
             {
-                var iconSize = new NM.SIZE(trySize, trySize);
-                hr = factory.GetImage(iconSize, NM.SIIGBF.SIIGBF_BIGGERSIZEOK | NM.SIIGBF.SIIGBF_ICONONLY, out hBitmap);
-                if (hr == 0 && hBitmap != 0) break;
-                hr = factory.GetImage(iconSize, NM.SIIGBF.SIIGBF_BIGGERSIZEOK, out hBitmap);
-                if (hr == 0 && hBitmap != 0) break;
+                int[] sizes = size <= 32 ? [32] : size <= 48 ? [48, 32] : [256, 128, 64, 48, 32];
+                nint hBitmap = 0;
+
+                foreach (int trySize in sizes)
+                {
+                    var iconSize = new NM.SIZE(trySize, trySize);
+                    hr = factory.GetImage(iconSize, NM.SIIGBF.SIIGBF_BIGGERSIZEOK | NM.SIIGBF.SIIGBF_ICONONLY, out hBitmap);
+                    if (hr == 0 && hBitmap != 0) break;
+                    hr = factory.GetImage(iconSize, NM.SIIGBF.SIIGBF_BIGGERSIZEOK, out hBitmap);
+                    if (hr == 0 && hBitmap != 0) break;
+                }
+
+                if (hr != 0 || hBitmap == 0) return null;
+
+                try { return ConvertHBitmapToArgbBitmap(hBitmap); }
+                finally { NM.DeleteObject(hBitmap); }
             }
-
-            if (hr != 0 || hBitmap == 0) return null;
-
-            try { return ConvertHBitmapToArgbBitmap(hBitmap); }
-            finally { NM.DeleteObject(hBitmap); }
+            finally
+            {
+                Marshal.ReleaseComObject(factory);
+            }
         }
         catch (Exception ex)
         {
@@ -311,7 +318,7 @@ internal static class IconExtractor
                     {
                         foreach (string file in Directory.GetFiles(logoDir, pattern, SearchOption.AllDirectories))
                         {
-                            string fileName = Path.GetFileName(file).ToLower();
+                            string fileName = Path.GetFileName(file).ToLowerInvariant();
                             if (fileName.Contains("contrast-") || fileName.Contains("_contrast")) continue;
 
                             var fi = new FileInfo(file);
@@ -440,12 +447,19 @@ internal static class IconExtractor
                     hr = NM.SHCreateItemFromIDList(absolutePidl, ref imageFactoryGuid, out NM.IShellItemImageFactory factory);
                     if (hr == 0 && factory is not null)
                     {
-                        var size = new NM.SIZE(48, 48);
-                        hr = factory.GetImage(size, NM.SIIGBF.SIIGBF_BIGGERSIZEOK, out nint hBitmap);
-                        if (hr == 0 && hBitmap != 0)
+                        try
                         {
-                            try { return ConvertHBitmapToArgbBitmap(hBitmap); }
-                            finally { NM.DeleteObject(hBitmap); }
+                            var size = new NM.SIZE(48, 48);
+                            hr = factory.GetImage(size, NM.SIIGBF.SIIGBF_BIGGERSIZEOK, out nint hBitmap);
+                            if (hr == 0 && hBitmap != 0)
+                            {
+                                try { return ConvertHBitmapToArgbBitmap(hBitmap); }
+                                finally { NM.DeleteObject(hBitmap); }
+                            }
+                        }
+                        finally
+                        {
+                            Marshal.ReleaseComObject(factory);
                         }
                     }
                 }
@@ -468,7 +482,7 @@ internal static class IconExtractor
 
     #region HBITMAP 변환
 
-    private static Bitmap ConvertHBitmapToArgbBitmap(nint hBitmap)
+    private static Bitmap? ConvertHBitmapToArgbBitmap(nint hBitmap)
     {
         try
         {
@@ -529,7 +543,7 @@ internal static class IconExtractor
         catch
         {
             try { return new Bitmap(Image.FromHbitmap(hBitmap)); }
-            catch { return null!; }
+            catch { return null; }
         }
     }
 
@@ -550,7 +564,7 @@ internal static class IconExtractor
         bitmapBytes.CopyTo(combined, filePathBytes.Length);
 
         byte[] hash = md5.ComputeHash(combined);
-        string hashStr = BitConverter.ToString(hash).Replace("-", "")[..16].ToLower();
+        string hashStr = BitConverter.ToString(hash).Replace("-", "")[..16].ToLowerInvariant();
         return $"{Path.GetFileNameWithoutExtension(filePath)}_{hashStr}.png";
     }
 

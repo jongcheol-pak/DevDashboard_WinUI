@@ -35,4 +35,7 @@ public class AppSettings
 
     /// <summary>태그 마키 애니메이션 활성화 여부 (기본값: true)</summary>
     public bool EnableTagAnimation { get; set; } = true;
+
+    /// <summary>런처 사이드바 표시 여부 (기본값: true)</summary>
+    public bool ShowLauncherSidebar { get; set; } = true;
 }
