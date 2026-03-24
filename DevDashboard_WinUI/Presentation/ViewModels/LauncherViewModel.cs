@@ -207,7 +207,7 @@ public sealed partial class LauncherViewModel : ObservableObject
                     psi.Verb = "runas";
             }
 
-            Process.Start(psi);
+            Process.Start(psi)?.Dispose();
         }
         catch (Exception ex)
         {

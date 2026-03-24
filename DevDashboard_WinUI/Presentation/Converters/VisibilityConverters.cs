@@ -23,7 +23,7 @@ public class InverseBoolToVisibilityConverter : IValueConverter
         => value is Visibility.Collapsed;
 }
 
-/// <summary>null이 아닌 값 → Visible, null → Collapsed</summary>
+/// <summary>null → Visible, 값 있음 → Collapsed</summary>
 public class NullToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
@@ -33,7 +33,7 @@ public class NullToVisibilityConverter : IValueConverter
         => throw new NotImplementedException();
 }
 
-/// <summary>null → Visible, 값 있음 → Collapsed</summary>
+/// <summary>null이 아닌 값 → Visible, null → Collapsed</summary>
 public class InverseNullToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
@@ -73,7 +73,7 @@ public class InverseBoolConverter : IValueConverter
         => value is not true;
 }
 
-/// <summary>문자열이 비어있으면 Collapsed, 값이 있으면 Visible</summary>
+/// <summary>문자열이 비어있으면 Visible, 값이 있으면 Collapsed</summary>
 public class StringEmptyToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)

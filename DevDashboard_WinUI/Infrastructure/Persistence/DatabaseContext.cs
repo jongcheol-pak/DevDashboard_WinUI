@@ -114,18 +114,29 @@ public sealed class DatabaseContext
     private static void MigrateSchema(SqliteConnection connection)
     {
         AddColumnIfNotExists(connection, "Groups", "IsDefault", "INTEGER NOT NULL DEFAULT 0");
+        AddColumnIfNotExists(connection, "TestItems", "CategoryId", "TEXT NOT NULL DEFAULT ''");
+        AddColumnIfNotExists(connection, "TestItems", "Status", "TEXT NOT NULL DEFAULT 'Testing'");
+        MigrateIsCompletedToStatus(connection);
+    }
+
+    /// <summary>기존 IsCompleted 값을 Status 컬럼으로 마이그레이션합니다.</summary>
+    private static void MigrateIsCompletedToStatus(SqliteConnection connection)
+    {
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "UPDATE TestItems SET Status = 'Done' WHERE IsCompleted = 1 AND Status = 'Testing'";
+        cmd.ExecuteNonQuery();
     }
 
     /// <summary>허용된 테이블/컬럼 이름 — SQL Injection 방지용 화이트리스트</summary>
     private static readonly HashSet<string> AllowedIdentifiers = new(StringComparer.OrdinalIgnoreCase)
     {
-        "Projects", "ProjectTags", "CommandScripts", "Todos", "Histories", "Groups", "LauncherItems",
+        "Projects", "ProjectTags", "CommandScripts", "Todos", "Histories", "Groups", "LauncherItems", "TestItems", "TestCategories",
         "Id", "Name", "Description", "IconPath", "Path", "DevToolName", "Options",
         "Command", "GitStatus", "IsPinned", "PinOrder", "RunAsAdmin", "GroupId",
         "Category", "CreatedAt", "UseWorkingDirectory", "ShellWorkingDirectory",
         "ProjectId", "Tag", "SlotIndex", "ShellType", "Script", "WorkingDirectory",
         "IconSymbol", "Text", "IsCompleted", "CompletedAt", "Title", "IsDefault",
-        "DisplayName", "ExecutablePath", "IconCachePath", "SortOrder"
+        "DisplayName", "ExecutablePath", "IconCachePath", "SortOrder", "ProgressNote", "CategoryId", "Status"
     };
 
     private static void AddColumnIfNotExists(SqliteConnection connection, string table, string column, string definition)
@@ -227,8 +238,31 @@ public sealed class DatabaseContext
                 SortOrder      INTEGER NOT NULL DEFAULT 0
             );
 
+            CREATE TABLE IF NOT EXISTS TestCategories (
+                Id        TEXT PRIMARY KEY,
+                ProjectId TEXT NOT NULL,
+                Name      TEXT NOT NULL DEFAULT '',
+                CreatedAt TEXT NOT NULL DEFAULT '',
+                FOREIGN KEY (ProjectId) REFERENCES Projects(Id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS TestItems (
+                Id           TEXT PRIMARY KEY,
+                CategoryId   TEXT NOT NULL DEFAULT '',
+                ProjectId    TEXT NOT NULL,
+                Text         TEXT NOT NULL DEFAULT '',
+                ProgressNote TEXT NOT NULL DEFAULT '',
+                IsCompleted  INTEGER NOT NULL DEFAULT 0,
+                Status       TEXT NOT NULL DEFAULT 'Testing',
+                CompletedAt  TEXT,
+                CreatedAt    TEXT NOT NULL DEFAULT '',
+                FOREIGN KEY (ProjectId) REFERENCES Projects(Id) ON DELETE CASCADE
+            );
+
             CREATE INDEX IF NOT EXISTS IX_Todos_ProjectId ON Todos(ProjectId);
             CREATE INDEX IF NOT EXISTS IX_Histories_ProjectId ON Histories(ProjectId);
+            CREATE INDEX IF NOT EXISTS IX_TestItems_ProjectId ON TestItems(ProjectId);
+            CREATE INDEX IF NOT EXISTS IX_TestCategories_ProjectId ON TestCategories(ProjectId);
             """;
         cmd.ExecuteNonQuery();
     }

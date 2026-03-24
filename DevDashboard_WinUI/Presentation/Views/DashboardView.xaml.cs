@@ -65,6 +65,7 @@ public sealed partial class DashboardView : UserControl
         this.Resources["ToolTip_GitStatus"]           = LocalizationService.Get("ToolTip_GitStatus");
         this.Resources["ToolTip_ToDo"]                = LocalizationService.Get("ToolTip_ToDo");
         this.Resources["ToolTip_WorkHistory"]         = LocalizationService.Get("ToolTip_WorkHistory");
+        this.Resources["ToolTip_TestList"]             = LocalizationService.Get("ToolTip_TestList");
         this.Resources["ToolTip_Terminal"]            = LocalizationService.Get("ToolTip_Terminal");
     }
 
@@ -137,6 +138,7 @@ public sealed partial class DashboardView : UserControl
         card.ShowGitStatusRequested += OnShowGitStatusRequested;
         card.OpenTodoRequested += OnOpenTodoRequested;
         card.OpenHistoryRequested += OnOpenHistoryRequested;
+        card.OpenTestListRequested += OnOpenTestListRequested;
         card.ConfigureCommandSlotRequested += OnConfigureCommandSlotRequested;
         card.ChangeCommandIconRequested += OnChangeCommandIconRequested;
     }
@@ -146,6 +148,7 @@ public sealed partial class DashboardView : UserControl
         card.ShowGitStatusRequested -= OnShowGitStatusRequested;
         card.OpenTodoRequested -= OnOpenTodoRequested;
         card.OpenHistoryRequested -= OnOpenHistoryRequested;
+        card.OpenTestListRequested -= OnOpenTestListRequested;
         card.ConfigureCommandSlotRequested -= OnConfigureCommandSlotRequested;
         card.ChangeCommandIconRequested -= OnChangeCommandIconRequested;
     }
@@ -198,6 +201,23 @@ public sealed partial class DashboardView : UserControl
             var dialog = new HistoryDialog(dialogVm);
             await dialog.ShowAsync();
             card.OnHistoryDialogClosed(dialogVm);
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+        }
+    }
+
+    private async void OnOpenTestListRequested(object? sender, EventArgs e)
+    {
+        try
+        {
+            if (sender is not ProjectCardViewModel card) return;
+            var dialogVm = card.CreateTestListDialogViewModel();
+            var dialog = new TestListDialog(dialogVm);
+            await dialog.ShowAsync();
+            card.OnTestListDialogClosed(dialogVm);
         }
         catch (Exception ex)
         {

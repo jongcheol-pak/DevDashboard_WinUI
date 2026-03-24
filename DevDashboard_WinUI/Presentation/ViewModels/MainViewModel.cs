@@ -255,6 +255,7 @@ public partial class MainViewModel : ObservableObject
         card.CommandScriptChanged += OnCommandScriptChanged;
         card.TodoChanged += OnTodoChanged;
         card.HistoryChanged += OnHistoryChanged;
+        card.TestChanged += OnTestChanged;
     }
 
     private void UnsubscribeFromCard(ProjectCardViewModel card)
@@ -265,6 +266,7 @@ public partial class MainViewModel : ObservableObject
         card.CommandScriptChanged -= OnCommandScriptChanged;
         card.TodoChanged -= OnTodoChanged;
         card.HistoryChanged -= OnHistoryChanged;
+        card.TestChanged -= OnTestChanged;
     }
 
     private static void ShowDbError(Exception ex)
@@ -272,14 +274,14 @@ public partial class MainViewModel : ObservableObject
         _ = DialogService.ShowErrorAsync(ex.Message, LocalizationService.Get("SaveError"));
     }
 
-    private void OnCardDeleteRequested(object? sender, EventArgs e)
+    private async void OnCardDeleteRequested(object? sender, EventArgs e)
     {
         if (sender is not ProjectCardViewModel card) return;
         UnsubscribeFromCard(card);
 
         try
         {
-            _projectRepository.Delete(card.Id);
+            await Task.Run(() => _projectRepository.Delete(card.Id));
         }
         catch (Exception ex)
         {
@@ -299,13 +301,13 @@ public partial class MainViewModel : ObservableObject
         EditProjectRequested?.Invoke(this, card);
     }
 
-    private void OnCardPinToggled(object? sender, EventArgs e)
+    private async void OnCardPinToggled(object? sender, EventArgs e)
     {
         if (sender is ProjectCardViewModel card)
         {
             try
             {
-                _projectRepository.UpdatePinned(card.Id, card.IsPinned);
+                await Task.Run(() => _projectRepository.UpdatePinned(card.Id, card.IsPinned));
             }
             catch (Exception ex)
             {
@@ -317,14 +319,14 @@ public partial class MainViewModel : ObservableObject
         SaveSettings();
     }
 
-    private void OnCommandScriptChanged(object? sender, EventArgs e)
+    private async void OnCommandScriptChanged(object? sender, EventArgs e)
     {
         if (sender is ProjectCardViewModel card)
         {
             var model = card.ToModel();
             try
             {
-                _projectRepository.SaveCommandScripts(model.Id, model.CommandScripts);
+                await Task.Run(() => _projectRepository.SaveCommandScripts(model.Id, model.CommandScripts));
             }
             catch (Exception ex)
             {
@@ -333,14 +335,14 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    private void OnTodoChanged(object? sender, EventArgs e)
+    private async void OnTodoChanged(object? sender, EventArgs e)
     {
         if (sender is ProjectCardViewModel card)
         {
             var model = card.ToModel();
             try
             {
-                _projectRepository.SaveTodos(model.Id, model.Todos);
+                await Task.Run(() => _projectRepository.SaveTodos(model.Id, model.Todos));
             }
             catch (Exception ex)
             {
@@ -349,14 +351,30 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    private void OnHistoryChanged(object? sender, EventArgs e)
+    private async void OnHistoryChanged(object? sender, EventArgs e)
     {
         if (sender is ProjectCardViewModel card)
         {
             var model = card.ToModel();
             try
             {
-                _projectRepository.SaveHistories(model.Id, model.Histories);
+                await Task.Run(() => _projectRepository.SaveHistories(model.Id, model.Histories));
+            }
+            catch (Exception ex)
+            {
+                ShowDbError(ex);
+            }
+        }
+    }
+
+    private async void OnTestChanged(object? sender, EventArgs e)
+    {
+        if (sender is ProjectCardViewModel card)
+        {
+            var model = card.ToModel();
+            try
+            {
+                await Task.Run(() => _projectRepository.SaveTestCategories(model.Id, model.TestCategories));
             }
             catch (Exception ex)
             {
@@ -366,7 +384,7 @@ public partial class MainViewModel : ObservableObject
     }
 
     /// <summary>핀 고정된 카드의 순서를 변경합니다.</summary>
-    public void MovePinnedCard(string draggedCardId, string targetCardId, bool insertAfter = false)
+    public async void MovePinnedCard(string draggedCardId, string targetCardId, bool insertAfter = false)
     {
         var dragged = _allCards.FirstOrDefault(c => c.Id == draggedCardId);
         var target = _allCards.FirstOrDefault(c => c.Id == targetCardId);
@@ -388,7 +406,7 @@ public partial class MainViewModel : ObservableObject
             .ToList();
         try
         {
-            _projectRepository.UpdatePinOrder(pinnedIds);
+            await Task.Run(() => _projectRepository.UpdatePinOrder(pinnedIds));
         }
         catch (Exception ex)
         {
@@ -400,7 +418,7 @@ public partial class MainViewModel : ObservableObject
     }
 
     /// <summary>프로젝트를 추가하거나 수정합니다.</summary>
-    public void AddOrUpdateProject(ProjectItem item)
+    public async Task AddOrUpdateProjectAsync(ProjectItem item)
     {
         var existing = _allCards.FirstOrDefault(c => c.Id == item.Id);
         if (existing is not null)
@@ -410,7 +428,7 @@ public partial class MainViewModel : ObservableObject
 
             try
             {
-                _projectRepository.Update(item);
+                await Task.Run(() => _projectRepository.Update(item));
             }
             catch (Exception ex)
             {
@@ -432,7 +450,7 @@ public partial class MainViewModel : ObservableObject
         {
             try
             {
-                _projectRepository.Add(item);
+                await Task.Run(() => _projectRepository.Add(item));
             }
             catch (Exception ex)
             {
@@ -451,10 +469,11 @@ public partial class MainViewModel : ObservableObject
     }
 
     /// <summary>현재 메모리의 그룹 목록을 DB에 동기화합니다 (가져오기 후 호출).</summary>
-    public void SyncGroupsToDb() => _projectRepository.SyncGroups([.. Groups]);
+    public async Task SyncGroupsToDbAsync()
+        => await Task.Run(() => _projectRepository.SyncGroups([.. Groups]));
 
     /// <summary>그룹을 추가하거나 수정합니다.</summary>
-    public void AddOrUpdateGroup(ProjectGroup group)
+    public async Task AddOrUpdateGroupAsync(ProjectGroup group)
     {
         var existing = Groups.FirstOrDefault(g => g.Id == group.Id);
         if (existing is not null)
@@ -463,11 +482,11 @@ public partial class MainViewModel : ObservableObject
             Groups.Add(group);
 
         SaveSettings();
-        _projectRepository.SyncGroups([.. Groups]);
+        await Task.Run(() => _projectRepository.SyncGroups([.. Groups]));
     }
 
     /// <summary>그룹을 삭제하고 해당 그룹에 속한 프로젝트의 GroupId를 초기화합니다.</summary>
-    public void DeleteGroup(string groupId)
+    public async Task DeleteGroupAsync(string groupId)
     {
         var group = Groups.FirstOrDefault(g => g.Id == groupId);
         if (group is null || group.IsDefault) return;
@@ -476,16 +495,23 @@ public partial class MainViewModel : ObservableObject
 
         var affectedCards = _allCards.Where(c => c.GroupId == groupId).ToList();
         foreach (var card in affectedCards)
-        {
             card.UpdateGroupId(string.Empty);
-            try
+
+        // 영향받는 카드 DB 업데이트 + 그룹 동기화를 백그라운드에서 일괄 처리
+        var models = affectedCards.Select(c => c.ToModel()).ToList();
+        var groups = Groups.ToList();
+        try
+        {
+            await Task.Run(() =>
             {
-                _projectRepository.Update(card.ToModel());
-            }
-            catch (Exception ex)
-            {
-                ShowDbError(ex);
-            }
+                foreach (var model in models)
+                    _projectRepository.Update(model);
+                _projectRepository.SyncGroups(groups);
+            });
+        }
+        catch (Exception ex)
+        {
+            ShowDbError(ex);
         }
 
         if (SelectedGroupId == groupId)
@@ -493,7 +519,6 @@ public partial class MainViewModel : ObservableObject
 
         ApplyFilterAndSort();
         SaveSettings();
-        _projectRepository.SyncGroups([.. Groups]);
     }
 
     /// <summary>사용자 추가 그룹 수 (기본 그룹 제외)</summary>
@@ -684,7 +709,7 @@ public partial class MainViewModel : ObservableObject
     }
 
     /// <summary>그룹을 기본값으로 초기화하고 모든 카드를 기본 그룹에 재배치합니다.</summary>
-    public void ResetGroups()
+    public async Task ResetGroupsAsync()
     {
         var defaultGroup = new ProjectGroup { Name = LocalizationService.Get("DefaultGroupName"), IsDefault = true };
 
@@ -701,14 +726,26 @@ public partial class MainViewModel : ObservableObject
         }
 
         foreach (var card in _allCards)
-        {
             card.UpdateGroupId(defaultGroup.Id);
-            try { _projectRepository.Update(card.ToModel()); }
-            catch (Exception ex) { ShowDbError(ex); }
+
+        // 카드 DB 업데이트 + 그룹 동기화를 백그라운드에서 일괄 처리
+        var models = _allCards.Select(c => c.ToModel()).ToList();
+        var groups = Groups.ToList();
+        try
+        {
+            await Task.Run(() =>
+            {
+                foreach (var model in models)
+                    _projectRepository.Update(model);
+                _projectRepository.SyncGroups(groups);
+            });
+        }
+        catch (Exception ex)
+        {
+            ShowDbError(ex);
         }
 
         ApplyFilterAndSort();
         SaveSettings();
-        _projectRepository.SyncGroups([.. Groups]);
     }
 }

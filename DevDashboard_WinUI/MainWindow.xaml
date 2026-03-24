@@ -148,7 +148,7 @@
 
                 <ScrollViewer Margin="0,0,0,0" VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Spacing="6" Padding="0,8">
+                    <StackPanel Spacing="6" Padding="0,12">
 
                         <ItemsRepeater x:Name="LauncherRepeater">
                             <ItemsRepeater.Layout>
@@ -172,7 +172,9 @@
                                                   DropCompleted="LauncherItem_DropCompleted"
                                                   DragOver="LauncherItem_DragOver"
                                                   Drop="LauncherItem_Drop"
-                                                  Tapped="LauncherItem_Tapped">
+                                                  Tapped="LauncherItem_Tapped"
+                                                  PointerEntered="LauncherItem_PointerEntered"
+                                                  PointerExited="LauncherItem_PointerExited">
                                                 <Image Source="{Binding IconImage}"
                                                        Width="28" Height="28"
                                                        Stretch="Uniform"

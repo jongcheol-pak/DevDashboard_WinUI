@@ -5,9 +5,12 @@ using DevDashboard.Infrastructure.Services;
 using DevDashboard.Presentation.ViewModels;
 using DevDashboard.Presentation.Views;
 using DevDashboard.Presentation.Views.Dialogs;
+using System.Numerics;
+using Microsoft.UI.Composition;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
 using WinUIEx;
 
@@ -24,6 +27,20 @@ public sealed partial class MainWindow : WindowEx
     private readonly string? _dbErrorMessage;
     private SizeChangedEventHandler? _headerBorderSizeChanged;
     private SizeChangedEventHandler? _groupTabsPanelSizeChanged;
+
+    // 런처 호버 애니메이션 캐싱
+    private CompositionEasingFunction? _launcherEasing;
+    private static readonly TimeSpan LauncherAnimDuration = TimeSpan.FromMilliseconds(200);
+    private const int LauncherAnimRange = 3;
+    private readonly HashSet<UIElement> _translationEnabledElements = [];
+    private readonly HashSet<UIElement> _animatedLauncherItems = [];
+
+    // 검색 디바운스
+    private DispatcherQueueTimer? _searchDebounceTimer;
+    private string _pendingSearchText = string.Empty;
+
+    // 런처 PropertyChanged 핸들러 (해제를 위해 필드에 저장)
+    private System.ComponentModel.PropertyChangedEventHandler? _launcherPropertyChanged;
 
     // SortOrder 상수 — XAML x:Bind CommandParameter용
     public SortOrder SortByName { get; } = SortOrder.Name;
@@ -105,11 +122,12 @@ public sealed partial class MainWindow : WindowEx
             LauncherRepeater.ItemsSource = _launcherViewModel.DisplayItems;
             LauncherAddButton.DataContext = _launcherViewModel;
             ApplyLauncherSidebarVisibility();
-            _launcherViewModel.PropertyChanged += (_, args) =>
+            _launcherPropertyChanged = (_, args) =>
             {
                 if (args.PropertyName == nameof(LauncherViewModel.ItemCount))
                     UpdateLauncherCount();
             };
+            _launcherViewModel.PropertyChanged += _launcherPropertyChanged;
             UpdateLauncherCount();
 
             // 비동기 초기화
@@ -157,6 +175,19 @@ public sealed partial class MainWindow : WindowEx
             _viewModel.EditProjectRequested -= OnEditProjectRequested;
             _viewModel.AddProjectRequested -= OnAddProjectRequested;
         }
+
+        if (_searchDebounceTimer is not null)
+        {
+            _searchDebounceTimer.Stop();
+            _searchDebounceTimer.Tick -= SearchDebounceTimer_Tick;
+        }
+
+        if (_launcherViewModel is not null && _launcherPropertyChanged is not null)
+            _launcherViewModel.PropertyChanged -= _launcherPropertyChanged;
+
+        _translationEnabledElements.Clear();
+        _animatedLauncherItems.Clear();
+        _launcherEasing = null;
     }
 
     /// <summary>SearchBox·버튼 영역을 제외한 헤더 빈 공간만 드래그 영역으로 등록합니다.
@@ -238,11 +269,27 @@ public sealed partial class MainWindow : WindowEx
         var raw = sender.Text ?? string.Empty;
         var filtered = _searchSanitizePattern.Replace(raw, string.Empty);
 
-        // 정제된 텍스트가 다를 경우 표시 텍스트만 교정하고, SearchText는 항상 업데이트
+        // 정제된 텍스트가 다를 경우 표시 텍스트만 교정
         if (filtered != raw)
             sender.Text = filtered;
 
-        _viewModel.SearchText = filtered;
+        // 디바운스: 300ms 이내 연속 입력 시 마지막 입력만 반영
+        _pendingSearchText = filtered;
+        _searchDebounceTimer?.Stop();
+        if (_searchDebounceTimer is null)
+        {
+            _searchDebounceTimer = DispatcherQueue.CreateTimer();
+            _searchDebounceTimer.Interval = TimeSpan.FromMilliseconds(300);
+            _searchDebounceTimer.IsRepeating = false;
+            _searchDebounceTimer.Tick += SearchDebounceTimer_Tick;
+        }
+        _searchDebounceTimer.Start();
+    }
+
+    private void SearchDebounceTimer_Tick(DispatcherQueueTimer sender, object args)
+    {
+        if (_viewModel is not null)
+            _viewModel.SearchText = _pendingSearchText;
     }
 
 
@@ -335,7 +382,7 @@ public sealed partial class MainWindow : WindowEx
 
             if (confirmed)
             {
-                _viewModel.DeleteGroup(group.Id);
+                await _viewModel.DeleteGroupAsync(group.Id);
                 AllGroupTab.IsChecked = true;
             }
         }
@@ -365,7 +412,7 @@ public sealed partial class MainWindow : WindowEx
             await dialog.ShowAsync();
             if (dialog.ResultGroup is not null)
             {
-                _viewModel.AddOrUpdateGroup(dialog.ResultGroup);
+                await _viewModel.AddOrUpdateGroupAsync(dialog.ResultGroup);
 
                 // 새 그룹 추가 시 스크롤을 오른쪽 끝으로 이동하여 새 탭이 보이도록 함
                 if (existing is null)
@@ -407,7 +454,7 @@ public sealed partial class MainWindow : WindowEx
                 await _viewModel.HardRefreshCommand.ExecuteAsync(null);
             if (dialog.SettingsReset)
             {
-                _viewModel.ResetGroups();
+                await _viewModel.ResetGroupsAsync();
                 AllGroupTab.IsChecked = true;
             }
             if (dialog.LauncherReset)
@@ -548,9 +595,13 @@ public sealed partial class MainWindow : WindowEx
             List<LauncherItem> importLauncherItems;
             try
             {
-                importProjects = SqliteProjectRepository.ReadAllFromDb(file.Path);
-                importGroups = SqliteProjectRepository.ReadGroupsFromDb(file.Path);
-                importLauncherItems = LauncherRepository.ReadAllFromDb(file.Path);
+                // DB 읽기를 백그라운드에서 실행 (UI 프리징 방지)
+                (importProjects, importGroups, importLauncherItems) = await Task.Run(() =>
+                (
+                    SqliteProjectRepository.ReadAllFromDb(file.Path),
+                    SqliteProjectRepository.ReadGroupsFromDb(file.Path),
+                    LauncherRepository.ReadAllFromDb(file.Path)
+                ));
             }
             catch
             {
@@ -588,7 +639,7 @@ public sealed partial class MainWindow : WindowEx
                         }
                         else if (_viewModel.CanAddGroup)
                         {
-                            _viewModel.AddOrUpdateGroup(group);
+                            await _viewModel.AddOrUpdateGroupAsync(group);
                             existingByName[group.Name] = group.Id;
                             groupIdRemap[group.Id] = group.Id;
                             groupsCreatedCount++;
@@ -597,7 +648,7 @@ public sealed partial class MainWindow : WindowEx
 
                     // 프로젝트 초기화 후 가져오기 시 DB Groups 테이블이 비어 있을 수 있으므로
                     // 메모리의 그룹 목록을 DB에 동기화
-                    _viewModel.SyncGroupsToDb();
+                    await _viewModel.SyncGroupsToDbAsync();
 
                     foreach (var project in importProjects)
                     {
@@ -608,15 +659,20 @@ public sealed partial class MainWindow : WindowEx
                     }
 
                     totalCount = importProjects.Count;
+
+                    // 중복 체크를 백그라운드에서 일괄 수행 (UI 프리징 방지)
+                    var existingIdMap = await Task.Run(() =>
+                        importProjects.ToDictionary(p => p, p => _projectRepository.FindProjectIdByName(p.Name)));
+
                     foreach (var project in importProjects)
                     {
-                        var existingId = _projectRepository.FindProjectIdByName(project.Name);
+                        var existingId = existingIdMap[project];
                         if (existingId is not null)
                         {
                             var result = await ShowOverwriteDialogAsync(project.Name);
                             if (result == ContentDialogResult.Primary)
                             {
-                                _projectRepository.DeleteByNameAndInsert(existingId, project);
+                                await Task.Run(() => _projectRepository.DeleteByNameAndInsert(existingId, project));
                                 overwrittenCount++;
                             }
                             else
@@ -626,7 +682,7 @@ public sealed partial class MainWindow : WindowEx
                         }
                         else
                         {
-                            _projectRepository.Add(project);
+                            await Task.Run(() => _projectRepository.Add(project));
                             addedCount++;
                         }
                     }
@@ -635,6 +691,9 @@ public sealed partial class MainWindow : WindowEx
 
             // ─── 2. 런처 항목 가져오기 ───────────────────────────────────────
             var launcherAddedCount = 0;
+            var launcherTotalCount = 0;
+            var launcherFilteredCount = 0;
+            var launcherDuplicateCount = 0;
             if (_launcherViewModel is not null && importLauncherItems.Count > 0)
             {
                 var addLauncher = await DialogService.ShowConfirmAsync(
@@ -643,26 +702,46 @@ public sealed partial class MainWindow : WindowEx
 
                 if (addLauncher)
                 {
-                    foreach (var item in importLauncherItems)
+                    launcherTotalCount = importLauncherItems.Count;
+
+                    // 유효한 항목 필터링 (미설치 앱/파일 없는 항목 제외, 백그라운드 실행)
+                    var validItems = await Task.Run(() => importLauncherItems.Where(item =>
+                    {
+                        if (string.IsNullOrEmpty(item.ExecutablePath)) return false;
+
+                        // shell:AppsFolder(UWP/MSIX) 앱은 무조건 수용 — 실행 시점에 설치 여부 확인
+                        if (item.ExecutablePath.StartsWith("shell:AppsFolder", StringComparison.OrdinalIgnoreCase))
+                            return true;
+
+                        return File.Exists(item.ExecutablePath);
+                    }).ToList());
+
+                    launcherFilteredCount = launcherTotalCount - validItems.Count;
+
+                    // 아이콘 캐시가 없는 항목만 병렬 추출 (최대 4개 동시)
+                    var needIcon = validItems
+                        .Where(i => string.IsNullOrEmpty(i.IconCachePath) || !File.Exists(i.IconCachePath))
+                        .ToList();
+                    if (needIcon.Count > 0)
+                    {
+                        await Parallel.ForEachAsync(needIcon,
+                            new ParallelOptions { MaxDegreeOfParallelism = 4 },
+                            async (item, _) =>
+                            {
+                                var iconPath = await IconCacheService.GetIconPathAsync(item.ExecutablePath);
+                                item.IconCachePath = iconPath ?? string.Empty;
+                            });
+                    }
+
+                    // DB 추가 및 UI 업데이트 순차 처리
+                    foreach (var item in validItems)
                     {
                         if (!_launcherViewModel.CanAdd) break;
-
-                        // 앱이 설치되어 있지 않거나 파일이 없으면 건너뜀
-                        bool isUwpApp = item.ExecutablePath.StartsWith("shell:AppsFolder", StringComparison.OrdinalIgnoreCase);
-                        if (!isUwpApp && !File.Exists(item.ExecutablePath))
-                            continue;
-
-                        // 아이콘 캐시 파일이 없으면 ExecutablePath에서 재추출
-                        if (string.IsNullOrEmpty(item.IconCachePath) || !File.Exists(item.IconCachePath))
-                        {
-                            var newIconPath = await IconCacheService.GetIconPathAsync(item.ExecutablePath);
-                            item.IconCachePath = newIconPath ?? string.Empty;
-                        }
-
                         item.SortOrder = _launcherViewModel.Items.Count;
-                        // AddItemAsync 내부에서 중복/100개 제한 체크
                         if (await _launcherViewModel.AddItemAsync(item))
                             launcherAddedCount++;
+                        else
+                            launcherDuplicateCount++;
                     }
                 }
             }
@@ -678,9 +757,9 @@ public sealed partial class MainWindow : WindowEx
                 messageParts.Add(string.Format(LocalizationService.Get("Import_GroupsCreatedFormat"),
                     string.Empty, groupsCreatedCount));
 
-            if (launcherAddedCount > 0)
-                messageParts.Add(string.Format(LocalizationService.Get("Import_LauncherAddedFormat"),
-                    string.Empty, launcherAddedCount));
+            if (launcherTotalCount > 0)
+                messageParts.Add(string.Format(LocalizationService.Get("Import_LauncherResultFormat"),
+                    launcherTotalCount, launcherAddedCount, launcherFilteredCount, launcherDuplicateCount));
 
             if (messageParts.Count > 0)
             {
@@ -738,7 +817,7 @@ public sealed partial class MainWindow : WindowEx
                 card is null ? _viewModel.SelectedGroupId : null);
             await dialog.ShowAsync();
             if (dialog.ResultItem is not null)
-                _viewModel.AddOrUpdateProject(dialog.ResultItem);
+                await _viewModel.AddOrUpdateProjectAsync(dialog.ResultItem);
         }
         catch (Exception ex)
         {
@@ -811,6 +890,107 @@ public sealed partial class MainWindow : WindowEx
     {
         if (sender is not FrameworkElement fe || fe.DataContext is not LauncherItemViewModel item) return;
         _launcherViewModel?.LaunchCommand.Execute(item);
+    }
+
+    // 런처 아이콘 호버 시 확대 + 인접 아이콘 밀어내기 애니메이션
+    private void LauncherItem_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is not UIElement element) return;
+
+        var visual = ElementCompositionPreview.GetElementVisual(element);
+        var compositor = visual.Compositor;
+
+        // CenterPoint: 레이아웃 미완료 시 고정 크기(44x44) fallback
+        var size = visual.Size;
+        if (size.X == 0 || size.Y == 0) size = new Vector2(44, 44);
+        visual.CenterPoint = new Vector3(size.X / 2, size.Y / 2, 0);
+
+        var easing = GetOrCreateEasing(compositor);
+
+        // 확대 애니메이션
+        var scaleAnim = compositor.CreateVector3KeyFrameAnimation();
+        scaleAnim.InsertKeyFrame(1.0f, new Vector3(1.3f, 1.3f, 1.0f), easing);
+        scaleAnim.Duration = LauncherAnimDuration;
+        visual.StartAnimation("Scale", scaleAnim);
+
+        // 호버된 아이콘 기준으로 인접 아이템만 밀어내기 (범위 제한으로 성능 최적화)
+        var hoveredIndex = LauncherRepeater.GetElementIndex(element);
+        if (hoveredIndex < 0) return;
+
+        const float pushDistance = 8f;
+        var itemCount = _launcherViewModel?.DisplayItems.Count ?? 0;
+        var startIdx = Math.Max(0, hoveredIndex - LauncherAnimRange);
+        var endIdx = Math.Min(itemCount - 1, hoveredIndex + LauncherAnimRange);
+
+        _animatedLauncherItems.Clear();
+        for (var i = startIdx; i <= endIdx; i++)
+        {
+            if (i == hoveredIndex) continue;
+            if (LauncherRepeater.TryGetElement(i) is not UIElement neighbor) continue;
+
+            EnsureTranslationEnabled(neighbor);
+            _animatedLauncherItems.Add(neighbor);
+
+            // 거리 기반 감소: 가까울수록 많이, 멀수록 적게 밀어냄
+            var distance = Math.Abs(i - hoveredIndex);
+            var magnitude = pushDistance / distance;
+            var offset = i < hoveredIndex ? -magnitude : magnitude;
+            AnimateLauncherTranslationY(neighbor, offset, easing);
+        }
+
+        // 추가 버튼도 거리 기반으로 밀어내기
+        EnsureTranslationEnabled(LauncherAddButton);
+        var addBtnDistance = Math.Max(1, itemCount - hoveredIndex);
+        AnimateLauncherTranslationY(LauncherAddButton, pushDistance / addBtnDistance, easing);
+    }
+
+    private void LauncherItem_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is not UIElement element) return;
+
+        var visual = ElementCompositionPreview.GetElementVisual(element);
+        var easing = GetOrCreateEasing(visual.Compositor);
+
+        // 축소 애니메이션
+        var scaleAnim = visual.Compositor.CreateVector3KeyFrameAnimation();
+        scaleAnim.InsertKeyFrame(1.0f, new Vector3(1.0f, 1.0f, 1.0f), easing);
+        scaleAnim.Duration = LauncherAnimDuration;
+        visual.StartAnimation("Scale", scaleAnim);
+
+        // PointerEntered에서 애니메이션된 아이콘만 원위치 복원
+        foreach (var neighbor in _animatedLauncherItems)
+        {
+            AnimateLauncherTranslationY(neighbor, 0f, easing);
+        }
+        _animatedLauncherItems.Clear();
+
+        // 추가 버튼도 원위치 복원
+        AnimateLauncherTranslationY(LauncherAddButton, 0f, easing);
+    }
+
+    /// <summary>런처 호버 애니메이션용 easing 함수를 캐싱하여 반환합니다.</summary>
+    private CompositionEasingFunction GetOrCreateEasing(Compositor compositor)
+    {
+        return _launcherEasing ??= compositor.CreateCubicBezierEasingFunction(
+            new Vector2(0.2f, 0), new Vector2(0, 1));
+    }
+
+    /// <summary>Translation 애니메이션 사용을 위해 최초 1회만 활성화합니다.</summary>
+    private void EnsureTranslationEnabled(UIElement element)
+    {
+        if (_translationEnabledElements.Add(element))
+            ElementCompositionPreview.SetIsTranslationEnabled(element, true);
+    }
+
+    /// <summary>런처 아이콘의 Y축 Translation을 애니메이션합니다.</summary>
+    private static void AnimateLauncherTranslationY(UIElement target, float y,
+        CompositionEasingFunction easing)
+    {
+        var visual = ElementCompositionPreview.GetElementVisual(target);
+        var anim = visual.Compositor.CreateVector3KeyFrameAnimation();
+        anim.InsertKeyFrame(1.0f, new Vector3(0, y, 0), easing);
+        anim.Duration = LauncherAnimDuration;
+        visual.StartAnimation("Translation", anim);
     }
 
     private void LauncherRunAsAdmin_Click(object sender, RoutedEventArgs e)

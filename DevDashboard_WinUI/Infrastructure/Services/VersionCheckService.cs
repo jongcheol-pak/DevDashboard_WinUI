@@ -64,7 +64,7 @@ public static class VersionCheckService
         if (string.IsNullOrWhiteSpace(url)) return;
         try
         {
-            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true })?.Dispose();
         }
         catch (Exception)
         {

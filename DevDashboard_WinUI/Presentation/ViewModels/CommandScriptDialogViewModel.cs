@@ -61,7 +61,7 @@ public partial class CommandScriptDialogViewModel : ObservableObject
             Description = Description.Trim(),
             ShellType = SelectedShellType,
             RunAsAdmin = RunAsAdmin,
-            Script = Script,
+            Script = Script.Trim(),
             UseWorkingDirectory = UseWorkingDirectory,
             WorkingDirectory = WorkingDirectory.Trim(),
             IconSymbol = _iconSymbol

@@ -66,6 +66,12 @@ public class ProjectItem
     /// <summary>완료되지 않은 활성 To-Do 항목이 있는지 여부 — GetAll() 시 DB에서 설정</summary>
     public bool HasActiveTodo { get; set; }
 
+    /// <summary>테스트 카테고리 목록 (지연 로딩 — GetAll() 시 비어있음)</summary>
+    public List<TestCategory> TestCategories { get; set; } = [];
+
+    /// <summary>완료되지 않은 활성 테스트 항목이 있는지 여부 — GetAll() 시 DB에서 설정</summary>
+    public bool HasActiveTest { get; set; }
+
     /// <summary>작업 기록 목록 (지연 로딩 — GetAll() 시 비어있음)</summary>
     public List<HistoryEntry> Histories { get; set; } = [];
 

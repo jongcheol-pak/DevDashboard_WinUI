@@ -340,6 +340,7 @@
   <data name="Import_FailedTitle" xml:space="preserve"><value>Import Error</value></data>
   <data name="Import_GroupsCreatedFormat" xml:space="preserve"><value>{0}{1} group(s) auto-created</value></data>
   <data name="Import_LauncherAddedFormat" xml:space="preserve"><value>{0}{1} launcher app(s) added</value></data>
+  <data name="Import_LauncherResultFormat" xml:space="preserve"><value>Launcher: Total {0} / Added {1} / Not installed {2} / Duplicate {3}</value></data>
   <data name="UnexpectedError" xml:space="preserve"><value>An unexpected error occurred: {0}</value></data>
   <data name="InstalledAppsDialogTitle" xml:space="preserve"><value>Select Installed App</value></data>
   <data name="InstalledAppsSearch.PlaceholderText" xml:space="preserve"><value>Search apps...</value></data>
@@ -347,5 +348,28 @@
   <data name="Launcher_DropToAdd" xml:space="preserve"><value>Add</value></data>
   <data name="LauncherRunAsAdmin.Text" xml:space="preserve"><value>Run as Administrator</value></data>
   <data name="LauncherDelete.Text" xml:space="preserve"><value>Delete</value></data>
+
+  <!-- ===== Test List ===== -->
+  <data name="ToolTip_TestList" xml:space="preserve"><value>Test List</value></data>
+  <data name="TestListDialogTitle" xml:space="preserve"><value>Test List</value></data>
+  <data name="TestTabAll.Content" xml:space="preserve"><value>All</value></data>
+  <data name="TestTabTesting.Content" xml:space="preserve"><value>Testing</value></data>
+  <data name="TestTabFix.Content" xml:space="preserve"><value>Fix</value></data>
+  <data name="TestTabDone.Content" xml:space="preserve"><value>Done</value></data>
+  <data name="TestStatusTesting.Content" xml:space="preserve"><value>Testing</value></data>
+  <data name="TestStatusFix.Content" xml:space="preserve"><value>Fix</value></data>
+  <data name="TestStatusDone.Content" xml:space="preserve"><value>Done</value></data>
+  <data name="TestGroupByCompleted.Content" xml:space="preserve"><value>Completed Date</value></data>
+  <data name="TestGroupByCreated.Content" xml:space="preserve"><value>Start Date</value></data>
+  <data name="NewTestBox.PlaceholderText" xml:space="preserve"><value>New test item...</value></data>
+  <data name="TestEditTitle" xml:space="preserve"><value>Edit Test Item</value></data>
+  <data name="TestEditNoteTitle" xml:space="preserve"><value>Edit Progress Note</value></data>
+  <data name="TestAddNoteLink.Text" xml:space="preserve"><value>+ Add note</value></data>
+  <data name="TestLabel_Start" xml:space="preserve"><value>Start :</value></data>
+  <data name="TestLabel_Completed" xml:space="preserve"><value>Completed :</value></data>
+  <data name="NewCategoryBox.PlaceholderText" xml:space="preserve"><value>New category name...</value></data>
+  <data name="TestEditCategoryTitle" xml:space="preserve"><value>Edit Category Name</value></data>
+  <data name="TestDeleteCategoryConfirm" xml:space="preserve"><value>This category and all test items in it will be deleted. Continue?</value></data>
+  <data name="EmptyTestText.Text" xml:space="preserve"><value>No categories. Add a new category to get started.</value></data>
 
 </root>

@@ -340,6 +340,7 @@
   <data name="Import_FailedTitle" xml:space="preserve"><value>가져오기 오류</value></data>
   <data name="Import_GroupsCreatedFormat" xml:space="preserve"><value>{0}그룹 {1}개 자동 생성됨</value></data>
   <data name="Import_LauncherAddedFormat" xml:space="preserve"><value>{0}런처 앱 {1}개 추가됨</value></data>
+  <data name="Import_LauncherResultFormat" xml:space="preserve"><value>런처 앱: 총 {0}개 / 추가 {1}개 / 미설치 {2}개 / 중복 {3}개</value></data>
   <data name="UnexpectedError" xml:space="preserve"><value>예기치 않은 오류가 발생했습니다: {0}</value></data>
   <data name="InstalledAppsDialogTitle" xml:space="preserve"><value>설치된 앱 선택</value></data>
   <data name="InstalledAppsSearch.PlaceholderText" xml:space="preserve"><value>앱 검색...</value></data>
@@ -347,5 +348,28 @@
   <data name="Launcher_DropToAdd" xml:space="preserve"><value>등록</value></data>
   <data name="LauncherRunAsAdmin.Text" xml:space="preserve"><value>관리자 권한으로 실행</value></data>
   <data name="LauncherDelete.Text" xml:space="preserve"><value>삭제</value></data>
+
+  <!-- ===== 테스트 목록 ===== -->
+  <data name="ToolTip_TestList" xml:space="preserve"><value>테스트 목록</value></data>
+  <data name="TestListDialogTitle" xml:space="preserve"><value>테스트 목록</value></data>
+  <data name="TestTabAll.Content" xml:space="preserve"><value>전체</value></data>
+  <data name="TestTabTesting.Content" xml:space="preserve"><value>테스트</value></data>
+  <data name="TestTabFix.Content" xml:space="preserve"><value>수정</value></data>
+  <data name="TestTabDone.Content" xml:space="preserve"><value>완료</value></data>
+  <data name="TestStatusTesting.Content" xml:space="preserve"><value>테스트</value></data>
+  <data name="TestStatusFix.Content" xml:space="preserve"><value>수정</value></data>
+  <data name="TestStatusDone.Content" xml:space="preserve"><value>완료</value></data>
+  <data name="TestGroupByCompleted.Content" xml:space="preserve"><value>완료 날짜</value></data>
+  <data name="TestGroupByCreated.Content" xml:space="preserve"><value>시작 날짜</value></data>
+  <data name="NewTestBox.PlaceholderText" xml:space="preserve"><value>새 테스트 항목 입력...</value></data>
+  <data name="TestEditTitle" xml:space="preserve"><value>테스트 항목 수정</value></data>
+  <data name="TestEditNoteTitle" xml:space="preserve"><value>진행 내용 수정</value></data>
+  <data name="TestAddNoteLink.Text" xml:space="preserve"><value>+ 메모 추가</value></data>
+  <data name="TestLabel_Start" xml:space="preserve"><value>시작 :</value></data>
+  <data name="TestLabel_Completed" xml:space="preserve"><value>완료 :</value></data>
+  <data name="NewCategoryBox.PlaceholderText" xml:space="preserve"><value>새 카테고리 이름 입력...</value></data>
+  <data name="TestEditCategoryTitle" xml:space="preserve"><value>카테고리 이름 수정</value></data>
+  <data name="TestDeleteCategoryConfirm" xml:space="preserve"><value>이 카테고리와 소속된 모든 테스트 항목이 삭제됩니다. 계속하시겠습니까?</value></data>
+  <data name="EmptyTestText.Text" xml:space="preserve"><value>카테고리가 없습니다. 새 카테고리를 추가해주세요.</value></data>
 
 </root>

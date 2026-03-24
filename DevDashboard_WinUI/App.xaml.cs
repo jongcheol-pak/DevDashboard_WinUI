@@ -20,6 +20,24 @@ public partial class App : Application
     {
         InitializeComponent();
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+
+        // 전역 예외 핸들러 — UI 스레드의 미처리 예외를 잡아 앱 즉시 종료를 방지
+        UnhandledException += OnUnhandledException;
+
+        // 백그라운드 Task의 미관찰 예외 — GC 수집 시 발생하는 크래시 방지
+        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+    }
+
+    private static void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine($"[App] UnhandledException: {e.Exception}");
+        e.Handled = true;
+    }
+
+    private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine($"[App] UnobservedTaskException: {e.Exception}");
+        e.SetObserved();
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)

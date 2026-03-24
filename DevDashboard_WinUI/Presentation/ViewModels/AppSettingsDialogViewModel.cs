@@ -150,7 +150,7 @@ public partial class AppSettingsDialogViewModel : ObservableObject
     [
         "node.js", "javascript", "typescript", "java", "python", "swift", "kotlin",
         "react", "js", "php", "ruby", "c#", "c", "c++", "objective-c", "flutter", "ai",
-        ".net", ".net framework", "html", "winui", "rust", "asp.net","wpf"
+        ".net", ".net framework", "html", "winui", "rust", "asp.net","wpf","winrt"
     ];
 
     /// <summary>기술 스택 태그 목록</summary>

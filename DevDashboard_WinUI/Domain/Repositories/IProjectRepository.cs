@@ -15,6 +15,9 @@ public interface IProjectRepository
     /// <summary>특정 프로젝트의 작업 기록을 로드합니다 (다이얼로그 열기 시 지연 로딩).</summary>
     List<HistoryEntry> GetHistories(string projectId);
 
+    /// <summary>특정 프로젝트의 테스트 카테고리 목록을 로드합니다 (다이얼로그 열기 시 지연 로딩).</summary>
+    List<TestCategory> GetTestCategories(string projectId);
+
     /// <summary>프로젝트를 추가합니다 (Tags, CommandScripts, Todos, Histories 포함).</summary>
     void Add(ProjectItem project);
 
@@ -29,6 +32,9 @@ public interface IProjectRepository
 
     /// <summary>프로젝트의 작업 기록만 저장합니다.</summary>
     void SaveHistories(string projectId, List<HistoryEntry> histories);
+
+    /// <summary>프로젝트의 테스트 카테고리 및 항목을 저장합니다.</summary>
+    void SaveTestCategories(string projectId, List<TestCategory> categories);
 
     /// <summary>프로젝트의 커맨드 스크립트만 저장합니다.</summary>
     void SaveCommandScripts(string projectId, List<CommandScript?> scripts);

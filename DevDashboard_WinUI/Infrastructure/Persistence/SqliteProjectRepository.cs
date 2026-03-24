@@ -30,13 +30,15 @@ public sealed class SqliteProjectRepository : IProjectRepository
         var tagsMap = ReadAllTags(conn);
         var scriptsMap = ReadAllCommandScripts(conn);
         var activeSet = ReadActiveProjectIds(conn);
+        var activeTestSet = ReadActiveTestProjectIds(conn);
 
-        // Todos/Histories는 지연 로딩 — 다이얼로그 열기 시 GetTodos/GetHistories로 로드
+        // Todos/Histories/TestCategories는 지연 로딩 — 다이얼로그 열기 시 GetTodos/GetHistories/GetTestCategories로 로드
         foreach (var p in projects)
         {
             p.Tags = tagsMap.TryGetValue(p.Id, out var tags) ? tags : [];
             p.CommandScripts = scriptsMap.TryGetValue(p.Id, out var scripts) ? scripts : [null, null, null, null];
             p.HasActiveTodo = activeSet.Contains(p.Id);
+            p.HasActiveTest = activeTestSet.Contains(p.Id);
         }
 
         return projects;
@@ -53,6 +55,26 @@ public sealed class SqliteProjectRepository : IProjectRepository
         while (reader.Read())
             set.Add(reader.GetString(0));
         return set;
+    }
+
+    /// <summary>완료되지 않은 테스트 항목이 있는 프로젝트 ID 집합을 반환합니다.</summary>
+    private static HashSet<string> ReadActiveTestProjectIds(SqliteConnection conn)
+    {
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT DISTINCT ProjectId FROM TestItems WHERE Status != 'Done'";
+        using var reader = cmd.ExecuteReader();
+
+        var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        while (reader.Read())
+            set.Add(reader.GetString(0));
+        return set;
+    }
+
+    /// <inheritdoc />
+    public List<TestCategory> GetTestCategories(string projectId)
+    {
+        using var conn = _db.CreateConnection();
+        return ReadTestCategoriesForProject(conn, projectId);
     }
 
     /// <inheritdoc />
@@ -122,6 +144,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
         InsertCommandScripts(conn, project.Id, project.CommandScripts);
         InsertTodos(conn, project.Id, project.Todos);
         InsertHistories(conn, project.Id, project.Histories);
+        InsertTestCategories(conn, project.Id, project.TestCategories);
 
         tx.Commit();
     }
@@ -183,6 +206,18 @@ public sealed class SqliteProjectRepository : IProjectRepository
         tx.Commit();
     }
 
+    public void SaveTestCategories(string projectId, List<TestCategory> categories)
+    {
+        using var conn = _db.CreateConnection();
+        using var tx = conn.BeginTransaction();
+
+        DeleteByProjectId(conn, "TestItems", projectId);
+        DeleteByProjectId(conn, "TestCategories", projectId);
+        InsertTestCategories(conn, projectId, categories);
+
+        tx.Commit();
+    }
+
     public void SaveCommandScripts(string projectId, List<CommandScript?> scripts)
     {
         using var conn = _db.CreateConnection();
@@ -239,6 +274,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
             InsertCommandScripts(conn, p.Id, p.CommandScripts);
             InsertTodos(conn, p.Id, p.Todos);
             InsertHistories(conn, p.Id, p.Histories);
+            InsertTestCategories(conn, p.Id, p.TestCategories);
         }
 
         tx.Commit();
@@ -531,6 +567,63 @@ public sealed class SqliteProjectRepository : IProjectRepository
         }
     }
 
+    private static void InsertTestCategories(SqliteConnection conn, string projectId, List<TestCategory> categories)
+    {
+        if (categories.Count == 0) return;
+
+        // 카테고리 삽입
+        using var catCmd = conn.CreateCommand();
+        catCmd.CommandText = """
+            INSERT INTO TestCategories (Id, ProjectId, Name, CreatedAt)
+            VALUES (@id, @pid, @name, @created)
+            """;
+        catCmd.Parameters.AddWithValue("@id", string.Empty);
+        catCmd.Parameters.AddWithValue("@pid", projectId);
+        catCmd.Parameters.AddWithValue("@name", string.Empty);
+        catCmd.Parameters.AddWithValue("@created", string.Empty);
+
+        // 항목 삽입
+        using var itemCmd = conn.CreateCommand();
+        itemCmd.CommandText = """
+            INSERT INTO TestItems
+                (Id, CategoryId, ProjectId, Text, ProgressNote, IsCompleted, Status, CompletedAt, CreatedAt)
+            VALUES
+                (@id, @catId, @pid, @text, @note, @completed, @status, @completedAt, @created)
+            """;
+        itemCmd.Parameters.AddWithValue("@id", string.Empty);
+        itemCmd.Parameters.AddWithValue("@catId", string.Empty);
+        itemCmd.Parameters.AddWithValue("@pid", projectId);
+        itemCmd.Parameters.AddWithValue("@text", string.Empty);
+        itemCmd.Parameters.AddWithValue("@note", string.Empty);
+        itemCmd.Parameters.AddWithValue("@completed", 0);
+        itemCmd.Parameters.AddWithValue("@status", TestItem.StatusTesting);
+        itemCmd.Parameters.AddWithValue("@completedAt", DBNull.Value);
+        itemCmd.Parameters.AddWithValue("@created", string.Empty);
+
+        foreach (var cat in categories)
+        {
+            catCmd.Parameters["@id"].Value = cat.Id;
+            catCmd.Parameters["@name"].Value = cat.Name;
+            catCmd.Parameters["@created"].Value = cat.CreatedAt.ToString(DateTimeFormat);
+            catCmd.ExecuteNonQuery();
+
+            foreach (var t in cat.Items)
+            {
+                itemCmd.Parameters["@id"].Value = t.Id;
+                itemCmd.Parameters["@catId"].Value = cat.Id;
+                itemCmd.Parameters["@text"].Value = t.Text;
+                itemCmd.Parameters["@note"].Value = t.ProgressNote;
+                itemCmd.Parameters["@completed"].Value = t.IsCompleted ? 1 : 0;
+                itemCmd.Parameters["@status"].Value = t.Status;
+                itemCmd.Parameters["@completedAt"].Value = t.CompletedAt.HasValue
+                    ? t.CompletedAt.Value.ToString(DateTimeFormat)
+                    : (object)DBNull.Value;
+                itemCmd.Parameters["@created"].Value = t.CreatedAt.ToString(DateTimeFormat);
+                itemCmd.ExecuteNonQuery();
+            }
+        }
+    }
+
     // ===== 공통 헬퍼 =====
 
     /// <summary>특정 테이블에서 projectId에 해당하는 모든 행을 삭제합니다.</summary>
@@ -552,6 +645,17 @@ public sealed class SqliteProjectRepository : IProjectRepository
             return dt;
 
         return DateTime.MinValue;
+    }
+
+    /// <summary>SqliteDataReader에 지정된 컬럼이 존재하는지 확인합니다 (구버전 DB 호환용).</summary>
+    private static bool HasColumn(SqliteDataReader reader, string columnName)
+    {
+        for (var i = 0; i < reader.FieldCount; i++)
+        {
+            if (reader.GetName(i).Equals(columnName, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        return false;
     }
 
     // ===== 가져오기/내보내기 지원 =====
@@ -577,6 +681,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
             p.CommandScripts = scriptsMap.TryGetValue(p.Id, out var scripts) ? scripts : [null, null, null, null];
             p.Todos = ReadTodosForProject(conn, p.Id);
             p.Histories = ReadHistoriesForProject(conn, p.Id);
+            p.TestCategories = ReadTestCategoriesForProject(conn, p.Id);
         }
 
         return projects;
@@ -624,6 +729,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
         InsertCommandScripts(conn, project.Id, project.CommandScripts);
         InsertTodos(conn, project.Id, project.Todos);
         InsertHistories(conn, project.Id, project.Histories);
+        InsertTestCategories(conn, project.Id, project.TestCategories);
 
         tx.Commit();
     }
@@ -657,6 +763,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
         InsertCommandScripts(conn, project.Id, project.CommandScripts);
         InsertTodos(conn, project.Id, project.Todos);
         InsertHistories(conn, project.Id, project.Histories);
+        InsertTestCategories(conn, project.Id, project.TestCategories);
 
         tx.Commit();
     }
@@ -710,6 +817,73 @@ public sealed class SqliteProjectRepository : IProjectRepository
         }
 
         return list;
+    }
+
+    private static List<TestCategory> ReadTestCategoriesForProject(SqliteConnection conn, string projectId)
+    {
+        // 카테고리 읽기
+        using var catCmd = conn.CreateCommand();
+        catCmd.CommandText = "SELECT * FROM TestCategories WHERE ProjectId = @pid ORDER BY CreatedAt";
+        catCmd.Parameters.AddWithValue("@pid", projectId);
+        using var catReader = catCmd.ExecuteReader();
+
+        var categories = new List<TestCategory>();
+        while (catReader.Read())
+        {
+            categories.Add(new TestCategory
+            {
+                Id = catReader.GetString(catReader.GetOrdinal("Id")),
+                Name = catReader.GetString(catReader.GetOrdinal("Name")),
+                CreatedAt = ParseDateTime(catReader.GetString(catReader.GetOrdinal("CreatedAt")))
+            });
+        }
+
+        if (categories.Count == 0) return categories;
+
+        // 테스트 항목 읽기 — CategoryId 기준으로 매핑
+        using var itemCmd = conn.CreateCommand();
+        itemCmd.CommandText = "SELECT * FROM TestItems WHERE ProjectId = @pid ORDER BY CreatedAt";
+        itemCmd.Parameters.AddWithValue("@pid", projectId);
+        using var itemReader = itemCmd.ExecuteReader();
+
+        var catMap = categories.ToDictionary(c => c.Id);
+        var hasStatusColumn = HasColumn(itemReader, "Status");
+        while (itemReader.Read())
+        {
+            var completedAtStr = itemReader.IsDBNull(itemReader.GetOrdinal("CompletedAt"))
+                ? null
+                : itemReader.GetString(itemReader.GetOrdinal("CompletedAt"));
+
+            var categoryId = itemReader.GetString(itemReader.GetOrdinal("CategoryId"));
+
+            // 구버전 DB 호환: Status 컬럼이 없으면 IsCompleted 기반으로 결정
+            string status;
+            if (hasStatusColumn)
+            {
+                status = itemReader.GetString(itemReader.GetOrdinal("Status"));
+            }
+            else
+            {
+                var isCompleted = itemReader.GetInt64(itemReader.GetOrdinal("IsCompleted")) != 0;
+                status = isCompleted ? TestItem.StatusDone : TestItem.StatusTesting;
+            }
+
+            var item = new TestItem
+            {
+                Id = itemReader.GetString(itemReader.GetOrdinal("Id")),
+                CategoryId = categoryId,
+                Text = itemReader.GetString(itemReader.GetOrdinal("Text")),
+                ProgressNote = itemReader.GetString(itemReader.GetOrdinal("ProgressNote")),
+                Status = status,
+                CompletedAt = string.IsNullOrEmpty(completedAtStr) ? null : ParseDateTime(completedAtStr),
+                CreatedAt = ParseDateTime(itemReader.GetString(itemReader.GetOrdinal("CreatedAt")))
+            };
+
+            if (catMap.TryGetValue(categoryId, out var cat))
+                cat.Items.Add(item);
+        }
+
+        return categories;
     }
 
     /// <summary>DB Groups 테이블을 지정된 그룹 목록으로 전체 교체합니다 (AppSettings → DB 동기화).</summary>

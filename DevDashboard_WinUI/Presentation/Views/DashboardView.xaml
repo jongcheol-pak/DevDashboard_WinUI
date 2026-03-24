@@ -104,6 +104,7 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
                         <!-- 경로 오류 경고 -->
@@ -130,20 +131,34 @@
                                    HorizontalAlignment="Stretch"
                                    Margin="0,0,8,0" />
 
-                        <!-- 핀 버튼 -->
-                        <Button ToolTipService.ToolTip="{StaticResource ToolTip_PinUnpin}"
-                                Grid.Column="3"
-                                Style="{StaticResource CardIconButtonStyle}"
-                                Command="{Binding TogglePinCommand}">
-                            <Grid>
-                                <FontIcon Glyph="&#xE718;" FontSize="13"
-                                          Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                          Visibility="{Binding IsPinned, Converter={StaticResource InverseBoolToVisibility}}" />
-                                <FontIcon Glyph="&#xE77A;" FontSize="13"
-                                          Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                          Visibility="{Binding IsPinned, Converter={StaticResource BoolToVisibility}}" />
-                            </Grid>
-                        </Button>
+                       
+                            <!-- 핀 버튼 -->
+                            <Button ToolTipService.ToolTip="{StaticResource ToolTip_PinUnpin}"
+         Grid.Column="3"
+                                    Margin="0,0,4,0"
+          Style="{StaticResource CardIconButtonStyle}"
+          Command="{Binding TogglePinCommand}">
+                                <Grid>
+                                    <FontIcon Glyph="&#xE718;" FontSize="13"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Visibility="{Binding IsPinned, Converter={StaticResource InverseBoolToVisibility}}" />
+                                    <FontIcon Glyph="&#xE77A;" FontSize="13"
+                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                    Visibility="{Binding IsPinned, Converter={StaticResource BoolToVisibility}}" />
+                                </Grid>
+                            </Button>
+
+
+                            <!-- 삭제 -->
+                            <Button ToolTipService.ToolTip="{StaticResource ToolTip_Delete}"
+                                    Grid.Column="4"
+          Style="{StaticResource CardIconButtonStyle}"
+          Command="{Binding DeleteCommand}">
+                                <FontIcon Glyph="&#xE74D;" FontSize="14" 
+                Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                            </Button>
+                       
+                      
                     </Grid>
 
                     <!-- 설명 -->
@@ -240,12 +255,18 @@
                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                                 </Button>
 
-                                <!-- 삭제 -->
-                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_Delete}"
-                                        Style="{StaticResource CardIconButtonStyle}"
-                                        Command="{Binding DeleteCommand}">
-                                    <FontIcon Glyph="&#xE74D;" FontSize="14" 
-                                              Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                                <!-- 터미널 열기 -->
+                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_Terminal}"
+         Style="{StaticResource CardIconButtonStyle}"
+         Command="{Binding OpenTerminalCommand}">
+                                    <Button.ContextFlyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem x:Uid="TerminalPowerShellMenuItem"
+                            Command="{Binding OpenTerminalWithPowerShellCommand}" />
+                                        </MenuFlyout>
+                                    </Button.ContextFlyout>
+                                    <FontIcon Glyph="&#xE756;" FontSize="14"
+               Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                                 </Button>
                             </StackPanel>
                         </Grid>
@@ -473,25 +494,21 @@ Visibility="{Binding IsCmd3RunAsAdmin, Converter={StaticResource BoolToVisibilit
 
                                 <!-- 작업 기록 -->
                                 <Button ToolTipService.ToolTip="{StaticResource ToolTip_WorkHistory}"
-                                         Margin="0,0,4,0"
+                                         Margin="0,0,0,0"
                                         Style="{StaticResource CardIconButtonStyle}"
                                         Command="{Binding OpenHistoryCommand}">
                                     <FontIcon Glyph="&#xE81C;" FontSize="14"
                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                                 </Button>
 
-                                <!-- 터미널 열기 -->
-                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_Terminal}"
-                                        Style="{StaticResource CardIconButtonStyle}"
-                                        Command="{Binding OpenTerminalCommand}">
-                                    <Button.ContextFlyout>
-                                        <MenuFlyout>
-                                            <MenuFlyoutItem x:Uid="TerminalPowerShellMenuItem"
-                                                           Command="{Binding OpenTerminalWithPowerShellCommand}" />
-                                        </MenuFlyout>
-                                    </Button.ContextFlyout>
-                                    <FontIcon Glyph="&#xE756;" FontSize="14"
-                                              Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                <!-- 테스트 목록 -->
+                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_TestList}"
+         Margin="4,0,0,0"
+        Style="{StaticResource CardIconButtonStyle}"
+         Command="{Binding OpenTestListCommand}">
+
+                                    <FontIcon Glyph="&#xEBE8;" FontSize="14"
+              Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                                 </Button>
                             </StackPanel>
                         </Grid>

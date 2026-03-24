@@ -19,6 +19,9 @@ public partial class ProjectCardViewModel : ObservableObject
     private static readonly ConcurrentDictionary<string, Lazy<Task<BitmapImage?>>> _iconLoadTasks
         = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>아이콘 캐시 최대 크기 — 초과 시 자동 정리</summary>
+    private const int MaxIconCacheSize = 500;
+
     // git 프로세스 동시 생성 비용이 크므로 최대 8개로 제한
     private static readonly SemaphoreSlim _gitProbeSemaphore = new(8, 8);
     // 파일 I/O는 git보다 빠르므로 최대 16개 허용
@@ -27,9 +30,10 @@ public partial class ProjectCardViewModel : ObservableObject
     /// <summary>아이콘 캐시를 비웁니다. Refresh/HardRefresh 시 호출하여 메모리 누적을 방지합니다.</summary>
     internal static void ClearIconCache() => _iconLoadTasks.Clear();
 
-    // Todos/Histories 지연 로딩 플래그 — 다이얼로그 최초 열기 시 DB에서 로드
+    // Todos/Histories/Tests 지연 로딩 플래그 — 다이얼로그 최초 열기 시 DB에서 로드
     private bool _todosLoaded;
     private bool _historiesLoaded;
+    private bool _testsLoaded;
 
     /// <summary>설정된 개발 도구가 유효한지 여부</summary>
     [ObservableProperty]
@@ -167,6 +171,9 @@ public partial class ProjectCardViewModel : ObservableObject
     /// <summary>완료되지 않은 활성 To-Do 항목이 있는지 여부</summary>
     public bool HasInProgressTodo => _item.HasActiveTodo;
 
+    /// <summary>완료되지 않은 활성 테스트 항목이 있는지 여부</summary>
+    public bool HasInProgressTest => _item.HasActiveTest;
+
     // --- View에서 처리할 다이얼로그 요청 이벤트 ---
 
     /// <summary>삭제 요청 이벤트</summary>
@@ -195,6 +202,12 @@ public partial class ProjectCardViewModel : ObservableObject
 
     /// <summary>작업 기록 다이얼로그 표시 요청 이벤트</summary>
     public event EventHandler? OpenHistoryRequested;
+
+    /// <summary>테스트 목록 다이얼로그 표시 요청 이벤트</summary>
+    public event EventHandler? OpenTestListRequested;
+
+    /// <summary>테스트 목록 변경 이벤트</summary>
+    public event EventHandler? TestChanged;
 
     /// <summary>커맨드 슬롯 설정 요청 이벤트 (슬롯 인덱스)</summary>
     public event EventHandler<int>? ConfigureCommandSlotRequested;
@@ -299,10 +312,22 @@ public partial class ProjectCardViewModel : ObservableObject
         _historiesLoaded = true;
     }
 
+    /// <summary>TestCategories가 아직 로드되지 않았으면 DB에서 로드합니다.</summary>
+    public void EnsureTestsLoaded()
+    {
+        if (_testsLoaded) return;
+        _item.TestCategories = _repository.GetTestCategories(_item.Id);
+        _testsLoaded = true;
+    }
+
     private async Task LoadIconAsync()
     {
         if (string.IsNullOrWhiteSpace(IconPath))
             return;
+
+        // 캐시 크기 초과 시 전체 정리하여 메모리 누적 방지
+        if (_iconLoadTasks.Count > MaxIconCacheSize)
+            _iconLoadTasks.Clear();
 
         var lazy = _iconLoadTasks.GetOrAdd(IconPath,
             path => new Lazy<Task<BitmapImage?>>(() => LoadBitmapAsync(path)));
@@ -488,6 +513,9 @@ public partial class ProjectCardViewModel : ObservableObject
     [RelayCommand]
     private void OpenHistory() => OpenHistoryRequested?.Invoke(this, EventArgs.Empty);
 
+    [RelayCommand]
+    private void OpenTestList() => OpenTestListRequested?.Invoke(this, EventArgs.Empty);
+
     // --- To-Do / History 다이얼로그 결과 처리 (View에서 호출) ---
 
     /// <summary>To-Do 다이얼로그 뷰모델을 생성합니다.</summary>
@@ -527,6 +555,23 @@ public partial class ProjectCardViewModel : ObservableObject
     {
         dialogVm.SaveToModel();
         HistoryChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>테스트 목록 다이얼로그 뷰모델을 생성합니다.</summary>
+    public TestListDialogViewModel CreateTestListDialogViewModel()
+    {
+        EnsureTestsLoaded();
+        return new TestListDialogViewModel(_item);
+    }
+
+    /// <summary>테스트 목록 다이얼로그가 닫힌 후 결과를 반영합니다.</summary>
+    public void OnTestListDialogClosed(TestListDialogViewModel dialogVm)
+    {
+        dialogVm.SaveToModel();
+        TestChanged?.Invoke(this, EventArgs.Empty);
+
+        _item.HasActiveTest = _item.TestCategories?.Any(c => c.Items.Any(t => !t.IsCompleted)) == true;
+        OnPropertyChanged(nameof(HasInProgressTest));
     }
 
     // --- 커맨드 스크립트 슬롯 ---
