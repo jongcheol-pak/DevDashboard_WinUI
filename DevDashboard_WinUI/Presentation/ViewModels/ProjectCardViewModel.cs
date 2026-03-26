@@ -662,19 +662,24 @@ public partial class ProjectCardViewModel : ObservableObject
         string fileName;
         string arguments;
 
+        // CloseAfterCompletion: 작업 완료 후 셸 창을 닫음
+        // PowerShell: -NoExit 제거, Cmd: /k → /c
+        // 스크립트에서 실행된 외부 프로세스는 독립 프로세스이므로 셸 종료 시에도 유지됨
         if (script.ShellType == ShellType.PowerShell)
         {
             fileName = "powershell.exe";
+            var noExit = script.CloseAfterCompletion ? "" : "-NoExit ";
             arguments = script.UseWorkingDirectory
-                ? $"-NoExit -Command \"Set-Location '{script.WorkingDirectory}'; {script.Script}\""
-                : $"-NoExit -Command \"{script.Script}\"";
+                ? $"{noExit}-Command \"Set-Location '{script.WorkingDirectory}'; {script.Script}\""
+                : $"{noExit}-Command \"{script.Script}\"";
         }
         else
         {
             fileName = "cmd.exe";
+            var flag = script.CloseAfterCompletion ? "/c" : "/k";
             arguments = script.UseWorkingDirectory
-                ? $"/k cd /d \"{script.WorkingDirectory}\" && {script.Script}"
-                : $"/k {script.Script}";
+                ? $"{flag} cd /d \"{script.WorkingDirectory}\" && {script.Script}"
+                : $"{flag} {script.Script}";
         }
 
         TryStartProcess(fileName, arguments, script.RunAsAdmin);

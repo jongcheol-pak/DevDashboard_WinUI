@@ -36,6 +36,10 @@ public partial class CommandScriptDialogViewModel : ObservableObject
     [ObservableProperty]
     public partial string WorkingDirectory { get; set; } = string.Empty;
 
+    /// <summary>작업 완료 후 셸 창 닫기 여부</summary>
+    [ObservableProperty]
+    public partial bool CloseAfterCompletion { get; set; }
+
     /// <summary>기존 아이콘 글리프 (편집 시 보존용)</summary>
     private string _iconSymbol = string.Empty;
 
@@ -50,6 +54,7 @@ public partial class CommandScriptDialogViewModel : ObservableObject
         Script = source.Script;
         UseWorkingDirectory = source.UseWorkingDirectory;
         WorkingDirectory = source.WorkingDirectory;
+        CloseAfterCompletion = source.CloseAfterCompletion;
         _iconSymbol = source.IconSymbol;
     }
 
@@ -64,6 +69,7 @@ public partial class CommandScriptDialogViewModel : ObservableObject
             Script = Script.Trim(),
             UseWorkingDirectory = UseWorkingDirectory,
             WorkingDirectory = WorkingDirectory.Trim(),
+            CloseAfterCompletion = CloseAfterCompletion,
             IconSymbol = _iconSymbol
         };
     }

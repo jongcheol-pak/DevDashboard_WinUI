@@ -26,4 +26,7 @@ public class CommandScript
 
     /// <summary>커맨드 버튼에 표시할 아이콘 심볼 이름 (빈 문자열이면 기본 ">_" 텍스트 표시)</summary>
     public string IconSymbol { get; set; } = string.Empty;
+
+    /// <summary>작업 완료 후 셸 창을 닫을지 여부 (기본: false)</summary>
+    public bool CloseAfterCompletion { get; set; }
 }

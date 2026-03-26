@@ -241,6 +241,8 @@
   <data name="CmdScriptBox.PlaceholderText" xml:space="preserve"><value>Enter script or command to run</value></data>
   <data name="CmdUseWorkingDirCheck.Content" xml:space="preserve"><value>Set working directory</value></data>
   <data name="CmdWorkingDirBox.PlaceholderText" xml:space="preserve"><value>Working directory path</value></data>
+  <data name="CmdCloseAfterCheck.Content" xml:space="preserve"><value>Close window after completion</value></data>
+  <data name="CmdCloseAfterHint.Text" xml:space="preserve"><value>Automatically closes the Cmd or PowerShell window when the script finishes. If a program is launched directly, the window stays open until the program exits.</value></data>
 
   <!-- ===== XAML x:Uid — GroupDialog ===== -->
   <data name="GroupDialog.PrimaryButtonText" xml:space="preserve"><value>Save</value></data>

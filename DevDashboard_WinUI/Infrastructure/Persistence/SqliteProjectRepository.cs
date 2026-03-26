@@ -356,6 +356,9 @@ public sealed class SqliteProjectRepository : IProjectRepository
         cmd.CommandText = "SELECT * FROM CommandScripts ORDER BY SlotIndex";
         using var reader = cmd.ExecuteReader();
 
+        // 구버전 DB 호환: CloseAfterCompletion 컬럼이 없으면 기본값(false) 사용
+        var hasCloseColumn = HasColumn(reader, "CloseAfterCompletion");
+
         var map = new Dictionary<string, List<CommandScript?>>();
         while (reader.Read())
         {
@@ -377,7 +380,8 @@ public sealed class SqliteProjectRepository : IProjectRepository
                     Script = reader.GetString(reader.GetOrdinal("Script")),
                     UseWorkingDirectory = reader.GetInt64(reader.GetOrdinal("UseWorkingDirectory")) != 0,
                     WorkingDirectory = reader.GetString(reader.GetOrdinal("WorkingDirectory")),
-                    IconSymbol = reader.GetString(reader.GetOrdinal("IconSymbol"))
+                    IconSymbol = reader.GetString(reader.GetOrdinal("IconSymbol")),
+                    CloseAfterCompletion = hasCloseColumn && reader.GetInt64(reader.GetOrdinal("CloseAfterCompletion")) != 0
                 };
             }
         }
@@ -474,9 +478,9 @@ public sealed class SqliteProjectRepository : IProjectRepository
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """
             INSERT INTO CommandScripts
-                (ProjectId, SlotIndex, Description, ShellType, RunAsAdmin, Script, UseWorkingDirectory, WorkingDirectory, IconSymbol)
+                (ProjectId, SlotIndex, Description, ShellType, RunAsAdmin, Script, UseWorkingDirectory, WorkingDirectory, IconSymbol, CloseAfterCompletion)
             VALUES
-                (@pid, @idx, @desc, @shell, @admin, @script, @useWd, @wd, @icon)
+                (@pid, @idx, @desc, @shell, @admin, @script, @useWd, @wd, @icon, @close)
             """;
         cmd.Parameters.AddWithValue("@pid", projectId);
         cmd.Parameters.AddWithValue("@idx", 0);
@@ -487,6 +491,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
         cmd.Parameters.AddWithValue("@useWd", 0);
         cmd.Parameters.AddWithValue("@wd", string.Empty);
         cmd.Parameters.AddWithValue("@icon", string.Empty);
+        cmd.Parameters.AddWithValue("@close", 0);
 
         for (var i = 0; i < scripts.Count; i++)
         {
@@ -501,6 +506,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
             cmd.Parameters["@useWd"].Value = s.UseWorkingDirectory ? 1 : 0;
             cmd.Parameters["@wd"].Value = s.WorkingDirectory;
             cmd.Parameters["@icon"].Value = s.IconSymbol;
+            cmd.Parameters["@close"].Value = s.CloseAfterCompletion ? 1 : 0;
             cmd.ExecuteNonQuery();
         }
     }

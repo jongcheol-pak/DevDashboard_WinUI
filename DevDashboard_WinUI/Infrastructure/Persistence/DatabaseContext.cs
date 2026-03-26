@@ -117,6 +117,7 @@ public sealed class DatabaseContext
         AddColumnIfNotExists(connection, "TestItems", "CategoryId", "TEXT NOT NULL DEFAULT ''");
         AddColumnIfNotExists(connection, "TestItems", "Status", "TEXT NOT NULL DEFAULT 'Testing'");
         MigrateIsCompletedToStatus(connection);
+        AddColumnIfNotExists(connection, "CommandScripts", "CloseAfterCompletion", "INTEGER NOT NULL DEFAULT 0");
     }
 
     /// <summary>기존 IsCompleted 값을 Status 컬럼으로 마이그레이션합니다.</summary>
@@ -136,7 +137,8 @@ public sealed class DatabaseContext
         "Category", "CreatedAt", "UseWorkingDirectory", "ShellWorkingDirectory",
         "ProjectId", "Tag", "SlotIndex", "ShellType", "Script", "WorkingDirectory",
         "IconSymbol", "Text", "IsCompleted", "CompletedAt", "Title", "IsDefault",
-        "DisplayName", "ExecutablePath", "IconCachePath", "SortOrder", "ProgressNote", "CategoryId", "Status"
+        "DisplayName", "ExecutablePath", "IconCachePath", "SortOrder", "ProgressNote", "CategoryId", "Status",
+        "CloseAfterCompletion"
     };
 
     private static void AddColumnIfNotExists(SqliteConnection connection, string table, string column, string definition)
@@ -199,6 +201,7 @@ public sealed class DatabaseContext
                 UseWorkingDirectory INTEGER NOT NULL DEFAULT 0,
                 WorkingDirectory  TEXT    NOT NULL DEFAULT '',
                 IconSymbol        TEXT    NOT NULL DEFAULT '',
+                CloseAfterCompletion INTEGER NOT NULL DEFAULT 0,
                 PRIMARY KEY (ProjectId, SlotIndex),
                 FOREIGN KEY (ProjectId) REFERENCES Projects(Id) ON DELETE CASCADE
             );

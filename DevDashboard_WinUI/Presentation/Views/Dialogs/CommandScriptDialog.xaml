@@ -13,8 +13,8 @@
     <ContentDialog.Resources>
         <x:Double x:Key="ContentDialogMinWidth">600</x:Double>
         <x:Double x:Key="ContentDialogMaxWidth">600</x:Double>
-        <x:Double x:Key="ContentDialogMaxHeight">600</x:Double>
-        <x:Double x:Key="ContentDialogMinHeight">600</x:Double>
+        <x:Double x:Key="ContentDialogMaxHeight">700</x:Double>
+        <x:Double x:Key="ContentDialogMinHeight">700</x:Double>
     </ContentDialog.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalAlignment="Stretch">
@@ -83,6 +83,18 @@
                     Command="{x:Bind Vm.BrowseWorkingDirectoryCommand}"
                     VerticalAlignment="Stretch" />
             </Grid>
+
+            <!-- 작업 완료 후 종료 -->
+            <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch" Margin="0,12,0,0">
+                <CheckBox
+                    x:Uid="CmdCloseAfterCheck"
+                    IsChecked="{x:Bind Vm.CloseAfterCompletion, Mode=TwoWay}" />
+                <TextBlock
+                    x:Uid="CmdCloseAfterHint"
+                    Foreground="{StaticResource TextFillColorSecondaryBrush}"
+                    Margin="20,2,0,0"
+                    TextWrapping="Wrap" />
+            </StackPanel>
 
             <!-- 인라인 유효성 오류 -->
             <TextBlock
