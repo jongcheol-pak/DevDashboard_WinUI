@@ -255,6 +255,7 @@
   <data name="TodoDialog.PrimaryButtonText" xml:space="preserve"><value>Save</value></data>
   <data name="TodoDialog.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
   <data name="TodoTabAll.Content" xml:space="preserve"><value>All</value></data>
+  <data name="TodoTabWaiting.Content" xml:space="preserve"><value>Waiting</value></data>
   <data name="TodoTabActive.Content" xml:space="preserve"><value>In Progress</value></data>
   <data name="TodoTabDone.Content" xml:space="preserve"><value>Completed</value></data>
   <data name="NewTodoBox.PlaceholderText" xml:space="preserve"><value>New to-do...</value></data>
@@ -280,6 +281,15 @@
   <data name="TodoLabel_Completed" xml:space="preserve"><value>Completed :</value></data>
   <data name="TodoGroupByCompleted.Content" xml:space="preserve"><value>Completed Date</value></data>
   <data name="TodoGroupByCreated.Content" xml:space="preserve"><value>Start Date</value></data>
+  <data name="TodoTab_Waiting" xml:space="preserve"><value>Waiting</value></data>
+  <data name="TodoTab_Active" xml:space="preserve"><value>In Progress</value></data>
+  <data name="TodoTab_Completed" xml:space="preserve"><value>Completed</value></data>
+  <data name="TodoTab_All" xml:space="preserve"><value>All</value></data>
+  <data name="TodoStatus_Waiting" xml:space="preserve"><value>Waiting</value></data>
+  <data name="TodoStatus_Active" xml:space="preserve"><value>In Progress</value></data>
+  <data name="TodoStatus_Completed" xml:space="preserve"><value>Completed</value></data>
+  <data name="TodoStatusChangeConfirmTitle" xml:space="preserve"><value>Status Change</value></data>
+  <data name="TodoStatusChangeConfirmMessage" xml:space="preserve"><value>Do you want to change the status?</value></data>
 
   <!-- ===== XAML x:Uid — GitStatusDialog ===== -->
   <data name="GitStatusDialog_TitleFormat" xml:space="preserve"><value>Git Status — {0}</value></data>

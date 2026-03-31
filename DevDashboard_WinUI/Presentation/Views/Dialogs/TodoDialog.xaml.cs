@@ -113,7 +113,14 @@ public sealed partial class TodoDialog : ContentDialog
         TodoList.ItemsSource = Vm.FilteredGroups;
         EmptyText.Visibility = Vm.FilteredGroups.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         CompletedGroupByPanel.Visibility = Vm.SelectedTab == "Completed" ? Visibility.Visible : Visibility.Collapsed;
-        AddTodoPanel.Visibility = Vm.SelectedTab == "Active" ? Visibility.Visible : Visibility.Collapsed;
+        AddTodoPanel.Visibility = Vm.SelectedTab == "Waiting" ? Visibility.Visible : Visibility.Collapsed;
+
+        // 탭 라벨에 개수 표시
+        TabWaiting.Content = Vm.WaitingTabLabel;
+        TabActive.Content = Vm.ActiveTabLabel;
+        TabDone.Content = Vm.CompletedTabLabel;
+        TabAll.Content = Vm.AllTabLabel;
+
         _isRefreshing = false;
     }
 
@@ -143,23 +150,33 @@ public sealed partial class TodoDialog : ContentDialog
         RefreshList();
     }
 
-    private async void TodoCheckBox_Changed(object sender, RoutedEventArgs e)
+    /// <summary>콤보박스 로드 시 ItemsSource 및 선택 항목 초기화</summary>
+    private void StatusComboBox_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is not ComboBox { Tag: TodoItem todo } comboBox) return;
+        _isRefreshing = true;
+        comboBox.ItemsSource = TodoDialogViewModel.StatusOptions;
+        comboBox.SelectedItem = TodoDialogViewModel.StatusOptions.FirstOrDefault(s => s.Value == todo.Status);
+        _isRefreshing = false;
+    }
+
+    private async void StatusComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         try
         {
             if (_isRefreshing) return;
-            if (sender is not CheckBox { DataContext: TodoItem todo } checkBox) return;
+            if (sender is not ComboBox { Tag: TodoItem todo, SelectedItem: TodoStatusItem selected }) return;
 
-            var isChecked = checkBox.IsChecked == true;
+            // 현재 상태와 동일하면 무시
+            if (selected.Value == todo.Status) return;
 
-            // 바인딩 초기화에 의한 중복 이벤트 무시 (체크박스 상태와 모델 상태가 이미 일치)
-            if (isChecked == todo.IsCompleted) return;
+            var newStatus = selected.Value;
 
-            if (isChecked)
+            if (newStatus == TodoStatus.Completed)
             {
-                // 완료 처리 — _isRefreshing 가드로 내부 RefreshFilter 이벤트 재진입 방지
+                // 완료 처리
                 _isRefreshing = true;
-                try { Vm.ToggleTodoCommand.Execute(todo); }
+                try { Vm.ChangeStatus(todo, newStatus); }
                 finally { _isRefreshing = false; }
 
                 // 설정에 따라 작업 기록 팝업 표시
@@ -170,17 +187,16 @@ public sealed partial class TodoDialog : ContentDialog
                     historyDialog.OpenAddPanel(todo.Text);
                     await ShowNestedDialogAsync(historyDialog);
 
-                    // SaveToModel() 미호출 — OnTodoDialogClosed의 AddRange에서 신규 항목만 추가됨
                     NewHistories.AddRange(historyVm.NewEntries);
                 }
             }
-            else
+            else if (todo.Status == TodoStatus.Completed)
             {
                 // 완료 해제 확인
                 var dialog = new ContentDialog
                 {
-                    Title = LocalizationService.Get("TodoUncompleteConfirmTitle"),
-                    Content = LocalizationService.Get("TodoUncompleteConfirmMessage"),
+                    Title = LocalizationService.Get("TodoStatusChangeConfirmTitle"),
+                    Content = LocalizationService.Get("TodoStatusChangeConfirmMessage"),
                     PrimaryButtonText = LocalizationService.Get("Dialog_Yes"),
                     CloseButtonText = LocalizationService.Get("Dialog_Cancel"),
                     DefaultButton = ContentDialogButton.Primary,
@@ -189,9 +205,16 @@ public sealed partial class TodoDialog : ContentDialog
                 if (await ShowNestedDialogAsync(dialog) == ContentDialogResult.Primary)
                 {
                     _isRefreshing = true;
-                    try { Vm.ToggleTodoCommand.Execute(todo); }
+                    try { Vm.ChangeStatus(todo, newStatus); }
                     finally { _isRefreshing = false; }
                 }
+            }
+            else
+            {
+                // 대기 ↔ 진행 중 전환은 확인 없이 바로 변경
+                _isRefreshing = true;
+                try { Vm.ChangeStatus(todo, newStatus); }
+                finally { _isRefreshing = false; }
             }
 
             RefreshList();

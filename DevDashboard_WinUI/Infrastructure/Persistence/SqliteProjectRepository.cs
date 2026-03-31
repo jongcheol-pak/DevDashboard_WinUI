@@ -87,18 +87,23 @@ public sealed class SqliteProjectRepository : IProjectRepository
         using var reader = cmd.ExecuteReader();
 
         var list = new List<TodoItem>();
+        var hasStatus = HasColumn(reader, "Status");
         while (reader.Read())
         {
             var completedAtStr = reader.IsDBNull(reader.GetOrdinal("CompletedAt"))
                 ? null
                 : reader.GetString(reader.GetOrdinal("CompletedAt"));
+            var isCompleted = reader.GetInt64(reader.GetOrdinal("IsCompleted")) != 0;
 
             list.Add(new TodoItem
             {
                 Id = reader.GetString(reader.GetOrdinal("Id")),
                 Text = reader.GetString(reader.GetOrdinal("Text")),
                 Description = reader.GetString(reader.GetOrdinal("Description")),
-                IsCompleted = reader.GetInt64(reader.GetOrdinal("IsCompleted")) != 0,
+                IsCompleted = isCompleted,
+                Status = hasStatus && Enum.TryParse<TodoStatus>(reader.GetString(reader.GetOrdinal("Status")), out var s)
+                    ? s
+                    : isCompleted ? TodoStatus.Completed : TodoStatus.Waiting,
                 CompletedAt = string.IsNullOrEmpty(completedAtStr) ? null : ParseDateTime(completedAtStr),
                 CreatedAt = ParseDateTime(reader.GetString(reader.GetOrdinal("CreatedAt")))
             });
@@ -518,15 +523,16 @@ public sealed class SqliteProjectRepository : IProjectRepository
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """
             INSERT INTO Todos
-                (Id, ProjectId, Text, Description, IsCompleted, CompletedAt, CreatedAt)
+                (Id, ProjectId, Text, Description, IsCompleted, Status, CompletedAt, CreatedAt)
             VALUES
-                (@id, @pid, @text, @desc, @completed, @completedAt, @created)
+                (@id, @pid, @text, @desc, @completed, @status, @completedAt, @created)
             """;
         cmd.Parameters.AddWithValue("@id", string.Empty);
         cmd.Parameters.AddWithValue("@pid", projectId);
         cmd.Parameters.AddWithValue("@text", string.Empty);
         cmd.Parameters.AddWithValue("@desc", string.Empty);
         cmd.Parameters.AddWithValue("@completed", 0);
+        cmd.Parameters.AddWithValue("@status", string.Empty);
         cmd.Parameters.AddWithValue("@completedAt", DBNull.Value);
         cmd.Parameters.AddWithValue("@created", string.Empty);
 
@@ -536,6 +542,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
             cmd.Parameters["@text"].Value = t.Text;
             cmd.Parameters["@desc"].Value = t.Description;
             cmd.Parameters["@completed"].Value = t.IsCompleted ? 1 : 0;
+            cmd.Parameters["@status"].Value = t.Status.ToString();
             cmd.Parameters["@completedAt"].Value = t.CompletedAt.HasValue
                 ? t.CompletedAt.Value.ToString(DateTimeFormat)
                 : (object)DBNull.Value;
@@ -782,18 +789,23 @@ public sealed class SqliteProjectRepository : IProjectRepository
         using var reader = cmd.ExecuteReader();
 
         var list = new List<TodoItem>();
+        var hasStatus = HasColumn(reader, "Status");
         while (reader.Read())
         {
             var completedAtStr = reader.IsDBNull(reader.GetOrdinal("CompletedAt"))
                 ? null
                 : reader.GetString(reader.GetOrdinal("CompletedAt"));
+            var isCompleted = reader.GetInt64(reader.GetOrdinal("IsCompleted")) != 0;
 
             list.Add(new TodoItem
             {
                 Id = reader.GetString(reader.GetOrdinal("Id")),
                 Text = reader.GetString(reader.GetOrdinal("Text")),
                 Description = reader.GetString(reader.GetOrdinal("Description")),
-                IsCompleted = reader.GetInt64(reader.GetOrdinal("IsCompleted")) != 0,
+                IsCompleted = isCompleted,
+                Status = hasStatus && Enum.TryParse<TodoStatus>(reader.GetString(reader.GetOrdinal("Status")), out var s)
+                    ? s
+                    : isCompleted ? TodoStatus.Completed : TodoStatus.Waiting,
                 CompletedAt = string.IsNullOrEmpty(completedAtStr) ? null : ParseDateTime(completedAtStr),
                 CreatedAt = ParseDateTime(reader.GetString(reader.GetOrdinal("CreatedAt")))
             });

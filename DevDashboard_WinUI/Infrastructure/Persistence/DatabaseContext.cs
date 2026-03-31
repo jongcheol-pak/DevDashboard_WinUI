@@ -118,6 +118,8 @@ public sealed class DatabaseContext
         AddColumnIfNotExists(connection, "TestItems", "Status", "TEXT NOT NULL DEFAULT 'Testing'");
         MigrateIsCompletedToStatus(connection);
         AddColumnIfNotExists(connection, "CommandScripts", "CloseAfterCompletion", "INTEGER NOT NULL DEFAULT 0");
+        AddColumnIfNotExists(connection, "Todos", "Status", "TEXT NOT NULL DEFAULT 'Waiting'");
+        MigrateTodoIsCompletedToStatus(connection);
     }
 
     /// <summary>기존 IsCompleted 값을 Status 컬럼으로 마이그레이션합니다.</summary>
@@ -125,6 +127,14 @@ public sealed class DatabaseContext
     {
         using var cmd = connection.CreateCommand();
         cmd.CommandText = "UPDATE TestItems SET Status = 'Done' WHERE IsCompleted = 1 AND Status = 'Testing'";
+        cmd.ExecuteNonQuery();
+    }
+
+    /// <summary>기존 Todos.IsCompleted 값을 Status 컬럼으로 마이그레이션합니다.</summary>
+    private static void MigrateTodoIsCompletedToStatus(SqliteConnection connection)
+    {
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "UPDATE Todos SET Status = 'Completed' WHERE IsCompleted = 1 AND Status = 'Waiting'";
         cmd.ExecuteNonQuery();
     }
 
@@ -212,6 +222,7 @@ public sealed class DatabaseContext
                 Text        TEXT NOT NULL DEFAULT '',
                 Description TEXT NOT NULL DEFAULT '',
                 IsCompleted INTEGER NOT NULL DEFAULT 0,
+                Status      TEXT NOT NULL DEFAULT 'Waiting',
                 CompletedAt TEXT,
                 CreatedAt   TEXT NOT NULL DEFAULT '',
                 FOREIGN KEY (ProjectId) REFERENCES Projects(Id) ON DELETE CASCADE

@@ -1,4 +1,5 @@
 ## 최근 변경
+- 2026-07-02: To-Do 상태 모델 변경 — CheckBox(완료/미완료) → ComboBox 3상태(대기/진행 중/완료)로 전환, 탭 4개(대기/진행 중/완료/전체)로 변경, 탭에 항목 개수 표시, TodoItem.Status 프로퍼티 추가, DB Todos.Status 컬럼 마이그레이션, 새 할 일 입력을 대기 탭으로 이동, "완료됨" → "완료" 문구 변경
 - 2026-07-01: 테스트 목록 상태 모델 변경 — CheckBox(완료/미완료) → ComboBox 3상태(테스트/수정/완료)로 전환, 탭 4개(테스트/수정/완료/전체), 전체 탭에서 수정 항목 빨간색 표시, TestItem.IsCompleted → Status 프로퍼티 변경, DB Status 컬럼 마이그레이션
 - 2026-07-01: 테스트 목록 카테고리 기반 구조 전환 — TestCategory 엔티티 추가, TestItem에 CategoryId 필드 추가, ProjectItem.Tests → TestCategories로 변경, DB 스키마(TestCategories 테이블/마이그레이션), IProjectRepository/SqliteProjectRepository 카테고리 CRUD, TestListDialogViewModel 카테고리 기반 재작성, TestListDialog XAML/코드비하인드 카테고리 카드 UI, 다국어 리소스 추가
 - 2026-06-30: 테스트 목록 기능 구현 — 프로젝트 카드별 테스트 항목 관리 다이얼로그 추가 (TestItem 엔티티, TestItems DB 테이블, TestListDialog, 진행 내용(ProgressNote) 편집, 탭 필터링/날짜 그룹화, 중첩 다이얼로그 지원)

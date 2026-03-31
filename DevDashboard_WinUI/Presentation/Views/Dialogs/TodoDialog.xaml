@@ -26,27 +26,33 @@
             <!-- 탭 바 -->
             <StackPanel Orientation="Horizontal" Spacing="0">
                 <RadioButton
-          x:Uid="TodoTabActive"
-            IsChecked="True"
-          GroupName="TodoTab"
-          Style="{StaticResource GroupTabRadioButtonStyle}"
-          Checked="Tab_Checked"
-          Tag="Active" />
+                    x:Name="TabWaiting"
+                    IsChecked="True"
+                    GroupName="TodoTab"
+                    Style="{StaticResource GroupTabRadioButtonStyle}"
+                    Checked="Tab_Checked"
+                    Tag="Waiting" />
                 <RadioButton
-          x:Uid="TodoTabDone"
-          GroupName="TodoTab"
-          Style="{StaticResource GroupTabRadioButtonStyle}"
-          Checked="Tab_Checked"
-          Tag="Completed" />
+                    x:Name="TabActive"
+                    GroupName="TodoTab"
+                    Style="{StaticResource GroupTabRadioButtonStyle}"
+                    Checked="Tab_Checked"
+                    Tag="Active" />
                 <RadioButton
-          x:Uid="TodoTabAll"
-          GroupName="TodoTab"
-          Style="{StaticResource GroupTabRadioButtonStyle}"
-          Checked="Tab_Checked"
-          Tag="All" />
+                    x:Name="TabDone"
+                    GroupName="TodoTab"
+                    Style="{StaticResource GroupTabRadioButtonStyle}"
+                    Checked="Tab_Checked"
+                    Tag="Completed" />
+                <RadioButton
+                    x:Name="TabAll"
+                    GroupName="TodoTab"
+                    Style="{StaticResource GroupTabRadioButtonStyle}"
+                    Checked="Tab_Checked"
+                    Tag="All" />
             </StackPanel>
 
-            <!-- 완료됨 탭 날짜 기준 선택 -->
+            <!-- 완료 탭 날짜 기준 선택 -->
             <StackPanel x:Name="CompletedGroupByPanel"
               Orientation="Horizontal" Spacing="0"
               Visibility="Collapsed">
@@ -65,7 +71,7 @@
           Tag="CreatedAt" />
             </StackPanel>
 
-            <!-- 새 항목 추가 (진행 중 탭에서만 표시) -->
+            <!-- 새 항목 추가 (대기 탭에서만 표시) -->
             <Grid x:Name="AddTodoPanel" ColumnSpacing="8" Visibility="Visible">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -84,7 +90,7 @@
             </Grid>
 
         </StackPanel>
-        
+
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" VerticalAlignment="Stretch">
             <StackPanel Spacing="12" Margin="0,0,12,12">
                 <!-- 목록 (날짜 그룹) -->
@@ -109,55 +115,67 @@
                                           Margin="0,0,0,6"
                                           CornerRadius="8">
 
-                                                <StackPanel Spacing="2">
-                                                    <Grid Padding="0,4" ColumnSpacing="8">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*" />
-                                                            <ColumnDefinition Width="Auto" />
-                                                            <ColumnDefinition Width="Auto" />
-                                                        </Grid.ColumnDefinitions>
-                                                        <CheckBox
-                                                      Grid.Column="0"
-                                                      IsChecked="{x:Bind IsCompleted, Mode=OneWay}"
-                                                      Checked="TodoCheckBox_Changed"
-                                                      Unchecked="TodoCheckBox_Changed">
-                                                            <TextBlock
-                                                          TextWrapping="Wrap"
-                                                          Text="{x:Bind Text, Mode=OneWay}"
-                                                          TextDecorations="{x:Bind local:TodoDialog.GetTextDecorations(IsCompleted), Mode=OneWay}"
-                                                          Opacity="{x:Bind local:TodoDialog.GetOpacity(IsCompleted), Mode=OneWay}" />
-                                                        </CheckBox>
-                                                        <!-- 수정 버튼 (미완료 시에만 활성화) -->
-                                                        <Button
-                                                      Grid.Column="1"
-                                                      Padding="8,4"
-                                                      Tag="{x:Bind}"
-                                                      IsEnabled="{x:Bind local:TodoDialog.InvertBool(IsCompleted), Mode=OneWay}"
-                                                      Click="EditTodo_Click">
-                                                            <FontIcon Glyph="&#xE70F;" FontSize="12" />
-                                                        </Button>
-                                                        <!-- 삭제 버튼 -->
-                                                        <Button
-                                                      Grid.Column="2"
-                                                      Padding="8,4"
-                                                      Tag="{x:Bind}"
-                                                      Click="DeleteTodo_Click">
-                                                            <FontIcon Glyph="&#xE74D;" FontSize="12" />
-                                                        </Button>
-                                                    </Grid>
-                                                    <!-- 날짜 표시 -->
-                                                    <StackPanel Orientation="Horizontal" Spacing="12" Margin="36,0,0,2">
+                                                <Grid Padding="0,4" ColumnSpacing="8" RowSpacing="2">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <!-- 상태 콤보박스 -->
+                                                    <ComboBox
+                                                        Grid.RowSpan="2" Grid.Column="0"
+                                                        Tag="{x:Bind}"
+                                                        MinWidth="100"
+                                                        Padding="8,4"
+                                                        VerticalAlignment="Center"
+                                                        Loaded="StatusComboBox_Loaded"
+                                                        SelectionChanged="StatusComboBox_SelectionChanged" />
+                                                    <!-- 할 일 텍스트 -->
+                                                    <TextBlock
+                                                        Grid.Row="0" Grid.Column="1"
+                                                        TextWrapping="Wrap"
+                                                        Text="{x:Bind Text, Mode=OneWay}"
+                                                        VerticalAlignment="Center"
+                                                        TextDecorations="{x:Bind local:TodoDialog.GetTextDecorations(IsCompleted), Mode=OneWay}"
+                                                        Opacity="{x:Bind local:TodoDialog.GetOpacity(IsCompleted), Mode=OneWay}" />
+                                                    <!-- 수정 버튼 (완료 아닌 경우만 활성화) -->
+                                                    <Button
+                                                        Grid.Row="0" Grid.Column="2"
+                                                        Padding="8,4"
+                                                        Tag="{x:Bind}"
+                                                        IsEnabled="{x:Bind local:TodoDialog.InvertBool(IsCompleted), Mode=OneWay}"
+                                                        Click="EditTodo_Click">
+                                                        <FontIcon Glyph="&#xE70F;" FontSize="12" />
+                                                    </Button>
+                                                    <!-- 삭제 버튼 -->
+                                                    <Button
+                                                        Grid.Row="0" Grid.Column="3"
+                                                        Padding="8,4"
+                                                        Tag="{x:Bind}"
+                                                        Click="DeleteTodo_Click">
+                                                        <FontIcon Glyph="&#xE74D;" FontSize="12" />
+                                                    </Button>
+                                                    <!-- 날짜 표시 (텍스트 아래 정렬) -->
+                                                    <StackPanel
+                                                        Grid.Row="1" Grid.Column="1"
+                                                        Orientation="Horizontal" Spacing="12"
+                                                        Margin="0,0,0,2">
                                                         <TextBlock
-                                                      Text="{x:Bind local:TodoDialog.FormatCreatedAt(CreatedAt), Mode=OneWay}"
-                                                      FontSize="11"
-                                                      Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                                            Text="{x:Bind local:TodoDialog.FormatCreatedAt(CreatedAt), Mode=OneWay}"
+                                                            FontSize="11"
+                                                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                                                         <TextBlock
-                                                      Text="{x:Bind local:TodoDialog.FormatCompletedAt(CompletedAt), Mode=OneWay}"
-                                                      FontSize="11"
-                                                      Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                                      Visibility="{x:Bind local:TodoDialog.GetCompletedVisibility(IsCompleted), Mode=OneWay}" />
+                                                            Text="{x:Bind local:TodoDialog.FormatCompletedAt(CompletedAt), Mode=OneWay}"
+                                                            FontSize="11"
+                                                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                            Visibility="{x:Bind local:TodoDialog.GetCompletedVisibility(IsCompleted), Mode=OneWay}" />
                                                     </StackPanel>
-                                                </StackPanel>
+                                                </Grid>
                                             </Border>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -179,7 +197,7 @@
             </StackPanel>
         </ScrollViewer>
     </Grid>
-    
-  
+
+
 
 </ContentDialog>
