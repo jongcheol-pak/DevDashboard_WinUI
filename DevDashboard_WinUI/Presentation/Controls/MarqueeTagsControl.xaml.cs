@@ -3,9 +3,12 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Hosting;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System.Numerics;
 using Windows.Foundation;
+using Windows.UI.ViewManagement;
+using MediaVisualTreeHelper = Microsoft.UI.Xaml.Media.VisualTreeHelper;
 
 namespace DevDashboard.Presentation.Controls;
 
@@ -13,6 +16,8 @@ namespace DevDashboard.Presentation.Controls;
 /// 태그 목록이 카드 너비를 초과할 때 좌→우 마키(Marquee) 스크롤 애니메이션을 표시하는 컨트롤.
 /// 애니메이션은 UIElement.Translation + ScalarKeyFrameAnimation으로 Compositor 스레드에서
 /// 독립 실행되어 UI 스레드 부하가 없습니다.
+/// 평상시에는 정적으로 표시되고, 포인터가 컨트롤 위에 올라왔을 때만 마키가 재생됩니다.
+/// 뷰포트 밖으로 벗어나거나 시스템 애니메이션이 비활성화된 경우에도 재생되지 않습니다.
 /// IsAnimationEnabled = false이거나 태그가 뷰포트 너비 안에 들어올 때는 정적으로 표시됩니다.
 /// </summary>
 public sealed partial class MarqueeTagsControl : UserControl
@@ -24,6 +29,24 @@ public sealed partial class MarqueeTagsControl : UserControl
 
     /// <summary>Composition Visual 캐시 — GetElementVisual P/Invoke 반복 호출 방지</summary>
     private Visual? _trackVisual;
+
+    /// <summary>포인터가 컨트롤 위에 있는지 여부 (호버 시에만 마키 재생)</summary>
+    private bool _isHovered;
+
+    /// <summary>컨트롤이 유효 뷰포트 내에 있는지 여부 (화면 밖이면 재생 중단)</summary>
+    private bool _isInViewport = true;
+
+    /// <summary>마키 1 cycle 너비 (콘텐츠 너비 + Spacer). 0이면 마키 불필요(뷰포트에 모두 수용)</summary>
+    private double _cycleWidth;
+
+    /// <summary>현재 마키가 재생 중인지 (정적/마키 상태 전환 시 중복 방지)</summary>
+    private bool _isMarqueeActive;
+
+    /// <summary>시스템 애니메이션 설정 참조 — Compositor 생성 전에도 안전하게 읽을 수 있음</summary>
+    private static readonly UISettings _uiSettings = new();
+
+    /// <summary>호버 이벤트를 구독한 카드 루트 요소 (DataTemplate 최상위). 재활용/언로드 시 해제용</summary>
+    private FrameworkElement? _hoverHost;
 
     // ─── DependencyProperty: Tags ───────────────────────────────────────────
 
@@ -105,6 +128,12 @@ public sealed partial class MarqueeTagsControl : UserControl
         Viewport.SizeChanged += OnViewportSizeChanged;
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
+
+        // 뷰포트 밖에 있는 카드는 애니메이션 중단
+        EffectiveViewportChanged += OnEffectiveViewportChanged;
+
+        // 호버 이벤트는 Loaded 시점에 카드 루트(조상 요소)에 붙인다.
+        // 태그 영역이 아닌 카드 전체 호버 시 마키가 재생되도록 하기 위함.
     }
 
     // ─── 로드/언로드 ────────────────────────────────────────────────────────
@@ -112,6 +141,7 @@ public sealed partial class MarqueeTagsControl : UserControl
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         EnsureTrackVisual();
+        AttachHoverHost();
         Refresh();
     }
 
@@ -120,6 +150,10 @@ public sealed partial class MarqueeTagsControl : UserControl
         // _refreshPending 초기화: 빠른 스크롤로 카드가 재활용될 때
         // 콜백이 실행되지 못한 채 true로 남아 있으면 재진입 시 애니메이션이 시작되지 않음
         _refreshPending = false;
+        _isHovered = false;
+        _isMarqueeActive = false;
+        _cycleWidth = 0;
+        DetachHoverHost();
         StopMarquee();
         _trackVisual = null;
     }
@@ -127,6 +161,88 @@ public sealed partial class MarqueeTagsControl : UserControl
     private void OnViewportSizeChanged(object sender, SizeChangedEventArgs e)
     {
         Refresh();
+    }
+
+    // ─── 호버 호스트 연결/해제 ─────────────────────────────────────────────
+
+    /// <summary>
+    /// 시각 트리를 올라가 같은 DataContext를 공유하는 최상위 FrameworkElement(카드 루트)를 찾고
+    /// 그 요소의 PointerEntered/Exited를 구독합니다. 카드 전체 영역 호버 감지용.
+    /// </summary>
+    private void AttachHoverHost()
+    {
+        DetachHoverHost();
+
+        var host = FindCardContainer() ?? (FrameworkElement)this;
+        _hoverHost = host;
+        host.PointerEntered += OnHostPointerEntered;
+        host.PointerExited += OnHostPointerExited;
+        host.PointerCanceled += OnHostPointerExited;
+        host.PointerCaptureLost += OnHostPointerExited;
+    }
+
+    /// <summary>구독 해제 및 호스트 참조 해제. 재활용/언로드 시 누수 방지.</summary>
+    private void DetachHoverHost()
+    {
+        if (_hoverHost is null) return;
+        _hoverHost.PointerEntered -= OnHostPointerEntered;
+        _hoverHost.PointerExited -= OnHostPointerExited;
+        _hoverHost.PointerCanceled -= OnHostPointerExited;
+        _hoverHost.PointerCaptureLost -= OnHostPointerExited;
+        _hoverHost = null;
+    }
+
+    /// <summary>
+    /// 시각 트리에서 같은 DataContext를 공유하는 최상위 FrameworkElement를 탐색합니다.
+    /// DataTemplate 루트(=카드 Border)가 그 경계가 됩니다.
+    /// DataContext 상속이 끊기는 지점 직전의 요소가 카드 루트.
+    /// </summary>
+    private FrameworkElement? FindCardContainer()
+    {
+        object? myDc = DataContext;
+        if (myDc is null) return null;
+
+        DependencyObject? current = MediaVisualTreeHelper.GetParent(this);
+        FrameworkElement? lastMatch = null;
+        while (current is not null)
+        {
+            if (current is FrameworkElement fe && ReferenceEquals(fe.DataContext, myDc))
+            {
+                lastMatch = fe;
+            }
+            else if (lastMatch is not null)
+            {
+                // DataContext가 달라졌으면 카드 범위를 벗어난 것 → 탐색 종료
+                break;
+            }
+            current = MediaVisualTreeHelper.GetParent(current);
+        }
+        return lastMatch;
+    }
+
+    // ─── 호버/뷰포트 상태 ──────────────────────────────────────────────────
+
+    private void OnHostPointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        if (_isHovered) return;
+        _isHovered = true;
+        UpdateMarqueeState();
+    }
+
+    private void OnHostPointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        if (!_isHovered) return;
+        _isHovered = false;
+        UpdateMarqueeState();
+    }
+
+    private void OnEffectiveViewportChanged(FrameworkElement sender, EffectiveViewportChangedEventArgs args)
+    {
+        // EffectiveViewport가 비어 있으면 화면 밖(클립 등으로 가려짐) → 재생 중단
+        bool inView = !args.EffectiveViewport.IsEmpty;
+        if (_isInViewport == inView) return;
+        _isInViewport = inView;
+        UpdateMarqueeState();
     }
 
     // ─── Visual 초기화 ────────────────────────────────────────────────────
@@ -141,7 +257,8 @@ public sealed partial class MarqueeTagsControl : UserControl
     // ─── 핵심 로직 ──────────────────────────────────────────────────────────
 
     /// <summary>
-    /// 태그 또는 설정 변경 시 마키 상태를 재계산합니다.
+    /// 태그 또는 설정 변경 시 마키 가능 여부를 재계산합니다.
+    /// 실제 재생/정지는 <see cref="UpdateMarqueeState"/>에서 호버/뷰포트 상태를 함께 반영합니다.
     /// _refreshPending 플래그로 중복 Low 콜백을 방지합니다.
     /// </summary>
     private void Refresh()
@@ -153,6 +270,8 @@ public sealed partial class MarqueeTagsControl : UserControl
 
         // 애니메이션 즉시 중단 + 아이템 소스 최신 값으로 업데이트
         StopMarquee();
+        _isMarqueeActive = false;
+        _cycleWidth = 0;
         Viewport.Clip = null; // 클립 초기화 — 측정 후 필요 시에만 재적용
         Rep1.ItemsSource = GetDisplayTags();
         Rep2.ItemsSource = null;
@@ -178,25 +297,82 @@ public sealed partial class MarqueeTagsControl : UserControl
             double contentWidth = Rep1.DesiredSize.Width;
 
             if (Tags is not { Count: > 0 } || contentWidth <= viewportWidth)
-                return; // 태그 없거나 뷰포트에 모두 수용 → 추가 처리 불필요
-
-            if (IsAnimationEnabled)
             {
-                // 마키 모드: 클립 적용 + Rep2·Spacer 활성화 후 애니메이션 시작
-                Viewport.Clip = new RectangleGeometry
-                {
-                    Rect = new Rect(0, 0, viewportWidth, Viewport.ActualHeight)
-                };
-                Rep2.ItemsSource = GetDisplayTags();
-                Spacer.Visibility = Rep2.Visibility = Visibility.Visible;
-                StartMarquee(contentWidth + 30.0); // +30 = Spacer Width
+                _cycleWidth = 0;
+                return; // 태그 없거나 뷰포트에 모두 수용 → 추가 처리 불필요
+            }
+
+            // 시스템 애니메이션 설정을 존중 — 접근성 요구에 따라 재생 억제
+            bool canAnimate = IsAnimationEnabled && _uiSettings.AnimationsEnabled;
+            if (canAnimate)
+            {
+                // 마키 cycle 너비만 캐시해 두고, 실제 재생은 호버+뷰포트 조건 충족 시에만 시작
+                _cycleWidth = contentWidth + 30.0; // +30 = Spacer Width
+                TrimTagsToFit(viewportWidth);     // 평상시: 정적 트리밍 + "+N" 배지
+                UpdateMarqueeState();
             }
             else
             {
                 // 비-애니메이션 overflow: 뷰포트에 들어가는 태그만 표시 + 나머지는 +N 배지
+                _cycleWidth = 0;
                 TrimTagsToFit(viewportWidth);
             }
         });
+    }
+
+    /// <summary>
+    /// 호버 상태 + 뷰포트 내 여부에 따라 마키 재생을 on/off 합니다.
+    /// _cycleWidth == 0 이면 마키가 필요하지 않으므로 항상 정지 상태로 유지됩니다.
+    /// </summary>
+    private void UpdateMarqueeState()
+    {
+        if (_cycleWidth <= 0)
+        {
+            if (_isMarqueeActive) DeactivateMarquee();
+            return;
+        }
+
+        bool shouldAnimate = _isHovered && _isInViewport && IsLoaded;
+        if (shouldAnimate && !_isMarqueeActive) ActivateMarquee();
+        else if (!shouldAnimate && _isMarqueeActive) DeactivateMarquee();
+    }
+
+    /// <summary>정적 트리밍 → 마키 재생 전환</summary>
+    private void ActivateMarquee()
+    {
+        if (_cycleWidth <= 0) return;
+
+        _isMarqueeActive = true;
+
+        // 트리밍 해제 — 원본 태그 전체 복원
+        Rep1.ItemsSource = GetDisplayTags();
+        OverflowBadge.Visibility = Visibility.Collapsed;
+
+        // 클립 + 복사본(Rep2) + Spacer 활성화
+        Viewport.Clip = new RectangleGeometry
+        {
+            Rect = new Rect(0, 0, Viewport.ActualWidth, Viewport.ActualHeight)
+        };
+        Rep2.ItemsSource = GetDisplayTags();
+        Spacer.Visibility = Rep2.Visibility = Visibility.Visible;
+
+        StartMarquee(_cycleWidth);
+    }
+
+    /// <summary>마키 재생 → 정적 트리밍 복귀</summary>
+    private void DeactivateMarquee()
+    {
+        _isMarqueeActive = false;
+
+        StopMarquee();
+        Rep2.ItemsSource = null;
+        Spacer.Visibility = Rep2.Visibility = Visibility.Collapsed;
+        Viewport.Clip = null;
+
+        // 정적 트리밍 복원 (+N 배지 포함)
+        double viewportWidth = Viewport.ActualWidth;
+        if (viewportWidth > 0 && _cycleWidth > 0)
+            TrimTagsToFit(viewportWidth);
     }
 
     /// <summary>

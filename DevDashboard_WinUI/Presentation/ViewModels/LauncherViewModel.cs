@@ -171,48 +171,62 @@ public sealed partial class LauncherViewModel : ObservableObject
         }
     }
 
+    /// <summary>런처 실행 커맨드 중복 클릭 방지 쿨다운 (밀리초).</summary>
+    private const int LaunchCooldownMs = 800;
+
     /// <summary>앱을 실행합니다.</summary>
-    [RelayCommand]
-    private static void Launch(LauncherItemViewModel? item)
+    [RelayCommand(AllowConcurrentExecutions = false)]
+    private static async Task Launch(LauncherItemViewModel? item)
     {
         if (item is null) return;
-        LaunchApp(item.ExecutablePath, runAsAdmin: false);
+        await LaunchAppAsync(item.ExecutablePath, runAsAdmin: false);
     }
 
     /// <summary>관리자 권한으로 앱을 실행합니다.</summary>
-    [RelayCommand]
-    private static void LaunchAsAdmin(LauncherItemViewModel? item)
+    [RelayCommand(AllowConcurrentExecutions = false)]
+    private static async Task LaunchAsAdmin(LauncherItemViewModel? item)
     {
         if (item is null) return;
-        LaunchApp(item.ExecutablePath, runAsAdmin: true);
+        await LaunchAppAsync(item.ExecutablePath, runAsAdmin: true);
     }
 
-    private static void LaunchApp(string executablePath, bool runAsAdmin)
+    private static async Task LaunchAppAsync(string executablePath, bool runAsAdmin)
     {
-        try
+        // UI 스레드 프리징 방지: Process.Start(UseShellExecute=true)는
+        // UAC 프롬프트·shell 초기화·무거운 앱 로딩 시 호출 스레드를 블록하므로
+        // 백그라운드 스레드에서 실행한다.
+        await Task.Run(() =>
         {
-            var psi = new ProcessStartInfo();
-
-            if (executablePath.StartsWith("shell:AppsFolder", StringComparison.OrdinalIgnoreCase))
+            try
             {
-                // UWP/MSIX 앱: explorer.exe로 실행
-                psi.FileName = "explorer.exe";
-                psi.Arguments = executablePath;
-            }
-            else
-            {
-                psi.FileName = executablePath;
-                psi.UseShellExecute = true;
-                if (runAsAdmin)
-                    psi.Verb = "runas";
-            }
+                var psi = new ProcessStartInfo();
 
-            Process.Start(psi)?.Dispose();
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"앱 실행 실패 ({executablePath}): {ex.Message}");
-        }
+                if (executablePath.StartsWith("shell:AppsFolder", StringComparison.OrdinalIgnoreCase))
+                {
+                    // UWP/MSIX 앱: explorer.exe로 실행
+                    psi.FileName = "explorer.exe";
+                    psi.Arguments = executablePath;
+                }
+                else
+                {
+                    psi.FileName = executablePath;
+                    psi.UseShellExecute = true;
+                    if (runAsAdmin)
+                        psi.Verb = "runas";
+                }
+
+                Process.Start(psi)?.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"앱 실행 실패 ({executablePath}): {ex.Message}");
+            }
+        });
+
+        // 연속 클릭 방지: Process.Start는 즉시 리턴되는 경우가 많아
+        // AllowConcurrentExecutions=false만으로는 더블클릭을 막을 수 없다.
+        // 쿨다운 동안 커맨드가 실행 중 상태로 유지되어 추가 클릭이 무시된다.
+        await Task.Delay(LaunchCooldownMs);
     }
 }
 
