@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevDashboard.Infrastructure.Services;
@@ -669,9 +670,15 @@ public partial class ProjectCardViewModel : ObservableObject
         {
             fileName = "powershell.exe";
             var noExit = script.CloseAfterCompletion ? "" : "-NoExit ";
-            arguments = script.UseWorkingDirectory
-                ? $"{noExit}-Command \"Set-Location '{script.WorkingDirectory}'; {script.Script}\""
-                : $"{noExit}-Command \"{script.Script}\"";
+            // 스크립트 본문에 포함된 따옴표(")가 외부 -Command 래퍼와 충돌하지 않도록
+            // -EncodedCommand(Base64 UTF-16LE) 방식으로 전달한다.
+            // 작업 폴더 경로의 와일드카드/대괄호가 그대로 해석되도록 -LiteralPath 사용,
+            // 경로의 작은따옴표는 PowerShell 규칙에 맞춰 두 번으로 이스케이프.
+            var rawScript = script.UseWorkingDirectory
+                ? $"Set-Location -LiteralPath '{script.WorkingDirectory.Replace("'", "''")}'; {script.Script}"
+                : script.Script;
+            var encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes(rawScript));
+            arguments = $"{noExit}-EncodedCommand {encoded}";
         }
         else
         {

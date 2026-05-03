@@ -1,4 +1,5 @@
 ## 최근 변경
+- 2026-05-04: 커맨드 스크립트 PowerShell 실행 시 따옴표(`"`) 손실 문제 수정 — `ProjectCardViewModel.LaunchCommandScript`에서 PowerShell 분기를 `-Command "..."` 래핑 방식에서 `-EncodedCommand`(Base64 UTF-16LE) 방식으로 교체. 외부 따옴표가 사라져 사용자 스크립트 내 `"`가 그대로 전달됨(예: `git commit -m "fix bug"` 정상 동작). 작업 폴더 이동을 `Set-Location -LiteralPath '경로'` 로 강화하여 와일드카드/대괄호가 포함된 폴더 경로도 안전하게 처리(경로 내 작은따옴표는 두 번으로 이스케이프). `using System.Text;` 추가. Cmd 분기/시그니처/UI 변경 없음
 - 2026-04-26: README.md 리뷰 보강 — (1) 다국어 표기를 본문/설정 섹션 모두 "시스템 기본 / 한국어 / English (재시작 후 반영)"로 통일, (2) 빌드 결과 경로를 `bin/{Platform}/{Configuration}/net10.0-windows10.0.26100.0/` 일반형 + Debug/Release 예시로 보강, (3) 아이콘 캐시 표 항목을 실제 경로(`LauncherIcons\` 폴더 + `launcher_icon_cache.json` 인덱스, LRU 500개·20% 정리)로 명시. 코드 변경 없음
 - 2026-04-26: 솔루션 루트에 `LICENSE` (MIT, Copyright © 2026 JongCheol Pak) 추가, `README.md` 라이선스 섹션을 `[MIT License](LICENSE) 하에 배포됩니다.` 로 갱신
 - 2026-04-26: 솔루션 루트 `README.md` 신규 작성 — MailTrayNotifier README 스타일을 따라 헤더 아이콘(`docs/screenshots/appicon.png`) + 주요 기능(카드/실행 액션/To-Do·테스트·기록/런처/설정) + 설치(MSBuild x64) + 사용 방법(스크린샷 6종 임베드) + 설정 파일 위치 + 주요 의존성 + 제한 사항 + 라이선스 섹션으로 구성. 이미지 경로는 솔루션 루트 기준 `docs/screenshots/`. 코드/기능 변경은 없음 (문서 신규 작성)
