@@ -445,7 +445,7 @@ Visibility="{Binding HasNewVersion, Converter={StaticResource BoolToVisibility}}
 
                             <TextBlock Margin="0,12,0,0" TextAlignment="Left" HorizontalAlignment="Stretch" Foreground="{StaticResource TextFillColorSecondaryBrush}">
                                 <Run x:Uid="AppSettings_InfoLinkPrefix" />
-                                <Hyperlink NavigateUri="https://jongcheol-pak.github.io/projects/devdashboard-winui/">
+                                <Hyperlink NavigateUri="https://jongcheol-pak.github.io/DevDashboard_WinUI/">
                                     <Run x:Uid="AppSettings_InfoLinkText" />
                                 </Hyperlink>
                                 <Run x:Uid="AppSettings_InfoLinkSuffix" />
