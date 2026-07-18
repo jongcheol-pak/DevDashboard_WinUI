@@ -117,6 +117,9 @@ public sealed class DatabaseContext
         AddColumnIfNotExists(connection, "TestItems", "CategoryId", "TEXT NOT NULL DEFAULT ''");
         AddColumnIfNotExists(connection, "TestItems", "Status", "TEXT NOT NULL DEFAULT 'Testing'");
         MigrateIsCompletedToStatus(connection);
+        // 테스트 방법(재현 절차) 필드 + 상태 모델 전환(Testing/Fix/Done → 미실행/실패/통과)
+        AddColumnIfNotExists(connection, "TestItems", "Method", "TEXT NOT NULL DEFAULT ''");
+        MigrateTestStatusToNewModel(connection);
         AddColumnIfNotExists(connection, "CommandScripts", "CloseAfterCompletion", "INTEGER NOT NULL DEFAULT 0");
         AddColumnIfNotExists(connection, "Todos", "Status", "TEXT NOT NULL DEFAULT 'Waiting'");
         MigrateTodoIsCompletedToStatus(connection);
@@ -133,6 +136,21 @@ public sealed class DatabaseContext
     {
         using var cmd = connection.CreateCommand();
         cmd.CommandText = "UPDATE TestItems SET Status = 'Done' WHERE IsCompleted = 1 AND Status = 'Testing'";
+        cmd.ExecuteNonQuery();
+    }
+
+    /// <summary>기존 테스트 상태 값(Testing/Fix/Done)을 신 모델(Untested/Fail/Pass)로 전환합니다.
+    /// 구 값에만 매칭되므로 이미 전환된 DB에는 영향이 없습니다(멱등).</summary>
+    private static void MigrateTestStatusToNewModel(SqliteConnection connection)
+    {
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = """
+            UPDATE TestItems SET Status = CASE Status
+                WHEN 'Done' THEN 'Pass'
+                WHEN 'Fix' THEN 'Fail'
+                WHEN 'Testing' THEN 'Untested'
+                ELSE Status END
+            """;
         cmd.ExecuteNonQuery();
     }
 
@@ -154,7 +172,7 @@ public sealed class DatabaseContext
         "ProjectId", "Tag", "SlotIndex", "ShellType", "Script", "WorkingDirectory",
         "IconSymbol", "Text", "IsCompleted", "CompletedAt", "Title", "IsDefault",
         "DisplayName", "ExecutablePath", "IconCachePath", "SortOrder", "ProgressNote", "CategoryId", "Status",
-        "CloseAfterCompletion", "Priority", "StartDate", "EndDate", "LinkedTestId"
+        "CloseAfterCompletion", "Priority", "StartDate", "EndDate", "LinkedTestId", "Method"
     };
 
     private static void AddColumnIfNotExists(SqliteConnection connection, string table, string column, string definition)
@@ -276,9 +294,10 @@ public sealed class DatabaseContext
                 CategoryId   TEXT NOT NULL DEFAULT '',
                 ProjectId    TEXT NOT NULL,
                 Text         TEXT NOT NULL DEFAULT '',
+                Method       TEXT NOT NULL DEFAULT '',
                 ProgressNote TEXT NOT NULL DEFAULT '',
                 IsCompleted  INTEGER NOT NULL DEFAULT 0,
-                Status       TEXT NOT NULL DEFAULT 'Testing',
+                Status       TEXT NOT NULL DEFAULT 'Untested',
                 CompletedAt  TEXT,
                 CreatedAt    TEXT NOT NULL DEFAULT '',
                 FOREIGN KEY (ProjectId) REFERENCES Projects(Id) ON DELETE CASCADE
