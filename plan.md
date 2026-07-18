@@ -165,8 +165,12 @@
 - git 커밋 ↔ 작업 기록 자동 연동(PRD §7 영구 제외).
 - 작업 기록의 페이지 전환(PRD §1 — 작업 기록은 다이얼로그 유지, 페이지 아님).
 
+## Progress Log
+- T1-T2 완료 (커밋 fe41fa3, d0774ad): T1 HistoryEntry.Kind 필드(POCO). T2 DB Kind 컬럼 마이그레이션(AddColumnIfNotExists+화이트리스트+CREATE)·Repository InsertHistories(@kind 루프 갱신)·GetHistories/ReadHistoriesForProject Kind read(HasColumn 가드). 빌드 OK. Phase 3 T2 @method 루프 누락 회귀 없음 확인.
+  - 착수 전 Phase 3를 master `--no-ff` 병합(사용자 승인), task/phase4-history 브랜치(master 기준)에서 진행.
+
 ## Next Steps
-- 권장 다음 액션: **Phase 3 master 병합(별도 승인)** → 승인 시 implement-task로 T1~T5 자율 실행. 완료 후 시각·동작 사용자 확인 → 이후 Phase 5(알림) plan-feature.
+- 권장 다음 액션: implement-task로 T3부터 계속(T3 베이스 VM 추출·페이지네이션 → T4 유형 선택 → T5 UI). 완료 후 시각·동작 사용자 확인 → 이후 Phase 5(알림) plan-feature.
 - Suggested skills: pjc:implement-task(승인 후), pjc:plan-feature(Phase 5).
 
 ## 통과 체크리스트
