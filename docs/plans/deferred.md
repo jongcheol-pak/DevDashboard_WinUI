@@ -4,7 +4,6 @@
 
 ## 대기
 - **[FR-S5] 프로젝트 설정(추가/편집) 다이얼로그 심화 restyle** — Should. 현재 다이얼로그가 시안(screen_11)보다 필드가 많고 Phase 0 팔레트로 이미 다크 적용됨 → 구조 재설계는 기능 손실 위험. 기능 손실 없는 재설계 방안 확정 후 별도 진행. (원 plan: Phase 1 설정, 2026-07-18)
-- **[FR-H2 선행] 페이지당 표시 개수(PageSize) 실제 소비** — 작업 기록 다이얼로그 페이지네이션. PRD 로드맵 Phase 4에서 구현 예정(설정값은 Phase 1에서 이미 영속화됨). (원 plan: Phase 1 설정, 2026-07-18)
 - **[Todo* resw 고아 정리]** — 삭제된 TodoDialog/TodoDialogViewModel 전용 resw 키(`TodoDialog.*`·`TodoTab*`·`TodoStatus_*`·`TodoLabel_*`·`TodoEditTitle`·`TodoUncomplete*`·`TodoGroupBy*`·`TodoStatusChange*` ko/en ~40항목, `TodoButton`·`TodoPopupCheck`도 별도 확인)가 소스 미사용 상태로 잔존. 빌드·런타임 무해 — audit 후 제거. (원 plan: Phase 2 작업, 2026-07-19)
 - **[교차 작업/테스트 집계 페이지]** (PRD D-2) — 작업·테스트 모두 현재 프로젝트 종속만 구현됨. 전체/프로젝트 스코프 필터 교차 집계 페이지(ProjectHistoryDialog 패턴)는 별도 진행. (원 plan: Phase 2·3, 2026-07-18/19)
 - **[FR-T7 담당자(who) 필드]** — Could. 작업 항목 담당자 표시/편집. 사용자 제외 결정. (원 plan: Phase 2 작업, 2026-07-18)
@@ -16,4 +15,4 @@
 - **[`TestDateGroup` 고아 정리]** — `Presentation/Models/TestDateGroup.cs`가 소스 미참조(구 테스트 다이얼로그 이전 버전 잔재, T6 이전부터 존재). 별도 정리. (원 plan: Phase 3 테스트, 2026-07-19)
 
 ## 완료·재수용
-- (없음)
+- [2026-07-18 → 2026-07-19] FR-H2 선행 PageSize 실제 소비(작업 기록 페이지네이션) — 재수용(Phase 4 plan T3 로직·T5 UI)
