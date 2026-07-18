@@ -12,6 +12,8 @@
 - **[미사용 심볼 정리]** — `TaskPageViewModel.ShowKanban`/`ShowList` RelayCommand 미사용(RadioButton TwoWay 직접 바인딩), `TaskEditDialog.xaml`의 `x:Name="TitleBox"` 미사용. quality 리뷰 지적, 무해 — 정리 검토. (원 plan: Phase 2 작업, 2026-07-19)
 - **[테스트→작업 역방향 링크/배지]** (FR-E4 확장) — 테스트 목록에서 연결된 작업 배지/링크 표시. 현재 TodoItem.LinkedTestId 단방향만. TestItem→Todo 역참조 조회 필요. 사용자 결정으로 Phase 3 제외. (원 plan: Phase 3 테스트, 2026-07-19)
 - **[FR-T6/E4 "방법" 필드 확장 소비]** — Phase 3에서 TestItem.Method 추가·다이얼로그 노출. 향후 필터/통계에 활용 여부는 별도. (원 plan: Phase 3 테스트, 2026-07-19)
+- **[Test* 구 resw 고아 정리]** — 삭제된 TestListDialog 전용 resw 키(`TestListDialogTitle`·`TestStatusTesting/Fix/Done.Content`·`TestTab*`·`TestGroupBy*`·`NewTestBox`·`NewCategoryBox`·`TestAddNoteLink`·`EmptyTestText`·`TestDeleteCategoryConfirm` 등)가 소스 미사용 상태로 잔존. 빌드·런타임 무해 — audit 후 제거. (원 plan: Phase 3 테스트, 2026-07-19)
+- **[`TestDateGroup` 고아 정리]** — `Presentation/Models/TestDateGroup.cs`가 소스 미참조(구 테스트 다이얼로그 이전 버전 잔재, T6 이전부터 존재). 별도 정리. (원 plan: Phase 3 테스트, 2026-07-19)
 
 ## 완료·재수용
 - (없음)
