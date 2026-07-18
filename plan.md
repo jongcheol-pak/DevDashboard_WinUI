@@ -226,6 +226,9 @@ Phase 2에서 구축한 페이지 네비게이션(`MainWindow.ShowPage`/`ShowDas
   - 리뷰: T2 quality MAJOR(InsertTestItems `@method` 루프 바인딩 누락 → silent data loss) 수정 후 통과. spec은 처음부터 OK.
 - T3·T5 완료 (커밋 d7b4259, 1a9a65e): T3 TestPageViewModel(스위트 그룹·상태 통계·통과율·CRUD·FIFO 저장)·ProjectCardViewModel 팩토리. T5 TestEditDialog(이름/스위트/방법, ComboBox IsEditable)·AddTestToSuite·resw 9키. 빌드 OK.
   - 결정(T5 B1): plan T5 acceptance의 "메모 편집·삭제 확인 동작"은 실제로 T4 페이지 코드비하인드 책임 → plan T5/T4 절 정정으로 책임 명시 이전(코드 무변경). T5=등록/편집 다이얼로그, T4=메모/삭제/이름수정 소형 다이얼로그 + add/edit 경로 분리(S1).
+- T4·T7 완료 (커밋 3e97038, 83f5aac): T4 TestPage(헤더·상태 탭·통계 카드·스위트 통과율·항목 카드·인라인 메모/삭제/이름수정 다이얼로그·정적 색/글리프 헬퍼)·resw 8키. T7 MapTestBadge 새 상수(Pass/Fail/Untested)·CreateLinkedTest 기본 Untested 승계. 빌드 OK.
+  - T4 리뷰: quality MAJOR(StatusTab_Checked 주석이 코드와 반대) 수정 후 통과. V-9 요소 존재 확인·픽셀 렌더 HUMAN-VERIFY(목업 부재).
+  - T7 후 TaskPageViewModel 구 상수 참조 0건 → T6 구 상수 삭제 선행조건 충족.
 
 ## Next Steps
 - 권장 다음 액션: 승인 시 implement-task로 전 task 자율 실행(순서 = 진행 체크리스트: T1→T2→T3→T5→T4→T7→T6). 완료 후 **시각·동작 사용자 확인**(통계 카드·상태 탭·스위트 통과율·상태 아이콘·영속 왕복[상태 변경→재열기]·구 데이터 마이그레이션) → 이상 없으면 master 병합/push는 별도 승인. 이후 Phase 4(작업 기록) plan-feature.
