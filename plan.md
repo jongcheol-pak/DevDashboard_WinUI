@@ -231,8 +231,14 @@ Phase 2에서 구축한 페이지 네비게이션(`MainWindow.ShowPage`/`ShowDas
   - T4 리뷰: quality MAJOR(StatusTab_Checked 주석이 코드와 반대) 수정 후 통과. V-9 요소 존재 확인·픽셀 렌더 HUMAN-VERIFY(목업 부재).
   - T7 후 TaskPageViewModel 구 상수 참조 0건 → T6 구 상수 삭제 선행조건 충족.
 
+## Phase Ledger
+- 전 task(T1~T7) 완료.
+- Phase F 통과 (HEAD 930a260) — 전체 빌드 OK(코드 무변경으로 재빌드 skip, T6 빌드가 최종)·신규 경고 0, 통합 정합·구 자산 잔재 0·마이그레이션 멱등/하위호환 검증 통과(plan-completion-reviewer OK, BLOCKER/MAJOR/MINOR 0).
+- Phase G 통과 (Must 100%) — PRD Must 3/3(FR-E1·E2·E3)·Should 2/2(FR-E4·E5) 충족, NFR-1~4 충족. 역방향 링크(FR-E4 확장)·교차 집계(D-2) Deferred(사용자 결정). 미충족 0. 픽셀 렌더·영속 왕복은 HUMAN-VERIFY.
+
 ## Next Steps
-- 권장 다음 액션: 승인 시 implement-task로 전 task 자율 실행(순서 = 진행 체크리스트: T1→T2→T3→T5→T4→T7→T6). 완료 후 **시각·동작 사용자 확인**(통계 카드·상태 탭·스위트 통과율·상태 아이콘·영속 왕복[상태 변경→재열기]·구 데이터 마이그레이션) → 이상 없으면 master 병합/push는 별도 승인. 이후 Phase 4(작업 기록) plan-feature.
+- 권장 다음 액션: **시각·동작 사용자 확인**(통계 카드·상태 탭·스위트 통과율·상태 아이콘 렌더·영속 왕복[상태 변경→재열기]·구 데이터 마이그레이션) → 이상 없으면 커밋을 master로 병합/push는 별도 승인. 이후 Phase 4(작업 기록) plan-feature.
+- 원안 참고(구현 전): 승인 시 implement-task로 전 task 자율 실행(순서 = 진행 체크리스트: T1→T2→T3→T5→T4→T7→T6). 완료 후 **시각·동작 사용자 확인**(통계 카드·상태 탭·스위트 통과율·상태 아이콘·영속 왕복[상태 변경→재열기]·구 데이터 마이그레이션) → 이상 없으면 master 병합/push는 별도 승인. 이후 Phase 4(작업 기록) plan-feature.
 - Suggested skills: pjc:implement-task(승인 후), pjc:plan-feature(Phase 4).
 
 ## 통과 체크리스트
