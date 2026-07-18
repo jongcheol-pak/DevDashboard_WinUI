@@ -8,14 +8,14 @@ namespace DevDashboard.Domain.Entities;
 /// </summary>
 public partial class TestItem : ObservableObject
 {
-    /// <summary>상태 상수: 테스트</summary>
-    public const string StatusTesting = "Testing";
+    /// <summary>상태 상수: 통과</summary>
+    public const string StatusPass = "Pass";
 
-    /// <summary>상태 상수: 수정</summary>
-    public const string StatusFix = "Fix";
+    /// <summary>상태 상수: 실패</summary>
+    public const string StatusFail = "Fail";
 
-    /// <summary>상태 상수: 완료</summary>
-    public const string StatusDone = "Done";
+    /// <summary>상태 상수: 미실행</summary>
+    public const string StatusUntested = "Untested";
 
     /// <summary>항목 고유 식별자 (UUID)</summary>
     public string Id { get; set; } = Guid.NewGuid().ToString();
@@ -27,16 +27,20 @@ public partial class TestItem : ObservableObject
     [ObservableProperty]
     public partial string Text { get; set; } = string.Empty;
 
+    /// <summary>테스트 방법 (재현 절차·수행 방식 등)</summary>
+    [ObservableProperty]
+    public partial string Method { get; set; } = string.Empty;
+
     /// <summary>테스트 진행 내용 및 비고 (실패 사유, 로그 등)</summary>
     [ObservableProperty]
     public partial string ProgressNote { get; set; } = string.Empty;
 
-    /// <summary>테스트 항목 상태 ("Testing", "Fix", "Done")</summary>
+    /// <summary>테스트 항목 상태 ("Pass", "Fail", "Untested")</summary>
     [ObservableProperty]
-    public partial string Status { get; set; } = StatusTesting;
+    public partial string Status { get; set; } = StatusUntested;
 
-    /// <summary>완료 여부 (Status == "Done")</summary>
-    public bool IsCompleted => Status == StatusDone;
+    /// <summary>완료 여부 (Status == "Pass")</summary>
+    public bool IsCompleted => Status == StatusPass;
 
     /// <summary>완료 처리된 일시 (미완료이면 null)</summary>
     [ObservableProperty]

@@ -201,11 +201,8 @@ public partial class ProjectCardViewModel : ObservableObject
     /// <summary>작업 기록 다이얼로그 표시 요청 이벤트</summary>
     public event EventHandler? OpenHistoryRequested;
 
-    /// <summary>테스트 목록 다이얼로그 표시 요청 이벤트</summary>
+    /// <summary>테스트 전체 페이지 표시 요청 이벤트</summary>
     public event EventHandler? OpenTestListRequested;
-
-    /// <summary>테스트 목록 변경 이벤트</summary>
-    public event EventHandler? TestChanged;
 
     /// <summary>커맨드 슬롯 설정 요청 이벤트 (슬롯 인덱스)</summary>
     public event EventHandler<int>? ConfigureCommandSlotRequested;
@@ -532,6 +529,20 @@ public partial class ProjectCardViewModel : ObservableObject
         OnPropertyChanged(nameof(HasInProgressTodo));
     }
 
+    /// <summary>테스트(칸반) 페이지 뷰모델을 생성합니다. TestCategories를 로드해 전달합니다.</summary>
+    public TestPageViewModel CreateTestPageViewModel()
+    {
+        EnsureTestsLoaded();
+        return new TestPageViewModel(_item, _repository, RefreshTestCardState);
+    }
+
+    /// <summary>테스트 페이지에서 테스트가 변경된 뒤 카드의 진행 중 표시(HasInProgressTest)를 갱신합니다.</summary>
+    private void RefreshTestCardState()
+    {
+        _item.HasActiveTest = _item.TestCategories?.Any(c => c.Items.Any(t => !t.IsCompleted)) == true;
+        OnPropertyChanged(nameof(HasInProgressTest));
+    }
+
     /// <summary>작업 기록 다이얼로그 뷰모델을 생성합니다.</summary>
     public HistoryDialogViewModel CreateHistoryDialogViewModel()
     {
@@ -544,23 +555,6 @@ public partial class ProjectCardViewModel : ObservableObject
     {
         dialogVm.SaveToModel();
         HistoryChanged?.Invoke(this, EventArgs.Empty);
-    }
-
-    /// <summary>테스트 목록 다이얼로그 뷰모델을 생성합니다.</summary>
-    public TestListDialogViewModel CreateTestListDialogViewModel()
-    {
-        EnsureTestsLoaded();
-        return new TestListDialogViewModel(_item);
-    }
-
-    /// <summary>테스트 목록 다이얼로그가 닫힌 후 결과를 반영합니다.</summary>
-    public void OnTestListDialogClosed(TestListDialogViewModel dialogVm)
-    {
-        dialogVm.SaveToModel();
-        TestChanged?.Invoke(this, EventArgs.Empty);
-
-        _item.HasActiveTest = _item.TestCategories?.Any(c => c.Items.Any(t => !t.IsCompleted)) == true;
-        OnPropertyChanged(nameof(HasInProgressTest));
     }
 
     // --- 커맨드 스크립트 슬롯 ---

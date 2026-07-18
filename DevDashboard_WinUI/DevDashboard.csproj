@@ -68,11 +68,6 @@
     <Resource Include="Assets\DevDashboard_3.png" />
     <Content Include="Data\IconsData.json" />
   </ItemGroup>
-  <ItemGroup>
-    <Page Update="Presentation\Views\Dialogs\TestListDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
 
   <!--
     Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution

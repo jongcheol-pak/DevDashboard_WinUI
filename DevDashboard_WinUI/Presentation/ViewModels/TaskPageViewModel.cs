@@ -92,13 +92,12 @@ public partial class TaskPageViewModel : ObservableObject
         return _testStatusById.TryGetValue(todo.LinkedTestId, out var status) ? status : null;
     }
 
-    /// <summary>연결 테스트 상태를 카드 배지 텍스트로 변환합니다.
-    /// 현재 테스트 모델(Testing/Fix/Done) 기준 — Phase 3에서 통과/실패/미실행 전환 시 매핑 갱신 예정.</summary>
+    /// <summary>연결 테스트 상태(통과/실패/미실행)를 작업 카드 배지 텍스트로 변환합니다.</summary>
     private static string MapTestBadge(string? status) => status switch
     {
-        TestItem.StatusDone => LocalizationService.Get("TaskTestBadge_Pass"),
-        TestItem.StatusFix => LocalizationService.Get("TaskTestBadge_Fail"),
-        TestItem.StatusTesting => LocalizationService.Get("TaskTestBadge_Untested"),
+        TestItem.StatusPass => LocalizationService.Get("TaskTestBadge_Pass"),
+        TestItem.StatusFail => LocalizationService.Get("TaskTestBadge_Fail"),
+        TestItem.StatusUntested => LocalizationService.Get("TaskTestBadge_Untested"),
         _ => string.Empty,
     };
 

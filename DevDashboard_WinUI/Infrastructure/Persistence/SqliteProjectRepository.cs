@@ -61,7 +61,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
     private static HashSet<string> ReadActiveTestProjectIds(SqliteConnection conn)
     {
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT DISTINCT ProjectId FROM TestItems WHERE Status != 'Done'";
+        cmd.CommandText = "SELECT DISTINCT ProjectId FROM TestItems WHERE Status != 'Pass'";
         using var reader = cmd.ExecuteReader();
 
         var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -627,17 +627,18 @@ public sealed class SqliteProjectRepository : IProjectRepository
         using var itemCmd = conn.CreateCommand();
         itemCmd.CommandText = """
             INSERT INTO TestItems
-                (Id, CategoryId, ProjectId, Text, ProgressNote, IsCompleted, Status, CompletedAt, CreatedAt)
+                (Id, CategoryId, ProjectId, Text, Method, ProgressNote, IsCompleted, Status, CompletedAt, CreatedAt)
             VALUES
-                (@id, @catId, @pid, @text, @note, @completed, @status, @completedAt, @created)
+                (@id, @catId, @pid, @text, @method, @note, @completed, @status, @completedAt, @created)
             """;
         itemCmd.Parameters.AddWithValue("@id", string.Empty);
         itemCmd.Parameters.AddWithValue("@catId", string.Empty);
         itemCmd.Parameters.AddWithValue("@pid", projectId);
         itemCmd.Parameters.AddWithValue("@text", string.Empty);
+        itemCmd.Parameters.AddWithValue("@method", string.Empty);
         itemCmd.Parameters.AddWithValue("@note", string.Empty);
         itemCmd.Parameters.AddWithValue("@completed", 0);
-        itemCmd.Parameters.AddWithValue("@status", TestItem.StatusTesting);
+        itemCmd.Parameters.AddWithValue("@status", TestItem.StatusUntested);
         itemCmd.Parameters.AddWithValue("@completedAt", DBNull.Value);
         itemCmd.Parameters.AddWithValue("@created", string.Empty);
 
@@ -653,6 +654,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
                 itemCmd.Parameters["@id"].Value = t.Id;
                 itemCmd.Parameters["@catId"].Value = cat.Id;
                 itemCmd.Parameters["@text"].Value = t.Text;
+                itemCmd.Parameters["@method"].Value = t.Method;
                 itemCmd.Parameters["@note"].Value = t.ProgressNote;
                 itemCmd.Parameters["@completed"].Value = t.IsCompleted ? 1 : 0;
                 itemCmd.Parameters["@status"].Value = t.Status;
@@ -916,6 +918,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
 
         var catMap = categories.ToDictionary(c => c.Id);
         var hasStatusColumn = HasColumn(itemReader, "Status");
+        var hasMethodColumn = HasColumn(itemReader, "Method");
         while (itemReader.Read())
         {
             var completedAtStr = itemReader.IsDBNull(itemReader.GetOrdinal("CompletedAt"))
@@ -924,7 +927,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
 
             var categoryId = itemReader.GetString(itemReader.GetOrdinal("CategoryId"));
 
-            // 구버전 DB 호환: Status 컬럼이 없으면 IsCompleted 기반으로 결정
+            // 구버전 DB 호환: Status 컬럼이 없으면 IsCompleted 기반으로 결정(신 모델 통과/미실행)
             string status;
             if (hasStatusColumn)
             {
@@ -933,7 +936,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
             else
             {
                 var isCompleted = itemReader.GetInt64(itemReader.GetOrdinal("IsCompleted")) != 0;
-                status = isCompleted ? TestItem.StatusDone : TestItem.StatusTesting;
+                status = isCompleted ? TestItem.StatusPass : TestItem.StatusUntested;
             }
 
             var item = new TestItem
@@ -941,6 +944,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
                 Id = itemReader.GetString(itemReader.GetOrdinal("Id")),
                 CategoryId = categoryId,
                 Text = itemReader.GetString(itemReader.GetOrdinal("Text")),
+                Method = hasMethodColumn ? itemReader.GetString(itemReader.GetOrdinal("Method")) : string.Empty,
                 ProgressNote = itemReader.GetString(itemReader.GetOrdinal("ProgressNote")),
                 Status = status,
                 CompletedAt = string.IsNullOrEmpty(completedAtStr) ? null : ParseDateTime(completedAtStr),

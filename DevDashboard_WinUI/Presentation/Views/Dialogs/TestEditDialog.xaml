@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="DevDashboard.Presentation.Views.Dialogs.TestEditDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    DefaultButton="Primary"
+    CornerRadius="8"
+    PrimaryButtonClick="OnSave">
+
+    <StackPanel Spacing="12" MinWidth="360">
+
+        <TextBlock x:Uid="TestEditLabel_Name" Style="{StaticResource BodyStrongTextBlockStyle}" />
+        <TextBox
+            x:Uid="TestEditBox_Name"
+            Text="{x:Bind Vm.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            MaxLength="200" />
+
+        <TextBlock x:Uid="TestEditLabel_Suite" Style="{StaticResource BodyStrongTextBlockStyle}" />
+        <ComboBox
+            HorizontalAlignment="Stretch"
+            IsEditable="True"
+            ItemsSource="{x:Bind Vm.SuiteOptions}"
+            Text="{x:Bind Vm.SelectedSuite, Mode=TwoWay}"
+            IsEnabled="{x:Bind Vm.CanEditSuite}" />
+
+        <TextBlock x:Uid="TestEditLabel_Method" Style="{StaticResource BodyStrongTextBlockStyle}" />
+        <TextBox
+            x:Uid="TestEditBox_Method"
+            Text="{x:Bind Vm.Method, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            AcceptsReturn="True"
+            TextWrapping="Wrap"
+            MinHeight="70"
+            MaxLength="500"
+            ScrollViewer.VerticalScrollBarVisibility="Auto" />
+
+        <TextBlock
+            x:Name="ErrorText"
+            Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+            Visibility="Collapsed"
+            TextWrapping="Wrap" />
+    </StackPanel>
+
+</ContentDialog>
