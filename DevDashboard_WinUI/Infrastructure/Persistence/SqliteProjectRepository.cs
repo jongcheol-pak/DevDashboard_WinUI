@@ -654,6 +654,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
                 itemCmd.Parameters["@id"].Value = t.Id;
                 itemCmd.Parameters["@catId"].Value = cat.Id;
                 itemCmd.Parameters["@text"].Value = t.Text;
+                itemCmd.Parameters["@method"].Value = t.Method;
                 itemCmd.Parameters["@note"].Value = t.ProgressNote;
                 itemCmd.Parameters["@completed"].Value = t.IsCompleted ? 1 : 0;
                 itemCmd.Parameters["@status"].Value = t.Status;
