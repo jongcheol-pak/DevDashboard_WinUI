@@ -224,6 +224,8 @@ Phase 2에서 구축한 페이지 네비게이션(`MainWindow.ShowPage`/`ShowDas
 - T1-T2 완료 (커밋 7349b29, 4aa5167): T1 TestItem 새 상태 상수(Pass/Fail/Untested) 비파괴 추가·구 상수 T6까지 병존·Method 필드·기본값 Untested·IsCompleted=Pass. T2 DB 값 마이그레이션(MigrateTestStatusToNewModel CASE UPDATE 멱등)·Method 컬럼·CREATE DEFAULT 'Untested'·ReadActive `!= 'Pass'`·Repository Method read/write. 빌드 OK.
   - 결정: 상태 전환은 값 교체 방식(Phase 2 TodoStatus.Hold 비파괴 추가와 동형) — 구 상수를 T6에서 참조부 이전 후 삭제해 task별 빌드 유지.
   - 리뷰: T2 quality MAJOR(InsertTestItems `@method` 루프 바인딩 누락 → silent data loss) 수정 후 통과. spec은 처음부터 OK.
+- T3·T5 완료 (커밋 d7b4259, 1a9a65e): T3 TestPageViewModel(스위트 그룹·상태 통계·통과율·CRUD·FIFO 저장)·ProjectCardViewModel 팩토리. T5 TestEditDialog(이름/스위트/방법, ComboBox IsEditable)·AddTestToSuite·resw 9키. 빌드 OK.
+  - 결정(T5 B1): plan T5 acceptance의 "메모 편집·삭제 확인 동작"은 실제로 T4 페이지 코드비하인드 책임 → plan T5/T4 절 정정으로 책임 명시 이전(코드 무변경). T5=등록/편집 다이얼로그, T4=메모/삭제/이름수정 소형 다이얼로그 + add/edit 경로 분리(S1).
 
 ## Next Steps
 - 권장 다음 액션: 승인 시 implement-task로 전 task 자율 실행(순서 = 진행 체크리스트: T1→T2→T3→T5→T4→T7→T6). 완료 후 **시각·동작 사용자 확인**(통계 카드·상태 탭·스위트 통과율·상태 아이콘·영속 왕복[상태 변경→재열기]·구 데이터 마이그레이션) → 이상 없으면 master 병합/push는 별도 승인. 이후 Phase 4(작업 기록) plan-feature.
