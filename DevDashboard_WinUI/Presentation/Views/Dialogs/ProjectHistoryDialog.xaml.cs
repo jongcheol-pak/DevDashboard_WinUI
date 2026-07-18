@@ -15,9 +15,9 @@ public sealed partial class ProjectHistoryDialog : ContentDialog
     private TaskCompletionSource<bool>? _nestedTcs;
     private readonly System.ComponentModel.PropertyChangedEventHandler _vmPropertyChangedHandler;
 
-    public ProjectHistoryDialog(IReadOnlyList<ProjectItem> projects, IProjectRepository repository)
+    public ProjectHistoryDialog(IReadOnlyList<ProjectItem> projects, IProjectRepository repository, AppSettings settings)
     {
-        Vm = new ProjectHistoryDialogViewModel(projects.ToList(), repository);
+        Vm = new ProjectHistoryDialogViewModel(projects.ToList(), repository, settings);
         InitializeComponent();
 
         Title = LocalizationService.Get("ProjectHistoryDialogTitle");

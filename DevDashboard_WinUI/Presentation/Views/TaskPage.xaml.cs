@@ -176,7 +176,7 @@ public sealed partial class TaskPage : UserControl
 
     private async void OnWorkLogRequested(object? sender, TodoItem todo)
     {
-        var historyVm = new HistoryDialogViewModel(Vm.Project);
+        var historyVm = new HistoryDialogViewModel(Vm.Project, _settings);
         var dialog = new HistoryDialog(historyVm);
         dialog.OpenAddPanel(todo.Text);
         await dialog.ShowAsync();

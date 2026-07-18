@@ -540,7 +540,7 @@ public sealed partial class MainWindow : WindowEx
             if (_viewModel is null) return;
 
             var projects = _viewModel.GetAllProjectItemsWithHistories();
-            var dialog = new ProjectHistoryDialog(projects, _viewModel.GetProjectRepository());
+            var dialog = new ProjectHistoryDialog(projects, _viewModel.GetProjectRepository(), _settings);
             await dialog.ShowAsync();
         }
         catch (Exception ex)
