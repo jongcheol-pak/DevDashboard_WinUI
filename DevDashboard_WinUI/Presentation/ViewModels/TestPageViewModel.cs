@@ -122,12 +122,23 @@ public partial class TestPageViewModel : ObservableObject
 
     // --- 테스트 항목 편집 ---
 
-    /// <summary>새 테스트 항목을 스위트에 추가합니다 (등록 다이얼로그 결과 반영).</summary>
-    public void AddTest(TestCategory category, TestItem test)
+    /// <summary>스위트 이름으로 새 테스트 항목을 추가합니다 (스위트가 없으면 생성). 등록 다이얼로그 결과 반영.</summary>
+    public void AddTestToSuite(string suiteName, TestItem test)
     {
-        if (category is null || test is null) return;
-        test.CategoryId = category.Id;
-        category.Items.Add(test);
+        if (test is null) return;
+        var trimmed = suiteName?.Trim();
+        if (string.IsNullOrWhiteSpace(trimmed)) return;
+
+        var categories = _project.TestCategories ??= [];
+        var suite = categories.FirstOrDefault(c => c.Name.Equals(trimmed, StringComparison.OrdinalIgnoreCase));
+        if (suite is null)
+        {
+            suite = new TestCategory { Name = trimmed };
+            categories.Add(suite);
+        }
+
+        test.CategoryId = suite.Id;
+        suite.Items.Add(test);
         Rebuild();
         Persist();
     }

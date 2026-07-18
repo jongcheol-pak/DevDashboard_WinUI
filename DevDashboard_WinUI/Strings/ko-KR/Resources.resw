@@ -384,6 +384,15 @@
   <data name="TestLabel_Completed" xml:space="preserve"><value>완료 :</value></data>
   <data name="NewCategoryBox.PlaceholderText" xml:space="preserve"><value>새 카테고리 이름 입력...</value></data>
   <data name="TestEditCategoryTitle" xml:space="preserve"><value>카테고리 이름 수정</value></data>
+  <data name="TestEdit_TitleAdd" xml:space="preserve"><value>새 테스트</value></data>
+  <data name="TestEdit_TitleEdit" xml:space="preserve"><value>테스트 편집</value></data>
+  <data name="TestEditLabel_Name.Text" xml:space="preserve"><value>이름</value></data>
+  <data name="TestEditLabel_Suite.Text" xml:space="preserve"><value>스위트</value></data>
+  <data name="TestEditLabel_Method.Text" xml:space="preserve"><value>방법</value></data>
+  <data name="TestEditBox_Name.PlaceholderText" xml:space="preserve"><value>테스트 이름</value></data>
+  <data name="TestEditBox_Method.PlaceholderText" xml:space="preserve"><value>테스트 방법 · 재현 절차</value></data>
+  <data name="TestEdit_NameRequired" xml:space="preserve"><value>이름을 입력하세요.</value></data>
+  <data name="TestEdit_SuiteRequired" xml:space="preserve"><value>스위트를 선택하거나 입력하세요.</value></data>
   <data name="TestDeleteCategoryConfirm" xml:space="preserve"><value>이 카테고리와 소속된 모든 테스트 항목이 삭제됩니다. 계속하시겠습니까?</value></data>
   <data name="EmptyTestText.Text" xml:space="preserve"><value>카테고리가 없습니다. 새 카테고리를 추가해주세요.</value></data>
   <data name="TaskCategory_None" xml:space="preserve"><value>미분류</value></data>
