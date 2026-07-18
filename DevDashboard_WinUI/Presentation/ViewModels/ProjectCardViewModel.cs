@@ -189,9 +189,6 @@ public partial class ProjectCardViewModel : ObservableObject
     /// <summary>커맨드 스크립트 변경 이벤트</summary>
     public event EventHandler? CommandScriptChanged;
 
-    /// <summary>To-Do 변경 이벤트</summary>
-    public event EventHandler? TodoChanged;
-
     /// <summary>작업 기록 변경 이벤트</summary>
     public event EventHandler? HistoryChanged;
 
@@ -519,27 +516,18 @@ public partial class ProjectCardViewModel : ObservableObject
 
     // --- To-Do / History 다이얼로그 결과 처리 (View에서 호출) ---
 
-    /// <summary>To-Do 다이얼로그 뷰모델을 생성합니다.</summary>
-    public TodoDialogViewModel CreateTodoDialogViewModel()
+    /// <summary>작업(칸반) 페이지 뷰모델을 생성합니다. Todos/Histories/Tests를 로드해 전달합니다.</summary>
+    public TaskPageViewModel CreateTaskPageViewModel()
     {
         EnsureTodosLoaded();
-        return new TodoDialogViewModel(_item);
+        EnsureHistoriesLoaded();
+        EnsureTestsLoaded();
+        return new TaskPageViewModel(_item, _repository, _settings, RefreshTodoCardState);
     }
 
-    /// <summary>To-Do 다이얼로그가 닫힌 후 결과를 반영합니다.</summary>
-    public void OnTodoDialogClosed(TodoDialogViewModel dialogVm, IList<HistoryEntry>? newHistories = null)
+    /// <summary>작업 페이지에서 작업이 변경된 뒤 카드의 진행 중 표시(HasInProgressTodo)를 갱신합니다.</summary>
+    private void RefreshTodoCardState()
     {
-        dialogVm.SaveToModel();
-        TodoChanged?.Invoke(this, EventArgs.Empty);
-
-        if (newHistories is { Count: > 0 })
-        {
-            EnsureHistoriesLoaded();
-            _item.Histories ??= [];
-            _item.Histories.AddRange(newHistories);
-            HistoryChanged?.Invoke(this, EventArgs.Empty);
-        }
-
         _item.HasActiveTodo = _item.Todos?.Any(t => !t.IsCompleted) == true;
         OnPropertyChanged(nameof(HasInProgressTodo));
     }

@@ -10,7 +10,6 @@ public sealed partial class AppSettingsDialog : ContentDialog
 {
     private AppSettingsDialogViewModel Vm { get; } = new();
     private readonly System.Collections.Specialized.NotifyCollectionChangedEventHandler _toolsCollectionChangedHandler;
-    private readonly System.ComponentModel.PropertyChangedEventHandler _vmPropertyChangedHandler;
 
     private TaskCompletionSource<bool>? _nestedTcs;
     public AppSettings? ResultSettings { get; private set; }
@@ -45,22 +44,10 @@ public sealed partial class AppSettingsDialog : ContentDialog
         _toolsCollectionChangedHandler = (_, _) => RefreshToolList();
         Vm.Tools.CollectionChanged += _toolsCollectionChangedHandler;
 
-        // 테마 변경을 즉시 반영
-        _vmPropertyChangedHandler = (_, e) =>
-        {
-            if (e.PropertyName == nameof(AppSettingsDialogViewModel.SelectedThemeModeItem)
-                && Vm.SelectedThemeModeItem is { } item)
-            {
-                this.RequestedTheme = AppSettingsDialogViewModel.ToElementTheme(item.Value);
-            }
-        };
-        Vm.PropertyChanged += _vmPropertyChangedHandler;
-
         Closing += (_, _) =>
         {
             // 이벤트 핸들러 해제
             Vm.Tools.CollectionChanged -= _toolsCollectionChangedHandler;
-            Vm.PropertyChanged -= _vmPropertyChangedHandler;
 
             // 결과 확정 (동기 전용 — Closing은 deferral 미지원)
             var resultSettings = new AppSettings();
@@ -207,6 +194,18 @@ public sealed partial class AppSettingsDialog : ContentDialog
     {
         if (sender is Button { Tag: string category })
             Vm.RemoveCategoryCommand.Execute(category);
+    }
+
+    private void RemoveTaskCategory_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string taskCategory })
+            Vm.RemoveTaskCategoryCommand.Execute(taskCategory);
+    }
+
+    private void RemoveHistoryKind_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string kind })
+            Vm.RemoveHistoryKindCommand.Execute(kind);
     }
 
     // --- 정보 패널 ---

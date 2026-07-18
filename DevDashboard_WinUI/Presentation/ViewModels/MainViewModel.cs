@@ -253,7 +253,6 @@ public partial class MainViewModel : ObservableObject
         card.EditRequested += OnCardEditRequested;
         card.PinToggled += OnCardPinToggled;
         card.CommandScriptChanged += OnCommandScriptChanged;
-        card.TodoChanged += OnTodoChanged;
         card.HistoryChanged += OnHistoryChanged;
         card.TestChanged += OnTestChanged;
     }
@@ -264,7 +263,6 @@ public partial class MainViewModel : ObservableObject
         card.EditRequested -= OnCardEditRequested;
         card.PinToggled -= OnCardPinToggled;
         card.CommandScriptChanged -= OnCommandScriptChanged;
-        card.TodoChanged -= OnTodoChanged;
         card.HistoryChanged -= OnHistoryChanged;
         card.TestChanged -= OnTestChanged;
     }
@@ -327,22 +325,6 @@ public partial class MainViewModel : ObservableObject
             try
             {
                 await Task.Run(() => _projectRepository.SaveCommandScripts(model.Id, model.CommandScripts));
-            }
-            catch (Exception ex)
-            {
-                ShowDbError(ex);
-            }
-        }
-    }
-
-    private async void OnTodoChanged(object? sender, EventArgs e)
-    {
-        if (sender is ProjectCardViewModel card)
-        {
-            var model = card.ToModel();
-            try
-            {
-                await Task.Run(() => _projectRepository.SaveTodos(model.Id, model.Todos));
             }
             catch (Exception ex)
             {

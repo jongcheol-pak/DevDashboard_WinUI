@@ -57,9 +57,6 @@
   <data name="InputRequired" xml:space="preserve"><value>Input Required</value></data>
   <data name="NameAlreadyRegistered" xml:space="preserve"><value>This name is already registered.</value></data>
   <data name="DuplicateCheck" xml:space="preserve"><value>Duplicate Check</value></data>
-  <data name="Theme_Light" xml:space="preserve"><value>Light Theme</value></data>
-  <data name="Theme_Dark" xml:space="preserve"><value>Dark Theme</value></data>
-  <data name="Theme_System" xml:space="preserve"><value>System Default</value></data>
   <data name="Lang_System" xml:space="preserve"><value>System Language</value></data>
   <data name="Lang_Korean" xml:space="preserve"><value>한국어</value></data>
   <data name="Lang_English" xml:space="preserve"><value>English</value></data>
@@ -167,8 +164,6 @@
   <data name="TagAnimationCard.Description" xml:space="preserve"><value>Shows a scrolling animation when a card has many tags.</value></data>
   <data name="LauncherSidebarCard.Header" xml:space="preserve"><value>Launcher Apps</value></data>
   <data name="LauncherSidebarCard.Description" xml:space="preserve"><value>Shows the launcher app menu on the left side of the main screen.</value></data>
-  <data name="ThemeCard.Header" xml:space="preserve"><value>Theme</value></data>
-  <data name="ThemeCard.Description" xml:space="preserve"><value>Change the current app theme.</value></data>
   <data name="AppSettings_TodoLabel.Text" xml:space="preserve"><value>To-Do</value></data>
   <data name="RunOnStartupCard.Header" xml:space="preserve"><value>Auto Start</value></data>
   <data name="WorkLogPopupCard.Header" xml:space="preserve"><value>Work Log</value></data>
@@ -186,6 +181,14 @@
   <data name="CategoryLabelText.Text" xml:space="preserve"><value>Category</value></data>
   <data name="CategoryDescText.Text" xml:space="preserve"><value>User-defined categories (default categories cannot be changed)</value></data>
   <data name="CategoryInputBox.PlaceholderText" xml:space="preserve"><value>New category...</value></data>
+  <data name="PageSizeCard.Header" xml:space="preserve"><value>Items per page</value></data>
+  <data name="PageSizeCard.Description" xml:space="preserve"><value>Number of items shown per page in the work history list. (100 to 1000)</value></data>
+  <data name="TaskCategoryLabelText.Text" xml:space="preserve"><value>Task categories</value></data>
+  <data name="TaskCategoryDescText.Text" xml:space="preserve"><value>Categories used on the task (Kanban) screen (default categories cannot be changed)</value></data>
+  <data name="TaskCategoryInputBox.PlaceholderText" xml:space="preserve"><value>New task category...</value></data>
+  <data name="HistoryKindLabelText.Text" xml:space="preserve"><value>Work log types</value></data>
+  <data name="HistoryKindDescText.Text" xml:space="preserve"><value>Types used in work history (default types cannot be changed)</value></data>
+  <data name="HistoryKindInputBox.PlaceholderText" xml:space="preserve"><value>New type...</value></data>
   <data name="AppSettings_InfoLabel.Text" xml:space="preserve"><value>Information</value></data>
   <data name="AppSettings_InfoLinkPrefix.Text" xml:space="preserve"><value>For more details, visit </value></data>
   <data name="AppSettings_InfoLinkText.Text" xml:space="preserve"><value>Project Dashboard Website</value></data>
@@ -383,5 +386,43 @@
   <data name="TestEditCategoryTitle" xml:space="preserve"><value>Edit Category Name</value></data>
   <data name="TestDeleteCategoryConfirm" xml:space="preserve"><value>This category and all test items in it will be deleted. Continue?</value></data>
   <data name="EmptyTestText.Text" xml:space="preserve"><value>No categories. Add a new category to get started.</value></data>
+  <data name="TaskCategory_None" xml:space="preserve"><value>Uncategorized</value></data>
+  <data name="TaskEdit_TitleAdd" xml:space="preserve"><value>New Task</value></data>
+  <data name="TaskEdit_TitleEdit" xml:space="preserve"><value>Edit Task</value></data>
+  <data name="TaskEditLabel_Title.Text" xml:space="preserve"><value>Title</value></data>
+  <data name="TaskEditBox_Title.PlaceholderText" xml:space="preserve"><value>Enter task title...</value></data>
+  <data name="TaskEditLabel_Description.Text" xml:space="preserve"><value>Description</value></data>
+  <data name="TaskEditBox_Description.PlaceholderText" xml:space="preserve"><value>Task description (optional)</value></data>
+  <data name="TaskEditLabel_Category.Text" xml:space="preserve"><value>Category</value></data>
+  <data name="TaskEditLabel_Priority.Text" xml:space="preserve"><value>Priority</value></data>
+  <data name="TaskEditLabel_StartDate.Text" xml:space="preserve"><value>Start Date</value></data>
+  <data name="TaskEditLabel_EndDate.Text" xml:space="preserve"><value>End Date</value></data>
+  <data name="TaskEditStartDate.PlaceholderText" xml:space="preserve"><value>Pick a date</value></data>
+  <data name="TaskEditEndDate.PlaceholderText" xml:space="preserve"><value>Pick a date</value></data>
+  <data name="TaskEdit_AddTest.Header" xml:space="preserve"><value>Also add to test list</value></data>
+  <data name="TaskEdit_TitleRequired" xml:space="preserve"><value>Please enter a title.</value></data>
+  <data name="TaskPriority_High" xml:space="preserve"><value>High</value></data>
+  <data name="TaskPriority_Normal" xml:space="preserve"><value>Normal</value></data>
+  <data name="TaskPriority_Low" xml:space="preserve"><value>Low</value></data>
+  <data name="TaskPage_Title.Text" xml:space="preserve"><value>Tasks</value></data>
+  <data name="TaskPage_BackText.Text" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="TaskView_Kanban.Content" xml:space="preserve"><value>Kanban</value></data>
+  <data name="TaskView_List.Content" xml:space="preserve"><value>List</value></data>
+  <data name="TaskAdd_Button.Content" xml:space="preserve"><value>New Task</value></data>
+  <data name="TaskStatus_Waiting" xml:space="preserve"><value>To Do</value></data>
+  <data name="TaskStatus_Active" xml:space="preserve"><value>In Progress</value></data>
+  <data name="TaskStatus_Completed" xml:space="preserve"><value>Done</value></data>
+  <data name="TaskStatus_Hold" xml:space="preserve"><value>On Hold</value></data>
+  <data name="TaskFilter_All" xml:space="preserve"><value>All</value></data>
+  <data name="TaskLabel_Start" xml:space="preserve"><value>Start:</value></data>
+  <data name="TaskLabel_End" xml:space="preserve"><value>Due:</value></data>
+  <data name="TaskEdit_Tooltip" xml:space="preserve"><value>Edit</value></data>
+  <data name="TaskDelete_Tooltip" xml:space="preserve"><value>Delete</value></data>
+  <data name="TaskDelete_Title" xml:space="preserve"><value>Delete Task</value></data>
+  <data name="TaskDelete_Confirm" xml:space="preserve"><value>Delete task '{0}'?</value></data>
+  <data name="TaskLinkedTestCategory" xml:space="preserve"><value>Tasks</value></data>
+  <data name="TaskTestBadge_Untested" xml:space="preserve"><value>Test: Not Run</value></data>
+  <data name="TaskTestBadge_Pass" xml:space="preserve"><value>Test: Pass</value></data>
+  <data name="TaskTestBadge_Fail" xml:space="preserve"><value>Test: Fail</value></data>
 
 </root>

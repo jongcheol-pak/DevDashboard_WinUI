@@ -31,6 +31,29 @@ public partial class TodoItem : ObservableObject
     [ObservableProperty]
     public partial string Description { get; set; } = string.Empty;
 
+    /// <summary>작업 카테고리 (빈 문자열이면 미분류 — AppSettings.TaskCategories + 기본 카테고리에서 선택)</summary>
+    [ObservableProperty]
+    public partial string Category { get; set; } = string.Empty;
+
+    /// <summary>작업 우선순위 (기본 보통)</summary>
+    [ObservableProperty]
+    public partial TaskPriority Priority { get; set; } = TaskPriority.Normal;
+
+    /// <summary>사용자 지정 시작일 (미지정이면 null)</summary>
+    [ObservableProperty]
+    public partial DateTime? StartDate { get; set; }
+
+    /// <summary>사용자 지정 종료(마감)일 (미지정이면 null)</summary>
+    [ObservableProperty]
+    public partial DateTime? EndDate { get; set; }
+
+    /// <summary>연결된 테스트 항목 Id ("테스트 추가"로 생성 시 설정, 빈 문자열이면 연결 없음)</summary>
+    public string LinkedTestId { get; set; } = string.Empty;
+
+    /// <summary>연결 테스트 상태 배지 텍스트 (표시 전용 — 영속화하지 않으며 TaskPageViewModel이 설정, 빈 문자열이면 미표시)</summary>
+    [ObservableProperty]
+    public partial string LinkedTestBadge { get; set; } = string.Empty;
+
     /// <summary>항목 등록 일시</summary>
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 

@@ -15,13 +15,14 @@ public class TagColorConverter : IValueConverter
         if (parameter is string p && p == "text")
             return WhiteBrush;
 
-        // 배경색: 도구 이름 해시 기반 HSL 색상, 명도 0.30 고정
+        // 배경색: 도구 이름 해시 기반 HSL 색상. 디자인 다크 팔레트(#131316)와 조화되도록
+        // 채도·명도를 낮춰 은은한 톤으로 조정(흰색 텍스트 대비 유지).
         if (value is not string name || string.IsNullOrWhiteSpace(name))
             return new SolidColorBrush(Colors.Gray);
 
         var hash = GetFnv1aHash(name);
         var hue = hash % 360;
-        var color = HslToRgb(hue, 0.55, 0.30);
+        var color = HslToRgb(hue, 0.45, 0.36);
         return new SolidColorBrush(color);
     }
 

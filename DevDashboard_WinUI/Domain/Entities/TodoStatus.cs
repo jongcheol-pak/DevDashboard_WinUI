@@ -12,5 +12,8 @@ public enum TodoStatus
     Active,
 
     /// <summary>완료</summary>
-    Completed
+    Completed,
+
+    /// <summary>보류</summary>
+    Hold
 }

@@ -30,6 +30,16 @@ public partial class AppSettingsDialogViewModel : ObservableObject
             OnPropertyChanged(nameof(CanAddCategory));
             OnPropertyChanged(nameof(AllCategories));
         };
+        TaskCategories.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(CanAddTaskCategory));
+            OnPropertyChanged(nameof(AllTaskCategories));
+        };
+        HistoryKinds.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(CanAddHistoryKind));
+            OnPropertyChanged(nameof(AllHistoryKinds));
+        };
     }
 
     // --- 좌측 메뉴 ---
@@ -113,25 +123,6 @@ public partial class AppSettingsDialogViewModel : ObservableObject
     /// <summary>ComboBox에서 선택된 언어 항목</summary>
     [ObservableProperty]
     public partial LanguageItem? SelectedLanguageItem { get; set; }
-
-    /// <summary>ComboBox 바인딩용 테마 선택 항목 목록</summary>
-    public ThemeModeItem[] ThemeModeItems { get; } =
-    [
-        new(ThemeMode.Light, LocalizationService.Get("Theme_Light")),
-        new(ThemeMode.Dark, LocalizationService.Get("Theme_Dark")),
-        new(ThemeMode.System, LocalizationService.Get("Theme_System"))
-    ];
-
-    /// <summary>ComboBox에서 선택된 테마 항목</summary>
-    [ObservableProperty]
-    public partial ThemeModeItem? SelectedThemeModeItem { get; set; }
-
-    /// <summary>테마 변경 시 즉시 적용</summary>
-    partial void OnSelectedThemeModeItemChanged(ThemeModeItem? value)
-    {
-        if (value is not null)
-            ApplyTheme(value.Value);
-    }
 
     // --- 도구 탭 ---
 
@@ -221,6 +212,92 @@ public partial class AppSettingsDialogViewModel : ObservableObject
     [RelayCommand]
     private void RemoveCategory(string category) => Categories.Remove(category);
 
+    // --- 작업 카테고리 (칸반 화면용) ---
+
+    /// <summary>기본 제공 작업 카테고리 목록</summary>
+    public static IReadOnlyList<string> DefaultTaskCategories { get; } =
+    [
+        "UI·UX", "프론트엔드", "백엔드"
+    ];
+
+    /// <summary>사용자 정의 작업 카테고리 목록</summary>
+    public ObservableCollection<string> TaskCategories { get; } = [];
+
+    /// <summary>기본 항목(앞) + 사용자 항목(뒤) 합산 표시 목록</summary>
+    public IEnumerable<TagDisplayItem> AllTaskCategories =>
+        DefaultTaskCategories.Select(t => new TagDisplayItem(t, true))
+            .Concat(TaskCategories.Select(t => new TagDisplayItem(t, false)));
+
+    /// <summary>작업 카테고리 등록 가능 여부 (기본+사용자 50개 상한)</summary>
+    public bool CanAddTaskCategory => DefaultTaskCategories.Count + TaskCategories.Count < 50;
+
+    /// <summary>인라인 입력 — 새 작업 카테고리 텍스트</summary>
+    [ObservableProperty]
+    public partial string NewTaskCategoryText { get; set; } = string.Empty;
+
+    /// <summary>NewTaskCategoryText 값을 TaskCategories에 추가합니다.</summary>
+    [RelayCommand]
+    private void AddTaskCategory()
+    {
+        var cat = NewTaskCategoryText.Trim();
+        if (string.IsNullOrWhiteSpace(cat)) return;
+        if (DefaultTaskCategories.Contains(cat, StringComparer.OrdinalIgnoreCase)) return;
+        if (TaskCategories.Contains(cat, StringComparer.OrdinalIgnoreCase)) return;
+        if (!CanAddTaskCategory) return;
+        TaskCategories.Add(cat);
+        NewTaskCategoryText = string.Empty;
+    }
+
+    /// <summary>지정된 작업 카테고리를 목록에서 제거합니다.</summary>
+    [RelayCommand]
+    private void RemoveTaskCategory(string category) => TaskCategories.Remove(category);
+
+    // --- 작업 기록 유형 ---
+
+    /// <summary>기본 제공 작업 기록 유형 목록</summary>
+    public static IReadOnlyList<string> DefaultHistoryKinds { get; } =
+    [
+        "기능", "수정", "리팩터링", "문서"
+    ];
+
+    /// <summary>사용자 정의 작업 기록 유형 목록</summary>
+    public ObservableCollection<string> HistoryKinds { get; } = [];
+
+    /// <summary>기본 항목(앞) + 사용자 항목(뒤) 합산 표시 목록</summary>
+    public IEnumerable<TagDisplayItem> AllHistoryKinds =>
+        DefaultHistoryKinds.Select(t => new TagDisplayItem(t, true))
+            .Concat(HistoryKinds.Select(t => new TagDisplayItem(t, false)));
+
+    /// <summary>작업 기록 유형 등록 가능 여부 (기본+사용자 50개 상한)</summary>
+    public bool CanAddHistoryKind => DefaultHistoryKinds.Count + HistoryKinds.Count < 50;
+
+    /// <summary>인라인 입력 — 새 작업 기록 유형 텍스트</summary>
+    [ObservableProperty]
+    public partial string NewHistoryKindText { get; set; } = string.Empty;
+
+    /// <summary>NewHistoryKindText 값을 HistoryKinds에 추가합니다.</summary>
+    [RelayCommand]
+    private void AddHistoryKind()
+    {
+        var kind = NewHistoryKindText.Trim();
+        if (string.IsNullOrWhiteSpace(kind)) return;
+        if (DefaultHistoryKinds.Contains(kind, StringComparer.OrdinalIgnoreCase)) return;
+        if (HistoryKinds.Contains(kind, StringComparer.OrdinalIgnoreCase)) return;
+        if (!CanAddHistoryKind) return;
+        HistoryKinds.Add(kind);
+        NewHistoryKindText = string.Empty;
+    }
+
+    /// <summary>지정된 작업 기록 유형을 목록에서 제거합니다.</summary>
+    [RelayCommand]
+    private void RemoveHistoryKind(string kind) => HistoryKinds.Remove(kind);
+
+    // --- 페이지당 표시 개수 ---
+
+    /// <summary>작업 기록 목록의 페이지당 표시 개수 (NumberBox 바인딩용 double, 저장 시 int로 변환)</summary>
+    [ObservableProperty]
+    public partial double PageSize { get; set; } = 100;
+
     /// <summary>도구 추가</summary>
     [RelayCommand]
     private void AddTool()
@@ -270,8 +347,6 @@ public partial class AppSettingsDialogViewModel : ObservableObject
         ShowLauncherSidebar = settings.ShowLauncherSidebar;
         SelectedLanguageItem = LanguageItems.FirstOrDefault(l => l.Value == settings.Language)
             ?? LanguageItems[0];
-        SelectedThemeModeItem = ThemeModeItems.FirstOrDefault(t => t.Value == settings.ThemeMode)
-            ?? ThemeModeItems[0];
 
         Tools.Clear();
         foreach (var tool in settings.Tools)
@@ -288,6 +363,16 @@ public partial class AppSettingsDialogViewModel : ObservableObject
         Categories.Clear();
         foreach (var category in settings.Categories)
             Categories.Add(category);
+
+        TaskCategories.Clear();
+        foreach (var taskCategory in settings.TaskCategories)
+            TaskCategories.Add(taskCategory);
+
+        HistoryKinds.Clear();
+        foreach (var kind in settings.HistoryKinds)
+            HistoryKinds.Add(kind);
+
+        PageSize = settings.PageSize;
     }
 
     /// <summary>변경 값을 AppSettings에 반영하고 시스템에 적용합니다.</summary>
@@ -299,7 +384,6 @@ public partial class AppSettingsDialogViewModel : ObservableObject
         settings.EnableTagAnimation = EnableTagAnimation;
         settings.ShowLauncherSidebar = ShowLauncherSidebar;
         settings.Language = SelectedLanguageItem?.Value ?? LanguageSetting.SystemDefault;
-        settings.ThemeMode = SelectedThemeModeItem?.Value ?? ThemeMode.Light;
 
         settings.Tools.Clear();
         foreach (var item in Tools.Where(t => !t.IsNew))
@@ -311,30 +395,25 @@ public partial class AppSettingsDialogViewModel : ObservableObject
         settings.Categories.Clear();
         settings.Categories.AddRange(Categories);
 
-        ApplyTheme(SelectedThemeModeItem?.Value ?? ThemeMode.Light);
+        settings.TaskCategories.Clear();
+        settings.TaskCategories.AddRange(TaskCategories);
+
+        settings.HistoryKinds.Clear();
+        settings.HistoryKinds.AddRange(HistoryKinds);
+
+        settings.PageSize = (int)PageSize;
+
+        ApplyTheme(ThemeMode.Dark);
     }
 
-    /// <summary>테마를 즉시 적용합니다 (WinUI 3 ElementTheme 방식).</summary>
+    /// <summary>테마를 즉시 적용합니다. 디자인 다크 팔레트로 통일되어 앱은 항상 다크로 고정됩니다(Phase 0).
+    /// mode 인자는 호출부 시그니처 유지를 위해 남겨두며, 값과 무관하게 항상 Dark를 적용합니다.</summary>
     public static void ApplyTheme(ThemeMode mode)
     {
-        var theme = mode switch
-        {
-            ThemeMode.Dark => ElementTheme.Dark,
-            ThemeMode.Light => ElementTheme.Light,
-            _ => ElementTheme.Default // System
-        };
-
+        _ = mode; // 다크 단일 고정 — 저장된 ThemeMode와 무관 (테마 선택 UI 제거는 후속 단계)
         if (App.MainWindow?.Content is FrameworkElement root)
-            root.RequestedTheme = theme;
+            root.RequestedTheme = ElementTheme.Dark;
     }
-
-    /// <summary>ThemeMode를 ElementTheme으로 변환합니다.</summary>
-    public static ElementTheme ToElementTheme(ThemeMode mode) => mode switch
-    {
-        ThemeMode.Dark => ElementTheme.Dark,
-        ThemeMode.Light => ElementTheme.Light,
-        _ => ElementTheme.Default
-    };
 
     /// <summary>StartupTask API를 통해 자동 실행 상태를 비동기로 읽습니다.</summary>
     public async Task LoadStartupStateAsync()
@@ -367,9 +446,6 @@ public partial class AppSettingsDialogViewModel : ObservableObject
         }
     }
 }
-
-/// <summary>ComboBox 표시용 테마 항목</summary>
-public record ThemeModeItem(ThemeMode Value, string DisplayName);
 
 /// <summary>ComboBox 표시용 언어 항목</summary>
 public record LanguageItem(LanguageSetting Value, string DisplayName);

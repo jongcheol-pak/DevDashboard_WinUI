@@ -136,20 +136,17 @@
                         </ComboBox>
                     </toolkit:SettingsCard>
 
-                    <toolkit:SettingsCard x:Uid="ThemeCard">
+                    <toolkit:SettingsCard x:Uid="PageSizeCard">
                         <toolkit:SettingsCard.HeaderIcon>
-                            <FontIcon Glyph="&#xE790;" />
+                            <FontIcon Glyph="&#xE7C3;" />
                         </toolkit:SettingsCard.HeaderIcon>
-                        <ComboBox
- ItemsSource="{x:Bind Vm.ThemeModeItems}"
- SelectedItem="{x:Bind Vm.SelectedThemeModeItem, Mode=TwoWay}"
- HorizontalAlignment="Stretch">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate x:DataType="vm:ThemeModeItem">
-                                    <TextBlock Text="{x:Bind DisplayName}" />
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
+                        <NumberBox
+                            Minimum="100"
+                            Maximum="1000"
+                            SmallChange="10"
+                            LargeChange="100"
+                            SpinButtonPlacementMode="Compact"
+                            Value="{x:Bind Vm.PageSize, Mode=TwoWay}" />
                     </toolkit:SettingsCard>
 
                     <TextBlock x:Uid="AppSettings_TodoLabel" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,8,0,0" />
@@ -409,6 +406,132 @@ FontSize="12" />
                     Tag="{Binding Value}"
                     Visibility="{Binding IsDefault, Converter={StaticResource InverseBoolToVisibility}}"
                     Click="RemoveCategory_Click">
+                                                    <FontIcon Glyph="&#xE711;" FontSize="10" />
+                                                </Button>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </Border>
+
+                    <!-- 작업 카테고리 (칸반 화면용) -->
+                <TextBlock x:Uid="TaskCategoryLabelText" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,8,0,0" />
+
+                    <Border
+                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                    Padding="8"
+                    CornerRadius="4">
+
+                        <Grid ColumnSpacing="8" RowSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.ColumnSpan="2" Grid.Row="0"
+x:Uid="TaskCategoryDescText"
+Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+FontSize="12" />
+
+                            <TextBox Grid.Row="1"
+    x:Uid="TaskCategoryInputBox"
+    Grid.Column="0"
+    Text="{x:Bind Vm.NewTaskCategoryText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+    MaxLength="50" />
+                            <Button x:Uid="Btn_Add" Grid.Column="1" Grid.Row="1" Command="{x:Bind Vm.AddTaskCategoryCommand}" />
+
+                            <ItemsControl Margin="0,12,0,0" Grid.ColumnSpan="2" Grid.Row="2" ItemsSource="{x:Bind Vm.AllTaskCategories, Mode=OneWay}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <toolkit:WrapPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:TagDisplayItem">
+                                        <Border
+            Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+            CornerRadius="4"
+            Padding="8,4"
+            Margin="0,0,6,6">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <TextBlock Text="{x:Bind Value}" VerticalAlignment="Center" />
+                                                <Button
+                    Padding="4"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Tag="{Binding Value}"
+                    Visibility="{Binding IsDefault, Converter={StaticResource InverseBoolToVisibility}}"
+                    Click="RemoveTaskCategory_Click">
+                                                    <FontIcon Glyph="&#xE711;" FontSize="10" />
+                                                </Button>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </Border>
+
+                    <!-- 작업 기록 유형 -->
+                <TextBlock x:Uid="HistoryKindLabelText" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,8,0,0" />
+
+                    <Border
+                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                    Padding="8"
+                    CornerRadius="4">
+
+                        <Grid ColumnSpacing="8" RowSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.ColumnSpan="2" Grid.Row="0"
+x:Uid="HistoryKindDescText"
+Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+FontSize="12" />
+
+                            <TextBox Grid.Row="1"
+    x:Uid="HistoryKindInputBox"
+    Grid.Column="0"
+    Text="{x:Bind Vm.NewHistoryKindText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+    MaxLength="50" />
+                            <Button x:Uid="Btn_Add" Grid.Column="1" Grid.Row="1" Command="{x:Bind Vm.AddHistoryKindCommand}" />
+
+                            <ItemsControl Margin="0,12,0,0" Grid.ColumnSpan="2" Grid.Row="2" ItemsSource="{x:Bind Vm.AllHistoryKinds, Mode=OneWay}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <toolkit:WrapPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:TagDisplayItem">
+                                        <Border
+            Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+            CornerRadius="4"
+            Padding="8,4"
+            Margin="0,0,6,6">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <TextBlock Text="{x:Bind Value}" VerticalAlignment="Center" />
+                                                <Button
+                    Padding="4"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Tag="{Binding Value}"
+                    Visibility="{Binding IsDefault, Converter={StaticResource InverseBoolToVisibility}}"
+                    Click="RemoveHistoryKind_Click">
                                                     <FontIcon Glyph="&#xE711;" FontSize="10" />
                                                 </Button>
                                             </StackPanel>

@@ -88,6 +88,11 @@ public sealed class SqliteProjectRepository : IProjectRepository
 
         var list = new List<TodoItem>();
         var hasStatus = HasColumn(reader, "Status");
+        var hasCategory = HasColumn(reader, "Category");
+        var hasPriority = HasColumn(reader, "Priority");
+        var hasStartDate = HasColumn(reader, "StartDate");
+        var hasEndDate = HasColumn(reader, "EndDate");
+        var hasLinkedTest = HasColumn(reader, "LinkedTestId");
         while (reader.Read())
         {
             var completedAtStr = reader.IsDBNull(reader.GetOrdinal("CompletedAt"))
@@ -105,7 +110,14 @@ public sealed class SqliteProjectRepository : IProjectRepository
                     ? s
                     : isCompleted ? TodoStatus.Completed : TodoStatus.Waiting,
                 CompletedAt = string.IsNullOrEmpty(completedAtStr) ? null : ParseDateTime(completedAtStr),
-                CreatedAt = ParseDateTime(reader.GetString(reader.GetOrdinal("CreatedAt")))
+                CreatedAt = ParseDateTime(reader.GetString(reader.GetOrdinal("CreatedAt"))),
+                Category = hasCategory ? reader.GetString(reader.GetOrdinal("Category")) : string.Empty,
+                Priority = hasPriority && Enum.TryParse<TaskPriority>(reader.GetString(reader.GetOrdinal("Priority")), out var pr)
+                    ? pr
+                    : TaskPriority.Normal,
+                StartDate = ReadNullableDateColumn(reader, "StartDate", hasStartDate),
+                EndDate = ReadNullableDateColumn(reader, "EndDate", hasEndDate),
+                LinkedTestId = hasLinkedTest ? reader.GetString(reader.GetOrdinal("LinkedTestId")) : string.Empty
             });
         }
 
@@ -523,9 +535,11 @@ public sealed class SqliteProjectRepository : IProjectRepository
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """
             INSERT INTO Todos
-                (Id, ProjectId, Text, Description, IsCompleted, Status, CompletedAt, CreatedAt)
+                (Id, ProjectId, Text, Description, IsCompleted, Status, CompletedAt, CreatedAt,
+                 Category, Priority, StartDate, EndDate, LinkedTestId)
             VALUES
-                (@id, @pid, @text, @desc, @completed, @status, @completedAt, @created)
+                (@id, @pid, @text, @desc, @completed, @status, @completedAt, @created,
+                 @category, @priority, @startDate, @endDate, @linkedTestId)
             """;
         cmd.Parameters.AddWithValue("@id", string.Empty);
         cmd.Parameters.AddWithValue("@pid", projectId);
@@ -535,6 +549,11 @@ public sealed class SqliteProjectRepository : IProjectRepository
         cmd.Parameters.AddWithValue("@status", string.Empty);
         cmd.Parameters.AddWithValue("@completedAt", DBNull.Value);
         cmd.Parameters.AddWithValue("@created", string.Empty);
+        cmd.Parameters.AddWithValue("@category", string.Empty);
+        cmd.Parameters.AddWithValue("@priority", string.Empty);
+        cmd.Parameters.AddWithValue("@startDate", DBNull.Value);
+        cmd.Parameters.AddWithValue("@endDate", DBNull.Value);
+        cmd.Parameters.AddWithValue("@linkedTestId", string.Empty);
 
         foreach (var t in todos)
         {
@@ -547,6 +566,15 @@ public sealed class SqliteProjectRepository : IProjectRepository
                 ? t.CompletedAt.Value.ToString(DateTimeFormat)
                 : (object)DBNull.Value;
             cmd.Parameters["@created"].Value = t.CreatedAt.ToString(DateTimeFormat);
+            cmd.Parameters["@category"].Value = t.Category;
+            cmd.Parameters["@priority"].Value = t.Priority.ToString();
+            cmd.Parameters["@startDate"].Value = t.StartDate.HasValue
+                ? t.StartDate.Value.ToString(DateTimeFormat)
+                : (object)DBNull.Value;
+            cmd.Parameters["@endDate"].Value = t.EndDate.HasValue
+                ? t.EndDate.Value.ToString(DateTimeFormat)
+                : (object)DBNull.Value;
+            cmd.Parameters["@linkedTestId"].Value = t.LinkedTestId;
             cmd.ExecuteNonQuery();
         }
     }
@@ -658,6 +686,16 @@ public sealed class SqliteProjectRepository : IProjectRepository
             return dt;
 
         return DateTime.MinValue;
+    }
+
+    /// <summary>nullable 날짜 컬럼을 읽습니다. 컬럼이 없거나(구버전 DB) NULL·빈 문자열이면 null을 반환합니다.</summary>
+    private static DateTime? ReadNullableDateColumn(SqliteDataReader reader, string columnName, bool hasColumn)
+    {
+        if (!hasColumn) return null;
+        var ordinal = reader.GetOrdinal(columnName);
+        if (reader.IsDBNull(ordinal)) return null;
+        var value = reader.GetString(ordinal);
+        return string.IsNullOrEmpty(value) ? null : ParseDateTime(value);
     }
 
     /// <summary>SqliteDataReader에 지정된 컬럼이 존재하는지 확인합니다 (구버전 DB 호환용).</summary>
@@ -790,6 +828,11 @@ public sealed class SqliteProjectRepository : IProjectRepository
 
         var list = new List<TodoItem>();
         var hasStatus = HasColumn(reader, "Status");
+        var hasCategory = HasColumn(reader, "Category");
+        var hasPriority = HasColumn(reader, "Priority");
+        var hasStartDate = HasColumn(reader, "StartDate");
+        var hasEndDate = HasColumn(reader, "EndDate");
+        var hasLinkedTest = HasColumn(reader, "LinkedTestId");
         while (reader.Read())
         {
             var completedAtStr = reader.IsDBNull(reader.GetOrdinal("CompletedAt"))
@@ -807,7 +850,14 @@ public sealed class SqliteProjectRepository : IProjectRepository
                     ? s
                     : isCompleted ? TodoStatus.Completed : TodoStatus.Waiting,
                 CompletedAt = string.IsNullOrEmpty(completedAtStr) ? null : ParseDateTime(completedAtStr),
-                CreatedAt = ParseDateTime(reader.GetString(reader.GetOrdinal("CreatedAt")))
+                CreatedAt = ParseDateTime(reader.GetString(reader.GetOrdinal("CreatedAt"))),
+                Category = hasCategory ? reader.GetString(reader.GetOrdinal("Category")) : string.Empty,
+                Priority = hasPriority && Enum.TryParse<TaskPriority>(reader.GetString(reader.GetOrdinal("Priority")), out var pr)
+                    ? pr
+                    : TaskPriority.Normal,
+                StartDate = ReadNullableDateColumn(reader, "StartDate", hasStartDate),
+                EndDate = ReadNullableDateColumn(reader, "EndDate", hasEndDate),
+                LinkedTestId = hasLinkedTest ? reader.GetString(reader.GetOrdinal("LinkedTestId")) : string.Empty
             });
         }
 

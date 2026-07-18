@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="DevDashboard.Presentation.Views.TaskPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DevDashboard.Presentation.Views"
+    xmlns:models="using:DevDashboard.Domain.Entities"
+    xmlns:vm="using:DevDashboard.Presentation.ViewModels"
+    mc:Ignorable="d"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
+
+    <UserControl.Resources>
+        <!-- 작업 카드 템플릿 (칸반·목록 공용) -->
+        <DataTemplate x:Key="TaskCardTemplate" x:DataType="models:TodoItem">
+            <Border
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="10"
+                Margin="0,0,0,8"
+                CanDrag="True"
+                DragStarting="Card_DragStarting">
+                <StackPanel Spacing="6">
+                    <!-- 카테고리 + 우선순위 -->
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Ellipse
+                            Width="10" Height="10"
+                            VerticalAlignment="Center"
+                            Fill="{x:Bind Category, Converter={StaticResource TagColor}}"
+                            Visibility="{x:Bind Category, Converter={StaticResource StringNotEmptyToVisibility}}" />
+                        <TextBlock
+                            Text="{x:Bind Category}"
+                            FontSize="11"
+                            VerticalAlignment="Center"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Visibility="{x:Bind Category, Converter={StaticResource StringNotEmptyToVisibility}}" />
+                        <TextBlock
+                            Text="{x:Bind local:TaskPage.PriorityText(Priority)}"
+                            FontSize="11"
+                            VerticalAlignment="Center"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        <!-- 연결 테스트 상태 배지 (FR-T8) -->
+                        <Border
+                            Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="5,1"
+                            VerticalAlignment="Center"
+                            Visibility="{x:Bind LinkedTestBadge, Converter={StaticResource StringNotEmptyToVisibility}, Mode=OneWay}">
+                            <TextBlock
+                                Text="{x:Bind LinkedTestBadge, Mode=OneWay}"
+                                FontSize="10"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </Border>
+                    </StackPanel>
+
+                    <!-- 제목 -->
+                    <TextBlock
+                        Text="{x:Bind Text, Mode=OneWay}"
+                        TextWrapping="Wrap"
+                        Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+                    <!-- 시작/종료일 -->
+                    <TextBlock
+                        Text="{x:Bind local:TaskPage.FormatStart(StartDate), Mode=OneWay}"
+                        FontSize="11"
+                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                        Visibility="{x:Bind local:TaskPage.DateVisibility(StartDate), Mode=OneWay}" />
+                    <TextBlock
+                        Text="{x:Bind local:TaskPage.FormatEnd(EndDate), Mode=OneWay}"
+                        FontSize="11"
+                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                        Visibility="{x:Bind local:TaskPage.DateVisibility(EndDate), Mode=OneWay}" />
+
+                    <!-- 상태 콤보 + 수정/삭제 -->
+                    <Grid ColumnSpacing="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ComboBox
+                            Grid.Column="0"
+                            HorizontalAlignment="Stretch"
+                            Padding="8,2"
+                            Tag="{x:Bind}"
+                            Loaded="StatusCombo_Loaded"
+                            SelectionChanged="StatusCombo_SelectionChanged" />
+                        <Button
+                            Grid.Column="1"
+                            Padding="8,4"
+                            Background="Transparent" BorderThickness="0"
+                            Tag="{x:Bind}"
+                            Click="EditTask_Click"
+                            ToolTipService.ToolTip="{x:Bind local:TaskPage.EditTooltip}">
+                            <FontIcon Glyph="&#xE70F;" FontSize="12" />
+                        </Button>
+                        <Button
+                            Grid.Column="2"
+                            Padding="8,4"
+                            Background="Transparent" BorderThickness="0"
+                            Tag="{x:Bind}"
+                            Click="DeleteTask_Click"
+                            ToolTipService.ToolTip="{x:Bind local:TaskPage.DeleteTooltip}">
+                            <FontIcon Glyph="&#xE74D;" FontSize="12" />
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid Padding="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- ===== 헤더 ===== -->
+        <Grid Grid.Row="0" Margin="0,0,0,12" ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Click="Back_Click" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon Glyph="&#xE72B;" FontSize="14" />
+                    <TextBlock x:Uid="TaskPage_BackText" />
+                </StackPanel>
+            </Button>
+
+            <TextBlock Grid.Column="1" x:Uid="TaskPage_Title"
+                       Style="{StaticResource SubtitleTextBlockStyle}"
+                       VerticalAlignment="Center" Margin="6,0,0,0" />
+
+            <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                <RadioButton x:Uid="TaskView_Kanban" GroupName="TaskView"
+                             IsChecked="{x:Bind Vm.IsKanbanView, Mode=TwoWay}" />
+                <RadioButton x:Uid="TaskView_List" GroupName="TaskView" />
+            </StackPanel>
+
+            <ComboBox Grid.Column="4" x:Name="CategoryFilterCombo"
+                      MinWidth="120" VerticalAlignment="Center"
+                      SelectionChanged="CategoryFilter_SelectionChanged" />
+
+            <Button Grid.Column="5" x:Uid="TaskAdd_Button"
+                    Style="{StaticResource AccentButtonStyle}"
+                    VerticalAlignment="Center"
+                    Click="AddTask_Click" />
+        </Grid>
+
+        <!-- ===== 본문 ===== -->
+        <Grid Grid.Row="1">
+            <!-- 칸반 뷰 -->
+            <ScrollViewer
+                HorizontalScrollBarVisibility="Auto"
+                VerticalScrollBarVisibility="Auto"
+                HorizontalScrollMode="Auto"
+                Visibility="{x:Bind Vm.IsKanbanView, Converter={StaticResource BoolToVisibility}, Mode=OneWay}">
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 예정 -->
+                    <StackPanel Grid.Column="0" MinWidth="220" MinHeight="120"
+                                AllowDrop="True" Tag="Waiting"
+                                DragOver="Column_DragOver" Drop="Column_Drop">
+                        <Border Background="{ThemeResource SolidBackgroundFillColorBaseBrush}" CornerRadius="6" Padding="10,6" Margin="0,0,0,8">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="{x:Bind local:TaskPage.LabelWaiting}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock Text="{x:Bind Vm.WaitingCount, Mode=OneWay}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            </StackPanel>
+                        </Border>
+                        <ItemsControl ItemsSource="{x:Bind Vm.WaitingItems, Mode=OneWay}" ItemTemplate="{StaticResource TaskCardTemplate}" />
+                    </StackPanel>
+
+                    <!-- 진행 중 -->
+                    <StackPanel Grid.Column="1" MinWidth="220" MinHeight="120"
+                                AllowDrop="True" Tag="Active"
+                                DragOver="Column_DragOver" Drop="Column_Drop">
+                        <Border Background="{ThemeResource SolidBackgroundFillColorBaseBrush}" CornerRadius="6" Padding="10,6" Margin="0,0,0,8">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="{x:Bind local:TaskPage.LabelActive}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock Text="{x:Bind Vm.ActiveCount, Mode=OneWay}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            </StackPanel>
+                        </Border>
+                        <ItemsControl ItemsSource="{x:Bind Vm.ActiveItems, Mode=OneWay}" ItemTemplate="{StaticResource TaskCardTemplate}" />
+                    </StackPanel>
+
+                    <!-- 완료 -->
+                    <StackPanel Grid.Column="2" MinWidth="220" MinHeight="120"
+                                AllowDrop="True" Tag="Completed"
+                                DragOver="Column_DragOver" Drop="Column_Drop">
+                        <Border Background="{ThemeResource SolidBackgroundFillColorBaseBrush}" CornerRadius="6" Padding="10,6" Margin="0,0,0,8">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="{x:Bind local:TaskPage.LabelCompleted}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock Text="{x:Bind Vm.CompletedCount, Mode=OneWay}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            </StackPanel>
+                        </Border>
+                        <ItemsControl ItemsSource="{x:Bind Vm.CompletedItems, Mode=OneWay}" ItemTemplate="{StaticResource TaskCardTemplate}" />
+                    </StackPanel>
+
+                    <!-- 보류 -->
+                    <StackPanel Grid.Column="3" MinWidth="220" MinHeight="120"
+                                AllowDrop="True" Tag="Hold"
+                                DragOver="Column_DragOver" Drop="Column_Drop">
+                        <Border Background="{ThemeResource SolidBackgroundFillColorBaseBrush}" CornerRadius="6" Padding="10,6" Margin="0,0,0,8">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="{x:Bind local:TaskPage.LabelHold}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock Text="{x:Bind Vm.HoldCount, Mode=OneWay}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            </StackPanel>
+                        </Border>
+                        <ItemsControl ItemsSource="{x:Bind Vm.HoldItems, Mode=OneWay}" ItemTemplate="{StaticResource TaskCardTemplate}" />
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+
+            <!-- 목록 뷰 (카테고리별 그룹) -->
+            <ScrollViewer
+                VerticalScrollBarVisibility="Auto"
+                Visibility="{x:Bind Vm.IsKanbanView, Converter={StaticResource InverseBoolToVisibility}, Mode=OneWay}">
+                <ItemsControl ItemsSource="{x:Bind Vm.CategoryGroups, Mode=OneWay}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:TaskCategoryGroup">
+                            <StackPanel Margin="0,0,0,12" MaxWidth="520" HorizontalAlignment="Left">
+                                <TextBlock Text="{x:Bind CategoryName}" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,0,0,6" />
+                                <ItemsControl ItemsSource="{x:Bind Items}" ItemTemplate="{StaticResource TaskCardTemplate}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

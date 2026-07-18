@@ -24,9 +24,6 @@
     <!-- ===== 이미지 변환기 ===== -->
     <converters:ImagePathToSourceConverter x:Key="ImagePathToSource" />
 
-    <!-- ===== 테마 변환기 ===== -->
-    <converters:ThemeModeRadioConverter x:Key="ThemeModeRadio" />
-
     <!-- ===== 날짜/시간 변환기 ===== -->
     <converters:NullableDateTimeToStringConverter x:Key="NullableDateTimeToString" />
 

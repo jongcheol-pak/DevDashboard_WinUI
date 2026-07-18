@@ -20,6 +20,8 @@ public sealed partial class MainWindow : WindowEx
 {
     private MainViewModel? _viewModel;
     private LauncherViewModel? _launcherViewModel;
+    // 대시보드 뷰 인스턴스 — 페이지 네비게이션 후 대시보드 복귀 시 재사용(재생성 회피)
+    private DashboardView? _dashboardView;
     private readonly AppSettings _settings;
     private readonly JsonStorageService _storageService;
     private readonly IProjectRepository? _projectRepository;
@@ -115,7 +117,8 @@ public sealed partial class MainWindow : WindowEx
             _viewModel.AddProjectRequested += OnAddProjectRequested;
 
             // DashboardView 주입
-            DashboardContent.Content = new DashboardView { DataContext = _viewModel };
+            _dashboardView = new DashboardView { DataContext = _viewModel };
+            DashboardContent.Content = _dashboardView;
 
             // 런처 사이드바 초기화
             _launcherViewModel = new LauncherViewModel(_launcherRepository);
@@ -497,7 +500,24 @@ public sealed partial class MainWindow : WindowEx
         ProjectCountSuffixRun.Text = LocalizationService.Get("MainWindow_ProjectCountSuffix");
         LauncherCountSuffixRun.Text = LocalizationService.Get("MainWindow_LauncherCountSuffix");
         ApplyToolTips();
-        DashboardContent.Content = new DashboardView { DataContext = _viewModel };
+        // 언어 변경 시 페이지가 열려 있어도 대시보드로 복귀 후 재주입(페이지 상태는 보존하지 않음)
+        _dashboardView = new DashboardView { DataContext = _viewModel };
+        ShowDashboard();
+    }
+
+    /// <summary>대시보드 콘텐츠 영역을 전체 페이지로 전환합니다(작업/테스트/알림 등). 그룹 탭은 숨깁니다.</summary>
+    public void ShowPage(UIElement page)
+    {
+        DashboardContent.Content = page;
+        GroupTabsBar.Visibility = Visibility.Collapsed;
+    }
+
+    /// <summary>페이지에서 대시보드로 복귀합니다. 그룹 탭을 다시 표시합니다.</summary>
+    public void ShowDashboard()
+    {
+        if (_dashboardView is not null)
+            DashboardContent.Content = _dashboardView;
+        GroupTabsBar.Visibility = Visibility.Visible;
     }
 
     private void UpdateLauncherCount()

@@ -24,6 +24,15 @@ public class AppSettings
     /// <summary>카테고리 목록</summary>
     public List<string> Categories { get; set; } = [];
 
+    /// <summary>작업(칸반) 화면에서 사용하는 사용자 정의 작업 카테고리 목록 (기본 카테고리는 코드에 상수로 제공)</summary>
+    public List<string> TaskCategories { get; set; } = [];
+
+    /// <summary>작업 기록에서 사용하는 사용자 정의 유형 목록 (기본 유형은 코드에 상수로 제공)</summary>
+    public List<string> HistoryKinds { get; set; } = [];
+
+    /// <summary>작업 기록 목록에서 한 페이지에 표시할 개수 (100~1000, 기본 100)</summary>
+    public int PageSize { get; set; } = 100;
+
     /// <summary>앱 언어 설정 (SystemDefault / Korean / English)</summary>
     public LanguageSetting Language { get; set; } = LanguageSetting.SystemDefault;
 

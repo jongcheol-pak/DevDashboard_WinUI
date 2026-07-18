@@ -35,3 +35,16 @@ public enum ShellType
     /// <summary>PowerShell</summary>
     PowerShell
 }
+
+/// <summary>작업(칸반) 우선순위</summary>
+public enum TaskPriority
+{
+    /// <summary>높음</summary>
+    High,
+
+    /// <summary>보통 (기본)</summary>
+    Normal,
+
+    /// <summary>낮음</summary>
+    Low
+}

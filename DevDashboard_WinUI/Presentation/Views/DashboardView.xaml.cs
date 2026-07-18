@@ -179,11 +179,10 @@ public sealed partial class DashboardView : UserControl
     {
         try
         {
-            if (sender is not ProjectCardViewModel card) return;
-            var dialogVm = card.CreateTodoDialogViewModel();
-            var dialog = new TodoDialog(dialogVm);
-            await dialog.ShowAsync();
-            card.OnTodoDialogClosed(dialogVm, dialog.NewHistories);
+            if (sender is not ProjectCardViewModel card || Vm is null) return;
+            // 작업(To-Do)은 다이얼로그 대신 전체 페이지로 전환한다 (FR-C3/FR-T2)
+            var page = new TaskPage(card.CreateTaskPageViewModel(), Vm.GetSettings());
+            (App.MainWindow as MainWindow)?.ShowPage(page);
         }
         catch (Exception ex)
         {

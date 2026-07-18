@@ -10,7 +10,13 @@
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
                 <ResourceDictionary Source="Resources/Converters.xaml" />
                 <ResourceDictionary Source="Resources/Styles.xaml" />
+                <!-- 디자인 다크 팔레트 오버라이드 (Phase 0). 시스템 브러시를 덮으므로 마지막에 병합 -->
+                <ResourceDictionary Source="Resources/Palette.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- 전역 기본 폰트 (Phase 0 / FR-C2) — Windows 기본 한글 폰트.
+                 아이콘용 Segoe MDL2 Assets·코드용 Consolas는 각 요소에서 개별 지정하므로 영향 없음 -->
+            <FontFamily x:Key="ContentControlThemeFontFamily">Malgun Gothic</FontFamily>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

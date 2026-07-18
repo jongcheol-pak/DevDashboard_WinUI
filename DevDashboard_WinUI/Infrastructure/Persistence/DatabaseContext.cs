@@ -120,6 +120,12 @@ public sealed class DatabaseContext
         AddColumnIfNotExists(connection, "CommandScripts", "CloseAfterCompletion", "INTEGER NOT NULL DEFAULT 0");
         AddColumnIfNotExists(connection, "Todos", "Status", "TEXT NOT NULL DEFAULT 'Waiting'");
         MigrateTodoIsCompletedToStatus(connection);
+        // 작업(칸반) 신규 필드 — 카테고리·우선순위·시작/종료일·연결 테스트 Id
+        AddColumnIfNotExists(connection, "Todos", "Category", "TEXT NOT NULL DEFAULT ''");
+        AddColumnIfNotExists(connection, "Todos", "Priority", "TEXT NOT NULL DEFAULT 'Normal'");
+        AddColumnIfNotExists(connection, "Todos", "StartDate", "TEXT");
+        AddColumnIfNotExists(connection, "Todos", "EndDate", "TEXT");
+        AddColumnIfNotExists(connection, "Todos", "LinkedTestId", "TEXT NOT NULL DEFAULT ''");
     }
 
     /// <summary>기존 IsCompleted 값을 Status 컬럼으로 마이그레이션합니다.</summary>
@@ -148,7 +154,7 @@ public sealed class DatabaseContext
         "ProjectId", "Tag", "SlotIndex", "ShellType", "Script", "WorkingDirectory",
         "IconSymbol", "Text", "IsCompleted", "CompletedAt", "Title", "IsDefault",
         "DisplayName", "ExecutablePath", "IconCachePath", "SortOrder", "ProgressNote", "CategoryId", "Status",
-        "CloseAfterCompletion"
+        "CloseAfterCompletion", "Priority", "StartDate", "EndDate", "LinkedTestId"
     };
 
     private static void AddColumnIfNotExists(SqliteConnection connection, string table, string column, string definition)
@@ -217,14 +223,19 @@ public sealed class DatabaseContext
             );
 
             CREATE TABLE IF NOT EXISTS Todos (
-                Id          TEXT PRIMARY KEY,
-                ProjectId   TEXT NOT NULL,
-                Text        TEXT NOT NULL DEFAULT '',
-                Description TEXT NOT NULL DEFAULT '',
-                IsCompleted INTEGER NOT NULL DEFAULT 0,
-                Status      TEXT NOT NULL DEFAULT 'Waiting',
-                CompletedAt TEXT,
-                CreatedAt   TEXT NOT NULL DEFAULT '',
+                Id           TEXT PRIMARY KEY,
+                ProjectId    TEXT NOT NULL,
+                Text         TEXT NOT NULL DEFAULT '',
+                Description  TEXT NOT NULL DEFAULT '',
+                IsCompleted  INTEGER NOT NULL DEFAULT 0,
+                Status       TEXT NOT NULL DEFAULT 'Waiting',
+                CompletedAt  TEXT,
+                CreatedAt    TEXT NOT NULL DEFAULT '',
+                Category     TEXT NOT NULL DEFAULT '',
+                Priority     TEXT NOT NULL DEFAULT 'Normal',
+                StartDate    TEXT,
+                EndDate      TEXT,
+                LinkedTestId TEXT NOT NULL DEFAULT '',
                 FOREIGN KEY (ProjectId) REFERENCES Projects(Id) ON DELETE CASCADE
             );
 
