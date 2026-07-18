@@ -63,7 +63,7 @@
 ### 진행 체크리스트
 - [x] T1 — HistoryEntry 유형(Kind) 필드(도메인)
 - [x] T2 — Histories 영속화(Kind 컬럼 마이그레이션 + Repository)
-- [ ] T3 — HistoryDialogViewModelBase 추출 + 페이지네이션·유형 필터
+- [x] T3 — HistoryDialogViewModelBase 추출 + 페이지네이션·유형 필터
 - [ ] T4 — 새 기록/편집 폼 유형 선택
 - [ ] T5 — 페이지네이션 UI + 유형 배지 + restyle(두 다이얼로그)
 
