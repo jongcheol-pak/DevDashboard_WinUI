@@ -254,7 +254,6 @@ public partial class MainViewModel : ObservableObject
         card.PinToggled += OnCardPinToggled;
         card.CommandScriptChanged += OnCommandScriptChanged;
         card.HistoryChanged += OnHistoryChanged;
-        card.TestChanged += OnTestChanged;
     }
 
     private void UnsubscribeFromCard(ProjectCardViewModel card)
@@ -264,7 +263,6 @@ public partial class MainViewModel : ObservableObject
         card.PinToggled -= OnCardPinToggled;
         card.CommandScriptChanged -= OnCommandScriptChanged;
         card.HistoryChanged -= OnHistoryChanged;
-        card.TestChanged -= OnTestChanged;
     }
 
     private static void ShowDbError(Exception ex)
@@ -341,22 +339,6 @@ public partial class MainViewModel : ObservableObject
             try
             {
                 await Task.Run(() => _projectRepository.SaveHistories(model.Id, model.Histories));
-            }
-            catch (Exception ex)
-            {
-                ShowDbError(ex);
-            }
-        }
-    }
-
-    private async void OnTestChanged(object? sender, EventArgs e)
-    {
-        if (sender is ProjectCardViewModel card)
-        {
-            var model = card.ToModel();
-            try
-            {
-                await Task.Run(() => _projectRepository.SaveTestCategories(model.Id, model.TestCategories));
             }
             catch (Exception ex)
             {

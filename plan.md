@@ -88,7 +88,7 @@ Phase 2에서 구축한 페이지 네비게이션(`MainWindow.ShowPage`/`ShowDas
 - [x] T5 — 테스트 등록/편집·메모 다이얼로그 (T4보다 먼저 구현)
 - [x] T4 — 테스트 전체 페이지 View(스위트/통계/통과율 restyle)
 - [x] T7 — 작업 카드 배지 매핑 갱신 + 연결 테스트 기본상태 (T6보다 먼저 — 구 상수 참조 이전)
-- [ ] T6 — 진입점 재배선 + 구 다이얼로그·구 상수 정리
+- [x] T6 — 진입점 재배선 + 구 다이얼로그·구 상수 정리
 
 ### T1 — 테스트 상태 모델 전환 + Method 필드 (Type C)
 - **내용**: `Domain/Entities/TestItem.cs`(비파괴 추가 — Phase 2 `TodoStatus.Hold` 방식): (a) 새 상수 3개 **추가** — `StatusPass="Pass"`·`StatusFail="Fail"`·`StatusUntested="Untested"`. 구 상수 `StatusTesting/StatusFix/StatusDone`는 **유지**(T6에서 구 VM·Dialog 제거와 함께 삭제 — 그래야 T1 직후 빌드 유지). (b) `Status` 기본값 = `StatusUntested`. (c) `IsCompleted => Status == StatusPass`. (d) 신규 `[ObservableProperty] string Method`(빈=미지정, 테스트 방법). XML 주석 갱신(상태 라벨·설명).
@@ -209,7 +209,8 @@ Phase 2에서 구축한 페이지 네비게이션(`MainWindow.ShowPage`/`ShowDas
 
 ## Deferred / Follow-up
 - [SUGGEST] T4 구현 시 테스트 add/edit 경로 분리 — `AddTestToSuite`(신규, 항상 Items.Add)를 편집에 재사용하면 `_existing` 중복 추가. 편집은 `UpdateTest`, 신규만 `AddTestToSuite` 호출로 분기(T5 quality S1). T4 Acceptance에 반영됨.
-- [Follow-up] Todo* resw 고아 정리(Phase 2 이월, 대장에도 등재) + 이번 Test* 구 resw 잔존분(T6에서 삭제 못한 대량분) audit — 별도 세션.
+- [Follow-up] Todo* resw 고아 정리(Phase 2 이월, 대장에도 등재) + 이번 Test* 구 resw 잔존분(T6에서 삭제 못한 대량분: `TestListDialogTitle`·`TestStatusTesting/Fix/Done.Content`·`TestTab*`·`TestGroupBy*`·`NewTestBox`·`NewCategoryBox`·`TestAddNoteLink`·`EmptyTestText`·`TestDeleteCategoryConfirm` 등 TestListDialog 전용) audit — 별도 세션. 빌드·런타임 무해(고아 resw).
+- [Follow-up] `Presentation/Models/TestDateGroup.cs` — 소스 미참조 고아(T6 이전부터 존재, 구 테스트 다이얼로그 이전 버전 잔재). T6 범위 밖이라 미제거, 별도 정리.
 - 교차(cross-project) 작업/테스트 집계 페이지(PRD D-2) — 대장 등재, 별도 진행.
 - 테스트→작업 역방향 링크/배지(FR-E4 확장) — 대장 등재.
 - TestItem.Method 필터/통계 활용 — 대장 등재.

@@ -213,10 +213,9 @@ public sealed partial class DashboardView : UserControl
         try
         {
             if (sender is not ProjectCardViewModel card) return;
-            var dialogVm = card.CreateTestListDialogViewModel();
-            var dialog = new TestListDialog(dialogVm);
-            await dialog.ShowAsync();
-            card.OnTestListDialogClosed(dialogVm);
+            // 테스트는 다이얼로그 대신 전체 페이지로 전환한다 (FR-E1)
+            var page = new TestPage(card.CreateTestPageViewModel());
+            (App.MainWindow as MainWindow)?.ShowPage(page);
         }
         catch (Exception ex)
         {

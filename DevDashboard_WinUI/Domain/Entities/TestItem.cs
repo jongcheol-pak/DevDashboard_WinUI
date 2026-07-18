@@ -17,16 +17,6 @@ public partial class TestItem : ObservableObject
     /// <summary>상태 상수: 미실행</summary>
     public const string StatusUntested = "Untested";
 
-    // --- 구 상태 상수 (Phase 3 전환 병존 — 참조부 이전 후 T6에서 구 VM/Dialog와 함께 삭제) ---
-    /// <summary>구 상태 상수: 테스트(신 모델 미실행에 대응). T6에서 제거 예정</summary>
-    public const string StatusTesting = "Testing";
-
-    /// <summary>구 상태 상수: 수정(신 모델 실패에 대응). T6에서 제거 예정</summary>
-    public const string StatusFix = "Fix";
-
-    /// <summary>구 상태 상수: 완료(신 모델 통과에 대응). T6에서 제거 예정</summary>
-    public const string StatusDone = "Done";
-
     /// <summary>항목 고유 식별자 (UUID)</summary>
     public string Id { get; set; } = Guid.NewGuid().ToString();
 
