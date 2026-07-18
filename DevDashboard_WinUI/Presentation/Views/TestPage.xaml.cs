@@ -89,8 +89,8 @@ public sealed partial class TestPage : UserControl
 
     private void StatusTab_Checked(object sender, RoutedEventArgs e)
     {
-        // Vm은 InitializeComponent 이후 설정되므로 최초 로드 시 null 가드
-        if (sender is not RadioButton { Tag: string tag } || Vm is null) return;
+        // 생성자에서 Vm이 InitializeComponent보다 먼저 설정되므로, XAML 파싱 중 초기 IsChecked=True 발화 시에도 Vm은 non-null이다.
+        if (sender is not RadioButton { Tag: string tag }) return;
         Vm.SelectedStatus = string.IsNullOrEmpty(tag) ? null : tag;
     }
 
@@ -126,7 +126,7 @@ public sealed partial class TestPage : UserControl
         if (sender is not FrameworkElement { Tag: TestItem test }) return;
         var currentSuite = Vm.Project.TestCategories?.FirstOrDefault(c => c.Id == test.CategoryId)?.Name;
         var dialog = new Dialogs.TestEditDialog(test, SuiteNames(), currentSuite);
-        // 편집은 in-place 수정이므로 UpdateTest만 호출한다(중복 추가 방지 — add/edit 경로 분리, S1).
+        // 편집은 in-place 수정이므로 UpdateTest만 호출한다(신규 추가 경로 AddTestToSuite와 분리 — 기존 항목 중복 추가 방지).
         if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.ResultTest is not null)
             Vm.UpdateTest(test);
     }
