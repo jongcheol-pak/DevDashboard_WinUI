@@ -532,6 +532,20 @@ public partial class ProjectCardViewModel : ObservableObject
         OnPropertyChanged(nameof(HasInProgressTodo));
     }
 
+    /// <summary>테스트(칸반) 페이지 뷰모델을 생성합니다. TestCategories를 로드해 전달합니다.</summary>
+    public TestPageViewModel CreateTestPageViewModel()
+    {
+        EnsureTestsLoaded();
+        return new TestPageViewModel(_item, _repository, RefreshTestCardState);
+    }
+
+    /// <summary>테스트 페이지에서 테스트가 변경된 뒤 카드의 진행 중 표시(HasInProgressTest)를 갱신합니다.</summary>
+    private void RefreshTestCardState()
+    {
+        _item.HasActiveTest = _item.TestCategories?.Any(c => c.Items.Any(t => !t.IsCompleted)) == true;
+        OnPropertyChanged(nameof(HasInProgressTest));
+    }
+
     /// <summary>작업 기록 다이얼로그 뷰모델을 생성합니다.</summary>
     public HistoryDialogViewModel CreateHistoryDialogViewModel()
     {
