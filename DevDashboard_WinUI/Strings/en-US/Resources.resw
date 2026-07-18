@@ -393,6 +393,14 @@
   <data name="TestEditBox_Method.PlaceholderText" xml:space="preserve"><value>Test method / steps to reproduce</value></data>
   <data name="TestEdit_NameRequired" xml:space="preserve"><value>Please enter a name.</value></data>
   <data name="TestEdit_SuiteRequired" xml:space="preserve"><value>Please select or enter a suite.</value></data>
+  <data name="TestPage_Title" xml:space="preserve"><value>Test</value></data>
+  <data name="TestPage_Back" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="TestAdd_Button" xml:space="preserve"><value>New Test</value></data>
+  <data name="TestNote_Tooltip" xml:space="preserve"><value>Note</value></data>
+  <data name="TestStatus_All" xml:space="preserve"><value>All</value></data>
+  <data name="TestStatus_Pass" xml:space="preserve"><value>Pass</value></data>
+  <data name="TestStatus_Fail" xml:space="preserve"><value>Fail</value></data>
+  <data name="TestStatus_Untested" xml:space="preserve"><value>Untested</value></data>
   <data name="TestDeleteCategoryConfirm" xml:space="preserve"><value>This category and all test items in it will be deleted. Continue?</value></data>
   <data name="EmptyTestText.Text" xml:space="preserve"><value>No categories. Add a new category to get started.</value></data>
   <data name="TaskCategory_None" xml:space="preserve"><value>Uncategorized</value></data>
