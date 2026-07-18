@@ -73,6 +73,7 @@ Visibility="Collapsed">
             <StackPanel Spacing="10">
                 <TextBlock x:Uid="ProjHistAddNewHeader" Style="{StaticResource BodyStrongTextBlockStyle}" />
                 <CalendarDatePicker x:Name="AddDatePicker" HorizontalAlignment="Stretch" />
+                <ComboBox x:Name="AddKindCombo" x:Uid="AddKindCombo" HorizontalAlignment="Stretch" />
                 <TextBox
         x:Name="AddTitleBox"
         x:Uid="ProjHistTitleBox"

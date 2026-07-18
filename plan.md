@@ -64,7 +64,7 @@
 - [x] T1 — HistoryEntry 유형(Kind) 필드(도메인)
 - [x] T2 — Histories 영속화(Kind 컬럼 마이그레이션 + Repository)
 - [x] T3 — HistoryDialogViewModelBase 추출 + 페이지네이션·유형 필터
-- [ ] T4 — 새 기록/편집 폼 유형 선택
+- [x] T4 — 새 기록/편집 폼 유형 선택
 - [ ] T5 — 페이지네이션 UI + 유형 배지 + restyle(두 다이얼로그)
 
 ### T1 — HistoryEntry 유형(Kind) 필드 (Type C)
@@ -96,9 +96,9 @@
 - **Acceptance**: 빌드 0. 베이스에 검색·날짜그룹·CRUD·마크다운·페이지네이션(CurrentPage/TotalPages/이동)·유형 노출 존재. 두 파생 VM이 상속, 생성자에 pageSize 추가되고 호출부 4곳(ProjectCardVM·TaskPage·ProjectHistoryDialog·MainWindow)이 settings.PageSize 전달하도록 갱신됨(코드 대조). CRUD/검색/내보내기 등 그 외 public 멤버 시그니처 유지. 필터→페이지 슬라이스→날짜그룹 순 재구성(코드 대조). depends T1.
 
 ### T4 — 새 기록/편집 폼 유형 선택 (Type C)
-- **내용**: (a) `HistoryEntryDialogViewModel`: `SelectedKind`(string)·`AvailableKinds`(DefaultHistoryKinds+settings.HistoryKinds) 추가, `ToModel`이 Kind 반영, 생성자 편집 시 기존 Kind 로드. (b) `HistoryDialog.xaml.cs` 인라인 새 기록 폼(SaveAdd_Click)·편집(EditEntry_Click 중첩 다이얼로그)에 유형 ComboBox 추가 → `AddEntry`/`UpdateEntry`에 Kind 전달. (c) `ProjectHistoryDialog.xaml.cs` 동일. `UpdateEntry` 시그니처에 kind 파라미터 추가(베이스, 양 VM·호출부 함께 갱신).
-- **Design**: 배치 = Presentation(ViewModels/Views.Dialogs). 신규 심볼 = `HistoryEntryDialogViewModel.SelectedKind`/`AvailableKinds`. 의존 = AppSettings 유형·HistoryEntry.Kind(T1)·베이스 AddEntry/UpdateEntry(T3). 참조하는 곳 = 두 다이얼로그 코드비하인드. 비추상화 = 유형 선택은 표준 ComboBox(신규 컨트롤 없음), 인라인 폼·중첩 편집 다이얼로그는 기존 패턴에 필드 추가만.
-- **Files**: `Presentation/ViewModels/HistoryEntryDialogViewModel.cs`, `Presentation/ViewModels/HistoryDialogViewModelBase.cs`(UpdateEntry kind 파라미터), `Presentation/Views/Dialogs/HistoryDialog.xaml`(+`.cs`), `Presentation/Views/Dialogs/ProjectHistoryDialog.xaml`(+`.cs`), `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`
+- **내용**: (a) `HistoryDialog.xaml`/`ProjectHistoryDialog.xaml` 인라인 새 기록 폼(AddPanel)에 유형 ComboBox(`AddKindCombo`, x:Uid) 추가. (b) 코드비하인드(`.xaml.cs`)에 `InitKindCombo`("미분류"+AvailableKinds 구성)·`KindFromCombo`(미분류→빈) 헬퍼, 생성자·`OpenAddPanel`·`ToggleAddPanel_Click`에서 초기화·리셋, `SaveAdd_Click`이 Kind 반영해 `AddEntry`, `EditEntry_Click`(중첩 편집 다이얼로그)에 유형 ComboBox 추가 → `UpdateEntry`에 Kind 전달. (c) `UpdateEntry` 시그니처에 kind 파라미터 추가(베이스 + 호출부 2곳). **※ `HistoryEntryDialogViewModel`은 소스 미참조 고아(정의만 존재)라 이번 수정 대상 아님 — 실제 UI는 위 인라인 폼/중첩 편집 코드비하인드. 고아는 Deferred.**
+- **Design**: 배치 = Presentation(ViewModels 베이스 + Views.Dialogs 코드비하인드/XAML). 신규 심볼 = `InitKindCombo`/`KindFromCombo`(두 코드비하인드 대칭 헬퍼). 의존 = AppSettings 유형(base.AvailableKinds, T3)·HistoryEntry.Kind(T1)·base.AddEntry/UpdateEntry(T3). 참조하는 곳 = 두 다이얼로그 자체. 비추상화 = 유형 선택은 표준 ComboBox("미분류"+목록, 신규 컨트롤 없음), 인라인 폼·중첩 편집 다이얼로그는 기존 패턴에 필드 추가만. 헬퍼는 두 코드비하인드에 각각 두어(대칭 2곳) 공용 추출 안 함 — 3회 미만·다이얼로그 지역성 유지.
+- **Files**: `Presentation/ViewModels/HistoryDialogViewModelBase.cs`(UpdateEntry kind 파라미터), `Presentation/Views/Dialogs/HistoryDialog.xaml`(+`.cs`), `Presentation/Views/Dialogs/ProjectHistoryDialog.xaml`(+`.cs`), `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`
 - **Edge**: 유형 미선택 → 빈(미분류) 허용. 편집 시 기존 Kind가 목록에 없으면(삭제된 유형) 그 값 표시 유지 or 미분류. 빈 제목 → 기존 검증 유지.
 - **Halt Forecast**: 없음 — 유형 ComboBox·필드 추가와 UpdateEntry kind 파라미터 전파(베이스+두 VM+양 코드비하인드, 같은 task Files)뿐, 파괴적·외부 요소 없음.
 - **Acceptance**: 빌드 0. 새 기록/편집 폼에 유형 ComboBox 표시, 저장 시 HistoryEntry.Kind 반영. depends T3, T1.
@@ -157,6 +157,8 @@
 - commit/push는 구현·검증 후 별도 승인.
 
 ## Deferred / Follow-up
+- [SUGGEST] `InitKindCombo`/`KindFromCombo` 헬퍼가 HistoryDialog·ProjectHistoryDialog 코드비하인드 2곳에 대칭 중복(3회 미만이라 현재 결함 아님) — 3번째 사용처 생기면 공용 static helper로 추출(T4 quality S1).
+- [Follow-up] `Presentation/ViewModels/HistoryEntryDialogViewModel.cs` — 소스 미참조 고아(정의만 존재, 실제 UI는 인라인 폼/중첩 편집 코드비하인드가 담당). T4에서 미수정, 별도 정리 세션.
 - README/스크린샷 갱신(Phase 4 시각 확인 후).
 - Todo*/Test* 구 resw 고아·TestDateGroup 정리(Phase 2/3 이월, 대장 등재) — 별도 세션.
 
@@ -168,6 +170,9 @@
 ## Progress Log
 - T1-T2 완료 (커밋 fe41fa3, d0774ad): T1 HistoryEntry.Kind 필드(POCO). T2 DB Kind 컬럼 마이그레이션(AddColumnIfNotExists+화이트리스트+CREATE)·Repository InsertHistories(@kind 루프 갱신)·GetHistories/ReadHistoriesForProject Kind read(HasColumn 가드). 빌드 OK. Phase 3 T2 @method 루프 누락 회귀 없음 확인.
   - 착수 전 Phase 3를 master `--no-ff` 병합(사용자 승인), task/phase4-history 브랜치(master 기준)에서 진행.
+- T3-T4 완료 (커밋 003f566, 다음): T3 HistoryDialogViewModelBase 추출(공통 로직+페이지네이션+유형)·두 VM 상속·생성자 pageSize 주입·호출부 4곳. T4 두 다이얼로그 인라인/편집 폼에 유형 ComboBox(InitKindCombo/KindFromCombo)·base.UpdateEntry kind 파라미터·resw 2키. 빌드 OK.
+  - 결정: HistoryEntryDialogViewModel이 미사용 고아라 plan Files 정정(실제 UI 코드비하인드 대상), 고아는 Deferred. base는 (pageSize:int, kinds:list) 주입·파생이 AppSettings 분해(reviewer B1 해결의 정합 구현).
+  - 리뷰: T3 quality MAJOR(ProjectHistoryDialogViewModel BOM 손실) BOM 복원 후 통과. T4 SUGGEST(헬퍼 2곳 대칭 중복)→Deferred.
 
 ## Next Steps
 - 권장 다음 액션: implement-task로 T3부터 계속(T3 베이스 VM 추출·페이지네이션 → T4 유형 선택 → T5 UI). 완료 후 시각·동작 사용자 확인 → 이후 Phase 5(알림) plan-feature.

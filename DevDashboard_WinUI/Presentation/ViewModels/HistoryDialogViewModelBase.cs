@@ -128,11 +128,12 @@ public abstract partial class HistoryDialogViewModelBase : ObservableObject
         RebuildGroups();
     }
 
-    /// <summary>작업 기록 수정 (유형은 T4에서 파라미터 추가 예정 — 현재는 제목·설명·완료일)</summary>
-    public void UpdateEntry(HistoryEntryViewModel entryVm, string title, string description, DateTime completedAt)
+    /// <summary>작업 기록 수정 (제목·설명·유형·완료일)</summary>
+    public void UpdateEntry(HistoryEntryViewModel entryVm, string title, string description, string kind, DateTime completedAt)
     {
         entryVm.Model.Title = title;
         entryVm.Model.Description = description;
+        entryVm.Model.Kind = kind;
         entryVm.Model.CompletedAt = completedAt;
         OnEntriesModified();
         RebuildGroups();
