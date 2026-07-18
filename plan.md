@@ -119,25 +119,26 @@ Phase 2에서 구축한 페이지 네비게이션(`MainWindow.ShowPage`/`ShowDas
 - **Halt Forecast**: 없음(기존 로직 이전 + repository 재사용).
 - **Acceptance**: 빌드 0. VM에 스위트 그룹·상태 필터·상태별 카운트·통과율·CRUD·증분 저장·`ChangeTestStatus`(Pass 기준) 존재. 상태 변경 시 SaveTestCategories 호출(코드 대조). depends T1, T2.
 
-### T5 — 테스트 등록/편집·메모 다이얼로그 (Type C) — T4보다 먼저 구현
-- **내용**: 신규 `Presentation/Views/Dialogs/TestEditDialog.xaml`(+`.cs`) ContentDialog + `Presentation/ViewModels/TestEditDialogViewModel.cs`. 필드: 이름(Text)·스위트(ComboBox: 기존 카테고리 선택 또는 신규 입력)·방법(Method, TextBox). 새 테스트·편집 겸용(생성자 편집 대상 유무). 저장 검증(이름 필수). **메모 다이얼로그**는 기존 `ShowNoteEditorAsync` 패턴(ProgressNote 편집) — 페이지에서 호출하는 소형 ContentDialog로 유지(신규 전용 다이얼로그 또는 인라인). 삭제 확인은 `DialogService.ShowConfirmAsync` 재사용.
-- **Design**: 배치 = Presentation(Dialogs/ViewModels). 신규 심볼 = `TestEditDialog`(ContentDialog)·`TestEditDialogViewModel`(입력·검증·결과 — 이름/스위트/방법). 의존 = TestItem·TestCategory(스위트 목록)·TestPageViewModel(호출부). 참조하는 곳 = T4 "새 테스트"/항목 수정. 비추상화 = 기존 ContentDialog 서브클래스 패턴(Save=PrimaryButtonClick 검증) 준수, 메모 편집은 별도 무거운 다이얼로그 신설 없이 기존 소형 편집 다이얼로그 관례 재사용.
-- **Files**: `Presentation/Views/Dialogs/TestEditDialog.xaml`(+`.cs`), `Presentation/ViewModels/TestEditDialogViewModel.cs`(신규), `Presentation/ViewModels/TestPageViewModel.cs`(호출), `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`
-- **Edge**: 빈 이름 → 저장 차단(args.Cancel). 스위트 미선택/신규 입력 빈 → 검증(스위트 필수 or 기본 스위트). 편집 취소 → 무변경. 방법 빈 허용(선택적).
+### T5 — 테스트 등록/편집 다이얼로그 (Type C) — T4보다 먼저 구현
+- **내용**: 신규 `Presentation/Views/Dialogs/TestEditDialog.xaml`(+`.cs`) ContentDialog + `Presentation/ViewModels/TestEditDialogViewModel.cs`. 필드: 이름(Text)·스위트(ComboBox: 기존 카테고리 선택 또는 신규 입력)·방법(Method, TextBox). 새 테스트·편집 겸용(생성자 편집 대상 유무). 저장 검증(이름·스위트 필수). 결과는 `ResultTest`+`ResultSuiteName`, `TestPageViewModel.AddTestToSuite`가 스위트명으로 기존 매칭/생성. **범위 경계**: 등록/편집 다이얼로그만 T5 책임이다. **메모 편집 다이얼로그(ProgressNote)·삭제 확인 다이얼로그는 T4 페이지 코드비하인드**에서 소형 ContentDialog(기존 `ShowNoteEditorAsync` 패턴)·`DialogService.ShowConfirmAsync`로 구현하며, `TestPageViewModel.EditProgressNote`/`DeleteTest`(T3 기구현)를 호출한다.
+- **Design**: 배치 = Presentation(Dialogs/ViewModels). 신규 심볼 = `TestEditDialog`(ContentDialog)·`TestEditDialogViewModel`(입력·검증·결과 — 이름/스위트/방법). 의존 = TestItem·TestCategory(스위트 목록)·TestPageViewModel(호출부). 참조하는 곳 = T4 "새 테스트"/항목 수정. 비추상화 = 기존 ContentDialog 서브클래스 패턴(Save=PrimaryButtonClick 검증) 준수, 메모/삭제 다이얼로그는 별도 무거운 다이얼로그 신설 없이 T4 페이지에서 기존 소형 다이얼로그 관례 재사용.
+- **Files**: `Presentation/Views/Dialogs/TestEditDialog.xaml`(+`.cs`), `Presentation/ViewModels/TestEditDialogViewModel.cs`(신규), `Presentation/ViewModels/TestPageViewModel.cs`(`AddTestToSuite` 연결), `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`
+- **Edge**: 빈 이름 → 저장 차단(args.Cancel). 스위트 미선택/신규 입력 빈 → 저장 차단(스위트 필수). 편집 취소 → 무변경. 방법 빈 허용(선택적). 편집 모드 → 스위트 이동 미지원(CanEditSuite=false).
 - **Halt Forecast**: 없음.
-- **Acceptance**: 빌드 0. 새 테스트/편집 다이얼로그가 이름/스위트/방법 표시·저장 시 TestItem 반영. 메모 편집·삭제 확인 동작. depends T3, T1.
+- **Acceptance**: 빌드 0. 새 테스트/편집 다이얼로그가 이름/스위트/방법 표시·저장 시 TestItem 반영(이름·스위트 빈 값 저장 차단). resw 신규 키 ko/en 정합. (메모 편집·삭제 확인 UI는 T4에서 구현·검증.) depends T3, T1.
 
 ### T4 — 테스트 전체 페이지 View (스위트/통계/통과율 restyle) (Type D)
 - **내용**: 신규 `Presentation/Views/TestPage.xaml`(+`.cs`) UserControl:
   - 헤더: 제목("테스트") + "← 대시보드" 뒤로가기(`((MainWindow)App.MainWindow!).ShowDashboard()`) + 상태 필터 탭(통과/실패/미실행/전체) + "새 테스트" 버튼.
   - 통계 카드: 상태별 개수(통과/실패/미실행) 카드 행(FR-E1).
   - 스위트 그룹 목록: 스위트 헤더(이름 + 통과율 바 + 스위트 액션[이름수정/삭제]) + 항목 목록. 항목 카드 `DataTemplate`: 이름, 상태 아이콘/색(통과 #5aa3e8 ✓·실패 #e8b45a ✕·미실행 #8a8890 ○), 상태 변경 컨트롤, 메모(있으면 표시), 수정/삭제/메모 버튼.
+  - **다이얼로그 배선(T5 범위 경계 반영)**: "새 테스트"·항목 "수정" 버튼 → `TestEditDialog`(T5) 호출 후 `AddTestToSuite`(신규) 또는 `UpdateTest`(편집 — 중복 추가 방지 위해 add/edit 경로 분리, S1) 호출. **메모 편집**은 소형 ContentDialog(기존 `ShowNoteEditorAsync` 패턴)로 ProgressNote 편집 → `EditProgressNote` 호출. **삭제 확인**은 `DialogService.ShowConfirmAsync`(또는 소형 ContentDialog) 후 `DeleteTest`/`DeleteSuite` 호출. 스위트 이름수정도 소형 입력 다이얼로그 → `RenameSuite`.
   - 팔레트·폰트 Phase 0 리소스. 로컬라이즈(x:Uid/.resw ko·en) 신규 문자열. x:Bind 정적 함수 바인딩은 **Converter 미적용**(Phase 2 T5 교훈) → Visibility/색은 헬퍼가 직접 타입 반환 또는 컨버터 속성 바인딩.
 - **Design**: 배치 = Presentation/Views. 신규 심볼 = `TestPage` UserControl + 테스트 항목 DataTemplate + 상태→아이콘/색 매핑(정적 헬퍼 또는 소형 컨버터). 의존 = TestPageViewModel(T3)·App.MainWindow 네비(Phase 2)·TestEditDialog(T5). 참조하는 곳 = T6 진입점. 비추상화 = 항목 템플릿 인라인(별도 UserControl 미추출), 통과율 바는 표준 ProgressBar 재사용(커스텀 컨트롤 미신설).
 - **Files**: `Presentation/Views/TestPage.xaml`, `Presentation/Views/TestPage.xaml.cs`, `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`, (상태 색/아이콘 컨버터 필요 시) `Presentation/Converters/*.cs`+`Resources/Converters.xaml`
 - **Edge**: 긴 목록 → 스크롤. 빈 스위트/빈 페이지 → 빈 상태 표시. 통과율 0/0 → 0%. 상태 필터로 항목 0인 스위트 → 헤더 표시 여부(기존 관례 참고, 미실행/전체에서 빈 스위트 노출).
 - **Halt Forecast**: 없음.
-- **Acceptance**: 빌드 0. 테스트 버튼 진입 시 통계 카드·상태 탭·스위트 그룹(통과율 바)·항목(상태 아이콘/색·메모·액션) 표시, 뒤로가기 동작. **시각 렌더는 사용자 확인 필요.** depends T3, T5.
+- **Acceptance**: 빌드 0. 테스트 버튼 진입 시 통계 카드·상태 탭·스위트 그룹(통과율 바)·항목(상태 아이콘/색·메모·액션) 표시, 뒤로가기 동작. **메모 편집·삭제 확인 다이얼로그 동작**(EditProgressNote/DeleteTest/DeleteSuite/RenameSuite 호출, add/edit 경로 분리). **시각 렌더는 사용자 확인 필요.** depends T3, T5.
 
 ### T6 — 진입점 재배선 + 구 다이얼로그 정리 (Type D, cross-file)
 - **내용**: (a) `DashboardView.xaml.cs OnOpenTestListRequested`(211-226): 다이얼로그 대신 `(App.MainWindow as MainWindow)?.ShowPage(new TestPage(card.CreateTestPageViewModel()))` 호출(Phase 2 작업 버튼과 동형). (b) 구 자산 제거: `TestListDialog.xaml`/`.xaml.cs`·`TestListDialogViewModel.cs`(페이지로 대체, 로직 T3 이전 완료). `ProjectCardViewModel`의 `CreateTestListDialogViewModel`/`OnTestListDialogClosed` 구 경로 정리(신 팩토리 `CreateTestPageViewModel`으로 대체, HasActiveTest 갱신은 콜백). `MainViewModel.OnTestChanged`/`TestChanged` 이벤트 체인 정리(증분 저장으로 대체 시 잔재 제거 — 구독/해제/핸들러). (c) **구 상태 상수 제거**: `TestItem`의 `StatusTesting/StatusFix/StatusDone`(T1 병존분) 삭제 — 이 시점엔 참조부(구 VM/Dialog)가 함께 제거되고 Repository/MapTestBadge는 T2/T7에서 새 상수로 이전 완료. 제거 후 구 상수·구 다이얼로그 참조 grep 0 확인.
@@ -207,6 +208,7 @@ Phase 2에서 구축한 페이지 네비게이션(`MainWindow.ShowPage`/`ShowDas
 - 없음(Phase 3은 비파괴·로컬 변경). commit/push는 구현·검증 후 별도 승인.
 
 ## Deferred / Follow-up
+- [SUGGEST] T4 구현 시 테스트 add/edit 경로 분리 — `AddTestToSuite`(신규, 항상 Items.Add)를 편집에 재사용하면 `_existing` 중복 추가. 편집은 `UpdateTest`, 신규만 `AddTestToSuite` 호출로 분기(T5 quality S1). T4 Acceptance에 반영됨.
 - [Follow-up] Todo* resw 고아 정리(Phase 2 이월, 대장에도 등재) + 이번 Test* 구 resw 잔존분(T6에서 삭제 못한 대량분) audit — 별도 세션.
 - 교차(cross-project) 작업/테스트 집계 페이지(PRD D-2) — 대장 등재, 별도 진행.
 - 테스트→작업 역방향 링크/배지(FR-E4 확장) — 대장 등재.
