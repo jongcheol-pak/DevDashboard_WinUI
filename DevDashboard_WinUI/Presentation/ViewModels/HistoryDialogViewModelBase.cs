@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DevDashboard.Infrastructure.Services;
 
 namespace DevDashboard.Presentation.ViewModels;
 
@@ -44,6 +45,12 @@ public abstract partial class HistoryDialogViewModelBase : ObservableObject
 
     /// <summary>선택 가능한 작업 기록 유형 목록 (기본 + 사용자 정의)</summary>
     public IReadOnlyList<string> AvailableKinds { get; }
+
+    /// <summary>이전 페이지 버튼 툴팁 (아이콘 전용 버튼 접근성)</summary>
+    public string PrevPageTooltip { get; } = LocalizationService.Get("HistoryPage_PrevPage");
+
+    /// <summary>다음 페이지 버튼 툴팁 (아이콘 전용 버튼 접근성)</summary>
+    public string NextPageTooltip { get; } = LocalizationService.Get("HistoryPage_NextPage");
 
     protected HistoryDialogViewModelBase(List<HistoryEntry> entries, int pageSize, IReadOnlyList<string> availableKinds)
     {

@@ -227,7 +227,8 @@ Visibility="Collapsed">
             Spacing="8"
             HorizontalAlignment="Center"
             Visibility="{x:Bind Vm.HasEntries, Converter={StaticResource BoolToVisibility}, Mode=OneWay}">
-            <Button Padding="10,4" Command="{x:Bind Vm.PrevPageCommand}" IsEnabled="{x:Bind Vm.CanPrevPage, Mode=OneWay}">
+            <Button Padding="10,4" Command="{x:Bind Vm.PrevPageCommand}" IsEnabled="{x:Bind Vm.CanPrevPage, Mode=OneWay}"
+                    ToolTipService.ToolTip="{x:Bind Vm.PrevPageTooltip}">
                 <FontIcon Glyph="&#xE76B;" FontSize="12" />
             </Button>
             <TextBlock
@@ -236,7 +237,8 @@ Visibility="Collapsed">
                 MinWidth="64"
                 TextAlignment="Center"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-            <Button Padding="10,4" Command="{x:Bind Vm.NextPageCommand}" IsEnabled="{x:Bind Vm.CanNextPage, Mode=OneWay}">
+            <Button Padding="10,4" Command="{x:Bind Vm.NextPageCommand}" IsEnabled="{x:Bind Vm.CanNextPage, Mode=OneWay}"
+                    ToolTipService.ToolTip="{x:Bind Vm.NextPageTooltip}">
                 <FontIcon Glyph="&#xE76C;" FontSize="12" />
             </Button>
         </StackPanel>
