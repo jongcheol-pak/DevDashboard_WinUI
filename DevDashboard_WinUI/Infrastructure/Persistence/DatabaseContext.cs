@@ -129,6 +129,8 @@ public sealed class DatabaseContext
         AddColumnIfNotExists(connection, "Todos", "StartDate", "TEXT");
         AddColumnIfNotExists(connection, "Todos", "EndDate", "TEXT");
         AddColumnIfNotExists(connection, "Todos", "LinkedTestId", "TEXT NOT NULL DEFAULT ''");
+        // 작업 기록 유형(kind) 필드
+        AddColumnIfNotExists(connection, "Histories", "Kind", "TEXT NOT NULL DEFAULT ''");
     }
 
     /// <summary>기존 IsCompleted 값을 Status 컬럼으로 마이그레이션합니다.</summary>
@@ -172,7 +174,7 @@ public sealed class DatabaseContext
         "ProjectId", "Tag", "SlotIndex", "ShellType", "Script", "WorkingDirectory",
         "IconSymbol", "Text", "IsCompleted", "CompletedAt", "Title", "IsDefault",
         "DisplayName", "ExecutablePath", "IconCachePath", "SortOrder", "ProgressNote", "CategoryId", "Status",
-        "CloseAfterCompletion", "Priority", "StartDate", "EndDate", "LinkedTestId", "Method"
+        "CloseAfterCompletion", "Priority", "StartDate", "EndDate", "LinkedTestId", "Method", "Kind"
     };
 
     private static void AddColumnIfNotExists(SqliteConnection connection, string table, string column, string definition)
@@ -262,6 +264,7 @@ public sealed class DatabaseContext
                 ProjectId   TEXT NOT NULL,
                 Title       TEXT NOT NULL DEFAULT '',
                 Description TEXT NOT NULL DEFAULT '',
+                Kind        TEXT NOT NULL DEFAULT '',
                 CompletedAt TEXT NOT NULL DEFAULT '',
                 CreatedAt   TEXT NOT NULL DEFAULT '',
                 FOREIGN KEY (ProjectId) REFERENCES Projects(Id) ON DELETE CASCADE
