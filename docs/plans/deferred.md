@@ -15,6 +15,10 @@
 - **[`TestDateGroup` 고아 정리]** — `Presentation/Models/TestDateGroup.cs`가 소스 미참조(구 테스트 다이얼로그 이전 버전 잔재, T6 이전부터 존재). 별도 정리. (원 plan: Phase 3 테스트, 2026-07-19)
 - **[`HistoryEntryDialogViewModel` 고아 정리]** — `Presentation/ViewModels/HistoryEntryDialogViewModel.cs`가 소스 미참조(정의만 존재, 실제 작업 기록 편집 UI는 인라인 폼 + 중첩 편집 다이얼로그 코드비하인드가 담당). Phase 4 T4에서 미수정, 별도 정리 세션. (원 plan: Phase 4 작업 기록, 2026-07-19)
 - **[`InitKindCombo`/`KindFromCombo` 중복]** — HistoryDialog·ProjectHistoryDialog 코드비하인드 2곳 대칭 중복(3회 미만이라 현재 결함 아님). 3번째 사용처 생기면 공용 static helper로 추출. (원 plan: Phase 4 작업 기록, 2026-07-19)
+- **[알림 배지 상한·요약 개수]** — 헤더 벨 안읽음 배지에 "9+" 상한 미적용(두 자릿수 시 14px 원형 폭 확장은 되나 시각 확인 필요), 드롭다운 요약 상위 5개 고정. 시각 확인 후 수치 조정. 순수 값이라 저위험. (원 plan: Phase 5 알림, 2026-07-19)
+- **[BOM/no-BOM 인코딩 통일]** — 레거시 파일(.cs/.xaml/.resw 다수)은 BOM, 신규 파일은 no-BOM으로 혼재. check-utf8-and-lines hook은 no-BOM 권고, CLAUDE.md는 기존 인코딩 유지 권고(Phase 4에서 BOM 손실이 MAJOR였음). 전체 통일은 별도 세션. (원 plan: Phase 5 알림, 2026-07-19)
+- **[README/스크린샷 — 리디자인 5개 영역]** — Phase 0~5로 리디자인 로드맵 완료. 시각 렌더 사용자 확인 후 README·스크린샷을 5개 영역(작업/테스트/작업 기록/알림/설정) 신규 UI로 통합 갱신. (원 plan: Phase 5 알림, 2026-07-19)
+- **[알림 배지 실시간 갱신]** — 안읽음 배지는 초기 로드 1회 + 헤더 Flyout 열 때만 재계산(온디맨드 설계). 작업 페이지에서 작업 완료/편집 후 Flyout 재오픈 전까지 배지가 stale일 수 있음(상호작용 시점엔 Flyout Opening이 먼저 재계산해 정확). 실시간 원하면 TaskPageViewModel 변경 콜백에 RebuildNotifications 배선. (원 plan: Phase 5 알림, 2026-07-19)
 
 ## 완료·재수용
 - [2026-07-18 → 2026-07-19] FR-H2 선행 PageSize 실제 소비(작업 기록 페이지네이션) — 반영(Phase 4 plan T3 로직·T5 UI 완료)

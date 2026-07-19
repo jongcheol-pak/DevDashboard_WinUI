@@ -171,6 +171,7 @@
 - README/스크린샷 갱신(Phase 5 시각 확인 후) — 리디자인 5개 영역 완료 시점에 통합 갱신 검토.
 - Todo*/Test* 구 resw 고아·`TestDateGroup`·`HistoryEntryDialogViewModel`·`InitKindCombo`/`KindFromCombo` 중복 정리(Phase 2/3/4 이월, 대장 등재) — 별도 세션.
 - 알림 요약 상위 N 개수·배지 상한("9+") 등 세부 수치는 시각 확인 시 조정 가능(순수 값, 후속).
+- [F-7 MINOR m1] 배지 안읽음 개수는 초기 로드 1회 + Flyout 열 때만 재계산(D8 온디맨드 설계) — 작업 페이지에서 작업 완료/편집 후 Flyout 재오픈 전까지 배지가 stale일 수 있음(Flyout Opening이 항상 먼저 재계산하므로 상호작용 시점엔 정확). 실시간 갱신 원하면 TaskPageViewModel 변경 콜백에 RebuildNotifications 배선 — 별도 후속.
 - [인코딩] `MainViewModel.cs`·`MainWindow.xaml`·`Resources.resw`(ko/en) 등 레거시 BOM 파일 — Edit 시 기존 BOM 보존(CLAUDE.md "기존 인코딩 유지" 준수, Phase 4에서 BOM 손실이 MAJOR였음). check-utf8-and-lines hook은 no-BOM을 권고하나 전체 파일 인코딩 변환은 이번 범위 밖이라 미수행(신규 파일은 no-BOM). 프로젝트 BOM/no-BOM 통일은 별도 세션.
 
 ## Out of Scope (이 Phase)
@@ -189,11 +190,13 @@
   - 결정: 배지 visibility는 Window XAML x:Bind+Converter CS1503 회피 위해 {Binding ..., Converter=BoolToVisibility}(DataContext=RootGrid._viewModel 상속). 요약 항목은 List<string> 프리포맷(Window XAML 바인딩 단순화). 시각 렌더 ⏳ HUMAN-VERIFY.
 
 ## Phase Ledger
-- (착수 전 — 전 task 완료 후 Phase F/G 진행)
+- 전 task(T1~T5) 완료.
+- Phase F 통과 (HEAD 14c4392) — F-7 plan-completion-reviewer BLOCKER 0/MAJOR 0/MINOR 2(m1 배지 최신화 시점→Deferred·m2 배지 상한→Deferred 기등재).
+- Phase G 통과 (Must 100%) — FR-N1·N2·N3·N4 Must 전부 코드 충족(F-7 전수 대조 재사용). 시각 렌더(벨/배지/드롭다운/알림 페이지/마감상태 배지)는 ⏳ HUMAN-VERIFY.
 
 ## Next Steps
-- 권장 다음 액션: master 기준 새 브랜치에서 implement-task로 T1부터 순차(T1 도메인·감지 → T2 영속화 → T3 집계·VM → T4 페이지 → T5 헤더). 완료 후 시각·동작 사용자 확인 → Phase F/G.
-- Suggested skills: pjc:implement-task(승인 후).
+- 권장 다음 액션: `task/phase5-notifications` 브랜치 → master 병합은 **별도 승인**(push/병합은 자율 루프 권한 밖). 병합 후 앱 실행해 시각·동작 사용자 확인(벨 배지·드롭다운·알림 페이지·마감상태 배지·읽음 왕복·클릭 이동). 리디자인 5개 영역 완료 → README/스크린샷 통합 갱신(Deferred).
+- Suggested skills: (병합 후) 공식 /code-review·/security-review 선택, pjc:llm-wiki(위키 등록 원할 시 — vault 미설정이면 불요).
 
 ## 통과 체크리스트
 - [x] 요구 이해 작성(원문 인용 + 이해 4줄)
