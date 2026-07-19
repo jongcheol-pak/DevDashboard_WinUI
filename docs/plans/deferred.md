@@ -13,6 +13,8 @@
 - **[FR-T6/E4 "방법" 필드 확장 소비]** — Phase 3에서 TestItem.Method 추가·다이얼로그 노출. 향후 필터/통계에 활용 여부는 별도. (원 plan: Phase 3 테스트, 2026-07-19)
 - **[Test* 구 resw 고아 정리]** — 삭제된 TestListDialog 전용 resw 키(`TestListDialogTitle`·`TestStatusTesting/Fix/Done.Content`·`TestTab*`·`TestGroupBy*`·`NewTestBox`·`NewCategoryBox`·`TestAddNoteLink`·`EmptyTestText`·`TestDeleteCategoryConfirm` 등)가 소스 미사용 상태로 잔존. 빌드·런타임 무해 — audit 후 제거. (원 plan: Phase 3 테스트, 2026-07-19)
 - **[`TestDateGroup` 고아 정리]** — `Presentation/Models/TestDateGroup.cs`가 소스 미참조(구 테스트 다이얼로그 이전 버전 잔재, T6 이전부터 존재). 별도 정리. (원 plan: Phase 3 테스트, 2026-07-19)
+- **[`HistoryEntryDialogViewModel` 고아 정리]** — `Presentation/ViewModels/HistoryEntryDialogViewModel.cs`가 소스 미참조(정의만 존재, 실제 작업 기록 편집 UI는 인라인 폼 + 중첩 편집 다이얼로그 코드비하인드가 담당). Phase 4 T4에서 미수정, 별도 정리 세션. (원 plan: Phase 4 작업 기록, 2026-07-19)
+- **[`InitKindCombo`/`KindFromCombo` 중복]** — HistoryDialog·ProjectHistoryDialog 코드비하인드 2곳 대칭 중복(3회 미만이라 현재 결함 아님). 3번째 사용처 생기면 공용 static helper로 추출. (원 plan: Phase 4 작업 기록, 2026-07-19)
 
 ## 완료·재수용
-- [2026-07-18 → 2026-07-19] FR-H2 선행 PageSize 실제 소비(작업 기록 페이지네이션) — 재수용(Phase 4 plan T3 로직·T5 UI)
+- [2026-07-18 → 2026-07-19] FR-H2 선행 PageSize 실제 소비(작업 기록 페이지네이션) — 반영(Phase 4 plan T3 로직·T5 UI 완료)

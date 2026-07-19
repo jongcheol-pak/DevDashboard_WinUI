@@ -161,6 +161,8 @@
 - [Follow-up] `Presentation/ViewModels/HistoryEntryDialogViewModel.cs` — 소스 미참조 고아(정의만 존재, 실제 UI는 인라인 폼/중첩 편집 코드비하인드가 담당). T4에서 미수정, 별도 정리 세션.
 - README/스크린샷 갱신(Phase 4 시각 확인 후).
 - Todo*/Test* 구 resw 고아·TestDateGroup 정리(Phase 2/3 이월, 대장 등재) — 별도 세션.
+- [F-7 MINOR m1] FR-H1 원문 "작업 기록 유형**(+작업 카테고리)**에서 선택"의 `(+작업 카테고리)`(=`settings.TaskCategories`) 소스가 유형 선택 목록에 미포함(현재 `DefaultHistoryKinds + settings.HistoryKinds`만). plan `## 요구 이해`가 카테고리를 명시적으로 스코프 제외(Step 10 승인 노출)했으나 PRD 괄호구 해석 의존 — **사용자 확인 필요**(포함 원하면 후속 task, BuildKinds에 settings.TaskCategories 병합).
+- [F-7 MINOR m2] `ExportToMarkdown`이 Kind 미포함(제목·설명·등록일만). 유형이 신규 1급 필드가 됐으므로 마크다운 내보내기에 유형 포함 검토(요구 명세 없음 — 일관성 follow-up).
 
 ## Out of Scope (이 Phase)
 - 알림(Phase 5).
@@ -178,7 +180,9 @@
   - V-9 시각 렌더(배지 색·정렬·페이지 컨트롤 배치)는 목업 부재로 ⏳ 사용자 확인 필요.
 
 ## Phase Ledger
-- 전 task(T1~T5) 완료. Phase F 진입 예정.
+- 전 task(T1~T5) 완료.
+- Phase F 통과 (HEAD fe6a427) — F-7 plan-completion-reviewer BLOCKER 0/MAJOR 0/MINOR 2(m1·m2 → Deferred).
+- Phase G 통과 (Must 100%) — FR-H1·H2·H3 Must 전부 충족(F-7 전수 대조 재사용), FR-H4 Should 충족. 시각 렌더는 ⏳ HUMAN-VERIFY.
 
 ## Next Steps
 - 권장 다음 액션: implement-task로 T3부터 계속(T3 베이스 VM 추출·페이지네이션 → T4 유형 선택 → T5 UI). 완료 후 시각·동작 사용자 확인 → 이후 Phase 5(알림) plan-feature.
