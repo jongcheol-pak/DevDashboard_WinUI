@@ -454,5 +454,7 @@
   <data name="Notification_Deadline_DueToday" xml:space="preserve"><value>Due today</value></data>
   <data name="Notification_Deadline_Overdue" xml:space="preserve"><value>Overdue</value></data>
   <data name="Notification_MarkRead_Tooltip" xml:space="preserve"><value>Mark as read</value></data>
+  <data name="Notification_Header_Tooltip" xml:space="preserve"><value>Notifications</value></data>
+  <data name="Notification_ViewAll" xml:space="preserve"><value>View all notifications</value></data>
 
 </root>

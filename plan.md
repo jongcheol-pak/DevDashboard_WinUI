@@ -71,7 +71,7 @@
 - [x] T2 — 읽음 상태 영속화(AppSettings.ReadNotificationIds)
 - [x] T3 — MainViewModel 집계·읽음 처리 + NotificationPageViewModel
 - [x] T4 — NotificationPage 전체 페이지 + resw
-- [ ] T5 — 헤더 벨 버튼 + Flyout 드롭다운 + 배지 + MainWindow 배선
+- [x] T5 — 헤더 벨 버튼 + Flyout 드롭다운 + 배지 + MainWindow 배선
 
 ### T1 — 알림 도메인 모델 + 마감 감지 서비스 (Type C)
 - **내용**: (a) `Domain/Enums/DeadlineStatus.cs` — `Imminent`(D-3 임박)·`DueToday`(오늘 마감)·`Overdue`(경과). (b) `Domain/ValueObjects/Notification.cs` — 불변 record(`ProjectId`·`ProjectName`·`TodoId`·`TodoText`·`DateTime EndDate`·`DeadlineStatus Status`). (c) `Domain/Services/NotificationService.cs`(신규 폴더) — 순수 정적 `Detect(IEnumerable<ProjectItem> projects, DateTime today)` → `List<Notification>`(각 프로젝트 Todos에서 `EndDate!=null && Status!=Completed` 필터 → 경계 판정으로 DeadlineStatus 부여 → EndDate 오름차순). `BuildKey(Notification)` → `$"{TodoId}:{Status}"`(읽음 키). 한글 XML 주석.
@@ -110,7 +110,7 @@
 ### T5 — 헤더 벨 버튼 + Flyout 드롭다운 + 배지 + MainWindow 배선 (Type D)
 - **내용**: (a) `MainWindow.xaml`: `HeaderButtonsPanel`의 ExportImportButton↔AppSettingsButton 사이에 `NotificationButton`(36×36 + 벨 FontIcon + x:Uid) 추가, 우상단 **안읽음 개수 배지**(UnreadNotificationCount>0일 때 표시, 색 점+숫자), 버튼에 `Flyout` 드롭다운 패널(요약 목록 상위 N + "모든 알림 보기" 버튼·빈 상태). 배지·요약은 `_viewModel`(UnreadNotificationCount·GetCurrentNotifications) 바인딩. (b) `MainWindow.xaml.cs`: Flyout Opening 시 `_viewModel.RebuildNotifications()`(최신화) + 요약 갱신, "모든 알림 보기" → `new NotificationPage(new NotificationPageViewModel(...))` 구성 후 `ShowPage`, 항목 이동 이벤트 → `_viewModel.CreateTaskPageViewModelForProject(id)` → `new TaskPage(vm, settings)` → `ShowPage`(카드→페이지 선례). 요약 항목/페이지가 공유하는 NotificationPageViewModel 구성 헬퍼. (c) resw(ko/en) 신규 문자열(벨 툴팁·"모든 알림 보기"·빈 상태). 아이콘 버튼 접근성 `ToolTipService.ToolTip`(Phase 4 T5 교훈).
 - **Design**: 배치 = Presentation(MainWindow XAML/코드비하인드) + Strings. 신규 심볼 = `NotificationButton`·드롭다운 Flyout 패널·배지 요소(XAML)·MainWindow 핸들러(Flyout 열기·모든 알림 보기·항목 이동)·NotificationPageViewModel 구성 헬퍼. 의존 = MainViewModel(T3 UnreadNotificationCount·RebuildNotifications·GetCurrentNotifications·CreateTaskPageViewModelForProject)·NotificationPage(T4)·ShowPage. 비추상화 = 벨/Flyout은 기존 헤더 버튼·SortButton Flyout 패턴 재사용(신규 컨트롤 없음), 배지는 표준 Border+TextBlock(커스텀 배지 컨트롤 미신설). 이동은 카드→페이지 선례 재사용.
-- **Files**: `MainWindow.xaml`(프로젝트 루트), `MainWindow.xaml.cs`(프로젝트 루트), `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`
+- **Files**: `MainWindow.xaml`(프로젝트 루트), `MainWindow.xaml.cs`(프로젝트 루트), `Presentation/ViewModels/MainViewModel.cs`(배지 표시용 `HasUnreadNotifications` 파생 프로퍼티 추가 — 구현 중 편입), `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`
 - **Edge**: 안읽음 0 → 배지 숨김. 프로젝트 없음(HasAnyProjects false) → 벨 무알림·빈 상태. 드롭다운 요약 다수 → 상위 N만(예: 5) + "모든 알림 보기". Flyout 열 때마다 재계산(최신 반영). 이동 대상 카드 없음 → null 가드. 배지 개수 큰 값 → 표시 상한(예: "9+").
 - **Halt Forecast**: 없음 — 헤더 버튼/Flyout/배지 추가·MainWindow 핸들러 배선, 파괴적·외부 요소 없음.
 - **Acceptance**: 빌드 0. 헤더에 벨 버튼·안읽음 배지(개수)·드롭다운(요약 + "모든 알림 보기") 표시, 열 때 재계산. "모든 알림 보기" → NotificationPage 전환, 항목 클릭 → 해당 프로젝트 TaskPage 이동. resw ko/en 등록. **시각 렌더는 사용자 확인 필요.** depends T3, T4.
@@ -171,7 +171,7 @@
 - README/스크린샷 갱신(Phase 5 시각 확인 후) — 리디자인 5개 영역 완료 시점에 통합 갱신 검토.
 - Todo*/Test* 구 resw 고아·`TestDateGroup`·`HistoryEntryDialogViewModel`·`InitKindCombo`/`KindFromCombo` 중복 정리(Phase 2/3/4 이월, 대장 등재) — 별도 세션.
 - 알림 요약 상위 N 개수·배지 상한("9+") 등 세부 수치는 시각 확인 시 조정 가능(순수 값, 후속).
-- [인코딩] `MainViewModel.cs`는 레거시 BOM .cs 파일 — Edit 시 기존 BOM 보존(CLAUDE.md "기존 인코딩 유지" 준수, Phase 4에서 BOM 손실이 MAJOR였음). check-utf8-and-lines hook은 no-BOM을 권고하나 전체 파일 인코딩 변환은 T3 범위 밖이라 미수행. 프로젝트 .cs BOM/no-BOM 통일은 별도 세션.
+- [인코딩] `MainViewModel.cs`·`MainWindow.xaml`·`Resources.resw`(ko/en) 등 레거시 BOM 파일 — Edit 시 기존 BOM 보존(CLAUDE.md "기존 인코딩 유지" 준수, Phase 4에서 BOM 손실이 MAJOR였음). check-utf8-and-lines hook은 no-BOM을 권고하나 전체 파일 인코딩 변환은 이번 범위 밖이라 미수행(신규 파일은 no-BOM). 프로젝트 BOM/no-BOM 통일은 별도 세션.
 
 ## Out of Scope (이 Phase)
 - git 커밋 ↔ 작업/알림 자동 연동(PRD §7 영구 제외).
@@ -185,6 +185,8 @@
   - 결정: GlobalUsings에 Domain.Services 등록은 소비처 생기는 T3로 이연(T1 단독 등록 시 CS8019 불필요 using 경고 회피). csproj 실제명 `DevDashboard.csproj`(메모리의 DevDashboard_WinUI.csproj는 부정확).
 - T3-T4 완료 (커밋 f48d4d3, 38ee59c→): T3 MainViewModel 알림 집계·읽음 처리·이동 진입점 + NotificationPageViewModel(그룹·읽음·커맨드). T4 NotificationPage(UserControl, 정적 헬퍼 색/라벨/포맷, 프로젝트별 그룹·배지·빈상태) + resw ko/en 9키. 빌드 x64 OK·신규 경고 0. 두 task 모두 spec/quality OK.
   - 결정: csproj Page 자동 include(`<Page Remove="App.xaml"/>`만 존재)라 NotificationPage 등록 편집 불필요. 마감상태 배지 색 = 경과 코랄#f0716a/오늘 앰버#e8b45a/임박 블루#5aa3e8(PRD §3 팔레트, TestPage 헬퍼 패턴). 항목 클릭=Border Tapped→OpenTaskCommand, 읽음 버튼=Click→MarkReadCommand(TaskPage Tag 패턴). 시각 렌더는 ⏳ HUMAN-VERIFY.
+- T5 완료 (커밋 ca6c58a→): 헤더 벨 버튼(E7ED Ringer)+안읽음 배지({Binding HasUnreadNotifications/UnreadNotificationCount})+Flyout 드롭다운(요약 상위5 + 모든 알림 보기). MainWindow 핸들러 NotificationFlyout_Opening(재계산)·ViewAllNotifications_Click(→NotificationPage)·NavigateToProjectTasks(→TaskPage). MainViewModel에 HasUnreadNotifications 파생 프로퍼티+NotifyPropertyChangedFor(배지 표시용, Files 편입). resw ko/en 2키(Header_Tooltip·ViewAll). 빌드 x64 OK·신규 경고 0. spec MINOR(Files 목록 누락→plan 정정)·quality OK+SUGGEST(배지 상한 — Deferred 기등재). 전체 알림 심볼 end-to-end 배선 완결.
+  - 결정: 배지 visibility는 Window XAML x:Bind+Converter CS1503 회피 위해 {Binding ..., Converter=BoolToVisibility}(DataContext=RootGrid._viewModel 상속). 요약 항목은 List<string> 프리포맷(Window XAML 바인딩 단순화). 시각 렌더 ⏳ HUMAN-VERIFY.
 
 ## Phase Ledger
 - (착수 전 — 전 task 완료 후 Phase F/G 진행)

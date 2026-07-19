@@ -111,6 +111,41 @@
                         <FontIcon Glyph="&#xEA35;" FontSize="16" />
                     </Button>
 
+                    <!-- 알림 벨 버튼 (안읽음 배지 + 드롭다운 요약) -->
+                    <Button x:Name="NotificationButton"
+                            Width="36" Height="36" Padding="0"
+                            ToolTipService.ToolTip="{x:Bind NotificationTooltip}">
+                        <Button.Flyout>
+                            <Flyout Opening="NotificationFlyout_Opening">
+                                <StackPanel Width="300" Spacing="8">
+                                    <TextBlock Text="{x:Bind NotificationFlyoutTitle}"
+                                               Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                    <ItemsControl x:Name="NotificationSummaryList" />
+                                    <TextBlock x:Name="NotificationFlyoutEmpty"
+                                               Text="{x:Bind NotificationEmptyText}"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                    <Button x:Name="ViewAllNotificationsButton"
+                                            Content="{x:Bind NotificationViewAllText}"
+                                            HorizontalAlignment="Stretch"
+                                            Click="ViewAllNotifications_Click" />
+                                </StackPanel>
+                            </Flyout>
+                        </Button.Flyout>
+                        <Grid>
+                            <FontIcon Glyph="&#xE7ED;" FontSize="16" />
+                            <Border x:Name="NotificationBadge"
+                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                    CornerRadius="7" MinWidth="14" Height="14" Padding="3,0"
+                                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                                    Margin="0,-3,-3,0"
+                                    Visibility="{Binding HasUnreadNotifications, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="{Binding UnreadNotificationCount}"
+                                           FontSize="9" FontWeight="Bold" Foreground="White"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                        </Grid>
+                    </Button>
+
                     <!-- 앱 설정 버튼 -->
                     <Button x:Name="AppSettingsButton"
                             Width="36" Height="36" Padding="0"

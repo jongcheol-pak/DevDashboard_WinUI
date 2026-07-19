@@ -56,7 +56,11 @@ public partial class MainViewModel : ObservableObject
 
     /// <summary>안읽음 마감 알림 개수 (헤더 벨 배지) — 0이면 배지 숨김</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasUnreadNotifications))]
     public partial int UnreadNotificationCount { get; set; }
+
+    /// <summary>안읽음 알림이 하나 이상 있는지 여부 (배지 표시용)</summary>
+    public bool HasUnreadNotifications => UnreadNotificationCount > 0;
 
     // 마지막으로 계산된 마감 알림 목록 (드롭다운·페이지가 공유 — RebuildNotifications가 갱신)
     private List<Notification> _currentNotifications = [];

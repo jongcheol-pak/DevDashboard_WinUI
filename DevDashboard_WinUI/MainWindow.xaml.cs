@@ -49,6 +49,12 @@ public sealed partial class MainWindow : WindowEx
     public SortOrder SortByCategory { get; } = SortOrder.Category;
     public SortOrder SortByDate { get; } = SortOrder.CreatedAt;
 
+    // 알림 헤더 문자열 — XAML x:Bind용
+    public string NotificationTooltip { get; } = LocalizationService.Get("Notification_Header_Tooltip");
+    public string NotificationFlyoutTitle { get; } = LocalizationService.Get("Notification_Title");
+    public string NotificationEmptyText { get; } = LocalizationService.Get("Notification_Empty");
+    public string NotificationViewAllText { get; } = LocalizationService.Get("Notification_ViewAll");
+
     public MainWindow(AppSettings settings, JsonStorageService storageService,
         IProjectRepository? projectRepository, LauncherRepository? launcherRepository,
         string? dbErrorMessage = null)
@@ -547,6 +553,49 @@ public sealed partial class MainWindow : WindowEx
         {
             await ShowUnexpectedErrorAsync(ex);
         }
+    }
+
+    // ─── 알림 ────────────────────────────────────────────────────────────
+
+    /// <summary>알림 드롭다운을 열 때 최신 알림을 재계산하고 요약(상위 5개)을 갱신합니다.</summary>
+    private void NotificationFlyout_Opening(object? sender, object e)
+    {
+        _viewModel?.RebuildNotifications();
+        var notifications = _viewModel?.GetCurrentNotifications() ?? [];
+
+        var summary = notifications
+            .Take(5)
+            .Select(n => $"{n.ProjectName} · {n.TodoText} ({NotificationPage.DeadlineLabel(n.Status)})")
+            .ToList();
+        NotificationSummaryList.ItemsSource = summary;
+
+        var hasAny = notifications.Count > 0;
+        NotificationSummaryList.Visibility = hasAny ? Visibility.Visible : Visibility.Collapsed;
+        NotificationFlyoutEmpty.Visibility = hasAny ? Visibility.Collapsed : Visibility.Visible;
+        ViewAllNotificationsButton.Visibility = hasAny ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    /// <summary>"모든 알림 보기" — 알림 전체 페이지로 전환합니다.</summary>
+    private void ViewAllNotifications_Click(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel is null) return;
+        NotificationButton.Flyout?.Hide();
+
+        var vm = new NotificationPageViewModel(
+            _viewModel.GetCurrentNotifications(),
+            _viewModel.GetReadKeys(),
+            n => _viewModel.MarkNotificationRead(n),
+            ns => _viewModel.MarkAllNotificationsRead(ns),
+            NavigateToProjectTasks);
+        ShowPage(new NotificationPage(vm));
+    }
+
+    /// <summary>알림 항목 클릭 시 해당 프로젝트의 작업 페이지로 이동합니다(카드 없으면 무시).</summary>
+    private void NavigateToProjectTasks(string projectId)
+    {
+        var taskVm = _viewModel?.CreateTaskPageViewModelForProject(projectId);
+        if (taskVm is null) return;
+        ShowPage(new TaskPage(taskVm, _settings));
     }
 
     // ─── 내보내기 / 가져오기 ─────────────────────────────────────────────

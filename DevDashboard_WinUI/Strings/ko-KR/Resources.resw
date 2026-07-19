@@ -454,5 +454,7 @@
   <data name="Notification_Deadline_DueToday" xml:space="preserve"><value>오늘 마감</value></data>
   <data name="Notification_Deadline_Overdue" xml:space="preserve"><value>경과</value></data>
   <data name="Notification_MarkRead_Tooltip" xml:space="preserve"><value>읽음 처리</value></data>
+  <data name="Notification_Header_Tooltip" xml:space="preserve"><value>알림</value></data>
+  <data name="Notification_ViewAll" xml:space="preserve"><value>모든 알림 보기</value></data>
 
 </root>
