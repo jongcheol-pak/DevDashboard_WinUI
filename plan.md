@@ -69,7 +69,7 @@
 ### 진행 체크리스트
 - [x] T1 — 알림 도메인 모델 + 마감 감지 서비스(순수)
 - [x] T2 — 읽음 상태 영속화(AppSettings.ReadNotificationIds)
-- [ ] T3 — MainViewModel 집계·읽음 처리 + NotificationPageViewModel
+- [x] T3 — MainViewModel 집계·읽음 처리 + NotificationPageViewModel
 - [ ] T4 — NotificationPage 전체 페이지 + resw
 - [ ] T5 — 헤더 벨 버튼 + Flyout 드롭다운 + 배지 + MainWindow 배선
 
@@ -171,6 +171,7 @@
 - README/스크린샷 갱신(Phase 5 시각 확인 후) — 리디자인 5개 영역 완료 시점에 통합 갱신 검토.
 - Todo*/Test* 구 resw 고아·`TestDateGroup`·`HistoryEntryDialogViewModel`·`InitKindCombo`/`KindFromCombo` 중복 정리(Phase 2/3/4 이월, 대장 등재) — 별도 세션.
 - 알림 요약 상위 N 개수·배지 상한("9+") 등 세부 수치는 시각 확인 시 조정 가능(순수 값, 후속).
+- [인코딩] `MainViewModel.cs`는 레거시 BOM .cs 파일 — Edit 시 기존 BOM 보존(CLAUDE.md "기존 인코딩 유지" 준수, Phase 4에서 BOM 손실이 MAJOR였음). check-utf8-and-lines hook은 no-BOM을 권고하나 전체 파일 인코딩 변환은 T3 범위 밖이라 미수행. 프로젝트 .cs BOM/no-BOM 통일은 별도 세션.
 
 ## Out of Scope (이 Phase)
 - git 커밋 ↔ 작업/알림 자동 연동(PRD §7 영구 제외).
