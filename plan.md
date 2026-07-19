@@ -68,7 +68,7 @@
 
 ### 진행 체크리스트
 - [x] T1 — 알림 도메인 모델 + 마감 감지 서비스(순수)
-- [ ] T2 — 읽음 상태 영속화(AppSettings.ReadNotificationIds)
+- [x] T2 — 읽음 상태 영속화(AppSettings.ReadNotificationIds)
 - [ ] T3 — MainViewModel 집계·읽음 처리 + NotificationPageViewModel
 - [ ] T4 — NotificationPage 전체 페이지 + resw
 - [ ] T5 — 헤더 벨 버튼 + Flyout 드롭다운 + 배지 + MainWindow 배선
@@ -180,7 +180,8 @@
 - 구버전 설정 export를 import해 AppSettings가 통째 교체되는 경우 `ReadNotificationIds`가 기본값(빈)으로 리셋될 수 있음 — **양성(읽음 상태 재설정) 허용**, 별도 마이그레이션 미도입(plan-reviewer m2).
 
 ## Progress Log
-- (착수 전)
+- T1-T2 완료 (커밋 cdd861a, 다음): T1 Domain 신규 3파일(DeadlineStatus·Notification·NotificationService 정적 순수 Detect/BuildKey, 경계 D-3/오늘/경과·완료 제외·EndDate!=null). T2 AppSettings.ReadNotificationIds(List<string>) 추가(직렬화 왕복 보존 코드 대조 — AppJsonContext 통짜·ApplyTo 제자리 mutate). 빌드 x64 OK·신규 경고 0. 두 task 모두 spec/quality OK.
+  - 결정: GlobalUsings에 Domain.Services 등록은 소비처 생기는 T3로 이연(T1 단독 등록 시 CS8019 불필요 using 경고 회피). csproj 실제명 `DevDashboard.csproj`(메모리의 DevDashboard_WinUI.csproj는 부정확).
 
 ## Phase Ledger
 - (착수 전 — 전 task 완료 후 Phase F/G 진행)
