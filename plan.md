@@ -70,7 +70,7 @@
 - [x] T1 — 알림 도메인 모델 + 마감 감지 서비스(순수)
 - [x] T2 — 읽음 상태 영속화(AppSettings.ReadNotificationIds)
 - [x] T3 — MainViewModel 집계·읽음 처리 + NotificationPageViewModel
-- [ ] T4 — NotificationPage 전체 페이지 + resw
+- [x] T4 — NotificationPage 전체 페이지 + resw
 - [ ] T5 — 헤더 벨 버튼 + Flyout 드롭다운 + 배지 + MainWindow 배선
 
 ### T1 — 알림 도메인 모델 + 마감 감지 서비스 (Type C)
@@ -183,6 +183,8 @@
 ## Progress Log
 - T1-T2 완료 (커밋 cdd861a, 다음): T1 Domain 신규 3파일(DeadlineStatus·Notification·NotificationService 정적 순수 Detect/BuildKey, 경계 D-3/오늘/경과·완료 제외·EndDate!=null). T2 AppSettings.ReadNotificationIds(List<string>) 추가(직렬화 왕복 보존 코드 대조 — AppJsonContext 통짜·ApplyTo 제자리 mutate). 빌드 x64 OK·신규 경고 0. 두 task 모두 spec/quality OK.
   - 결정: GlobalUsings에 Domain.Services 등록은 소비처 생기는 T3로 이연(T1 단독 등록 시 CS8019 불필요 using 경고 회피). csproj 실제명 `DevDashboard.csproj`(메모리의 DevDashboard_WinUI.csproj는 부정확).
+- T3-T4 완료 (커밋 f48d4d3, 38ee59c→): T3 MainViewModel 알림 집계·읽음 처리·이동 진입점 + NotificationPageViewModel(그룹·읽음·커맨드). T4 NotificationPage(UserControl, 정적 헬퍼 색/라벨/포맷, 프로젝트별 그룹·배지·빈상태) + resw ko/en 9키. 빌드 x64 OK·신규 경고 0. 두 task 모두 spec/quality OK.
+  - 결정: csproj Page 자동 include(`<Page Remove="App.xaml"/>`만 존재)라 NotificationPage 등록 편집 불필요. 마감상태 배지 색 = 경과 코랄#f0716a/오늘 앰버#e8b45a/임박 블루#5aa3e8(PRD §3 팔레트, TestPage 헬퍼 패턴). 항목 클릭=Border Tapped→OpenTaskCommand, 읽음 버튼=Click→MarkReadCommand(TaskPage Tag 패턴). 시각 렌더는 ⏳ HUMAN-VERIFY.
 
 ## Phase Ledger
 - (착수 전 — 전 task 완료 후 Phase F/G 진행)

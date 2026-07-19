@@ -445,5 +445,14 @@
   <data name="TaskTestBadge_Untested" xml:space="preserve"><value>테스트 미실행</value></data>
   <data name="TaskTestBadge_Pass" xml:space="preserve"><value>테스트 통과</value></data>
   <data name="TaskTestBadge_Fail" xml:space="preserve"><value>테스트 실패</value></data>
+  <data name="Notification_Title" xml:space="preserve"><value>알림</value></data>
+  <data name="Notification_Back" xml:space="preserve"><value>대시보드</value></data>
+  <data name="Notification_MarkAll" xml:space="preserve"><value>모두 읽음</value></data>
+  <data name="Notification_Empty" xml:space="preserve"><value>마감이 임박한 작업이 없습니다.</value></data>
+  <data name="Notification_DuePrefix" xml:space="preserve"><value>마감</value></data>
+  <data name="Notification_Deadline_Imminent" xml:space="preserve"><value>임박</value></data>
+  <data name="Notification_Deadline_DueToday" xml:space="preserve"><value>오늘 마감</value></data>
+  <data name="Notification_Deadline_Overdue" xml:space="preserve"><value>경과</value></data>
+  <data name="Notification_MarkRead_Tooltip" xml:space="preserve"><value>읽음 처리</value></data>
 
 </root>
