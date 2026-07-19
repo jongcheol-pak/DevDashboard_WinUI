@@ -65,7 +65,7 @@
 - [x] T2 — Histories 영속화(Kind 컬럼 마이그레이션 + Repository)
 - [x] T3 — HistoryDialogViewModelBase 추출 + 페이지네이션·유형 필터
 - [x] T4 — 새 기록/편집 폼 유형 선택
-- [ ] T5 — 페이지네이션 UI + 유형 배지 + restyle(두 다이얼로그)
+- [x] T5 — 페이지네이션 UI + 유형 배지 + restyle(두 다이얼로그)
 
 ### T1 — HistoryEntry 유형(Kind) 필드 (Type C)
 - **내용**: `Domain/Entities/HistoryEntry.cs`에 `string Kind`(빈=미분류, 작업 기록 유형) 추가. 한글 XML 주석. (HistoryEntry는 `ObservableObject` 아닌 POCO — 기존 관례 유지, Kind도 단순 프로퍼티.)
@@ -173,6 +173,12 @@
 - T3-T4 완료 (커밋 003f566, 다음): T3 HistoryDialogViewModelBase 추출(공통 로직+페이지네이션+유형)·두 VM 상속·생성자 pageSize 주입·호출부 4곳. T4 두 다이얼로그 인라인/편집 폼에 유형 ComboBox(InitKindCombo/KindFromCombo)·base.UpdateEntry kind 파라미터·resw 2키. 빌드 OK.
   - 결정: HistoryEntryDialogViewModel이 미사용 고아라 plan Files 정정(실제 UI 코드비하인드 대상), 고아는 Deferred. base는 (pageSize:int, kinds:list) 주입·파생이 AppSettings 분해(reviewer B1 해결의 정합 구현).
   - 리뷰: T3 quality MAJOR(ProjectHistoryDialogViewModel BOM 손실) BOM 복원 후 통과. T4 SUGGEST(헬퍼 2곳 대칭 중복)→Deferred.
+- T5 완료: 두 다이얼로그 XAML에 유형 배지(Ellipse TagColor dot + Kind 텍스트, KindVisibility 숨김)·페이지 컨트롤(이전/다음 버튼 + PageInfoText, HasEntries로 숨김). 빌드 OK.
+  - 리뷰: quality MAJOR(페이지 버튼 접근성 ToolTip 누락)→base에 PrevPageTooltip/NextPageTooltip(LocalizationService.Get) 추가·두 XAML ToolTipService.ToolTip 바인딩·resw ko/en HistoryPage_PrevPage/NextPage 2키 추가로 해소. 재리뷰 spec/quality 모두 OK.
+  - V-9 시각 렌더(배지 색·정렬·페이지 컨트롤 배치)는 목업 부재로 ⏳ 사용자 확인 필요.
+
+## Phase Ledger
+- 전 task(T1~T5) 완료. Phase F 진입 예정.
 
 ## Next Steps
 - 권장 다음 액션: implement-task로 T3부터 계속(T3 베이스 VM 추출·페이지네이션 → T4 유형 선택 → T5 UI). 완료 후 시각·동작 사용자 확인 → 이후 Phase 5(알림) plan-feature.
