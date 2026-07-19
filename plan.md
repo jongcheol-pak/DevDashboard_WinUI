@@ -1,198 +1,199 @@
-# plan.md — Phase 4: 작업 기록 — 유형(kind) + 페이지네이션 + 공통 베이스 VM 정리
+# plan.md — Phase 5: 알림 — 마감 감지 + 전체 페이지 + 헤더 드롭다운 + 읽음 상태 영속화
 
-**PRD**: docs/prd.md (Phase 4 = FR-H1, FR-H2, FR-H3, FR-H4 + 결정 D-5)
-**전체 목표**: DevDashboard 5개 영역 리디자인(§PRD). 이 plan은 **Phase 4(작업 기록)** 만 다룬다.
-**이전 plan**: Phase 3(테스트) — 완료(`Phase G 통과`), task/phase3-test 브랜치. **Phase 4 구현 전 Phase 3를 master 병합**(사용자 결정) 후 master 기준 새 브랜치.
-**다음 plan**: Phase 5(알림) — 별도 승인·실행.
+**PRD**: docs/prd.md (Phase 5 = FR-N1, FR-N2, FR-N3, FR-N4)
+**전체 목표**: DevDashboard 5개 영역 리디자인(§PRD). 이 plan은 **Phase 5(알림)** 만 다룬다 — 리디자인 로드맵의 마지막 Phase.
+**이전 plan**: Phase 4(작업 기록) — 완료(`Phase G 통과 Must 100%`), master 병합 완료(HEAD 04beef8). **Phase 5는 master 기준 새 브랜치**(`task/phase5-notifications`)에서 진행.
+**다음 plan**: 없음(리디자인 5개 영역 완료). 이후는 Deferred 대장·시각 확인 후속.
 
 ## 요구 이해
 
-> 원문(PRD §4 작업 기록 Phase 4 발췌): "FR-H1 `HistoryEntry`에 유형(kind) 필드 추가, 앱 설정의 작업 기록 유형(+작업 카테고리)에서 선택. 영속화(마이그레이션 포함). FR-H2 작업 기록 다이얼로그에 페이지네이션 적용(페이지당 표시 개수 = FR-S1). FR-H3 작업 기록 다이얼로그를 디자인 레이아웃으로 restyle(검색·유형 배지·날짜 그룹·펼침 상세·내보내기·인라인 새 기록 폼). FR-H4 HistoryDialog·ProjectHistoryDialog 중복 정리(공통 컴포넌트화 또는 통합)." + 결정 D-5(공통 컴포넌트화 기본) + 사용자 스코핑(2026-07-19): FR-H4=공통 베이스 VM 추출, FR-H2=페이지 버튼(이전/다음+번호), 브랜치=Phase 3 master 병합 후.
+> 원문(PRD §4 알림 Phase 5 + §3 확정 데이터 발췌): "FR-N1 마감 알림 감지 로직 — 미완료 작업 중 종료일 D-3 임박·오늘 마감·경과 항목 집계(완료 제외). FR-N2 알림 전체 페이지(프로젝트별 그룹, 읽음/안읽음, 모두 읽음, 항목 클릭 시 해당 작업으로 이동). FR-N3 헤더 알림 드롭다운 패널(요약 목록 + '모든 알림 보기'). FR-N4 읽음 상태 영속화." + §3 "알림 대상: 종료일 D-3 임박 + 오늘 마감 + 경과, 완료 상태 제외, 읽음/안읽음 추적" + 사용자 스코핑(2026-07-19): 읽음 키=작업Id+마감상태(재환기), 클릭 이동=프로젝트 작업 페이지 열기, 벨 배지=안읽음 개수 표시, 단위 테스트=미추가(현행 유지).
 
-이해한 요구(Phase 4):
-- `HistoryEntry`에 **유형(Kind)** 필드를 추가하고, 새 기록/편집 폼에서 앱 설정 유형(`DefaultHistoryKinds` + `settings.HistoryKinds`)에서 선택하도록 하며 DB 마이그레이션으로 영속화한다.
-- 작업 기록 다이얼로그에 **페이지네이션(페이지 버튼: 이전/다음+번호)** 을 적용하고 `AppSettings.PageSize`(기본 100)를 소비한다.
-- 목록에 **유형 배지**를 추가한다. 검색·날짜 그룹·펼침 상세·마크다운 내보내기·인라인 새 기록 폼은 **이미 구현**되어 있어 유지한다.
-- `HistoryDialogViewModel`·`ProjectHistoryDialogViewModel`의 중복 로직(검색·날짜그룹·CRUD·마크다운·펼침·유형·페이지네이션)을 **공통 추상 베이스 VM으로 추출**해 두 VM이 상속한다(두 다이얼로그는 유지 — 카드별/전체).
+이해한 요구(Phase 5):
+- 모든 프로젝트의 미완료 작업(`TodoItem`) 중 **종료일(EndDate)이 D-3 임박·오늘 마감·경과**인 항목을 순수 계산으로 집계하는 **마감 감지 로직**을 만든다(완료 제외).
+- 집계 결과를 **알림 전체 페이지**(프로젝트별 그룹·읽음/안읽음 표시·모두 읽음·항목 클릭 시 해당 프로젝트 작업 페이지로 이동)로 표시한다(TaskPage·TestPage처럼 `ShowPage` 네비 재사용).
+- **헤더에 알림 벨 버튼 + 드롭다운 Flyout 패널**(요약 목록 + "모든 알림 보기")을 추가하고, 벨에 **안읽음 개수 배지**를 표시한다.
+- **읽음 상태를 영속화**한다 — 키는 `작업Id + 마감상태`로, 마감이 임박→오늘→경과로 악화되면 안읽음으로 재환기한다.
 
 ## Goal
-`HistoryEntry`에 `Kind`(유형) 문자열 필드를 추가하고 SQLite 하위호환 마이그레이션으로 영속화한다. `HistoryDialogViewModel`·`ProjectHistoryDialogViewModel`의 중복 로직을 신규 추상 `HistoryDialogViewModelBase`로 이전하고(검색·날짜그룹·CRUD·마크다운·펼침 + 신규 페이지네이션·유형 필터), 두 VM은 상속으로 각자의 저장/프로젝트 선택만 담당한다. 새 기록/편집 폼과 개별 편집(`HistoryEntryDialogViewModel`)에 유형 선택을 추가하고, 목록에 유형 배지(`TagColorConverter` 재사용)와 페이지 컨트롤(이전/다음+번호)을 배선한다.
+신규 순수 도메인 로직 `NotificationService`(+ `Notification` 값 객체·`DeadlineStatus` enum)로 전체 프로젝트의 마감 임박/오늘/경과 미완료 작업을 집계한다. `MainViewModel`에 전체 프로젝트 Todo 로드(`GetAllProjectItemsWithTodos`, 기존 `...WithHistories` 미러)·알림 재계산·읽음 처리·안읽음 개수(`UnreadNotificationCount`)·프로젝트별 작업 페이지 이동 진입점을 추가한다. `AppSettings.ReadNotificationIds`(List\<string\>)로 읽음 키를 영속화한다. `NotificationPage`(전체 페이지)와 헤더 벨 버튼 + Flyout 드롭다운 패널을 신규 배선하고, 항목 클릭 시 해당 프로젝트 `TaskPage`로 이동한다.
 
 ## Investigation Log (근거)
 
 ### 위키·시안
 - 위키 참조: vault 미설정 — 코드 1차 출처로 진행.
-- 리디자인 시안: 목업 HTML(claude.ai/design)이 레포에 없음(Phase 0~3과 동일). 시각 명세는 PRD §3 추출값 + WinUI idiom, 빌드 후 사용자 확인.
-- Deferred 대장(docs/plans/deferred.md) 확인: `[FR-H2 선행] PageSize 실제 소비 — 작업 기록 페이지네이션, Phase 4에서 구현 예정` 항목을 이번 재수용(T3/T5). 종결 처리 예정.
+- 리디자인 시안: 목업 HTML(claude.ai/design)이 레포에 없음(Phase 0~4와 동일). 시각 명세는 PRD §3 추출값 + WinUI idiom, 빌드 후 사용자 확인.
+- Deferred 대장(docs/plans/deferred.md) 확인: **[교차 작업/테스트 집계 페이지](PRD D-2)** 항목이 유관하나 별개다 — 알림 페이지는 "마감 임박 작업의 프로젝트별 그룹"으로 본질상 교차 프로젝트지만, D-2의 범용 교차 집계 페이지(전체/프로젝트 스코프 필터)를 구축하지 않는다(FR-N2 전용). 이번에도 Deferred 유지. 그 외 대기 항목은 Phase 5와 무관.
 
-### 도메인·설정 (직접 Read)
-- **HistoryEntry**(Domain/Entities/HistoryEntry.cs): Id/Title/Description/CompletedAt/CreatedAt. **유형(Kind) 없음** → 추가 대상.
-- **AppSettings**(AppSettings.cs): `HistoryKinds`(31, List<string> 사용자 정의)·`PageSize`(34, 기본 100) — Phase 1 추가·영속화 완료.
-- **AppSettingsDialogViewModel**: `DefaultHistoryKinds`(258-261 = "기능","수정","리팩터링","문서", PRD §3 일치)·`HistoryKinds`(264, 사용자) — 유형 소스로 재사용(cross-VM 정적 참조, Phase 2/3 선례).
+### 도메인·데이터 (직접 Read)
+- **TodoItem**(Domain/Entities/TodoItem.cs:24-58): `Status`(`TodoStatus` Waiting/Active/Completed/Hold)·`IsCompleted`(Status==Completed 동기화, 61-65)·`EndDate`(48, `DateTime?` 종료/마감일)·`Text`(16 본문)·`Id`(12). **마감 감지 입력 = EndDate!=null && !IsCompleted**.
+- **TodoStatus**(Domain/Entities/TodoStatus.cs): Waiting/Active/Completed/Hold. "완료 제외" = Status!=Completed(=Hold·Waiting·Active 포함).
+- **ProjectItem**(Domain/Entities/ProjectItem.cs:64): `List<TodoItem> Todos`(지연 로딩 — 다이얼로그/페이지 열 때 Repository에서 로드). `Id`·이름 보유.
 
-### 영속성 (직접 Read)
-- **DatabaseContext**: `Histories` 테이블(260-268 = Id/ProjectId/Title/Description/CompletedAt/CreatedAt). **Kind 컬럼 없음**. 마이그레이션 = `MigrateSchema`(`AddColumnIfNotExists` + `AllowedIdentifiers` 화이트리스트 167). `Kind`는 화이트리스트 미등록 → T2 등록 필수.
-- **SqliteProjectRepository**: read **2경로** — `GetHistories`(128-150, 메인 지연로딩)·`ReadHistoriesForProject`(869-, import용). write = `InsertHistories`(582-609, 단일 공유 — SaveHistories 215/Add/Save/import 다경로가 호출). 저장은 `SaveHistories`(215, delete+reinsert). **Kind read 2곳·write 1곳(InsertHistories)에 추가**. `@kind` 루프 갱신 누락 주의(Phase 3 T2 quality MAJOR 교훈 — 파라미터는 루프 밖 1회 초기화, 루프 내 각 항목 값 갱신 필수).
+### 데이터 집계·영속화 (직접 Read)
+- **MainViewModel**(Presentation/ViewModels/MainViewModel.cs): `_allCards`(28, `List<ProjectCardViewModel>` 메모리 전체 프로젝트)·`GetAllProjectItemsWithHistories`(620-626, ToModel + `_projectRepository.GetHistories` per-project 로드)·`GetSettings`(661)·`GetProjectRepository`(663)·`SaveSettings`(236-242 → `_storageService.Save(_settings)`)·`SaveAppSettings`(665). **알림 집계 = `GetAllProjectItemsWithTodos`(신규, WithHistories 미러 — `_projectRepository.GetTodos(item.Id)`)**.
+- **IProjectRepository**(Domain/Repositories/IProjectRepository.cs:13): `List<TodoItem> GetTodos(string projectId)` — per-project Todo 조회(이미 존재, 신규 쿼리 불필요).
+- **AppSettings**(Domain/Entities/AppSettings.cs:7-50): Aggregate Root. `List<string>` 필드 선례 다수(TechStackTags·TaskCategories·HistoryKinds). **읽음 키 저장 = `List<string> ReadNotificationIds` 추가**(Phase 1 PageSize/HistoryKinds 선례 동형).
+- **JsonStorageService**(Infrastructure/Services/JsonStorageService.cs:10-44): `Load()`/`Save(AppSettings)` → `ApplicationData.Current.LocalSettings` JSON. **AppJsonContext**(Infrastructure/Services/AppJsonContext.cs): `[JsonSerializable(typeof(AppSettings))]` — AppSettings 전체 직렬화이므로 **필드 추가만으로 자동 커버**(Context 무수정).
+- **데이터 손실 검증**: `AppSettingsDialogViewModel.ApplyTo`(:379-406)는 전달받은 `settings` 객체를 **제자리 변경**(`settings.X = ...`, `new AppSettings()` 아님)하므로 설정 다이얼로그 저장 경로에서도 `ReadNotificationIds` 보존됨(매핑 불필요). LoadFrom/ApplyTo 수정 불필요.
 
-### UI·VM (직접 Read — FR-H3/H4 현황)
-- **HistoryDialogViewModel**(HistoryDialogViewModel.cs:82-216): SearchText·DateGroups(날짜 그룹)·HasEntries·AddEntry/UpdateEntry/DeleteEntry·`RebuildGroups`(검색 필터+날짜 GroupBy)·`ExportToMarkdown`·NewEntries·SaveToModel. **HistoryEntryViewModel**(30-79: 펼침 IsExpanded·DescriptionVisibility·ExpandChevron)·**HistoryDateGroup**(11-27) 동일 파일 정의(ProjectHistory도 공유).
-- **ProjectHistoryDialogViewModel**(ProjectHistoryDialogViewModel.cs:10-198): 위와 **거의 동일**(SearchText·DateGroups·CRUD·RebuildGroups·ExportToMarkdown) + `SelectedProject`/`Projects` ComboBox·`_modifiedProjectIds` 다중 저장(`SaveAll` 191-196). → **중복 로직이 베이스 추출 대상**.
-- **HistoryEntryDialogViewModel**(HistoryEntryDialogViewModel.cs): 등록/수정 다이얼로그 — Title/Description/CompletedAt·Validate·ToModel. **유형 없음** → 추가.
-- **HistoryDialog.xaml.cs**: 검색(SearchBox_TextChanged)·**인라인 새 기록 폼**(AddPanel/ToggleAddPanel/SaveAdd_Click 160-176)·펼침(EntryBorder_Tapped)·편집(중첩 ContentDialog, EditEntry_Click)·삭제·**마크다운 내보내기**(Export_Click 208). **유형 UI·페이지네이션 없음**. `OpenAddPanel`(83, Todo 완료 훅에서 호출).
-- **진입점**: 카드 "작업기록" → `OnOpenHistoryRequested`(DashboardView.xaml.cs:194-209) → `HistoryDialog`. MainWindow 헤더 "전체 작업 기록"(MainWindow.xaml.cs:474/543) → `ProjectHistoryDialog(projects, repo)`.
+### UI·네비 (직접 Read — explorer 확인 후 정독)
+- **페이지 네비**: `MainWindow.ShowPage(UIElement)`/`ShowDashboard()`(MainWindow.xaml.cs:508-521 — `DashboardContent.Content` 스왑 + `GroupTabsBar` Visibility 토글). 카드→페이지는 `DashboardView.xaml.cs:178-192`(`OnOpenTodoRequested` → `new TaskPage(card.CreateTaskPageViewModel(), Vm.GetSettings())` → `ShowPage`). **알림 페이지도 동일 패턴**.
+- **헤더**: `MainWindow.xaml:31-132` — `HeaderButtonsPanel`(StackPanel Orientation=Horizontal Spacing=6). 버튼 5개(SortButton·AllHistoryButton·ExportImportButton·AppSettingsButton·AddProjectButton), 각 36×36 Padding=0 + FontIcon + x:Uid. **벨 버튼 = ExportImportButton↔AppSettingsButton 사이 삽입**(Segoe MDL2 벨 글리프). Flyout은 기존 SortButton/ExportImportButton Flyout 패턴.
+- **"전체 작업 기록" 핸들러**(MainWindow.xaml.cs:536-550): `_viewModel.GetAllProjectItemsWithHistories()` + `new ProjectHistoryDialog(...)`. 헤더 버튼 핸들러 배선 선례.
+- **TaskPage 생성**: `TaskPageViewModel(ProjectItem, IProjectRepository, AppSettings, Action refreshCardState)`(TaskPageViewModel.cs:58-77), `TaskPage(TaskPageViewModel vm, AppSettings settings)`(TaskPage.xaml.cs:37-52), `ProjectCardViewModel.CreateTaskPageViewModel()`(:517-523, EnsureTodosLoaded 후 생성). **특정 작업 카드 포커스 기능 없음** — 사용자 결정(프로젝트 작업 페이지 열기)으로 신규 스크롤 인프라 불필요.
+- **ProjectCardViewModel 팩토리**(:517-551): Create{Task,Test}PageViewModel/CreateHistoryDialogViewModel — Ensure*Loaded 후 `_item`·`_repository`·`_settings`·콜백 주입.
 
 ### 재사용 (직접 Read)
-- **TagColorConverter**(Presentation/Converters/DevToolConverters.cs): 이름→결정론적 색(작업 카테고리 dot·테스트 스위트에서 재사용) → **유형 배지 색에 재사용**.
-- **페이지네이션**: 기존 구현 없음(신규). 날짜 그룹 유지 위에 페이지 슬라이스 계층 추가.
+- **TagColorConverter**(Presentation/Converters/DevToolConverters.cs): 이름→결정론적 색(작업 카테고리·유형 배지 재사용) → 프로젝트 그룹 헤더 색 dot 등에 재사용 가능(선택).
+- **페이지 헤더·뒤로가기·빈 상태 패턴**: TaskPage/TestPage XAML(헤더 ← 대시보드·제목·액션) → NotificationPage 레이아웃 재사용.
 
-## 시각 요소 분해 (작업 기록 다이얼로그 — 출처 PRD §3/§4, 목업 부재로 세부는 사용자 확인)
+## 시각 요소 분해 (알림 UI — 출처 PRD §3, 목업 부재로 세부는 사용자 확인)
 
 | 요소 | 속성 | 디자인 값 | 확인 방법 |
 |------|------|----------|-----------|
-| 유형 배지 | 표시 | 항목에 유형 배지(색+텍스트) | PRD §4 FR-H3 "유형 배지" |
-| 유형 배지 | 색 | 이름 기반 결정론적 색(TagColorConverter) | 작업 카테고리 dot 관례 재사용 |
-| 유형 선택 | 컨트롤 | 새 기록/편집 폼에 유형 ComboBox | PRD §4 FR-H1 "설정 유형에서 선택" |
-| 페이지 컨트롤 | 구성 | 이전/다음 버튼 + 페이지 번호 표시 | 사용자 결정(페이지 버튼) |
-| 페이지 크기 | 값 | PageSize(기본 100, 설정값) | PRD §4 FR-H2/FR-S1 |
-| 검색·날짜그룹·펼침·내보내기·인라인폼 | — | 기존 유지 | HistoryDialog 현행(기구현) |
+| 헤더 벨 버튼 | 크기·글리프 | 36×36 Padding=0 + Segoe MDL2 벨 글리프 | HeaderButtonsPanel 기존 버튼 관례 |
+| 안읽음 배지 | 표시 | 벨 우상단 안읽음 개수(색 점+숫자) | 사용자 결정(배지 표시) + PRD §3 읽음 추적 |
+| 드롭다운 패널 | 구성 | 요약 목록(상위 N) + "모든 알림 보기" 버튼 | PRD §4 FR-N3 |
+| 알림 페이지 헤더 | 구성 | ← 대시보드 · 제목 · "모두 읽음" | PRD §4 FR-N2 + TaskPage 헤더 관례 |
+| 프로젝트 그룹 | 구성 | 프로젝트명 헤더 + 소속 알림 항목 | PRD §4 FR-N2 "프로젝트별 그룹" |
+| 알림 항목 | 구성 | 작업 텍스트 · 마감상태 배지 · 종료일 · 읽음 표시 | PRD §3/§4 |
+| 마감상태 배지 | 색·라벨 | 임박/오늘/경과 3구분(경과 강조 코랄 #f0716a 계열) | PRD §3 팔레트 + WinUI idiom |
+| 읽음/안읽음 | 표시 | 안읽음 강조(점·굵기), 읽음 흐림 | PRD §3 읽음 추적 |
+| 빈 상태 | 표시 | "마감 임박 작업 없음" 안내 | TaskPage/TestPage 빈 상태 관례 |
 | 팔레트·폰트 | — | 배경 #131316·카드 #1c1c20·강조 코랄 #f0716a, Malgun Gothic | PRD §3(Phase 0 전역 적용 완료) |
-> 팔레트·폰트는 Phase 0 전역 적용. 신규 시각 요소(유형 배지·페이지 컨트롤)만 추가. 세부 레이아웃은 목업 부재 → WinUI idiom 후 사용자 확인.
+> 팔레트·폰트는 Phase 0 전역 적용. 신규 시각 요소(벨 배지·드롭다운·알림 페이지·마감상태 배지)만 추가. 세부 레이아웃·마감상태 배지 색은 목업 부재 → WinUI idiom 후 사용자 확인.
 
 ## Tasks
 
 ### 진행 체크리스트
-- [x] T1 — HistoryEntry 유형(Kind) 필드(도메인)
-- [x] T2 — Histories 영속화(Kind 컬럼 마이그레이션 + Repository)
-- [x] T3 — HistoryDialogViewModelBase 추출 + 페이지네이션·유형 필터
-- [x] T4 — 새 기록/편집 폼 유형 선택
-- [x] T5 — 페이지네이션 UI + 유형 배지 + restyle(두 다이얼로그)
+- [x] T1 — 알림 도메인 모델 + 마감 감지 서비스(순수)
+- [ ] T2 — 읽음 상태 영속화(AppSettings.ReadNotificationIds)
+- [ ] T3 — MainViewModel 집계·읽음 처리 + NotificationPageViewModel
+- [ ] T4 — NotificationPage 전체 페이지 + resw
+- [ ] T5 — 헤더 벨 버튼 + Flyout 드롭다운 + 배지 + MainWindow 배선
 
-### T1 — HistoryEntry 유형(Kind) 필드 (Type C)
-- **내용**: `Domain/Entities/HistoryEntry.cs`에 `string Kind`(빈=미분류, 작업 기록 유형) 추가. 한글 XML 주석. (HistoryEntry는 `ObservableObject` 아닌 POCO — 기존 관례 유지, Kind도 단순 프로퍼티.)
-- **Design**: 배치 = Domain(HistoryEntry.cs 단일). 신규 심볼 = `Kind` 프로퍼티(작업 기록 유형 기재). 의존 = 없음. 참조하는 곳 = T2 영속화·T3 VM(필터/배지)·T4 다이얼로그. 비추상화 = 유형을 enum·값 객체가 아닌 단순 string(작업 Category·테스트 Method 관례와 동형 — 사용자 정의 유형이 동적이라 문자열이 자연).
-- **Files**: `Domain/Entities/HistoryEntry.cs`
-- **Edge**: 기존 기록엔 Kind 없음 → 기본 빈 문자열(미분류). 빈 Kind는 배지 미표시(T5).
-- **Halt Forecast**: 없음(비파괴 필드 추가).
-- **Acceptance**: 빌드 0. HistoryEntry에 `Kind` 프로퍼티 존재(기본 빈 문자열).
+### T1 — 알림 도메인 모델 + 마감 감지 서비스 (Type C)
+- **내용**: (a) `Domain/Enums/DeadlineStatus.cs` — `Imminent`(D-3 임박)·`DueToday`(오늘 마감)·`Overdue`(경과). (b) `Domain/ValueObjects/Notification.cs` — 불변 record(`ProjectId`·`ProjectName`·`TodoId`·`TodoText`·`DateTime EndDate`·`DeadlineStatus Status`). (c) `Domain/Services/NotificationService.cs`(신규 폴더) — 순수 정적 `Detect(IEnumerable<ProjectItem> projects, DateTime today)` → `List<Notification>`(각 프로젝트 Todos에서 `EndDate!=null && Status!=Completed` 필터 → 경계 판정으로 DeadlineStatus 부여 → EndDate 오름차순). `BuildKey(Notification)` → `$"{TodoId}:{Status}"`(읽음 키). 한글 XML 주석.
+- **Design**: 배치 = Domain(Enums·ValueObjects·신규 Services 폴더). 신규 심볼 = `DeadlineStatus`(enum)·`Notification`(값 객체 — 마감 알림 1건의 불변 사실)·`NotificationService`(마감 감지 순수 로직·읽음 키 생성). 의존 = TodoItem·ProjectItem·TodoStatus만 참조(순수, Repository·UI·전역 상태 무의존 — DateTime today를 인자로 주입해 테스트/재현 가능). 참조하는 곳 = T3 MainViewModel/NotificationPageViewModel. 비추상화 = 감지를 인터페이스·DI 없이 **정적 순수 함수**로(도메인 서비스 첫 도입이나 상태·의존이 없어 클래스 상태·주입 불필요 — NFR-2 도메인 로직 배치와 정합, YAGNI). IsRead는 값 객체에 넣지 않음(읽음은 영속 상태 기반 표현 관심사 — T3 표현 계층에서 부여).
+- **Files**: `Domain/Enums/DeadlineStatus.cs`(신규), `Domain/ValueObjects/Notification.cs`(신규), `Domain/Services/NotificationService.cs`(신규)
+- **Edge**: EndDate null·완료(Status==Completed) → 제외. Todos 빈/전부 완료 → 빈 목록. 경계값: 남은일수 4+ → 제외, 3/2/1 → 임박, 0 → 오늘, 음수 → 경과(시각 무시, `EndDate.Date`와 `today.Date` 비교). 같은 날 여러 작업 → 각각 알림.
+- **Halt Forecast**: 없음(신규 순수 파일, 파괴적·외부 요소 없음).
+- **Acceptance**: 빌드 0. `NotificationService.Detect`가 EndDate 있는 미완료 작업만 D-3 임박/오늘/경과로 분류(코드 대조: 경계식·완료 제외·EndDate!=null). `BuildKey`=`작업Id:상태`. 신규 도메인 심볼 3종 존재.
 
-### T2 — Histories 영속화: Kind 컬럼 마이그레이션 + Repository (Type D)
-- **내용**: (a) `DatabaseContext`: `AllowedIdentifiers`에 `Kind` 추가. `MigrateSchema`에 `AddColumnIfNotExists(conn,"Histories","Kind","TEXT NOT NULL DEFAULT ''")`. `CREATE TABLE Histories`에 `Kind TEXT NOT NULL DEFAULT ''` 컬럼 추가. (b) `SqliteProjectRepository`: `InsertHistories`(582)에 Kind write(INSERT 컬럼/파라미터 + **루프 내 `@kind` 값 갱신** — 누락 시 항상 빈값 저장, Phase 3 T2 교훈), `GetHistories`(128)·`ReadHistoriesForProject`(869)에 Kind read(`HasColumn` 가드 — 없으면 빈값).
-- **Design**: 해당 없음 — 기존 마이그레이션·직렬화 경로(AddColumnIfNotExists/Insert/Read)에 컬럼·필드 추가만, 신규 공개 심볼 없음.
-- **Files**: `Infrastructure/Persistence/DatabaseContext.cs`, `Infrastructure/Persistence/SqliteProjectRepository.cs`
-- **Edge**: 구버전 DB(Kind 없음) → `AddColumnIfNotExists` 추가·read `HasColumn` false 시 빈값. 화이트리스트 미등록 Kind → T2 등록으로 ArgumentException 예방. `@kind` 루프 갱신 필수(silent data loss 방지).
-- **Halt Forecast**: 없음(NFR-3 비파괴 마이그레이션).
-- **Acceptance**: 빌드 0. Histories에 Kind 컬럼 마이그레이션. 저장→로드 왕복 시 Kind 보존(코드 대조: Insert 루프 `@kind` write, Get/Read가 Kind read). 구버전 DB 로드 시 예외 없음. depends T1.
+### T2 — 읽음 상태 영속화 (Type C)
+- **내용**: `Domain/Entities/AppSettings.cs`에 `List<string> ReadNotificationIds { get; set; } = []`(읽은 알림 키 = 작업Id:마감상태) 추가. 한글 XML 주석. **AppJsonContext 무수정**(AppSettings 전체 직렬화 자동 커버 — 근거 Investigation). **AppSettingsDialogViewModel.LoadFrom/ApplyTo 무수정**(ApplyTo 제자리 변경으로 보존 — 근거 Investigation).
+- **Design**: 해당 없음 — 기존 AppSettings Aggregate에 `List<string>` 필드 1개 추가만, 신규 공개 심볼(타입/메서드) 없음(Phase 1 HistoryKinds 선례 동형).
+- **Files**: `Domain/Entities/AppSettings.cs`
+- **Edge**: 구버전 저장 데이터(필드 없음) → JSON 역직렬화 시 기본 빈 리스트(초기자 `= []`). 읽음 키 누적 방지는 T3 재계산 시 프루닝(현재 알림 키와 교집합)으로 처리.
+- **Halt Forecast**: 없음(비파괴 영속화 필드 추가 — NFR-3 하위호환).
+- **Acceptance**: 빌드 0. AppSettings에 `ReadNotificationIds`(기본 빈 리스트) 존재. 직렬화/역직렬화 왕복 시 보존(AppJsonContext 자동 — 코드 대조로 Context·다이얼로그 매핑 무수정 확인).
 
-### T3 — HistoryDialogViewModelBase 추출 + 페이지네이션·유형 필터 (Type D)
-- **내용**: 신규 추상 `Presentation/ViewModels/HistoryDialogViewModelBase.cs`:
-  - 공통 이전: `SearchText`·`DateGroups`·`HasEntries`·`RebuildGroups`(검색 필터+날짜 GroupBy)·`AddEntry`/`UpdateEntry`/`DeleteEntry`/`RefreshAfterEdit`·`ExportToMarkdown`. 현재 엔트리 목록은 protected(`_entries`) + 추상 훅(`OnEntriesModified()` — 파생이 저장/수정표시 처리).
-  - **페이지네이션(FR-H2)**: 베이스 생성자에 **`int pageSize` 주입**(AppSettings는 전역 정적이 아니라 생성자 전파 방식 — 호출부가 보유한 `settings.PageSize`를 전달)·`CurrentPage`·`TotalPages`(필터 후 항목 수 / PageSize)·페이지 이동 커맨드(`PrevPage`/`NextPage`/`GoToPage`)·`PageInfoText`("N / M"). `RebuildGroups`가 **필터 → CurrentPage 슬라이스(PageSize) → 날짜 그룹핑** 순으로 재구성. 검색어 변경·항목 추가/삭제 시 CurrentPage 보정(범위 클램프).
-  - **유형(FR-H1)**: `AvailableKinds`(DefaultHistoryKinds + settings.HistoryKinds, cross-VM 정적 참조). `HistoryEntryViewModel`에 `Kind`·`KindVisibility`(빈이면 Collapsed) 노출(배지용).
-  - 파생: `HistoryDialogViewModel(ProjectItem, int pageSize)`(단일 프로젝트 — SaveToModel·NewEntries·OnEntriesModified=플래그 없음), `ProjectHistoryDialogViewModel(List<ProjectItem>, IProjectRepository, int pageSize)`(다중 — SelectedProject/Projects·SaveAll·OnEntriesModified=MarkModified). **두 생성자에 pageSize 파라미터 추가**(그 외 public 멤버 시그니처는 유지 — CRUD/검색/내보내기 호출부 무영향), **생성 호출부 4곳은 각자 보유한 settings.PageSize를 전달하도록 함께 갱신**한다.
-- **Design**: 배치 = Presentation/ViewModels(신규 베이스 파일 + 기존 2 VM 리팩터링 + 호출부 4파일). 신규 심볼 = `HistoryDialogViewModelBase`(공통 상태·검색·그룹·페이지네이션·유형·마크다운), 페이지 이동 커맨드·PageInfoText. 의존 = HistoryEntry·AppSettings.PageSize(int로 전달)·HistoryKinds·HistoryEntryViewModel/HistoryDateGroup(공유). 참조하는 곳 = 두 파생 VM·T4 다이얼로그·T5 XAML. 비추상화 = 공통 로직을 **추상 베이스로 이전**(제네릭·인터페이스 계층 없이 상속 1단계 — 두 VM만 존재). PageSize는 AppSettings 전체가 아닌 **int만 주입**(VM이 설정 객체 전체에 의존하지 않게 — 최소 결합). HistoryEntryViewModel/HistoryDateGroup은 이미 공유되므로 이동 없이 재사용, Kind 노출만 추가.
-- **Files**: `Presentation/ViewModels/HistoryDialogViewModelBase.cs`(신규), `Presentation/ViewModels/HistoryDialogViewModel.cs`, `Presentation/ViewModels/ProjectHistoryDialogViewModel.cs`, `Presentation/ViewModels/ProjectCardViewModel.cs`(CreateHistoryDialogViewModel:550 → `_settings.PageSize` 전달), `Presentation/Views/TaskPage.xaml.cs`(:179 완료 워크로그 팝업 → `_settings.PageSize`), `Presentation/Views/Dialogs/ProjectHistoryDialog.xaml.cs`(:20 생성자에 pageSize 파라미터 추가+VM 전달), `MainWindow.xaml.cs`(:543 `new ProjectHistoryDialog(projects, repo, _settings.PageSize)`)
-- **Edge**: 빈 기록 → 0 페이지(또는 1/1 빈). 검색으로 항목 급감 → CurrentPage 범위 초과 시 마지막 페이지로 클램프. 항목 추가/삭제 후 TotalPages 재계산. PageSize 큰데 항목 적음 → 1페이지. 프로젝트 전환(ProjectHistory) 시 CurrentPage=1 리셋. 유형 목록에 없는 기존 Kind → 배지엔 원 이름 표시(필터/선택 목록엔 없어도 무방).
-- **Halt Forecast**: 없음 — 두 VM 생성자 시그니처 변경(pageSize 추가)은 호출부 4곳을 같은 task에서 함께 갱신하므로 계획된 cross-file 범위 내(파괴적·외부 요소 없음).
-- **Acceptance**: 빌드 0. 베이스에 검색·날짜그룹·CRUD·마크다운·페이지네이션(CurrentPage/TotalPages/이동)·유형 노출 존재. 두 파생 VM이 상속, 생성자에 pageSize 추가되고 호출부 4곳(ProjectCardVM·TaskPage·ProjectHistoryDialog·MainWindow)이 settings.PageSize 전달하도록 갱신됨(코드 대조). CRUD/검색/내보내기 등 그 외 public 멤버 시그니처 유지. 필터→페이지 슬라이스→날짜그룹 순 재구성(코드 대조). depends T1.
+### T3 — MainViewModel 집계·읽음 처리 + NotificationPageViewModel (Type D)
+- **내용**:
+  - `MainViewModel`: (a) `GetAllProjectItemsWithTodos()`(WithHistories 미러 — ToModel + `_projectRepository.GetTodos(item.Id)` per-project). (b) `RebuildNotifications()` — WithTodos + `NotificationService.Detect(projects, DateTime.Now)` → 최신 알림 목록 보관 + `UnreadNotificationCount`([ObservableProperty], 안읽음=키 미포함) 갱신 + **읽음 키 프루닝**(`ReadNotificationIds` ∩ 현재 알림 키, 변경 시 SaveSettings). (c) `MarkNotificationRead(Notification)`/`MarkAllNotificationsRead(IEnumerable<Notification>)` — `ReadNotificationIds`에 키 추가 → SaveSettings → UnreadNotificationCount 갱신. (d) `IReadOnlyList<Notification> GetCurrentNotifications()`·`IReadOnlySet<string> GetReadKeys()`(페이지/패널 소비). (e) `TaskPageViewModel? CreateTaskPageViewModelForProject(string projectId)`(`_allCards`에서 id 매칭 카드 → CreateTaskPageViewModel; 없으면 null). 초기 로드 완료 시점에 `RebuildNotifications` 1회 호출(배지 초기값).
+  - `Presentation/ViewModels/NotificationPageViewModel.cs`(신규): 알림 목록 + 읽음 키를 받아 **프로젝트별 그룹**(`NotificationProjectGroup` record: ProjectName + `List<NotificationItemViewModel>`) 구성. `NotificationItemViewModel`(ObservableObject): Notification 래핑 + `IsRead`([ObservableProperty]) + 마감상태 배지 표시용 노출(라벨·`DeadlineStatus`). 커맨드: `MarkRead`(항목)·`MarkAllRead`·`OpenTask`(항목 → 프로젝트 이동 이벤트). 읽음 처리는 MainViewModel 콜백(생성자 주입 `Action<Notification> markRead`·`Action markAll`·`Action<string> navigateToProject` — TaskPageViewModel의 `Action refreshCardState` 주입 선례). `HasNotifications`/빈 상태.
+- **Design**: 배치 = Presentation/ViewModels(신규 NotificationPageViewModel + MainViewModel 확장) + Domain 소비. 신규 심볼 = `NotificationPageViewModel`(그룹·읽음·이동)·`NotificationItemViewModel`(항목 읽음 상태)·`NotificationProjectGroup`(그룹 record)·MainViewModel 공개 메서드(WithTodos·RebuildNotifications·MarkNotificationRead/All·GetCurrentNotifications·GetReadKeys·CreateTaskPageViewModelForProject)·`UnreadNotificationCount`. 의존 = NotificationService·Notification(T1)·AppSettings.ReadNotificationIds(T2)·GetTodos·TaskPageViewModel. 참조하는 곳 = T4 NotificationPage·T5 헤더/MainWindow. 비추상화 = 그룹/항목은 record + ObservableObject(신규 컬렉션 프레임워크·제네릭 계층 없이 HistoryDateGroup·TestSuiteGroup 선례 동형). 읽음 저장은 MainViewModel이 단일 소유(`_settings.ReadNotificationIds` + SaveSettings) — VM은 콜백으로 위임(영속 소유 분산 방지). 이동은 특정 카드 포커스 없이 **프로젝트 작업 페이지 열기**(사용자 결정 — ScrollToItem 신규 인프라 회피).
+- **Files**: `Presentation/ViewModels/MainViewModel.cs`, `Presentation/ViewModels/NotificationPageViewModel.cs`(신규)
+- **Edge**: 알림 0건 → 빈 그룹·UnreadCount 0. 읽은 뒤 마감 악화(임박→오늘) → 새 키라 안읽음 재등장(재환기, 사용자 결정). 작업 삭제/완료 → 다음 RebuildNotifications에서 소멸 + 프루닝으로 읽음 키 정리. 프로젝트 다수·Todos 다수 → per-project GetTodos 반복(초기 1회 + 열 때 재계산, 성능은 사용자 확인). 이동 대상 카드 없음(삭제됨) → null 가드(무동작). "모두 읽음"은 현재 표시 알림 전체 대상.
+- **Halt Forecast**: 없음 — MainViewModel 공개 메서드 추가·신규 VM은 계획된 Files 내 cross-file(파괴적·외부 요소 없음). 기존 public 시그니처 변경 없음(추가만).
+- **Acceptance**: 빌드 0. RebuildNotifications가 전체 프로젝트 Todo를 로드해 알림 집계·UnreadNotificationCount 설정·읽음 키 프루닝(코드 대조). MarkNotificationRead/All이 ReadNotificationIds 갱신 + SaveSettings 호출. NotificationPageViewModel이 프로젝트별 그룹·항목 IsRead·이동/읽음 커맨드 노출. CreateTaskPageViewModelForProject가 id로 카드 조회. depends T1, T2.
 
-### T4 — 새 기록/편집 폼 유형 선택 (Type C)
-- **내용**: (a) `HistoryDialog.xaml`/`ProjectHistoryDialog.xaml` 인라인 새 기록 폼(AddPanel)에 유형 ComboBox(`AddKindCombo`, x:Uid) 추가. (b) 코드비하인드(`.xaml.cs`)에 `InitKindCombo`("미분류"+AvailableKinds 구성)·`KindFromCombo`(미분류→빈) 헬퍼, 생성자·`OpenAddPanel`·`ToggleAddPanel_Click`에서 초기화·리셋, `SaveAdd_Click`이 Kind 반영해 `AddEntry`, `EditEntry_Click`(중첩 편집 다이얼로그)에 유형 ComboBox 추가 → `UpdateEntry`에 Kind 전달. (c) `UpdateEntry` 시그니처에 kind 파라미터 추가(베이스 + 호출부 2곳). **※ `HistoryEntryDialogViewModel`은 소스 미참조 고아(정의만 존재)라 이번 수정 대상 아님 — 실제 UI는 위 인라인 폼/중첩 편집 코드비하인드. 고아는 Deferred.**
-- **Design**: 배치 = Presentation(ViewModels 베이스 + Views.Dialogs 코드비하인드/XAML). 신규 심볼 = `InitKindCombo`/`KindFromCombo`(두 코드비하인드 대칭 헬퍼). 의존 = AppSettings 유형(base.AvailableKinds, T3)·HistoryEntry.Kind(T1)·base.AddEntry/UpdateEntry(T3). 참조하는 곳 = 두 다이얼로그 자체. 비추상화 = 유형 선택은 표준 ComboBox("미분류"+목록, 신규 컨트롤 없음), 인라인 폼·중첩 편집 다이얼로그는 기존 패턴에 필드 추가만. 헬퍼는 두 코드비하인드에 각각 두어(대칭 2곳) 공용 추출 안 함 — 3회 미만·다이얼로그 지역성 유지.
-- **Files**: `Presentation/ViewModels/HistoryDialogViewModelBase.cs`(UpdateEntry kind 파라미터), `Presentation/Views/Dialogs/HistoryDialog.xaml`(+`.cs`), `Presentation/Views/Dialogs/ProjectHistoryDialog.xaml`(+`.cs`), `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`
-- **Edge**: 유형 미선택 → 빈(미분류) 허용. 편집 시 기존 Kind가 목록에 없으면(삭제된 유형) 그 값 표시 유지 or 미분류. 빈 제목 → 기존 검증 유지.
-- **Halt Forecast**: 없음 — 유형 ComboBox·필드 추가와 UpdateEntry kind 파라미터 전파(베이스+두 VM+양 코드비하인드, 같은 task Files)뿐, 파괴적·외부 요소 없음.
-- **Acceptance**: 빌드 0. 새 기록/편집 폼에 유형 ComboBox 표시, 저장 시 HistoryEntry.Kind 반영. depends T3, T1.
+### T4 — NotificationPage 전체 페이지 + resw (Type D)
+- **내용**: `Presentation/Views/NotificationPage.xaml`(+`.cs`) 신규 — 헤더(← 대시보드[Back_Click → ShowDashboard]·제목·"모두 읽음" 버튼[MarkAllRead])·프로젝트별 그룹 목록(그룹 헤더 프로젝트명 + 항목 카드)·항목 카드(작업 텍스트·마감상태 배지[색+라벨, 임박/오늘/경과]·종료일·안읽음 강조·클릭 시 OpenTask 이동)·빈 상태("마감 임박 작업 없음"). 생성자 `NotificationPage(NotificationPageViewModel vm)`. 로컬라이즈(x:Uid/.resw ko·en) 신규 문자열(제목·모두 읽음·마감상태 라벨 3종·빈 상태). 마감상태 배지 색은 정적 헬퍼/컨버터(TestPage 상태 색 헬퍼 패턴 — x:Bind 함수 Brush 직접 반환).
+- **Design**: 배치 = Presentation/Views(신규 페이지 XAML+코드비하인드) + Strings. 신규 심볼 = `NotificationPage`(전체 페이지 View)·마감상태→색/라벨 표시 헬퍼. 의존 = NotificationPageViewModel(T3)·마감상태 배지 색·TaskPage 헤더 관례. 참조하는 곳 = T5(헤더 "모든 알림 보기"·MainWindow ShowPage). 비추상화 = 페이지는 TaskPage/TestPage 레이아웃 관례 재사용(신규 네비 프레임워크 없음), 배지 색은 정적 헬퍼(신규 컨버터 최소화 — TestPage 선례).
+- **Files**: `Presentation/Views/NotificationPage.xaml`(신규), `Presentation/Views/NotificationPage.xaml.cs`(신규), `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`, `DevDashboard_WinUI.csproj`(신규 Page 등록 — 자동 include 여부 확인 후 필요 시)
+- **Edge**: 알림 0 → 빈 상태 표시(그룹·"모두 읽음" 숨김 또는 비활성). 긴 작업 텍스트 → 트리밍. 안읽음/읽음 시각 구분. 경과 항목 강조(코랄 계열). 항목 클릭 → 이동 후 페이지 전환.
+- **Halt Forecast**: 없음 — XAML 페이지·resw 추가, 파괴적·외부 요소 없음. csproj Page include는 기존 관례(Phase 2/3 TaskPage/TestPage 추가 선례).
+- **Acceptance**: 빌드 0. NotificationPage가 프로젝트별 그룹·마감상태 배지·읽음 표시·"모두 읽음"·빈 상태 렌더, 항목 클릭 시 이동 커맨드 호출. resw ko/en 신규 키 등록. **시각 렌더는 사용자 확인 필요.** depends T3.
 
-### T5 — 페이지네이션 UI + 유형 배지 + restyle (Type D)
-- **내용**: `HistoryDialog.xaml`·`ProjectHistoryDialog.xaml`: (a) **유형 배지**: 항목 DataTemplate에 Kind 배지(TagColorConverter 색 dot/pill + Kind 텍스트, `KindVisibility`로 빈이면 숨김). (b) **페이지 컨트롤**: 하단에 이전/다음 버튼 + `PageInfoText`("N / M") + (선택)페이지 번호. `PrevPage`/`NextPage` 커맨드 바인딩. (c) restyle: Phase 0 팔레트 정합 확인, 검색·날짜그룹·펼침·내보내기·인라인폼은 기존 유지. 로컬라이즈(x:Uid/.resw ko·en) 신규 문자열(유형 라벨·페이지 컨트롤).
-- **Design**: 배치 = Presentation/Views/Dialogs(두 XAML + 필요 시 코드비하인드). 신규 심볼 = 유형 배지 요소·페이지 컨트롤 요소(XAML). 의존 = 베이스 VM 페이지네이션/유형(T3)·TagColorConverter·HistoryEntryViewModel.Kind. 비추상화 = 페이지 컨트롤은 표준 Button+TextBlock(커스텀 페이저 컨트롤 미신설), 배지는 작업 카드 배지 패턴 재사용(신규 컨버터 없음).
-- **Files**: `Presentation/Views/Dialogs/HistoryDialog.xaml`, `Presentation/Views/Dialogs/ProjectHistoryDialog.xaml`, `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`, (필요 시) 각 `.xaml.cs`
-- **Edge**: 1페이지뿐 → 이전/다음 비활성(또는 컨트롤 숨김). 빈 기록 → 페이지 컨트롤 숨김·빈 상태 표시. 긴 유형명 → 배지 트리밍. 유형 없는 기존 항목 → 배지 미표시.
-- **Halt Forecast**: 없음 — XAML 배지/페이지 컨트롤 추가·기존 바인딩 확장뿐, 파괴적·외부 요소 없음.
-- **Acceptance**: 빌드 0. 두 다이얼로그에 유형 배지·페이지 컨트롤(이전/다음+번호) 표시, 페이지 이동 동작. **시각 렌더는 사용자 확인 필요.** depends T3, T4.
+### T5 — 헤더 벨 버튼 + Flyout 드롭다운 + 배지 + MainWindow 배선 (Type D)
+- **내용**: (a) `MainWindow.xaml`: `HeaderButtonsPanel`의 ExportImportButton↔AppSettingsButton 사이에 `NotificationButton`(36×36 + 벨 FontIcon + x:Uid) 추가, 우상단 **안읽음 개수 배지**(UnreadNotificationCount>0일 때 표시, 색 점+숫자), 버튼에 `Flyout` 드롭다운 패널(요약 목록 상위 N + "모든 알림 보기" 버튼·빈 상태). 배지·요약은 `_viewModel`(UnreadNotificationCount·GetCurrentNotifications) 바인딩. (b) `MainWindow.xaml.cs`: Flyout Opening 시 `_viewModel.RebuildNotifications()`(최신화) + 요약 갱신, "모든 알림 보기" → `new NotificationPage(new NotificationPageViewModel(...))` 구성 후 `ShowPage`, 항목 이동 이벤트 → `_viewModel.CreateTaskPageViewModelForProject(id)` → `new TaskPage(vm, settings)` → `ShowPage`(카드→페이지 선례). 요약 항목/페이지가 공유하는 NotificationPageViewModel 구성 헬퍼. (c) resw(ko/en) 신규 문자열(벨 툴팁·"모든 알림 보기"·빈 상태). 아이콘 버튼 접근성 `ToolTipService.ToolTip`(Phase 4 T5 교훈).
+- **Design**: 배치 = Presentation(MainWindow XAML/코드비하인드) + Strings. 신규 심볼 = `NotificationButton`·드롭다운 Flyout 패널·배지 요소(XAML)·MainWindow 핸들러(Flyout 열기·모든 알림 보기·항목 이동)·NotificationPageViewModel 구성 헬퍼. 의존 = MainViewModel(T3 UnreadNotificationCount·RebuildNotifications·GetCurrentNotifications·CreateTaskPageViewModelForProject)·NotificationPage(T4)·ShowPage. 비추상화 = 벨/Flyout은 기존 헤더 버튼·SortButton Flyout 패턴 재사용(신규 컨트롤 없음), 배지는 표준 Border+TextBlock(커스텀 배지 컨트롤 미신설). 이동은 카드→페이지 선례 재사용.
+- **Files**: `MainWindow.xaml`(프로젝트 루트), `MainWindow.xaml.cs`(프로젝트 루트), `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`
+- **Edge**: 안읽음 0 → 배지 숨김. 프로젝트 없음(HasAnyProjects false) → 벨 무알림·빈 상태. 드롭다운 요약 다수 → 상위 N만(예: 5) + "모든 알림 보기". Flyout 열 때마다 재계산(최신 반영). 이동 대상 카드 없음 → null 가드. 배지 개수 큰 값 → 표시 상한(예: "9+").
+- **Halt Forecast**: 없음 — 헤더 버튼/Flyout/배지 추가·MainWindow 핸들러 배선, 파괴적·외부 요소 없음.
+- **Acceptance**: 빌드 0. 헤더에 벨 버튼·안읽음 배지(개수)·드롭다운(요약 + "모든 알림 보기") 표시, 열 때 재계산. "모든 알림 보기" → NotificationPage 전환, 항목 클릭 → 해당 프로젝트 TaskPage 이동. resw ko/en 등록. **시각 렌더는 사용자 확인 필요.** depends T3, T4.
 
 ## PRD Coverage
 | PRD ID | 우선순위 | 대응 task | 상태 |
 |--------|---------|----------|------|
-| FR-H1 (유형 필드·설정 선택·영속화) | Must | T1, T2, T4 | ✅ 커버 |
-| FR-H2 (페이지네이션·PageSize 소비) | Must | T3(로직), T5(UI) | ✅ 커버 |
-| FR-H3 (restyle·검색·유형 배지·날짜 그룹·펼침·내보내기·인라인 폼) | Must | T4(유형 선택), T5(유형 배지·restyle) | ✅ 커버(검색/그룹/펼침/내보내기/인라인폼 기존 유지) |
-| FR-H4 (HistoryDialog·ProjectHistoryDialog 중복 정리) | Should | T3(공통 베이스 추출) | ✅ 커버(D-5 공통 컴포넌트화) |
-| FR-C*·S*·T*·E* | — | (Phase 0~3 완료) | ✅ 이전 Phase 기구현 |
-| FR-N* | — | (Phase 5) | ⏭️ 다음 Phase |
+| FR-N1 (마감 감지 — D-3/오늘/경과, 완료 제외) | Must | T1, T3(집계) | ✅ 커버 |
+| FR-N2 (알림 전체 페이지 — 그룹·읽음·모두읽음·이동) | Must | T3(VM), T4(페이지) | ✅ 커버 |
+| FR-N3 (헤더 드롭다운 패널 — 요약 + 모든 알림 보기) | Must | T5 | ✅ 커버 |
+| FR-N4 (읽음 상태 영속화) | Must | T2(저장), T3(처리) | ✅ 커버 |
+| FR-C*·S*·T*·E*·H* | — | (Phase 0~4 완료) | ✅ 이전 Phase 기구현 |
 
 ## 4-D 재사용 확인
 | 신규 심볼 | 유사 기존 구현 검색 결과 | 재사용/신규 사유 |
 |---|---|---|
-| HistoryDialogViewModelBase | HistoryDialogViewModel·ProjectHistoryDialogViewModel(거의 동일 로직) | **공통 추출**(D-5, 중복 제거 — 두 VM 상속) |
-| 유형 배지 색 | TagColorConverter(작업 카테고리 dot·테스트 스위트) | **재사용**(이름→결정론적 색) |
-| 유형 소스 | AppSettingsDialogViewModel.DefaultHistoryKinds + settings.HistoryKinds | **재사용**(cross-VM 정적 참조, Phase 2/3 선례) |
-| 페이지네이션 | (없음) | **신규**(날짜 그룹 위 페이지 슬라이스, 표준 Button 페이저) |
-| HistoryEntryViewModel/HistoryDateGroup | 기존(HistoryDialogViewModel.cs 정의, 양 VM 공유) | **재사용**(Kind 노출만 추가) |
-| 유형 선택 컨트롤 | 기존 ComboBox 패턴(작업/테스트 다이얼로그) | **재사용**(표준 ComboBox) |
+| NotificationService | (없음 — Domain/Services 폴더 부재) | **신규**(마감 감지 순수 로직, 첫 도메인 서비스 — 정적 순수) |
+| Notification / DeadlineStatus | (없음) | **신규**(알림 값 객체·마감상태 enum) |
+| GetAllProjectItemsWithTodos | MainViewModel.GetAllProjectItemsWithHistories(동형 로더) | **미러 신규**(Histories→Todos, GetTodos 재사용) |
+| NotificationPageViewModel/Item/Group | HistoryDateGroup·TestSuiteGroup·TaskPageViewModel(그룹+항목 VM 패턴) | **신규**(패턴 재사용, 알림 도메인 전용) |
+| NotificationPage | TaskPage·TestPage(전체 페이지 + ShowPage 네비) | **패턴 재사용 신규**(헤더·빈상태·네비 관례) |
+| 헤더 벨 버튼·Flyout·배지 | HeaderButtonsPanel 버튼·SortButton Flyout | **패턴 재사용**(신규 컨트롤 없음) |
+| 마감상태 배지 색 | TestPage 상태 색 정적 헬퍼(통과/실패/미실행) | **패턴 재사용**(정적 Brush 헬퍼) |
+| CreateTaskPageViewModelForProject | ProjectCardViewModel.CreateTaskPageViewModel | **재사용**(id로 카드 조회 후 위임) |
 
 ## Decisions
-- **D1 유형 표현**: HistoryEntry.Kind = string(빈=미분류). enum·값 객체 아님. Source: 작업 Category·테스트 Method 문자열 관례 + 사용자 정의 유형 동적.
-- **D2 유형 소스**: `AppSettingsDialogViewModel.DefaultHistoryKinds`(기능/수정/리팩터링/문서) + `settings.HistoryKinds` 정적 참조. Source: Phase 2/3 cross-VM 정적 참조 선례.
-- **D3 FR-H4 정리 방식(D-5)**: 공통 추상 `HistoryDialogViewModelBase` 추출, 두 VM 상속(다이얼로그는 유지). Source: 사용자 결정(2026-07-19) + PRD D-5 기본 제안.
-- **D4 페이지네이션 UX**: 페이지 버튼(이전/다음+번호), PageSize 단위 슬라이스 후 날짜 그룹핑. Source: 사용자 결정(2026-07-19).
-- **D5 유형 배지 색**: TagColorConverter(이름→결정론적 색) 재사용. Source: 작업 카테고리 dot 관례.
-- **D6 restyle 범위**: 신규(유형 배지·페이지 컨트롤)만 추가, 검색·날짜그룹·펼침·내보내기·인라인폼은 기존 유지(이미 FR-H3 상당수 구현). Source: HistoryDialog 현행 코드.
-- **D7 브랜치**: Phase 3를 master 병합(별도 승인) 후 Phase 4 새 브랜치. Source: 사용자 결정(2026-07-19).
+- **D1 마감 감지 경계**: `EndDate.Date` vs `today.Date` 남은일수 — 3/2/1=임박, 0=오늘, 음수=경과, 4+ 제외. Status==Completed·EndDate==null 제외. Source: PRD §3 "D-3 임박 + 오늘 마감 + 경과, 완료 제외"(자체 확정).
+- **D2 읽음 키 = 작업Id + 마감상태(재환기)**: 키=`{TodoId}:{DeadlineStatus}`. 마감 악화(임박→오늘→경과) 시 새 키라 안읽음 재등장. Source: 사용자 결정(2026-07-19).
+- **D3 읽음 키 누적 방지**: RebuildNotifications 시 ReadNotificationIds를 현재 알림 키와 교집합으로 프루닝(변경 시 저장). Source: D2 재환기로 키 누적 → 경계 유지 위해 자체 확정(현재 알림에 없는 키는 해당 (작업,상태) 소멸이라 안전).
+- **D4 클릭 이동 = 프로젝트 작업 페이지 열기**: 특정 작업 카드 스크롤/포커스 없이 해당 프로젝트 TaskPage 전환(ShowPage 재사용). Source: 사용자 결정(2026-07-19).
+- **D5 벨 배지 = 안읽음 개수 표시**: 벨 우상단 개수 배지(0이면 숨김). Source: 사용자 결정(2026-07-19).
+- **D6 감지 로직 위치 = Domain/Services 정적 순수**: DI·인터페이스 없이 정적 함수(상태·의존 없음). Source: NFR-2(도메인 로직 Domain 배치) + 기존 무 DI-서비스 관례 + YAGNI(자체 확정).
+- **D7 읽음 상태 저장 = AppSettings.ReadNotificationIds(List\<string\>)**: 신규 테이블 없이 AppSettings JSON 영속(AppJsonContext 자동). Source: Phase 1 HistoryKinds/PageSize 선례(자체 확정).
+- **D8 알림 갱신 시점 = 초기 로드 1회 + 드롭다운/페이지 열 때 + 읽음/작업 변경 후 재계산**: 파생 데이터라 온디맨드 재계산, 배지 초기값은 로드 후 1회. Source: 파생 특성 + 배지 표시 요구(자체 확정).
+- **D9 단위 테스트 미추가**: 테스트 프로젝트 부재 — 현행 유지(빌드+사용자 확인 검증). Source: 사용자 결정(2026-07-19) + Phase 0~4 일관.
+- **D10 브랜치**: master 기준 새 브랜치 `task/phase5-notifications`. Source: Phase 3/4 선례(Phase별 새 브랜치).
 
 ## Open Questions
-- [x] FR-H4 중복 정리 방식(D-5) → **공통 베이스 VM 추출**. (D3)
-- [x] FR-H2 페이지네이션 UX → **페이지 버튼(이전/다음+번호)**. (D4)
-- [x] 브랜치 전략 → **Phase 3 master 병합 후 Phase 4 새 브랜치**. (D7)
-- [x] 유형 배지 색·마이그레이션 기본값 → **TagColorConverter 재사용·빈(미분류)**(자체 확정). (D1/D5)
+- [x] 읽음/안읽음 추적 키 → **작업Id + 마감상태(재환기)**. (D2)
+- [x] 알림 클릭 이동 범위 → **프로젝트 작업 페이지 열기**. (D4)
+- [x] 헤더 벨 안읽음 개수 배지 → **표시**. (D5)
+- [x] NotificationService 단위 테스트 → **미추가(현행 유지)**. (D9)
+- [x] 감지 경계·로직 위치·저장 위치·갱신 시점 → **자체 확정**(D1/D3/D6/D7/D8).
 
 ## 사전 승인 항목 (일괄 승인 대상)
-- **DB 스키마 비파괴 확장**(T2): Histories에 Kind 컬럼 추가(AddColumnIfNotExists+화이트리스트) + Insert/Get/Read 매핑 확장.
-- **도메인 확장**(T1): HistoryEntry에 Kind 필드 추가(비파괴).
-- **VM 구조 리팩터링**(T3): `HistoryDialogViewModelBase` 추상 클래스 추출 + 두 VM 상속 전환(기존 public 멤버 시그니처 유지 — 내부 구조 변경). `UpdateEntry`에 kind 파라미터 추가(T4, 양 VM·호출부 함께 갱신).
-- .resw 신규 문자열 추가(ko/en) — 유형 라벨·페이지 컨트롤.
+- **도메인 확장**(T1): 신규 `Domain/Services/` 폴더 + `NotificationService`·`Notification`·`DeadlineStatus`(비파괴 신규 심볼).
+- **영속화 필드 추가**(T2): AppSettings에 `ReadNotificationIds`(List\<string\>) 추가(비파괴, AppJsonContext 자동).
+- **VM 공개 API 확장**(T3): MainViewModel 신규 공개 메서드·`UnreadNotificationCount` 추가(기존 시그니처 무변경 — 추가만). 신규 NotificationPageViewModel.
+- **신규 페이지·헤더 배선**(T4/T5): NotificationPage 신규 등록, 헤더 벨 버튼/Flyout/배지 추가.
+- .resw 신규 문자열 추가(ko/en) — 알림 제목·모두 읽음·마감상태 라벨·벨 툴팁·빈 상태.
 
 ## 불가피한 Halt (위임 불가)
-- **Phase 3 master 병합**(구현 착수 전제): push/병합은 자율 루프 권한 밖 — 별도 승인·실행. plan 승인과 별개.
-- commit/push는 구현·검증 후 별도 승인.
+- commit/push는 구현·검증 후 별도 승인. master 병합·태그·릴리즈·PR은 이 위임에 미포함.
+- 새 브랜치 `task/phase5-notifications` 생성 + 로컬 작업 commit(체크포인트·task 완료)은 implement-task 위임 범위(plan 승인 포함). push·병합만 별도.
 
 ## Deferred / Follow-up
-- [SUGGEST] `InitKindCombo`/`KindFromCombo` 헬퍼가 HistoryDialog·ProjectHistoryDialog 코드비하인드 2곳에 대칭 중복(3회 미만이라 현재 결함 아님) — 3번째 사용처 생기면 공용 static helper로 추출(T4 quality S1).
-- [Follow-up] `Presentation/ViewModels/HistoryEntryDialogViewModel.cs` — 소스 미참조 고아(정의만 존재, 실제 UI는 인라인 폼/중첩 편집 코드비하인드가 담당). T4에서 미수정, 별도 정리 세션.
-- README/스크린샷 갱신(Phase 4 시각 확인 후).
-- Todo*/Test* 구 resw 고아·TestDateGroup 정리(Phase 2/3 이월, 대장 등재) — 별도 세션.
-- [F-7 MINOR m1] FR-H1 "작업 기록 유형(+작업 카테고리)에서 선택"의 카테고리 소스 병합 여부 → **사용자 결정(2026-07-19): 현행 유지**(HistoryKinds만 사용, TaskCategories 미병합). 종결.
-- [F-7 MINOR m2] `ExportToMarkdown`이 Kind 미포함(제목·설명·등록일만). 유형이 신규 1급 필드가 됐으므로 마크다운 내보내기에 유형 포함 검토(요구 명세 없음 — 일관성 follow-up).
+- [교차 작업/테스트 집계 페이지](PRD D-2) — 유관하나 별개(알림은 FR-N2 전용). 대장 유지.
+- README/스크린샷 갱신(Phase 5 시각 확인 후) — 리디자인 5개 영역 완료 시점에 통합 갱신 검토.
+- Todo*/Test* 구 resw 고아·`TestDateGroup`·`HistoryEntryDialogViewModel`·`InitKindCombo`/`KindFromCombo` 중복 정리(Phase 2/3/4 이월, 대장 등재) — 별도 세션.
+- 알림 요약 상위 N 개수·배지 상한("9+") 등 세부 수치는 시각 확인 시 조정 가능(순수 값, 후속).
 
 ## Out of Scope (이 Phase)
-- 알림(Phase 5).
-- git 커밋 ↔ 작업 기록 자동 연동(PRD §7 영구 제외).
-- 작업 기록의 페이지 전환(PRD §1 — 작업 기록은 다이얼로그 유지, 페이지 아님).
+- git 커밋 ↔ 작업/알림 자동 연동(PRD §7 영구 제외).
+- 실제 OS 토스트/윈도우 알림 센터 연동(PRD 범위 밖 — 인앱 알림만).
+- 특정 작업 카드 스크롤/하이라이트 포커스(D4로 프로젝트 페이지 열기 채택 — 신규 인프라 미도입).
+- 범용 교차 프로젝트 집계 페이지(D-2, Deferred).
+- 구버전 설정 export를 import해 AppSettings가 통째 교체되는 경우 `ReadNotificationIds`가 기본값(빈)으로 리셋될 수 있음 — **양성(읽음 상태 재설정) 허용**, 별도 마이그레이션 미도입(plan-reviewer m2).
 
 ## Progress Log
-- T1-T2 완료 (커밋 fe41fa3, d0774ad): T1 HistoryEntry.Kind 필드(POCO). T2 DB Kind 컬럼 마이그레이션(AddColumnIfNotExists+화이트리스트+CREATE)·Repository InsertHistories(@kind 루프 갱신)·GetHistories/ReadHistoriesForProject Kind read(HasColumn 가드). 빌드 OK. Phase 3 T2 @method 루프 누락 회귀 없음 확인.
-  - 착수 전 Phase 3를 master `--no-ff` 병합(사용자 승인), task/phase4-history 브랜치(master 기준)에서 진행.
-- T3-T4 완료 (커밋 003f566, 다음): T3 HistoryDialogViewModelBase 추출(공통 로직+페이지네이션+유형)·두 VM 상속·생성자 pageSize 주입·호출부 4곳. T4 두 다이얼로그 인라인/편집 폼에 유형 ComboBox(InitKindCombo/KindFromCombo)·base.UpdateEntry kind 파라미터·resw 2키. 빌드 OK.
-  - 결정: HistoryEntryDialogViewModel이 미사용 고아라 plan Files 정정(실제 UI 코드비하인드 대상), 고아는 Deferred. base는 (pageSize:int, kinds:list) 주입·파생이 AppSettings 분해(reviewer B1 해결의 정합 구현).
-  - 리뷰: T3 quality MAJOR(ProjectHistoryDialogViewModel BOM 손실) BOM 복원 후 통과. T4 SUGGEST(헬퍼 2곳 대칭 중복)→Deferred.
-- T5 완료: 두 다이얼로그 XAML에 유형 배지(Ellipse TagColor dot + Kind 텍스트, KindVisibility 숨김)·페이지 컨트롤(이전/다음 버튼 + PageInfoText, HasEntries로 숨김). 빌드 OK.
-  - 리뷰: quality MAJOR(페이지 버튼 접근성 ToolTip 누락)→base에 PrevPageTooltip/NextPageTooltip(LocalizationService.Get) 추가·두 XAML ToolTipService.ToolTip 바인딩·resw ko/en HistoryPage_PrevPage/NextPage 2키 추가로 해소. 재리뷰 spec/quality 모두 OK.
-  - V-9 시각 렌더(배지 색·정렬·페이지 컨트롤 배치)는 목업 부재로 ⏳ 사용자 확인 필요.
+- (착수 전)
 
 ## Phase Ledger
-- 전 task(T1~T5) 완료.
-- Phase F 통과 (HEAD fe6a427) — F-7 plan-completion-reviewer BLOCKER 0/MAJOR 0/MINOR 2(m1·m2 → Deferred).
-- Phase G 통과 (Must 100%) — FR-H1·H2·H3 Must 전부 충족(F-7 전수 대조 재사용), FR-H4 Should 충족. 시각 렌더는 ⏳ HUMAN-VERIFY.
+- (착수 전 — 전 task 완료 후 Phase F/G 진행)
 
 ## Next Steps
-- 권장 다음 액션: implement-task로 T3부터 계속(T3 베이스 VM 추출·페이지네이션 → T4 유형 선택 → T5 UI). 완료 후 시각·동작 사용자 확인 → 이후 Phase 5(알림) plan-feature.
-- Suggested skills: pjc:implement-task(승인 후), pjc:plan-feature(Phase 5).
+- 권장 다음 액션: master 기준 새 브랜치에서 implement-task로 T1부터 순차(T1 도메인·감지 → T2 영속화 → T3 집계·VM → T4 페이지 → T5 헤더). 완료 후 시각·동작 사용자 확인 → Phase F/G.
+- Suggested skills: pjc:implement-task(승인 후).
 
 ## 통과 체크리스트
-- [x] 요구 이해 작성(원문 인용 + 이해 5줄)
-- [x] Impact Analysis 4-A(HistoryEntry/Histories read 2경로·write 1경로·두 VM 중복·진입점 전수)·4-B(직렬화: Kind 마이그레이션 task 분리)·4-C(테스트 없음 — 테스트 프로젝트 부재)·4-D(재사용표 작성)
+- [x] 요구 이해 작성(원문 인용 + 이해 4줄)
+- [x] Impact Analysis 4-A(TodoItem/EndDate·MainViewModel 집계·헤더/네비 진입점·AppSettings 영속 전수)·4-B(직렬화: AppJsonContext 자동·ApplyTo 제자리 변경으로 손실 없음 검증)·4-C(테스트 없음 — 테스트 프로젝트 부재, 사용자 결정 미추가)·4-D(재사용표 작성)
 - [x] 각 task acceptance 검증 가능(빌드 + 시각/동작 구분), 상호 모순 0
-- [x] Type 분류(T1 C·T2 D·T3 D·T4 C·T5 D), Design 필드(Type D 전부 + 신규 심볼 Type C)
+- [x] Type 분류(T1 C·T2 C·T3 D·T4 D·T5 D), Design 필드(Type D 전부 + 신규 심볼 Type C — T1)
 - [x] Edge/Halt Forecast 각 task 명시
 - [x] Open Questions 전부 해결, 결정 분기 0
 - [x] 분할 권고(5 task ≤ 8) — 미해당
