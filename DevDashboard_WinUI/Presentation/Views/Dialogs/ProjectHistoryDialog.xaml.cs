@@ -15,9 +15,9 @@ public sealed partial class ProjectHistoryDialog : ContentDialog
     private TaskCompletionSource<bool>? _nestedTcs;
     private readonly System.ComponentModel.PropertyChangedEventHandler _vmPropertyChangedHandler;
 
-    public ProjectHistoryDialog(IReadOnlyList<ProjectItem> projects, IProjectRepository repository)
+    public ProjectHistoryDialog(IReadOnlyList<ProjectItem> projects, IProjectRepository repository, AppSettings settings)
     {
-        Vm = new ProjectHistoryDialogViewModel(projects.ToList(), repository);
+        Vm = new ProjectHistoryDialogViewModel(projects.ToList(), repository, settings);
         InitializeComponent();
 
         Title = LocalizationService.Get("ProjectHistoryDialogTitle");
@@ -27,6 +27,7 @@ public sealed partial class ProjectHistoryDialog : ContentDialog
         _vmPropertyChangedHandler = (_, _) => RefreshList();
         Vm.PropertyChanged += _vmPropertyChangedHandler;
         RefreshList();
+        InitKindCombo(AddKindCombo, null);
 
         Closing += (_, _) =>
         {
@@ -92,6 +93,26 @@ public sealed partial class ProjectHistoryDialog : ContentDialog
         EmptyText.Visibility = !Vm.HasEntries ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    /// <summary>유형 콤보박스를 "미분류" + 사용자 유형 목록으로 구성하고 선택값을 설정합니다.</summary>
+    private void InitKindCombo(ComboBox combo, string? selectedKind)
+    {
+        var items = new List<string> { LocalizationService.Get("HistoryKind_None") };
+        items.AddRange(Vm.AvailableKinds);
+        combo.ItemsSource = items;
+        combo.SelectedItem = !string.IsNullOrEmpty(selectedKind) && items.Contains(selectedKind)
+            ? selectedKind
+            : items[0];
+    }
+
+    /// <summary>유형 콤보박스 선택값을 반환합니다 ("미분류"·미선택은 빈 문자열).</summary>
+    private string KindFromCombo(ComboBox combo)
+    {
+        var kind = combo.SelectedItem as string;
+        return string.IsNullOrEmpty(kind) || kind == LocalizationService.Get("HistoryKind_None")
+            ? string.Empty
+            : kind;
+    }
+
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
         if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
@@ -109,6 +130,7 @@ public sealed partial class ProjectHistoryDialog : ContentDialog
             AddDescriptionBox.Text = string.Empty;
             AddErrorText.Visibility = Visibility.Collapsed;
             AddDatePicker.Date = DateTimeOffset.Now;
+            AddKindCombo.SelectedIndex = 0;
         }
     }
 
@@ -119,6 +141,8 @@ public sealed partial class ProjectHistoryDialog : ContentDialog
             if (sender is not Button { Tag: HistoryEntryViewModel entryVm }) return;
 
             var titleBox = new TextBox { Text = entryVm.Model.Title, MaxLength = 200 };
+            var kindCombo = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
+            InitKindCombo(kindCombo, entryVm.Model.Kind);
             var descBox = new TextBox
             {
                 Text = entryVm.Model.Description,
@@ -130,6 +154,7 @@ public sealed partial class ProjectHistoryDialog : ContentDialog
 
             var panel = new StackPanel { Spacing = 10 };
             panel.Children.Add(titleBox);
+            panel.Children.Add(kindCombo);
             panel.Children.Add(descBox);
 
             var dialog = new ContentDialog
@@ -146,7 +171,7 @@ public sealed partial class ProjectHistoryDialog : ContentDialog
             var title = titleBox.Text.Trim();
             if (string.IsNullOrWhiteSpace(title)) return;
 
-            Vm.UpdateEntry(entryVm, title, descBox.Text.Trim(), entryVm.Model.CompletedAt);
+            Vm.UpdateEntry(entryVm, title, descBox.Text.Trim(), KindFromCombo(kindCombo), entryVm.Model.CompletedAt);
         }
         catch (Exception ex)
         {
@@ -167,8 +192,9 @@ public sealed partial class ProjectHistoryDialog : ContentDialog
         AddErrorText.Visibility = Visibility.Collapsed;
         var date = AddDatePicker.Date?.Date ?? DateTime.Today;
         var desc = AddDescriptionBox.Text.Trim();
+        var kind = KindFromCombo(AddKindCombo);
 
-        Vm.AddEntry(new HistoryEntry { Title = title, Description = desc, CompletedAt = date });
+        Vm.AddEntry(new HistoryEntry { Title = title, Description = desc, Kind = kind, CompletedAt = date });
         AddPanel.Visibility = Visibility.Collapsed;
     }
 

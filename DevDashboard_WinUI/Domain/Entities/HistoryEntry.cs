@@ -15,6 +15,9 @@ public class HistoryEntry
     /// <summary>작업 상세 설명</summary>
     public string Description { get; set; } = string.Empty;
 
+    /// <summary>작업 기록 유형 (빈 문자열이면 미분류 — 앱 설정의 작업 기록 유형에서 선택)</summary>
+    public string Kind { get; set; } = string.Empty;
+
     /// <summary>작업 완료 날짜</summary>
     public DateTime CompletedAt { get; set; } = DateTime.Today;
 

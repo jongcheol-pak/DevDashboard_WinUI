@@ -132,6 +132,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
         cmd.CommandText = "SELECT * FROM Histories WHERE ProjectId = @pid ORDER BY CompletedAt DESC, CreatedAt DESC";
         cmd.Parameters.AddWithValue("@pid", projectId);
         using var reader = cmd.ExecuteReader();
+        var hasKind = HasColumn(reader, "Kind");
 
         var list = new List<HistoryEntry>();
         while (reader.Read())
@@ -141,6 +142,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
                 Id = reader.GetString(reader.GetOrdinal("Id")),
                 Title = reader.GetString(reader.GetOrdinal("Title")),
                 Description = reader.GetString(reader.GetOrdinal("Description")),
+                Kind = hasKind ? reader.GetString(reader.GetOrdinal("Kind")) : string.Empty,
                 CompletedAt = ParseDateTime(reader.GetString(reader.GetOrdinal("CompletedAt"))),
                 CreatedAt = ParseDateTime(reader.GetString(reader.GetOrdinal("CreatedAt")))
             });
@@ -586,14 +588,15 @@ public sealed class SqliteProjectRepository : IProjectRepository
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """
             INSERT INTO Histories
-                (Id, ProjectId, Title, Description, CompletedAt, CreatedAt)
+                (Id, ProjectId, Title, Description, Kind, CompletedAt, CreatedAt)
             VALUES
-                (@id, @pid, @title, @desc, @completedAt, @created)
+                (@id, @pid, @title, @desc, @kind, @completedAt, @created)
             """;
         cmd.Parameters.AddWithValue("@id", string.Empty);
         cmd.Parameters.AddWithValue("@pid", projectId);
         cmd.Parameters.AddWithValue("@title", string.Empty);
         cmd.Parameters.AddWithValue("@desc", string.Empty);
+        cmd.Parameters.AddWithValue("@kind", string.Empty);
         cmd.Parameters.AddWithValue("@completedAt", string.Empty);
         cmd.Parameters.AddWithValue("@created", string.Empty);
 
@@ -602,6 +605,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
             cmd.Parameters["@id"].Value = h.Id;
             cmd.Parameters["@title"].Value = h.Title;
             cmd.Parameters["@desc"].Value = h.Description;
+            cmd.Parameters["@kind"].Value = h.Kind;
             cmd.Parameters["@completedAt"].Value = h.CompletedAt.ToString(DateTimeFormat);
             cmd.Parameters["@created"].Value = h.CreatedAt.ToString(DateTimeFormat);
             cmd.ExecuteNonQuery();
@@ -872,6 +876,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
         cmd.CommandText = "SELECT * FROM Histories WHERE ProjectId = @pid ORDER BY CompletedAt DESC, CreatedAt DESC";
         cmd.Parameters.AddWithValue("@pid", projectId);
         using var reader = cmd.ExecuteReader();
+        var hasKind = HasColumn(reader, "Kind");
 
         var list = new List<HistoryEntry>();
         while (reader.Read())
@@ -881,6 +886,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
                 Id = reader.GetString(reader.GetOrdinal("Id")),
                 Title = reader.GetString(reader.GetOrdinal("Title")),
                 Description = reader.GetString(reader.GetOrdinal("Description")),
+                Kind = hasKind ? reader.GetString(reader.GetOrdinal("Kind")) : string.Empty,
                 CompletedAt = ParseDateTime(reader.GetString(reader.GetOrdinal("CompletedAt"))),
                 CreatedAt = ParseDateTime(reader.GetString(reader.GetOrdinal("CreatedAt")))
             });

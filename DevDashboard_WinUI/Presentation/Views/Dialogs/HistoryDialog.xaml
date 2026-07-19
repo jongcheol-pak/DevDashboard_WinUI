@@ -20,6 +20,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- 검색 + 추가 + 내보내기 버튼 -->
@@ -57,6 +58,7 @@ Visibility="Collapsed">
             <StackPanel Spacing="10">
                 <TextBlock x:Uid="HistoryAddNewHeader" Style="{StaticResource BodyStrongTextBlockStyle}" />
                 <CalendarDatePicker x:Name="AddDatePicker" HorizontalAlignment="Stretch" />
+                <ComboBox x:Name="AddKindCombo" x:Uid="AddKindCombo" HorizontalAlignment="Stretch" />
                 <TextBox
         x:Name="AddTitleBox"
         x:Uid="AddTitleBox"
@@ -123,11 +125,31 @@ Visibility="Collapsed">
                                                      Glyph="{x:Bind ExpandChevron, Mode=OneWay}"
                                                      FontSize="11"
                                                      VerticalAlignment="Center" />
-                                                        <TextBlock
+                                                        <StackPanel
                                                      Grid.Column="1"
-                                                     Text="{x:Bind Title}"
-                                                     Style="{StaticResource BodyStrongTextBlockStyle}"
-                                                     VerticalAlignment="Center" />
+                                                     Orientation="Horizontal"
+                                                     Spacing="6"
+                                                     VerticalAlignment="Center">
+                                                            <TextBlock
+                                                         Text="{x:Bind Title}"
+                                                         Style="{StaticResource BodyStrongTextBlockStyle}"
+                                                         VerticalAlignment="Center" />
+                                                            <!-- 유형 배지 (유형이 지정된 경우만) -->
+                                                            <StackPanel
+                                                         Orientation="Horizontal" Spacing="4"
+                                                         VerticalAlignment="Center"
+                                                         Visibility="{x:Bind KindVisibility}">
+                                                                <Ellipse
+                                                             Width="8" Height="8"
+                                                             VerticalAlignment="Center"
+                                                             Fill="{x:Bind Kind, Converter={StaticResource TagColor}}" />
+                                                                <TextBlock
+                                                             Text="{x:Bind Kind}"
+                                                             FontSize="11"
+                                                             VerticalAlignment="Center"
+                                                             Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                                            </StackPanel>
+                                                        </StackPanel>
                                                         <Button
                                                      Grid.Column="2"
                                                      Padding="8,4"
@@ -185,8 +207,29 @@ Visibility="Collapsed">
 
             </StackPanel>
         </ScrollViewer>
+
+        <!-- 페이지 컨트롤 (이전/다음 + 페이지 표시) -->
+        <StackPanel
+            Grid.Row="3"
+            Orientation="Horizontal"
+            Spacing="8"
+            HorizontalAlignment="Center"
+            Visibility="{x:Bind Vm.HasEntries, Converter={StaticResource BoolToVisibility}, Mode=OneWay}">
+            <Button Padding="10,4" Command="{x:Bind Vm.PrevPageCommand}" IsEnabled="{x:Bind Vm.CanPrevPage, Mode=OneWay}"
+                    ToolTipService.ToolTip="{x:Bind Vm.PrevPageTooltip}">
+                <FontIcon Glyph="&#xE76B;" FontSize="12" />
+            </Button>
+            <TextBlock
+                Text="{x:Bind Vm.PageInfoText, Mode=OneWay}"
+                VerticalAlignment="Center"
+                MinWidth="64"
+                TextAlignment="Center"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Button Padding="10,4" Command="{x:Bind Vm.NextPageCommand}" IsEnabled="{x:Bind Vm.CanNextPage, Mode=OneWay}"
+                    ToolTipService.ToolTip="{x:Bind Vm.NextPageTooltip}">
+                <FontIcon Glyph="&#xE76C;" FontSize="12" />
+            </Button>
+        </StackPanel>
     </Grid>
-    
-   
 
 </ContentDialog>

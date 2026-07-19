@@ -310,6 +310,10 @@
   <data name="AddHistoryBtn.Content" xml:space="preserve"><value>새 기록 추가</value></data>
   <data name="HistoryAddNewHeader.Text" xml:space="preserve"><value>새 기록 추가</value></data>
   <data name="HistoryEditHeader" xml:space="preserve"><value>기록 수정</value></data>
+  <data name="AddKindCombo.Header" xml:space="preserve"><value>유형</value></data>
+  <data name="HistoryKind_None" xml:space="preserve"><value>미분류</value></data>
+  <data name="HistoryPage_PrevPage" xml:space="preserve"><value>이전 페이지</value></data>
+  <data name="HistoryPage_NextPage" xml:space="preserve"><value>다음 페이지</value></data>
   <data name="AddTitleBox.PlaceholderText" xml:space="preserve"><value>제목 (필수)</value></data>
   <data name="AddDescriptionBox.PlaceholderText" xml:space="preserve"><value>상세 설명 (선택)</value></data>
   <data name="EmptyHistoryText.Text" xml:space="preserve"><value>작업 기록이 없습니다.</value></data>

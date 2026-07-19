@@ -547,7 +547,7 @@ public partial class ProjectCardViewModel : ObservableObject
     public HistoryDialogViewModel CreateHistoryDialogViewModel()
     {
         EnsureHistoriesLoaded();
-        return new HistoryDialogViewModel(_item);
+        return new HistoryDialogViewModel(_item, _settings);
     }
 
     /// <summary>작업 기록 다이얼로그가 닫힌 후 결과를 반영합니다.</summary>

@@ -1,5 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevDashboard.Infrastructure.Services;
@@ -35,6 +34,12 @@ public partial class HistoryEntryViewModel : ObservableObject
     public string Description => Model.Description;
     public string CompletedAtText => Model.CompletedAt.ToString("yyyy-MM-dd HH:mm");
     public string CreatedAtText => Model.CreatedAt.ToString("yyyy-MM-dd HH:mm");
+
+    /// <summary>작업 기록 유형 (배지 텍스트)</summary>
+    public string Kind => Model.Kind;
+
+    /// <summary>유형 배지 표시 여부 (유형이 지정된 경우만)</summary>
+    public Visibility KindVisibility => string.IsNullOrWhiteSpace(Model.Kind) ? Visibility.Collapsed : Visibility.Visible;
 
     /// <summary>상세 정보 표시 여부</summary>
     [ObservableProperty]
@@ -78,139 +83,33 @@ public partial class HistoryEntryViewModel : ObservableObject
     }
 }
 
-/// <summary>작업 기록 다이얼로그 뷰모델</summary>
-public partial class HistoryDialogViewModel : ObservableObject
+/// <summary>작업 기록 다이얼로그 뷰모델 (카드별 단일 프로젝트) — 공통 로직은 베이스, 저장·세션 신규 항목만 담당.</summary>
+public sealed class HistoryDialogViewModel : HistoryDialogViewModelBase
 {
     private readonly ProjectItem _projectItem;
-    private readonly List<HistoryEntry> _allEntries;
 
-    /// <summary>검색어</summary>
-    [ObservableProperty]
-    public partial string SearchText { get; set; } = string.Empty;
-
-    /// <summary>날짜별 그룹 목록</summary>
-    public ObservableCollection<HistoryDateGroup> DateGroups { get; } = [];
-
-    /// <summary>작업 기록 존재 여부</summary>
-    public bool HasEntries => _allEntries.Count > 0;
+    /// <summary>이 세션에서 새로 추가된 항목 목록 (완료 훅에서 프로젝트에 병합)</summary>
+    public List<HistoryEntry> NewEntries { get; } = [];
 
     /// <summary>프로젝트 이름</summary>
     public string ProjectName => _projectItem.Name;
 
-    public HistoryDialogViewModel(ProjectItem projectItem)
+    public HistoryDialogViewModel(ProjectItem projectItem, AppSettings settings)
+        : base([.. (projectItem.Histories ?? [])], settings.PageSize, BuildKinds(settings))
     {
         _projectItem = projectItem;
-        _allEntries = [.. (_projectItem.Histories ?? [])];
-        RebuildGroups();
     }
 
-    partial void OnSearchTextChanged(string value)
-    {
-        RebuildGroups();
-    }
+    protected override void OnEntryAdded(HistoryEntry entry) => NewEntries.Add(entry);
 
-    /// <summary>이 세션에서 새로 추가된 항목 목록</summary>
-    public List<HistoryEntry> NewEntries { get; } = [];
+    // 단일 프로젝트는 다이얼로그 종료 시 SaveToModel로 일괄 반영하므로 변경 시점 추가 처리 불필요
+    protected override void OnEntriesModified() { }
 
-    /// <summary>작업 기록 추가</summary>
-    public void AddEntry(HistoryEntry entry)
-    {
-        _allEntries.Add(entry);
-        NewEntries.Add(entry);
-        RebuildGroups();
-    }
-
-    /// <summary>작업 기록 수정</summary>
-    public void UpdateEntry(HistoryEntryViewModel entryVm, string title, string description, DateTime completedAt)
-    {
-        entryVm.Model.Title = title;
-        entryVm.Model.Description = description;
-        entryVm.Model.CompletedAt = completedAt;
-        RebuildGroups();
-    }
-
-    /// <summary>작업 기록 수정 후 목록 갱신</summary>
-    public void RefreshAfterEdit()
-    {
-        RebuildGroups();
-    }
-
-    /// <summary>작업 기록 삭제</summary>
-    [RelayCommand]
-    private void DeleteEntry(HistoryEntryViewModel? entryVm)
-    {
-        if (entryVm is null) return;
-        // ContentDialog 내부에서는 중첩 ContentDialog 사용 불가 — 바로 삭제
-        _allEntries.Remove(entryVm.Model);
-        RebuildGroups();
-    }
-
-    /// <summary>날짜별 그룹을 다시 구성합니다.</summary>
-    private void RebuildGroups()
-    {
-        DateGroups.Clear();
-
-        var filtered = string.IsNullOrWhiteSpace(SearchText)
-            ? _allEntries
-            : _allEntries.Where(e =>
-                e.Title.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
-                || e.Description.Contains(SearchText, StringComparison.OrdinalIgnoreCase)).ToList();
-
-        var groups = filtered
-            .GroupBy(e => e.CompletedAt.Date)
-            .OrderByDescending(g => g.Key);
-
-        foreach (var group in groups)
-        {
-            var entryVms = group
-                .OrderByDescending(e => e.CreatedAt)
-                .Select(e => new HistoryEntryViewModel(e));
-            DateGroups.Add(new HistoryDateGroup(group.Key, entryVms));
-        }
-
-        OnPropertyChanged(nameof(HasEntries));
-    }
-
-    /// <summary>전체 작업 기록을 마크다운 문자열로 변환합니다.</summary>
-    public string ExportToMarkdown()
-    {
-        var sb = new StringBuilder();
-        sb.AppendLine($"# {_projectItem.Name} — 작업 기록");
-        sb.AppendLine();
-        sb.AppendLine($"내보내기 일시: {DateTime.Now:yyyy-MM-dd HH:mm}");
-        sb.AppendLine();
-
-        var groups = _allEntries
-            .GroupBy(e => e.CompletedAt.Date)
-            .OrderByDescending(g => g.Key);
-
-        foreach (var group in groups)
-        {
-            sb.AppendLine($"## {group.Key:yyyy-MM-dd}");
-            sb.AppendLine();
-
-            foreach (var entry in group.OrderByDescending(e => e.CreatedAt))
-            {
-                sb.AppendLine($"### {entry.Title}");
-                sb.AppendLine();
-
-                if (!string.IsNullOrWhiteSpace(entry.Description))
-                {
-                    sb.AppendLine(entry.Description);
-                    sb.AppendLine();
-                }
-
-                sb.AppendLine($"- 등록일: {entry.CreatedAt:yyyy-MM-dd HH:mm}");
-                sb.AppendLine();
-            }
-        }
-
-        return sb.ToString();
-    }
+    protected override string ExportProjectName => _projectItem.Name;
 
     /// <summary>변경 사항을 모델에 반영합니다.</summary>
     public void SaveToModel()
     {
-        _projectItem.Histories = [.. _allEntries];
+        _projectItem.Histories = [.. _entries];
     }
 }
