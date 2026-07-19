@@ -14,3 +14,6 @@ global using DevDashboard.Domain.Enums;
 
 // 도메인 리포지토리 인터페이스 (IProjectRepository)
 global using DevDashboard.Domain.Repositories;
+
+// 도메인 서비스 (NotificationService 등 순수 도메인 로직)
+global using DevDashboard.Domain.Services;

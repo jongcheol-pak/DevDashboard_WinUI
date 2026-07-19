@@ -445,5 +445,16 @@
   <data name="TaskTestBadge_Untested" xml:space="preserve"><value>Test: Not Run</value></data>
   <data name="TaskTestBadge_Pass" xml:space="preserve"><value>Test: Pass</value></data>
   <data name="TaskTestBadge_Fail" xml:space="preserve"><value>Test: Fail</value></data>
+  <data name="Notification_Title" xml:space="preserve"><value>Notifications</value></data>
+  <data name="Notification_Back" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="Notification_MarkAll" xml:space="preserve"><value>Mark all read</value></data>
+  <data name="Notification_Empty" xml:space="preserve"><value>No upcoming deadlines.</value></data>
+  <data name="Notification_DuePrefix" xml:space="preserve"><value>Due</value></data>
+  <data name="Notification_Deadline_Imminent" xml:space="preserve"><value>Soon</value></data>
+  <data name="Notification_Deadline_DueToday" xml:space="preserve"><value>Due today</value></data>
+  <data name="Notification_Deadline_Overdue" xml:space="preserve"><value>Overdue</value></data>
+  <data name="Notification_MarkRead_Tooltip" xml:space="preserve"><value>Mark as read</value></data>
+  <data name="Notification_Header_Tooltip" xml:space="preserve"><value>Notifications</value></data>
+  <data name="Notification_ViewAll" xml:space="preserve"><value>View all notifications</value></data>
 
 </root>

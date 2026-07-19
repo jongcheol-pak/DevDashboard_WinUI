@@ -47,4 +47,7 @@ public class AppSettings
 
     /// <summary>런처 사이드바 표시 여부 (기본값: true)</summary>
     public bool ShowLauncherSidebar { get; set; } = true;
+
+    /// <summary>읽음 처리된 마감 알림의 키 목록 (키 = "작업Id:마감상태" — 마감 상태가 바뀌면 새 키가 되어 안읽음으로 재환기)</summary>
+    public List<string> ReadNotificationIds { get; set; } = [];
 }

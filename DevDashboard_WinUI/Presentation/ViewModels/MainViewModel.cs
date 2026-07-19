@@ -52,6 +52,19 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     public partial bool HasAnyProjects { get; set; }
 
+    // --- 마감 알림 ---
+
+    /// <summary>안읽음 마감 알림 개수 (헤더 벨 배지) — 0이면 배지 숨김</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasUnreadNotifications))]
+    public partial int UnreadNotificationCount { get; set; }
+
+    /// <summary>안읽음 알림이 하나 이상 있는지 여부 (배지 표시용)</summary>
+    public bool HasUnreadNotifications => UnreadNotificationCount > 0;
+
+    // 마지막으로 계산된 마감 알림 목록 (드롭다운·페이지가 공유 — RebuildNotifications가 갱신)
+    private List<Notification> _currentNotifications = [];
+
     // --- 최신 버전 확인 ---
 
     [ObservableProperty]
@@ -171,6 +184,9 @@ public partial class MainViewModel : ObservableObject
             card.StartGitStatusLoad();
             card.StartValidation();
         }
+
+        // 초기 로드 후 헤더 벨 배지용 안읽음 개수를 1회 계산한다(이후 드롭다운/페이지 열 때·읽음 처리 시 재계산).
+        RebuildNotifications();
     }
 
     partial void OnSearchTextChanged(string value)
@@ -623,6 +639,82 @@ public partial class MainViewModel : ObservableObject
         foreach (var item in items)
             item.Histories = _projectRepository.GetHistories(item.Id);
         return items;
+    }
+
+    // --- 마감 알림(Phase 5) ---
+
+    /// <summary>알림 감지용 — 모든 프로젝트의 Todos를 DB에서 로드하여 반환합니다(GetAllProjectItemsWithHistories의 Todos판).</summary>
+    public List<ProjectItem> GetAllProjectItemsWithTodos()
+    {
+        var items = _allCards.Select(c => c.ToModel()).ToList();
+        foreach (var item in items)
+            item.Todos = _projectRepository.GetTodos(item.Id);
+        return items;
+    }
+
+    /// <summary>전체 프로젝트의 마감 알림을 재계산하고 안읽음 개수를 갱신합니다.
+    /// 재환기(작업Id+마감상태)로 누적된 stale 읽음 키는 현재 알림 키와의 교집합으로 프루닝합니다.</summary>
+    public void RebuildNotifications()
+    {
+        var projects = GetAllProjectItemsWithTodos();
+        _currentNotifications = NotificationService.Detect(projects, DateTime.Now);
+
+        // 현재 알림에 없는 읽음 키 제거 — 마감 상태 변화·작업 완료/삭제로 사라진 (작업,상태) 조합의 키 정리
+        var currentKeys = _currentNotifications.Select(NotificationService.BuildKey).ToHashSet();
+        if (_settings.ReadNotificationIds.RemoveAll(k => !currentKeys.Contains(k)) > 0)
+            SaveSettings();
+
+        UnreadNotificationCount = CountUnread();
+    }
+
+    /// <summary>마지막으로 계산된 마감 알림 목록(드롭다운·전체 페이지 공유).</summary>
+    public IReadOnlyList<Notification> GetCurrentNotifications() => _currentNotifications;
+
+    /// <summary>읽음 처리된 알림 키 집합.</summary>
+    public IReadOnlySet<string> GetReadKeys() => _settings.ReadNotificationIds.ToHashSet();
+
+    /// <summary>단일 알림을 읽음 처리하고 영속화합니다.</summary>
+    public void MarkNotificationRead(Notification notification)
+    {
+        if (notification is null) return;
+        var key = NotificationService.BuildKey(notification);
+        if (!_settings.ReadNotificationIds.Contains(key))
+        {
+            _settings.ReadNotificationIds.Add(key);
+            SaveSettings();
+        }
+        UnreadNotificationCount = CountUnread();
+    }
+
+    /// <summary>주어진 알림들을 모두 읽음 처리하고 영속화합니다.</summary>
+    public void MarkAllNotificationsRead(IEnumerable<Notification> notifications)
+    {
+        if (notifications is null) return;
+        var changed = false;
+        foreach (var n in notifications)
+        {
+            var key = NotificationService.BuildKey(n);
+            if (!_settings.ReadNotificationIds.Contains(key))
+            {
+                _settings.ReadNotificationIds.Add(key);
+                changed = true;
+            }
+        }
+        if (changed) SaveSettings();
+        UnreadNotificationCount = CountUnread();
+    }
+
+    private int CountUnread()
+    {
+        var read = _settings.ReadNotificationIds;
+        return _currentNotifications.Count(n => !read.Contains(NotificationService.BuildKey(n)));
+    }
+
+    /// <summary>프로젝트 Id로 작업(칸반) 페이지 뷰모델을 생성합니다(알림 클릭 이동용). 카드가 없으면 null.</summary>
+    public TaskPageViewModel? CreateTaskPageViewModelForProject(string projectId)
+    {
+        var card = _allCards.FirstOrDefault(c => c.Id == projectId);
+        return card?.CreateTaskPageViewModel();
     }
 
     public IReadOnlyList<string> GetProjectNames() => _allCards.Select(c => c.Name).ToList();
