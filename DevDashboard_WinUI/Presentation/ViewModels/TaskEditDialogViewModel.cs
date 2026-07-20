@@ -10,7 +10,10 @@ public partial class TaskEditDialogViewModel : ObservableObject
 {
     private readonly TodoItem? _existing;
 
-    [ObservableProperty] public partial string Title { get; set; } = string.Empty;
+    // 제목이 바뀌면 CanSubmit도 갱신해 등록/저장 버튼 활성 상태를 다시 계산한다.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanSubmit))]
+    public partial string Title { get; set; } = string.Empty;
     [ObservableProperty] public partial string Description { get; set; } = string.Empty;
     // 미선택(빈 카테고리)을 null로 표현한다. ComboBox가 목록에 없는 값을 거부하며 null을
     // 되써넣어도 타입이 깨지지 않게 nullable로 둔다(저장은 BuildResult에서 빈 문자열로 흡수).
@@ -27,6 +30,9 @@ public partial class TaskEditDialogViewModel : ObservableObject
 
     /// <summary>우선순위 선택 목록 (높음/보통/낮음)</summary>
     public IReadOnlyList<TaskPriorityItem> Priorities { get; }
+
+    /// <summary>필수 입력(제목)이 모두 채워졌는지 — 등록/저장 버튼 활성화 조건.</summary>
+    public bool CanSubmit => !string.IsNullOrWhiteSpace(Title);
 
     /// <summary>편집 모드 여부 (false이면 새 작업)</summary>
     public bool IsEditMode => _existing is not null;

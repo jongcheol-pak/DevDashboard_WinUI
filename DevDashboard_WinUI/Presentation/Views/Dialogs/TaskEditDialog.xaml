@@ -6,6 +6,7 @@
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     DefaultButton="Primary"
     CornerRadius="8"
+    IsPrimaryButtonEnabled="{x:Bind Vm.CanSubmit, Mode=OneWay}"
     PrimaryButtonClick="OnSave">
 
     <!-- 헤더: 제목 + 상태 배지(새 작업은 눌린 열의 상태, 편집은 그 작업의 상태) -->
