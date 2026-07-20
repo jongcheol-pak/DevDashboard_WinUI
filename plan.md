@@ -1,208 +1,222 @@
-# plan.md — Phase 5: 알림 — 마감 감지 + 전체 페이지 + 헤더 드롭다운 + 읽음 상태 영속화
+# plan.md — 작업(TaskPage) 칸반 화면 시안 정합 재구성
 
-**PRD**: docs/prd.md (Phase 5 = FR-N1, FR-N2, FR-N3, FR-N4)
-**전체 목표**: DevDashboard 5개 영역 리디자인(§PRD). 이 plan은 **Phase 5(알림)** 만 다룬다 — 리디자인 로드맵의 마지막 Phase.
-**이전 plan**: Phase 4(작업 기록) — 완료(`Phase G 통과 Must 100%`), master 병합 완료(HEAD 04beef8). **Phase 5는 master 기준 새 브랜치**(`task/phase5-notifications`)에서 진행.
-**다음 plan**: 없음(리디자인 5개 영역 완료). 이후는 Deferred 대장·시각 확인 후속.
+**PRD**: docs/prd.md (FR-T2·FR-T4·FR-T5·FR-T8 재작업 — 기능 요구는 이미 충족, **시각 구조만 시안에 맞춤**)
+**이전 plan**: Phase 5(알림) — Phase G 통과(Must 100%), master 병합 완료(HEAD 2846418). 이 plan은 master 기준 새 브랜치(`task/taskpage-design-align`)에서 진행.
+**다음 plan**: 없음. (TestPage·NotificationPage 시안 대조는 사용자가 "작업 페이지만 먼저"로 한정 — 결과 확인 후 별도 판단)
 
 ## 요구 이해
 
-> 원문(PRD §4 알림 Phase 5 + §3 확정 데이터 발췌): "FR-N1 마감 알림 감지 로직 — 미완료 작업 중 종료일 D-3 임박·오늘 마감·경과 항목 집계(완료 제외). FR-N2 알림 전체 페이지(프로젝트별 그룹, 읽음/안읽음, 모두 읽음, 항목 클릭 시 해당 작업으로 이동). FR-N3 헤더 알림 드롭다운 패널(요약 목록 + '모든 알림 보기'). FR-N4 읽음 상태 영속화." + §3 "알림 대상: 종료일 D-3 임박 + 오늘 마감 + 경과, 완료 상태 제외, 읽음/안읽음 추적" + 사용자 스코핑(2026-07-19): 읽음 키=작업Id+마감상태(재환기), 클릭 이동=프로젝트 작업 페이지 열기, 벨 배지=안읽음 개수 표시, 단위 테스트=미추가(현행 유지).
+> 원문(사용자, 2026-07-20): "구현된 작업 화면이 이미지하고 전혀 다른데 다시 확인해서 수정" + 첨부 시안 이미지 1장(작업 칸반 화면).
 
-이해한 요구(Phase 5):
-- 모든 프로젝트의 미완료 작업(`TodoItem`) 중 **종료일(EndDate)이 D-3 임박·오늘 마감·경과**인 항목을 순수 계산으로 집계하는 **마감 감지 로직**을 만든다(완료 제외).
-- 집계 결과를 **알림 전체 페이지**(프로젝트별 그룹·읽음/안읽음 표시·모두 읽음·항목 클릭 시 해당 프로젝트 작업 페이지로 이동)로 표시한다(TaskPage·TestPage처럼 `ShowPage` 네비 재사용).
-- **헤더에 알림 벨 버튼 + 드롭다운 Flyout 패널**(요약 목록 + "모든 알림 보기")을 추가하고, 벨에 **안읽음 개수 배지**를 표시한다.
-- **읽음 상태를 영속화**한다 — 키는 `작업Id + 마감상태`로, 마감이 임박→오늘→경과로 악화되면 안읽음으로 재환기한다.
+이해한 요구:
+- 첨부 이미지가 **작업 화면의 디자인 기준**이고, 현재 구현된 `TaskPage`가 그 구조와 어긋나 있으니 **시안과 같은 레이아웃으로 다시 맞춘다**.
+- 어긋난 이유는 확인됨 — Phase 2 구현 당시 목업이 레포에 없어 PRD 텍스트만으로 구현했다(이전 `plan.md` Investigation Log에 "시각 명세는 PRD §3 추출값 + WinUI idiom" 기록). **기능 결함이 아니라 시각 구조 불일치**다.
+- 따라서 이번 작업은 **기능 추가가 아니라 시각 정합 재구성**이다 — 드래그앤드롭·완료시 작업기록 팝업·카테고리 필터·목록 뷰·테스트 연결은 전부 보존한다.
+- 사용자 확정: 담당자 필드는 제외 유지, 카드 조작은 클릭=편집·우클릭=메뉴, 범위는 TaskPage 한 화면.
 
 ## Goal
-신규 순수 도메인 로직 `NotificationService`(+ `Notification` 값 객체·`DeadlineStatus` enum)로 전체 프로젝트의 마감 임박/오늘/경과 미완료 작업을 집계한다. `MainViewModel`에 전체 프로젝트 Todo 로드(`GetAllProjectItemsWithTodos`, 기존 `...WithHistories` 미러)·알림 재계산·읽음 처리·안읽음 개수(`UnreadNotificationCount`)·프로젝트별 작업 페이지 이동 진입점을 추가한다. `AppSettings.ReadNotificationIds`(List\<string\>)로 읽음 키를 영속화한다. `NotificationPage`(전체 페이지)와 헤더 벨 버튼 + Flyout 드롭다운 패널을 신규 배선하고, 항목 클릭 시 해당 프로젝트 `TaskPage`로 이동한다.
+
+`TaskPage`의 칸반 레이아웃을 시안과 동일한 구조로 재구성한다 — ① 열을 패널로 감싸고 상태 색 dot 부여 ② **열 안에서 카테고리별로 그룹핑**하고 그룹 헤더에 색 dot·개수·테스트 통과율 배지 표시 ③ 카드를 제목+우선순위 pill / 설명 / 날짜 범위 3단 구성으로 압축하고 상태 콤보·아이콘 버튼 제거(클릭=편집, 우클릭=메뉴) ④ `+ 새 작업`을 열 하단 점선 버튼으로 이동 ⑤ 헤더를 카테고리 콤보 + 칸반/목록 세그먼트 토글로 정리. 기능 동작은 무손실.
 
 ## Investigation Log (근거)
 
 ### 위키·시안
 - 위키 참조: vault 미설정 — 코드 1차 출처로 진행.
-- 리디자인 시안: 목업 HTML(claude.ai/design)이 레포에 없음(Phase 0~4와 동일). 시각 명세는 PRD §3 추출값 + WinUI idiom, 빌드 후 사용자 확인.
-- Deferred 대장(docs/plans/deferred.md) 확인: **[교차 작업/테스트 집계 페이지](PRD D-2)** 항목이 유관하나 별개다 — 알림 페이지는 "마감 임박 작업의 프로젝트별 그룹"으로 본질상 교차 프로젝트지만, D-2의 범용 교차 집계 페이지(전체/프로젝트 스코프 필터)를 구축하지 않는다(FR-N2 전용). 이번에도 Deferred 유지. 그 외 대기 항목은 Phase 5와 무관.
+- 시안: 사용자 제공 이미지 1장(작업 칸반). 목업 HTML은 여전히 레포에 없어 **픽셀 값이 아닌 구조·구성 요소 기준**으로 대조한다(아래 `## 시각 요소 분해`).
+- **AGENTS.md 부재** — 5개 Phase 내내 없었다. 빌드 명령은 확인된 사실(x64 MSBuild)이라 추측 모드가 아니며, AGENTS.md 생성은 이번 범위 밖(완료 보고에서 별도 제안).
 
-### 도메인·데이터 (직접 Read)
-- **TodoItem**(Domain/Entities/TodoItem.cs:24-58): `Status`(`TodoStatus` Waiting/Active/Completed/Hold)·`IsCompleted`(Status==Completed 동기화, 61-65)·`EndDate`(48, `DateTime?` 종료/마감일)·`Text`(16 본문)·`Id`(12). **마감 감지 입력 = EndDate!=null && !IsCompleted**.
-- **TodoStatus**(Domain/Entities/TodoStatus.cs): Waiting/Active/Completed/Hold. "완료 제외" = Status!=Completed(=Hold·Waiting·Active 포함).
-- **ProjectItem**(Domain/Entities/ProjectItem.cs:64): `List<TodoItem> Todos`(지연 로딩 — 다이얼로그/페이지 열 때 Repository에서 로드). `Id`·이름 보유.
+### Deferred 대장 확인 (docs/plans/deferred.md)
+- **재수용**: `[미사용 심볼 정리]` 중 `TaskPageViewModel.ShowKanban`/`ShowList` RelayCommand 미사용 건 — 이번 **T4**(세그먼트 토글)가 정확히 그 지점을 건드리므로 **이번에 해소**한다(토글이 커맨드를 실제 소비하거나, 소비하지 않으면 제거). 같은 항목의 `TaskEditDialog.xaml x:Name="TitleBox"` 미사용 건은 무관 — 대장 유지.
+- **이번에도 유지**: `[칸반 열 내 카드 재정렬]`(열 내 정렬 영속화 — 이번은 시각 구조만), `[FR-T7 담당자]`(사용자 제외 결정 재확인), `[Todo*/Test* resw 고아 정리]`, `[교차 집계 페이지]`, `[README/스크린샷]`, `[BOM 통일]`.
 
-### 데이터 집계·영속화 (직접 Read)
-- **MainViewModel**(Presentation/ViewModels/MainViewModel.cs): `_allCards`(28, `List<ProjectCardViewModel>` 메모리 전체 프로젝트)·`GetAllProjectItemsWithHistories`(620-626, ToModel + `_projectRepository.GetHistories` per-project 로드)·`GetSettings`(661)·`GetProjectRepository`(663)·`SaveSettings`(236-242 → `_storageService.Save(_settings)`)·`SaveAppSettings`(665). **알림 집계 = `GetAllProjectItemsWithTodos`(신규, WithHistories 미러 — `_projectRepository.GetTodos(item.Id)`)**.
-- **IProjectRepository**(Domain/Repositories/IProjectRepository.cs:13): `List<TodoItem> GetTodos(string projectId)` — per-project Todo 조회(이미 존재, 신규 쿼리 불필요).
-- **AppSettings**(Domain/Entities/AppSettings.cs:7-50): Aggregate Root. `List<string>` 필드 선례 다수(TechStackTags·TaskCategories·HistoryKinds). **읽음 키 저장 = `List<string> ReadNotificationIds` 추가**(Phase 1 PageSize/HistoryKinds 선례 동형).
-- **JsonStorageService**(Infrastructure/Services/JsonStorageService.cs:10-44): `Load()`/`Save(AppSettings)` → `ApplicationData.Current.LocalSettings` JSON. **AppJsonContext**(Infrastructure/Services/AppJsonContext.cs): `[JsonSerializable(typeof(AppSettings))]` — AppSettings 전체 직렬화이므로 **필드 추가만으로 자동 커버**(Context 무수정).
-- **데이터 손실 검증**: `AppSettingsDialogViewModel.ApplyTo`(:379-406)는 전달받은 `settings` 객체를 **제자리 변경**(`settings.X = ...`, `new AppSettings()` 아님)하므로 설정 다이얼로그 저장 경로에서도 `ReadNotificationIds` 보존됨(매핑 불필요). LoadFrom/ApplyTo 수정 불필요.
+### 영향 범위 — 전수 확인 (직접 grep + Read)
+- 변경 대상 심볼(`WaitingItems`/`ActiveItems`/`CompletedItems`/`HoldItems`/`*Count`/`CategoryGroups`/`TaskCategoryGroup`/`IsKanbanView`) 전수 grep(obj·bin 제외) 결과 **사용처가 `Presentation/ViewModels/TaskPageViewModel.cs`와 `Presentation/Views/TaskPage.xaml` 2개 파일뿐**. 외부 호출자·구현체·직렬화 대상 **0건**.
+- `TaskPageViewModel(ProjectItem, IProjectRepository, AppSettings, Action)` 생성자와 `TaskPage(TaskPageViewModel, AppSettings)` 생성자는 **이번에 변경하지 않는다** → 호출부(`ProjectCardViewModel.CreateTaskPageViewModel():517`, `DashboardView.xaml.cs:184`, 알림 페이지 이동 경로) 무영향.
+- 단, 위 전수 조사는 **파일 간** 영향이다. **동일 파일 내부 사용처**(`FillColumn():131`·`WaitingCount = WaitingItems.Count`:122-125)는 별도 처리 대상 — 아래 "리뷰에서 드러난 함정" 참조.
+- `TodoItem`(Domain/Entities/TodoItem.cs) **무변경** — 담당자 제외 결정으로 도메인·DB 스키마·직렬화 변경 없음. 마이그레이션 불요.
 
-### UI·네비 (직접 Read — explorer 확인 후 정독)
-- **페이지 네비**: `MainWindow.ShowPage(UIElement)`/`ShowDashboard()`(MainWindow.xaml.cs:508-521 — `DashboardContent.Content` 스왑 + `GroupTabsBar` Visibility 토글). 카드→페이지는 `DashboardView.xaml.cs:178-192`(`OnOpenTodoRequested` → `new TaskPage(card.CreateTaskPageViewModel(), Vm.GetSettings())` → `ShowPage`). **알림 페이지도 동일 패턴**.
-- **헤더**: `MainWindow.xaml:31-132` — `HeaderButtonsPanel`(StackPanel Orientation=Horizontal Spacing=6). 버튼 5개(SortButton·AllHistoryButton·ExportImportButton·AppSettingsButton·AddProjectButton), 각 36×36 Padding=0 + FontIcon + x:Uid. **벨 버튼 = ExportImportButton↔AppSettingsButton 사이 삽입**(Segoe MDL2 벨 글리프). Flyout은 기존 SortButton/ExportImportButton Flyout 패턴.
-- **"전체 작업 기록" 핸들러**(MainWindow.xaml.cs:536-550): `_viewModel.GetAllProjectItemsWithHistories()` + `new ProjectHistoryDialog(...)`. 헤더 버튼 핸들러 배선 선례.
-- **TaskPage 생성**: `TaskPageViewModel(ProjectItem, IProjectRepository, AppSettings, Action refreshCardState)`(TaskPageViewModel.cs:58-77), `TaskPage(TaskPageViewModel vm, AppSettings settings)`(TaskPage.xaml.cs:37-52), `ProjectCardViewModel.CreateTaskPageViewModel()`(:517-523, EnsureTodosLoaded 후 생성). **특정 작업 카드 포커스 기능 없음** — 사용자 결정(프로젝트 작업 페이지 열기)으로 신규 스크롤 인프라 불필요.
-- **ProjectCardViewModel 팩토리**(:517-551): Create{Task,Test}PageViewModel/CreateHistoryDialogViewModel — Ensure*Loaded 후 `_item`·`_repository`·`_settings`·콜백 주입.
+### 데이터 가용성 (직접 Read)
+- `ProjectCardViewModel.CreateTaskPageViewModel():517-523`가 `EnsureTodosLoaded()` + `EnsureHistoriesLoaded()` + **`EnsureTestsLoaded()`**를 모두 호출 → `_project.TestCategories`가 이미 로드된 상태로 VM에 들어온다. **통과율 배지에 신규 데이터 로딩 불필요**.
+- `TaskPageViewModel.BuildTestStatusLookup():80-86`가 이미 `_project.TestCategories`를 순회 중 — 같은 소스에서 카테고리별 통과율을 계산할 수 있다.
+- `TestPageViewModel.Rebuild():75-82`의 통과율 계산식 확인: `total = cat.Items.Count`, `pass = cat.Items.Count(t => t.Status == TestItem.StatusPass)`, `passRate = total == 0 ? 0 : (double)pass/total*100`. **이 식을 그대로 재사용**한다(사용자 결정: 같은 이름의 테스트 카테고리 기준).
+- `TestPage.FormatPassRate(double):81` = `$"{rate:0}%"` — 서식 선례.
 
-### 재사용 (직접 Read)
-- **TagColorConverter**(Presentation/Converters/DevToolConverters.cs): 이름→결정론적 색(작업 카테고리·유형 배지 재사용) → 프로젝트 그룹 헤더 색 dot 등에 재사용 가능(선택).
-- **페이지 헤더·뒤로가기·빈 상태 패턴**: TaskPage/TestPage XAML(헤더 ← 대시보드·제목·액션) → NotificationPage 레이아웃 재사용.
+### 재사용 자산 (직접 Read)
+- `Resources/Styles.xaml`: `TagBadgeStyle`(CornerRadius 4 / Padding 8,3) — **우선순위 pill·통과율 pill의 기반으로 재사용**. `GroupTabRadioButtonStyle`은 대시보드 그룹탭 전용(Height 48, 하단 보더 3px 탭)이라 시안의 소형 세그먼트 토글과 형태가 달라 **재사용 불가** → 신규 스타일 필요. `GroupAddButtonStyle`도 Height 48 고정·점선 없음이라 열 하단 추가 버튼과 불일치 → 신규 필요.
+- `Resources/Palette.xaml`: `AppAccentBrush`(#F0716A 살몬)·`AppSuccessBrush`(#5DB463 초록)·`AppCardBrush`·`AppCardAltBrush`·`AppSurfaceBrush`·`AppBorderBrush`·`AppBorderStrongBrush`·`AppText{Primary,Secondary,Tertiary,Muted}Brush` 존재. **파랑·주황 계열은 미정의** → 상태 dot(진행 중=파랑, 보류=주황)과 우선순위 pill(보통=파랑, 높음=주황)에 신규 2색 추가 필요.
+- `Presentation/Converters`: `TagColor`(이름→결정론적 색) — 카테고리 그룹 dot에 재사용(기존 카드에서 이미 사용 중).
+- `TaskEditDialog(TodoItem? existing, AppSettings settings)` — **시그니처 변경 불필요**. 열별 `+ 새 작업`은 다이얼로그 결과 `TodoItem`의 `Status`를 코드비하인드에서 해당 열 상태로 지정한 뒤 `Vm.AddTodo`에 넘기면 된다.
 
-## 시각 요소 분해 (알림 UI — 출처 PRD §3, 목업 부재로 세부는 사용자 확인)
+### 리뷰에서 드러난 함정 (plan-reviewer 1회차, 직접 재확인 완료)
+- **`TaskCardTemplate`은 칸반·목록 공용이다**(`TaskPage.xaml:15` 주석 "칸반·목록 공용", `:186/199/212/225` 칸반 + `:239` 목록이 모두 소비). 카드를 그 자리에서 고치면 **목록 뷰가 강제로 함께 바뀐다** → 칸반 전용 템플릿을 **신규**로 만들고 기존 템플릿은 목록 전용으로 존치한다(D11). 목록 뷰에는 `AllowDrop`이 없어 드래그 경로가 아예 없으므로, 목록 카드에서 상태 콤보를 빼면 상태 변경 수단이 사라진다 — 존치가 기능적으로도 옳다.
+- **`Vm.CreateLinkedTest`의 유일한 호출부가 `AddTask_Click`**(`TaskPage.xaml.cs:114-115`, 전 레포 grep 확인)이다. 헤더 `+새 작업` 제거 시 **FR-T6("테스트 목록에도 추가" 토글)가 조용히 죽는다** → 열별 추가 버튼이 이 분기를 반드시 이관한다(D12).
+- **`Palette.xaml`에는 `Default`(다크) 딕셔너리 하나뿐**이다(`:19`, `:10-11` 주석이 "앱은 항상 다크로 고정 … Light/HighContrast 분기는 두지 않는다(다크 단일 — YAGNI)"로 명시). 신규 색은 **Default에만** 추가한다 — Light 딕셔너리를 새로 만들면 Phase 0의 의도적 설계 결정을 뒤집는다.
+- **`WaitingItems.Count`가 `WaitingCount`의 계산식**(`TaskPageViewModel.cs:122-125`)이다. 요소 타입을 그룹으로 바꾸면 `.Count`가 **작업 수가 아니라 카테고리 수**가 된다 — 컴파일 오류 없이 조용히 잘못된 숫자를 표시한다(FR-T4 "상태별 개수" 직결). 개수는 그룹 합계로 재계산한다.
+- **`TaskPageViewModel.TotalCount`(`:47`)는 계산·설정만 되고 XAML 어디에도 바인딩되지 않는다**(grep 확인). 미사용 심볼 정리 대상에 포함한다.
+- resw 기존 키 확인 — `TaskStatus_{Waiting,Active,Completed,Hold}`, `TaskPriority_{High,Normal,Low}`, `TaskFilter_All`, `TaskView_Kanban/List`, `TaskAdd_Button`, `TaskEdit_Tooltip`, `TaskDelete_Tooltip`, `TaskCategory_None` 전부 존재 → **대부분 재사용**. 신규는 날짜 범위 서식·컨텍스트 메뉴 항목·통과율 배지 서식뿐.
 
-| 요소 | 속성 | 디자인 값 | 확인 방법 |
-|------|------|----------|-----------|
-| 헤더 벨 버튼 | 크기·글리프 | 36×36 Padding=0 + Segoe MDL2 벨 글리프 | HeaderButtonsPanel 기존 버튼 관례 |
-| 안읽음 배지 | 표시 | 벨 우상단 안읽음 개수(색 점+숫자) | 사용자 결정(배지 표시) + PRD §3 읽음 추적 |
-| 드롭다운 패널 | 구성 | 요약 목록(상위 N) + "모든 알림 보기" 버튼 | PRD §4 FR-N3 |
-| 알림 페이지 헤더 | 구성 | ← 대시보드 · 제목 · "모두 읽음" | PRD §4 FR-N2 + TaskPage 헤더 관례 |
-| 프로젝트 그룹 | 구성 | 프로젝트명 헤더 + 소속 알림 항목 | PRD §4 FR-N2 "프로젝트별 그룹" |
-| 알림 항목 | 구성 | 작업 텍스트 · 마감상태 배지 · 종료일 · 읽음 표시 | PRD §3/§4 |
-| 마감상태 배지 | 색·라벨 | 임박/오늘/경과 3구분(경과 강조 코랄 #f0716a 계열) | PRD §3 팔레트 + WinUI idiom |
-| 읽음/안읽음 | 표시 | 안읽음 강조(점·굵기), 읽음 흐림 | PRD §3 읽음 추적 |
-| 빈 상태 | 표시 | "마감 임박 작업 없음" 안내 | TaskPage/TestPage 빈 상태 관례 |
-| 팔레트·폰트 | — | 배경 #131316·카드 #1c1c20·강조 코랄 #f0716a, Malgun Gothic | PRD §3(Phase 0 전역 적용 완료) |
-> 팔레트·폰트는 Phase 0 전역 적용. 신규 시각 요소(벨 배지·드롭다운·알림 페이지·마감상태 배지)만 추가. 세부 레이아웃·마감상태 배지 색은 목업 부재 → WinUI idiom 후 사용자 확인.
+### 기술 제약 (확인 완료)
+- **WinUI `Border`는 점선 테두리를 지원하지 않는다**(`StrokeDashArray`는 `Shape` 계열 속성). 시안의 점선 `+ 새 작업` 버튼은 **Button 템플릿 안에 `Rectangle` + `StrokeDashArray="3,3"`** 으로 구성한다. → T1에서 스타일로 1회 정의해 4개 열이 공유.
 
-## Tasks
+### 4-D. 재사용 확인
 
-### 진행 체크리스트
-- [x] T1 — 알림 도메인 모델 + 마감 감지 서비스(순수)
-- [x] T2 — 읽음 상태 영속화(AppSettings.ReadNotificationIds)
-- [x] T3 — MainViewModel 집계·읽음 처리 + NotificationPageViewModel
-- [x] T4 — NotificationPage 전체 페이지 + resw
-- [x] T5 — 헤더 벨 버튼 + Flyout 드롭다운 + 배지 + MainWindow 배선
-
-### T1 — 알림 도메인 모델 + 마감 감지 서비스 (Type C)
-- **내용**: (a) `Domain/Enums/DeadlineStatus.cs` — `Imminent`(D-3 임박)·`DueToday`(오늘 마감)·`Overdue`(경과). (b) `Domain/ValueObjects/Notification.cs` — 불변 record(`ProjectId`·`ProjectName`·`TodoId`·`TodoText`·`DateTime EndDate`·`DeadlineStatus Status`). (c) `Domain/Services/NotificationService.cs`(신규 폴더) — 순수 정적 `Detect(IEnumerable<ProjectItem> projects, DateTime today)` → `List<Notification>`(각 프로젝트 Todos에서 `EndDate!=null && Status!=Completed` 필터 → 경계 판정으로 DeadlineStatus 부여 → EndDate 오름차순). `BuildKey(Notification)` → `$"{TodoId}:{Status}"`(읽음 키). 한글 XML 주석.
-- **Design**: 배치 = Domain(Enums·ValueObjects·신규 Services 폴더). 신규 심볼 = `DeadlineStatus`(enum)·`Notification`(값 객체 — 마감 알림 1건의 불변 사실)·`NotificationService`(마감 감지 순수 로직·읽음 키 생성). 의존 = TodoItem·ProjectItem·TodoStatus만 참조(순수, Repository·UI·전역 상태 무의존 — DateTime today를 인자로 주입해 테스트/재현 가능). 참조하는 곳 = T3 MainViewModel/NotificationPageViewModel. 비추상화 = 감지를 인터페이스·DI 없이 **정적 순수 함수**로(도메인 서비스 첫 도입이나 상태·의존이 없어 클래스 상태·주입 불필요 — NFR-2 도메인 로직 배치와 정합, YAGNI). IsRead는 값 객체에 넣지 않음(읽음은 영속 상태 기반 표현 관심사 — T3 표현 계층에서 부여).
-- **Files**: `Domain/Enums/DeadlineStatus.cs`(신규), `Domain/ValueObjects/Notification.cs`(신규), `Domain/Services/NotificationService.cs`(신규)
-- **Edge**: EndDate null·완료(Status==Completed) → 제외. Todos 빈/전부 완료 → 빈 목록. 경계값: 남은일수 4+ → 제외, 3/2/1 → 임박, 0 → 오늘, 음수 → 경과(시각 무시, `EndDate.Date`와 `today.Date` 비교). 같은 날 여러 작업 → 각각 알림.
-- **Halt Forecast**: 없음(신규 순수 파일, 파괴적·외부 요소 없음).
-- **Acceptance**: 빌드 0. `NotificationService.Detect`가 EndDate 있는 미완료 작업만 D-3 임박/오늘/경과로 분류(코드 대조: 경계식·완료 제외·EndDate!=null). `BuildKey`=`작업Id:상태`. 신규 도메인 심볼 3종 존재.
-
-### T2 — 읽음 상태 영속화 (Type C)
-- **내용**: `Domain/Entities/AppSettings.cs`에 `List<string> ReadNotificationIds { get; set; } = []`(읽은 알림 키 = 작업Id:마감상태) 추가. 한글 XML 주석. **AppJsonContext 무수정**(AppSettings 전체 직렬화 자동 커버 — 근거 Investigation). **AppSettingsDialogViewModel.LoadFrom/ApplyTo 무수정**(ApplyTo 제자리 변경으로 보존 — 근거 Investigation).
-- **Design**: 해당 없음 — 기존 AppSettings Aggregate에 `List<string>` 필드 1개 추가만, 신규 공개 심볼(타입/메서드) 없음(Phase 1 HistoryKinds 선례 동형).
-- **Files**: `Domain/Entities/AppSettings.cs`
-- **Edge**: 구버전 저장 데이터(필드 없음) → JSON 역직렬화 시 기본 빈 리스트(초기자 `= []`). 읽음 키 누적 방지는 T3 재계산 시 프루닝(현재 알림 키와 교집합)으로 처리.
-- **Halt Forecast**: 없음(비파괴 영속화 필드 추가 — NFR-3 하위호환).
-- **Acceptance**: 빌드 0. AppSettings에 `ReadNotificationIds`(기본 빈 리스트) 존재. 직렬화/역직렬화 왕복 시 보존(AppJsonContext 자동 — 코드 대조로 Context·다이얼로그 매핑 무수정 확인).
-
-### T3 — MainViewModel 집계·읽음 처리 + NotificationPageViewModel (Type D)
-- **내용**:
-  - `MainViewModel`: (a) `GetAllProjectItemsWithTodos()`(WithHistories 미러 — ToModel + `_projectRepository.GetTodos(item.Id)` per-project). (b) `RebuildNotifications()` — WithTodos + `NotificationService.Detect(projects, DateTime.Now)` → 최신 알림 목록 보관 + `UnreadNotificationCount`([ObservableProperty], 안읽음=키 미포함) 갱신 + **읽음 키 프루닝**(`ReadNotificationIds` ∩ 현재 알림 키, 변경 시 SaveSettings). (c) `MarkNotificationRead(Notification)`/`MarkAllNotificationsRead(IEnumerable<Notification>)` — `ReadNotificationIds`에 키 추가 → SaveSettings → UnreadNotificationCount 갱신. (d) `IReadOnlyList<Notification> GetCurrentNotifications()`·`IReadOnlySet<string> GetReadKeys()`(페이지/패널 소비). (e) `TaskPageViewModel? CreateTaskPageViewModelForProject(string projectId)`(`_allCards`에서 id 매칭 카드 → CreateTaskPageViewModel; 없으면 null). 초기 로드 완료 시점에 `RebuildNotifications` 1회 호출(배지 초기값).
-  - `Presentation/ViewModels/NotificationPageViewModel.cs`(신규): 알림 목록 + 읽음 키를 받아 **프로젝트별 그룹**(`NotificationProjectGroup` record: ProjectName + `List<NotificationItemViewModel>`) 구성. `NotificationItemViewModel`(ObservableObject): Notification 래핑 + `IsRead`([ObservableProperty]) + 마감상태 배지 표시용 노출(라벨·`DeadlineStatus`). 커맨드: `MarkRead`(항목)·`MarkAllRead`·`OpenTask`(항목 → 프로젝트 이동 이벤트). 읽음 처리는 MainViewModel 콜백(생성자 주입 `Action<Notification> markRead`·`Action markAll`·`Action<string> navigateToProject` — TaskPageViewModel의 `Action refreshCardState` 주입 선례). `HasNotifications`/빈 상태.
-- **Design**: 배치 = Presentation/ViewModels(신규 NotificationPageViewModel + MainViewModel 확장) + Domain 소비. 신규 심볼 = `NotificationPageViewModel`(그룹·읽음·이동)·`NotificationItemViewModel`(항목 읽음 상태)·`NotificationProjectGroup`(그룹 record)·MainViewModel 공개 메서드(WithTodos·RebuildNotifications·MarkNotificationRead/All·GetCurrentNotifications·GetReadKeys·CreateTaskPageViewModelForProject)·`UnreadNotificationCount`. 의존 = NotificationService·Notification(T1)·AppSettings.ReadNotificationIds(T2)·GetTodos·TaskPageViewModel. 참조하는 곳 = T4 NotificationPage·T5 헤더/MainWindow. 비추상화 = 그룹/항목은 record + ObservableObject(신규 컬렉션 프레임워크·제네릭 계층 없이 HistoryDateGroup·TestSuiteGroup 선례 동형). 읽음 저장은 MainViewModel이 단일 소유(`_settings.ReadNotificationIds` + SaveSettings) — VM은 콜백으로 위임(영속 소유 분산 방지). 이동은 특정 카드 포커스 없이 **프로젝트 작업 페이지 열기**(사용자 결정 — ScrollToItem 신규 인프라 회피).
-- **Files**: `Presentation/ViewModels/MainViewModel.cs`, `Presentation/ViewModels/NotificationPageViewModel.cs`(신규)
-- **Edge**: 알림 0건 → 빈 그룹·UnreadCount 0. 읽은 뒤 마감 악화(임박→오늘) → 새 키라 안읽음 재등장(재환기, 사용자 결정). 작업 삭제/완료 → 다음 RebuildNotifications에서 소멸 + 프루닝으로 읽음 키 정리. 프로젝트 다수·Todos 다수 → per-project GetTodos 반복(초기 1회 + 열 때 재계산, 성능은 사용자 확인). 이동 대상 카드 없음(삭제됨) → null 가드(무동작). "모두 읽음"은 현재 표시 알림 전체 대상.
-- **Halt Forecast**: 없음 — MainViewModel 공개 메서드 추가·신규 VM은 계획된 Files 내 cross-file(파괴적·외부 요소 없음). 기존 public 시그니처 변경 없음(추가만).
-- **Acceptance**: 빌드 0. RebuildNotifications가 전체 프로젝트 Todo를 로드해 알림 집계·UnreadNotificationCount 설정·읽음 키 프루닝(코드 대조). MarkNotificationRead/All이 ReadNotificationIds 갱신 + SaveSettings 호출. NotificationPageViewModel이 프로젝트별 그룹·항목 IsRead·이동/읽음 커맨드 노출. CreateTaskPageViewModelForProject가 id로 카드 조회. depends T1, T2.
-
-### T4 — NotificationPage 전체 페이지 + resw (Type D)
-- **내용**: `Presentation/Views/NotificationPage.xaml`(+`.cs`) 신규 — 헤더(← 대시보드[Back_Click → ShowDashboard]·제목·"모두 읽음" 버튼[MarkAllRead])·프로젝트별 그룹 목록(그룹 헤더 프로젝트명 + 항목 카드)·항목 카드(작업 텍스트·마감상태 배지[색+라벨, 임박/오늘/경과]·종료일·안읽음 강조·클릭 시 OpenTask 이동)·빈 상태("마감 임박 작업 없음"). 생성자 `NotificationPage(NotificationPageViewModel vm)`. 로컬라이즈(x:Uid/.resw ko·en) 신규 문자열(제목·모두 읽음·마감상태 라벨 3종·빈 상태). 마감상태 배지 색은 정적 헬퍼/컨버터(TestPage 상태 색 헬퍼 패턴 — x:Bind 함수 Brush 직접 반환).
-- **Design**: 배치 = Presentation/Views(신규 페이지 XAML+코드비하인드) + Strings. 신규 심볼 = `NotificationPage`(전체 페이지 View)·마감상태→색/라벨 표시 헬퍼. 의존 = NotificationPageViewModel(T3)·마감상태 배지 색·TaskPage 헤더 관례. 참조하는 곳 = T5(헤더 "모든 알림 보기"·MainWindow ShowPage). 비추상화 = 페이지는 TaskPage/TestPage 레이아웃 관례 재사용(신규 네비 프레임워크 없음), 배지 색은 정적 헬퍼(신규 컨버터 최소화 — TestPage 선례).
-- **Files**: `Presentation/Views/NotificationPage.xaml`(신규), `Presentation/Views/NotificationPage.xaml.cs`(신규), `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`, `DevDashboard_WinUI.csproj`(신규 Page 등록 — 자동 include 여부 확인 후 필요 시)
-- **Edge**: 알림 0 → 빈 상태 표시(그룹·"모두 읽음" 숨김 또는 비활성). 긴 작업 텍스트 → 트리밍. 안읽음/읽음 시각 구분. 경과 항목 강조(코랄 계열). 항목 클릭 → 이동 후 페이지 전환.
-- **Halt Forecast**: 없음 — XAML 페이지·resw 추가, 파괴적·외부 요소 없음. csproj Page include는 기존 관례(Phase 2/3 TaskPage/TestPage 추가 선례).
-- **Acceptance**: 빌드 0. NotificationPage가 프로젝트별 그룹·마감상태 배지·읽음 표시·"모두 읽음"·빈 상태 렌더, 항목 클릭 시 이동 커맨드 호출. resw ko/en 신규 키 등록. **시각 렌더는 사용자 확인 필요.** depends T3.
-
-### T5 — 헤더 벨 버튼 + Flyout 드롭다운 + 배지 + MainWindow 배선 (Type D)
-- **내용**: (a) `MainWindow.xaml`: `HeaderButtonsPanel`의 ExportImportButton↔AppSettingsButton 사이에 `NotificationButton`(36×36 + 벨 FontIcon + x:Uid) 추가, 우상단 **안읽음 개수 배지**(UnreadNotificationCount>0일 때 표시, 색 점+숫자), 버튼에 `Flyout` 드롭다운 패널(요약 목록 상위 N + "모든 알림 보기" 버튼·빈 상태). 배지·요약은 `_viewModel`(UnreadNotificationCount·GetCurrentNotifications) 바인딩. (b) `MainWindow.xaml.cs`: Flyout Opening 시 `_viewModel.RebuildNotifications()`(최신화) + 요약 갱신, "모든 알림 보기" → `new NotificationPage(new NotificationPageViewModel(...))` 구성 후 `ShowPage`, 항목 이동 이벤트 → `_viewModel.CreateTaskPageViewModelForProject(id)` → `new TaskPage(vm, settings)` → `ShowPage`(카드→페이지 선례). 요약 항목/페이지가 공유하는 NotificationPageViewModel 구성 헬퍼. (c) resw(ko/en) 신규 문자열(벨 툴팁·"모든 알림 보기"·빈 상태). 아이콘 버튼 접근성 `ToolTipService.ToolTip`(Phase 4 T5 교훈).
-- **Design**: 배치 = Presentation(MainWindow XAML/코드비하인드) + Strings. 신규 심볼 = `NotificationButton`·드롭다운 Flyout 패널·배지 요소(XAML)·MainWindow 핸들러(Flyout 열기·모든 알림 보기·항목 이동)·NotificationPageViewModel 구성 헬퍼. 의존 = MainViewModel(T3 UnreadNotificationCount·RebuildNotifications·GetCurrentNotifications·CreateTaskPageViewModelForProject)·NotificationPage(T4)·ShowPage. 비추상화 = 벨/Flyout은 기존 헤더 버튼·SortButton Flyout 패턴 재사용(신규 컨트롤 없음), 배지는 표준 Border+TextBlock(커스텀 배지 컨트롤 미신설). 이동은 카드→페이지 선례 재사용.
-- **Files**: `MainWindow.xaml`(프로젝트 루트), `MainWindow.xaml.cs`(프로젝트 루트), `Presentation/ViewModels/MainViewModel.cs`(배지 표시용 `HasUnreadNotifications` 파생 프로퍼티 추가 — 구현 중 편입), `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`
-- **Edge**: 안읽음 0 → 배지 숨김. 프로젝트 없음(HasAnyProjects false) → 벨 무알림·빈 상태. 드롭다운 요약 다수 → 상위 N만(예: 5) + "모든 알림 보기". Flyout 열 때마다 재계산(최신 반영). 이동 대상 카드 없음 → null 가드. 배지 개수 큰 값 → 표시 상한(예: "9+").
-- **Halt Forecast**: 없음 — 헤더 버튼/Flyout/배지 추가·MainWindow 핸들러 배선, 파괴적·외부 요소 없음.
-- **Acceptance**: 빌드 0. 헤더에 벨 버튼·안읽음 배지(개수)·드롭다운(요약 + "모든 알림 보기") 표시, 열 때 재계산. "모든 알림 보기" → NotificationPage 전환, 항목 클릭 → 해당 프로젝트 TaskPage 이동. resw ko/en 등록. **시각 렌더는 사용자 확인 필요.** depends T3, T4.
-
-## PRD Coverage
-| PRD ID | 우선순위 | 대응 task | 상태 |
-|--------|---------|----------|------|
-| FR-N1 (마감 감지 — D-3/오늘/경과, 완료 제외) | Must | T1, T3(집계) | ✅ 커버 |
-| FR-N2 (알림 전체 페이지 — 그룹·읽음·모두읽음·이동) | Must | T3(VM), T4(페이지) | ✅ 커버 |
-| FR-N3 (헤더 드롭다운 패널 — 요약 + 모든 알림 보기) | Must | T5 | ✅ 커버 |
-| FR-N4 (읽음 상태 영속화) | Must | T2(저장), T3(처리) | ✅ 커버 |
-| FR-C*·S*·T*·E*·H* | — | (Phase 0~4 완료) | ✅ 이전 Phase 기구현 |
-
-## 4-D 재사용 확인
 | 신규 심볼 | 유사 기존 구현 검색 결과 | 재사용/신규 사유 |
 |---|---|---|
-| NotificationService | (없음 — Domain/Services 폴더 부재) | **신규**(마감 감지 순수 로직, 첫 도메인 서비스 — 정적 순수) |
-| Notification / DeadlineStatus | (없음) | **신규**(알림 값 객체·마감상태 enum) |
-| GetAllProjectItemsWithTodos | MainViewModel.GetAllProjectItemsWithHistories(동형 로더) | **미러 신규**(Histories→Todos, GetTodos 재사용) |
-| NotificationPageViewModel/Item/Group | HistoryDateGroup·TestSuiteGroup·TaskPageViewModel(그룹+항목 VM 패턴) | **신규**(패턴 재사용, 알림 도메인 전용) |
-| NotificationPage | TaskPage·TestPage(전체 페이지 + ShowPage 네비) | **패턴 재사용 신규**(헤더·빈상태·네비 관례) |
-| 헤더 벨 버튼·Flyout·배지 | HeaderButtonsPanel 버튼·SortButton Flyout | **패턴 재사용**(신규 컨트롤 없음) |
-| 마감상태 배지 색 | TestPage 상태 색 정적 헬퍼(통과/실패/미실행) | **패턴 재사용**(정적 Brush 헬퍼) |
-| CreateTaskPageViewModelForProject | ProjectCardViewModel.CreateTaskPageViewModel | **재사용**(id로 카드 조회 후 위임) |
+| `TaskColumnGroup` (record) | `TaskCategoryGroup`(TaskPageViewModel.cs:262), `TestSuiteGroup`(TestPageViewModel.cs:218) | **신규** — 기존 두 record 모두 통과율 배지 필드가 없다. `TaskCategoryGroup`은 목록 뷰가 계속 쓰므로 확장 대신 별도 신규(목록 뷰에 불필요한 필드를 얹지 않음). |
+| `TaskKanbanCardTemplate` (DataTemplate) | `TaskCardTemplate`(TaskPage.xaml:15, 칸반·목록 공용) | **신규** — 기존 템플릿을 그 자리에서 고치면 목록 뷰가 강제로 함께 바뀐다(D11). 기존은 목록 전용으로 존치. |
+| 통과율 계산 | `TestPageViewModel.Rebuild():75-82` | **재사용** — 동일 계산식을 `TaskPageViewModel`에 이식(3회 미만 중복이라 공용 추출 안 함, CLAUDE.md "2회 이상 확인 시 공통화" 기준 미달). |
+| `DashedAddButtonStyle` | `GroupAddButtonStyle`(Styles.xaml:140) | **신규** — 기존은 Height 48 고정·점선 없음(대시보드 그룹탭 전용). 형태 불일치. |
+| `SegmentedToggleStyle` | `GroupTabRadioButtonStyle`(Styles.xaml:82) | **신규** — 기존은 하단 보더 탭(Height 48). 시안은 소형 라운드 세그먼트. |
+| 우선순위/통과율 pill | `TagBadgeStyle`(Styles.xaml:189) | **재사용** — CornerRadius/Padding 그대로 쓰고 Background만 지정. |
+| 상태 dot / 카테고리 dot | `Ellipse` + `TagColor` 컨버터(TaskPage.xaml:28-32) | **재사용** — 카테고리 dot은 기존 패턴 그대로. 상태 dot만 고정색 4개 신규 브러시. |
+
+## 시각 요소 분해
+
+> 출처: 사용자 제공 시안 이미지. 목업 HTML이 없어 **px 값은 확정 불가** — 구조·구성 요소·상대 관계를 명세하고, 수치는 기존 페이지 관례(TaskPage/TestPage 현행 값)를 따른다. 확인은 빌드 후 사용자 육안 대조(⏳ HUMAN-VERIFY).
+
+| 요소 | 속성 | 디자인 값 | 확인 방법 |
+|---|---|---|---|
+| 헤더 뒤로가기 | 구성 | `‹` 글리프 + "대시보드", 저강도(subtle) 버튼 | 시안 좌상단 |
+| 헤더 제목 | 스타일 | "작업" 굵게, 뒤로가기 우측 | 시안 |
+| 헤더 우측 | 구성·순서 | 카테고리 콤보("전체") → 칸반/목록 세그먼트 토글 | 시안 우상단 |
+| 세그먼트 토글 | 형태 | 두 버튼이 맞붙은 라운드 그룹, 선택된 쪽만 밝은 배경, 각 항목에 아이콘 + 라벨 | 시안 |
+| 헤더 `+새 작업` | 존재 | **없음**(열 하단으로 이동) | 시안에 부재 |
+| 칸반 열 | 컨테이너 | 배경 + 1px 테두리 + 라운드 패널, 열 4개 등폭 | 시안 |
+| 열 헤더 | 구성 | 상태 색 dot + 상태명(굵게) + 개수(저강도) | 시안 |
+| 열 헤더 dot 색 | 색 | 예정=살몬(AppAccent) / 진행 중=파랑(신규) / 완료=초록(AppSuccess) / 보류=주황(신규) | 시안 dot 색상 판독 |
+| 카테고리 그룹 헤더 | 구성 | 카테고리 색 dot + 카테고리명 + 개수 | 시안 (열 안 그룹) |
+| 통과율 배지 | 구성·색 | `✓ 통과율 {n}% · {n}건` pill, 초록 텍스트 + 저채도 초록 배경 | 시안 그룹 헤더 우측 |
+| 통과율 배지 | 조건 | 같은 이름의 테스트 카테고리가 없으면 **미표시** | 사용자 결정(2026-07-20) |
+| 작업 카드 | 컨테이너 | 배경 + 1px 테두리 + 라운드, 열 패널보다 밝은 톤 | 시안 |
+| 카드 1행 | 구성 | 제목(굵게, 줄바꿈) 좌 / 우선순위 pill 우 | 시안 |
+| 우선순위 pill 색 | 색 | 높음=주황 / 보통=파랑 / 낮음=회색 | 시안 배지 색상 판독 |
+| 카드 2행 | 구성 | 설명 텍스트, 저강도·작게, 줄바꿈. 비어 있으면 미표시 | 시안 |
+| 카드 3행 | 구성 | `MM-dd – MM-dd` 날짜 범위 **한 줄**, 저강도 | 시안 |
+| 카드 조작 | 구성 | 상태 콤보·수정·삭제 버튼 **없음** | 시안 |
+| 열 하단 버튼 | 형태 | `+ 새 작업`, **점선 테두리**, 열 폭 전체, 저강도 텍스트 | 시안 각 열 하단 |
 
 ## Decisions
-- **D1 마감 감지 경계**: `EndDate.Date` vs `today.Date` 남은일수 — 3/2/1=임박, 0=오늘, 음수=경과, 4+ 제외. Status==Completed·EndDate==null 제외. Source: PRD §3 "D-3 임박 + 오늘 마감 + 경과, 완료 제외"(자체 확정).
-- **D2 읽음 키 = 작업Id + 마감상태(재환기)**: 키=`{TodoId}:{DeadlineStatus}`. 마감 악화(임박→오늘→경과) 시 새 키라 안읽음 재등장. Source: 사용자 결정(2026-07-19).
-- **D3 읽음 키 누적 방지**: RebuildNotifications 시 ReadNotificationIds를 현재 알림 키와 교집합으로 프루닝(변경 시 저장). Source: D2 재환기로 키 누적 → 경계 유지 위해 자체 확정(현재 알림에 없는 키는 해당 (작업,상태) 소멸이라 안전).
-- **D4 클릭 이동 = 프로젝트 작업 페이지 열기**: 특정 작업 카드 스크롤/포커스 없이 해당 프로젝트 TaskPage 전환(ShowPage 재사용). Source: 사용자 결정(2026-07-19).
-- **D5 벨 배지 = 안읽음 개수 표시**: 벨 우상단 개수 배지(0이면 숨김). Source: 사용자 결정(2026-07-19).
-- **D6 감지 로직 위치 = Domain/Services 정적 순수**: DI·인터페이스 없이 정적 함수(상태·의존 없음). Source: NFR-2(도메인 로직 Domain 배치) + 기존 무 DI-서비스 관례 + YAGNI(자체 확정).
-- **D7 읽음 상태 저장 = AppSettings.ReadNotificationIds(List\<string\>)**: 신규 테이블 없이 AppSettings JSON 영속(AppJsonContext 자동). Source: Phase 1 HistoryKinds/PageSize 선례(자체 확정).
-- **D8 알림 갱신 시점 = 초기 로드 1회 + 드롭다운/페이지 열 때 + 읽음/작업 변경 후 재계산**: 파생 데이터라 온디맨드 재계산, 배지 초기값은 로드 후 1회. Source: 파생 특성 + 배지 표시 요구(자체 확정).
-- **D9 단위 테스트 미추가**: 테스트 프로젝트 부재 — 현행 유지(빌드+사용자 확인 검증). Source: 사용자 결정(2026-07-19) + Phase 0~4 일관.
-- **D10 브랜치**: master 기준 새 브랜치 `task/phase5-notifications`. Source: Phase 3/4 선례(Phase별 새 브랜치).
 
-## Open Questions
-- [x] 읽음/안읽음 추적 키 → **작업Id + 마감상태(재환기)**. (D2)
-- [x] 알림 클릭 이동 범위 → **프로젝트 작업 페이지 열기**. (D4)
-- [x] 헤더 벨 안읽음 개수 배지 → **표시**. (D5)
-- [x] NotificationService 단위 테스트 → **미추가(현행 유지)**. (D9)
-- [x] 감지 경계·로직 위치·저장 위치·갱신 시점 → **자체 확정**(D1/D3/D6/D7/D8).
+| # | 항목 | 카테고리 | 결정 | Source |
+|---|---|---|---|---|
+| D1 | 담당자 필드 | 범위 | **제외 유지** — TodoItem·DB 무변경, 카드 하단은 날짜만 | 사용자 결정 2026-07-20 (deferred.md:9 FR-T7 대기 유지) |
+| D2 | 카드 편집 진입 | UX | **카드 좌클릭 → TaskEditDialog** | 사용자 결정 2026-07-20 |
+| D3 | 카드 삭제·상태변경 | UX | **우클릭 컨텍스트 메뉴**(편집·삭제·상태 변경 4종) — 드래그 못 쓰는 상황의 접근성 경로 겸용 | 사용자 결정 2026-07-20 |
+| D4 | 통과율 배지 집계 | 로직 | **작업 카테고리명과 같은 이름의 `TestCategory` 기준**. `TestPageViewModel.Rebuild():75-82` 계산식 재사용. 비교자는 **`OrdinalIgnoreCase`**(`CreateLinkedTest():188`·필터 `:115` 선례 계승). 일치 카테고리 없거나 테스트 0건이면 배지 숨김. **"미분류" 그룹은 배지 미표시**(실제 카테고리가 아님) | 사용자 결정 2026-07-20 + 레포 비교자 선례 |
+| D5 | 열별 `+새 작업`의 상태 | 로직 | 다이얼로그 결과 `TodoItem.Status`를 **해당 열의 상태로 지정** 후 `AddTodo` | 시안이 열마다 버튼을 두므로 열 상태 계승이 자연스러움. `TaskEditDialog` 시그니처 무변경(TaskEditDialog.xaml.cs:20) |
+| D6 | 카드별 테스트 배지(`LinkedTestBadge`) | 범위 | **카드에서 제거**(시안에 없음). 단 `TodoItem.LinkedTestBadge`·`GetLinkedTestStatus`·`MapTestBadge`는 **존치** — FR-T8 요구가 살아 있고 통과율 배지로 대체 표현되므로 로직 삭제는 별건 | 시안 카드에 배지 부재 + PRD FR-T8 존치 |
+| D7 | 신규 색 2종 위치 | 위치 | `Resources/Palette.xaml`에 `AppInfo*`(파랑)·`AppWarning*`(주황) 추가 — 기존 `AppSuccess`/`AppDanger` 명명 관례 계승 | Palette.xaml:38-39 관례 |
+| D8 | 점선 버튼 구현 | 기술 | `Button` 템플릿 내 `Rectangle StrokeDashArray="3,3"` — WinUI `Border`는 점선 미지원 | 기술 제약(Investigation Log) |
+| D9 | 미사용 심볼 | 정리 | `ShowKanban`/`ShowList` RelayCommand는 세그먼트 토글이 소비하거나 제거. `TotalCount`(미바인딩)도 함께 제거 | deferred.md:11 + grep 확인 |
+| D10 | 목록 뷰 | 범위 | **이번 변경 없음** — 시안이 칸반만 보여주므로 목록 뷰 시안은 미확보. `TaskCategoryGroup`·기존 카드 템플릿·상태 콤보 전부 유지 | 시안에 목록 뷰 화면 부재 |
+| D11 | 카드 템플릿 분리 | 구조 | `TaskCardTemplate`(칸반·목록 공용)을 **분리** — 칸반용 `TaskKanbanCardTemplate` 신규, 기존 템플릿은 이름 그대로 **목록 전용으로 존치**(내용 무변경). 목록 뷰는 `AllowDrop`이 없어 상태 콤보가 유일한 상태 변경 수단이므로 존치가 기능상 필수 | plan-reviewer B1 + TaskPage.xaml:15/239 확인 |
+| D12 | FR-T6 이관 | 로직 | 열별 `+새 작업` 핸들러가 `dialog.AddTestRequested` 시 `Vm.CreateLinkedTest(todo)`를 **반드시 호출**한다 — 헤더 버튼 제거로 유일 호출부가 사라지므로 | plan-reviewer B2 + TaskPage.xaml.cs:114-115 확인 |
+| D13 | 상태 dot·pill 색 | 위치 | 신규 2색은 `Palette.xaml`의 **`Default` 딕셔너리에만** 추가(Light 딕셔너리 신설 금지 — 다크 단일 정책) | Palette.xaml:10-11 주석 |
+| D14 | PRD FR-T8 문구 | 요구 | 카드 배지 → 그룹 통과율 배지로 **요구 자체가 바뀌므로 `docs/prd.md`의 FR-T8(및 FR-E4의 "작업 카드 배지 배선") 문구를 먼저 갱신**한다. ⚠️ **사용자 승인 필요** | plan-reviewer M2 + docs/prd.md:65,71 |
+
+## PRD Coverage
+
+| PRD ID | 우선순위 | 대응 task | 상태 |
+|---|---|---|---|
+| FR-T1 (작업 데이터 모델: 상태·카테고리·우선순위·날짜) | Must | — | 이번 범위 외 (Phase 2 기구현, `TodoItem` 무변경 — D1) |
+| FR-T2 (전체 페이지 + 칸반/목록 전환) | Must | T4 | ✅ 커버(시각 재구성, 기능 기구현) |
+| FR-T3 (드래그앤드롭 상태 변경) | Must | T2, T3 | ✅ 커버(기구현 — **회귀 방지**가 acceptance에 포함) |
+| FR-T4 (카테고리 필터·그룹핑·상태별 개수) | Must | T3, T4 | ✅ 커버(칸반 내 그룹핑 신규 충족 — T3 그룹핑·개수, T4 헤더 필터 콤보 재배치) |
+| FR-T5 (편집 다이얼로그 + 삭제 확인) | Must | T2 | ✅ 커버(진입 경로 변경, 다이얼로그 기구현) |
+| FR-T6 (테스트 추가 토글) | Should | T3 | ✅ 커버(**회귀 방지** — 호출부 이관, D12) |
+| FR-T8 (연결 테스트 상태 배지) | Should | T1(PRD 갱신), T3 | ✅ 커버(카드 배지 → 그룹 통과율 배지로 **요구 갱신**, D6·D14) |
+| FR-E4 (테스트↔작업 연결 배지 배선) | Should | T1(PRD 갱신) | 문구만 갱신 — 구현은 이번 범위 외(기구현 상태 유지) |
+| FR-C3·FR-S1~S3·FR-E1~E3·FR-H*·FR-N* | Must/Should | — | 이번 범위 외 (Phase 0~5에서 기구현) |
+
+## 작업 단계
+
+### T1 — 시각 자산 선행 정비 + PRD FR-T8 문구 갱신 `Type C`
+- [ ] 구현
+- **Files**: `DevDashboard_WinUI/Resources/Palette.xaml`, `DevDashboard_WinUI/Resources/Styles.xaml`, `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`, `docs/prd.md`
+- **Design**: ① 배치 — 색은 `Palette.xaml`의 **`Default` 딕셔너리에만**(D13, Light 신설 금지), 스타일은 `Styles.xaml`, 문자열은 resw ko/en 양쪽. ② 신규 심볼 — `AppInfoColor/Brush`·`AppWarningColor/Brush`(상태 dot·우선순위 pill 공용 색), `DashedAddButtonStyle`(점선 추가 버튼), `SegmentedToggleStyle`(칸반/목록 토글), `KanbanColumnStyle`(열 패널 Border). ③ 의존 방향 — `TaskPage.xaml`이 참조, 역참조 없음. ④ 비추상화 — 우선순위→색, 상태→색 매핑을 **Converter로 추상화하지 않는다**(x:Bind 정적 헬퍼로 직접 반환, `TestPage.StatusBrush` 선례와 동일). 색 토큰도 "미래 테마용" 일반화 없이 필요한 2색만.
+- **신규 resw 키(ko/en 양쪽) — ⚠️ 소비 방식별로 name 형식이 다르다**: 이 레포는 두 관례가 공존한다 — `x:Uid` 방식은 **속성 접미 필수**(`TaskAdd_Button.Content`처럼, `Resources.resw:432`), `LocalizationService.Get()` 방식은 **베어네임**(`TaskPage.xaml.cs:23-26`). 접미 없이 등록하고 `x:Uid`로 쓰면 **빌드 오류 없이 빈 라벨**이 된다.
+  - 베어네임(코드에서 `LocalizationService.Get()`으로 소비): `TaskDateRange`(`{0} – {1}`), `TaskPassRateBadge`(`✓ 통과율 {0}% · {1}건`) — 둘 다 `string.Format` 대상이라 코드 소비 확정
+  - `MenuFlyoutItem`·`Button` 라벨(`x:Uid`로 소비 시 접미 필수): `TaskMenu_Edit.Text`·`TaskMenu_Delete.Text`·`TaskMenu_MoveTo.Text`, `TaskColumnAdd.Content`. **코드에서 소비하기로 하면 베어네임으로 등록** — 어느 쪽이든 T2/T3의 실제 소비 방식과 일치시킨다.
+- **PRD 갱신(D14 — 사용자 승인 후)**: `docs/prd.md` FR-T8을 "작업 카드에 연결 테스트 상태 배지" → "**칸반 카테고리 그룹 헤더에 해당 카테고리의 테스트 통과율 배지**"로, FR-E4의 "작업 카드 배지 배선(FR-T8)" 문구를 이에 맞춰 수정. 변경 이유 1줄 기록.
+- **Acceptance**: 빌드 성공(경고 0) + 신규 키 6개가 ko/en 양쪽에 동일 name으로 존재(grep 대조) + `Palette.xaml`에 `Default` 외 딕셔너리가 추가되지 않음 + `docs/prd.md` FR-T8·FR-E4 문구가 갱신됨 + 기존 파일 BOM 유무 보존
+- **Edge Cases**: resw 한쪽만 추가 시 다른 언어에서 빈 문자열 → 양쪽 대조. `Rectangle StrokeDashArray`는 `Stroke`가 지정돼야 렌더되므로 스타일에 `Stroke` 필수(D8).
+- **Halt Forecast**: PRD 문구 변경은 **plan 승인에 포함**(승인 프롬프트에 명시) → 자율 루프 중단 없음.
+
+### T2 — 칸반 전용 카드 템플릿 신규 + 조작 경로(클릭/우클릭) `Type C`
+- [ ] 구현
+- **Files**: `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml`(`UserControl.Resources`), `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml.cs`
+- **Design**: ① 배치 — `TaskKanbanCardTemplate`을 `UserControl.Resources`에 **신규 추가**. 기존 `TaskCardTemplate`은 **`DataTemplate` 본문을 고치지 않고 존치**(목록 뷰 전용이 됨, D11) — 따라서 `StatusCombo_Loaded`/`StatusCombo_SelectionChanged`/`EditTask_Click`/`DeleteTask_Click` 핸들러도 **전부 존치**한다. **단 `TaskPage.xaml:14`의 주석 `<!-- 작업 카드 템플릿 (칸반·목록 공용) -->`은 거짓이 되므로 "목록 뷰 전용 카드 템플릿"으로 갱신한다**(CLAUDE.md "코드를 수정하면 딸린 주석을 일치시킨다" — 주석 1줄만 예외, 본문은 무변경). ② 신규 심볼 — `FormatDateRange(DateTime?, DateTime?)`·`DateRangeVisibility(DateTime?, DateTime?)`·`PriorityBrush(TaskPriority)` x:Bind 정적 헬퍼, `Card_Tapped`·`CardMenuEdit_Click`·`CardMenuDelete_Click`·`CardMenuMove_Click` 핸들러(기존 `EditTask_Click`/`DeleteTask_Click` 본문 재사용 — 위임). ③ 의존 방향 — T1 스타일·색 참조. ④ 비추상화 — 컨텍스트 메뉴를 재사용 컴포넌트로 빼지 않고 `MenuFlyout`을 템플릿에 직접 둔다(사용처 1곳).
+- **칸반 카드 구성**: 1행 제목(굵게, 줄바꿈, Grid `*`) + 우선순위 pill(Grid `Auto`) / 2행 설명(비면 Collapsed) / 3행 날짜 범위 1줄(양쪽 다 없으면 Collapsed). 상태 콤보·수정/삭제 버튼·카드별 `LinkedTestBadge` 없음(D6). `CanDrag="True"` + `DragStarting="Card_DragStarting"` **유지**(FR-T3).
+- **Acceptance**: 빌드 성공 + `TaskCardTemplate`의 `DataTemplate` 본문이 diff에서 무변경(주석 1줄 갱신은 예외) + 신규 템플릿이 정의됨(이 시점엔 아직 미소비 — T3에서 배선) + 우클릭 `MenuFlyout`에 편집·삭제·상태 변경 4종 정의 + 삭제 경로가 기존 확인 다이얼로그(`TaskDelete_Confirm`)를 거침 + **신규 템플릿이 참조하는 `StaticResource` 키명이 T1에서 정의한 키명과 문자열 일치**(grep 대조 — WinUI는 `DataTemplate` 내 `StaticResource`를 인스턴스화 시점에 해석하므로 미소비 상태의 "빌드 성공"이 오타를 잡지 못한다)
+- **Edge Cases**: 카드 클릭과 드래그 시작이 충돌 → `Tapped`는 드래그가 성립하면 발생하지 않으므로 우선 `Tapped` 사용, 오작동 시 `PointerReleased`+이동거리 판정으로 조정(⏳ HUMAN-VERIFY). 설명·날짜 모두 없는 카드 → 제목+pill만 있는 1행 카드. **시작일만 또는 종료일만 있는 경우 → `MM-dd – ` 꼴 금지, 있는 쪽만 표시**. 제목이 매우 길 때 → `TextWrapping="Wrap"` + Grid 2열로 pill 우측 고정.
+- **Halt Forecast**: 없음(신규 템플릿 추가 + 핸들러 추가만, 기존 경로 무변경 → 이 시점 앱은 현행 그대로 동작).
+
+### T3 — VM 열별 그룹핑·통과율 + 칸반 열 재구성 (VM·XAML 동시) `Type C`
+- [ ] 구현
+- **Files**: `DevDashboard_WinUI/Presentation/ViewModels/TaskPageViewModel.cs`, `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml`(칸반 본문), `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml.cs`
+- **왜 한 task인가**: VM의 컬렉션 요소 타입을 그룹으로 바꾸는 순간 기존 칸반 XAML(`x:DataType="models:TodoItem"`)이 그 컬렉션과 맞지 않아 **빌드는 통과하지만 카드가 렌더되지 않는다**. VM과 칸반 마크업은 분리 불가 — 함께 바꿔야 중간 커밋이 동작 가능 상태로 남는다.
+- **Design**: ① 배치 — VM 파일 내 + 칸반 4열 마크업 교체. ② 신규 심볼 — `TaskColumnGroup(string CategoryName, string PassRateBadge, IReadOnlyList<TodoItem> Items)` record(`TaskCategoryGroup` 옆), `BuildPassRateBadge(string category)` private 메서드, `BuildColumnGroups(...)`(기존 `FillColumn` 대체), `TaskColumnGroupTemplate` DataTemplate, `ColumnAdd_Click` 핸들러, `StatusDotBrush(TodoStatus)` x:Bind 정적 헬퍼. 4개 컬렉션은 프로퍼티 이름 유지(`WaitingItems` 등) + 요소 타입만 `TaskColumnGroup`으로 교체. ③ 의존 방향 — `_project.TestCategories`(기로드) 참조, T1 스타일·T2 카드 템플릿 소비. ④ 비추상화 — 통과율 계산을 `TestPageViewModel`과 공용 서비스로 추출하지 **않는다**(사용처 2곳, CLAUDE.md 공통화 기준 미달 + 두 화면의 필터 의미가 달라 조기 결합 위험). 4개 열도 `ItemsControl`로 데이터 구동화하지 않는다(각 열의 `Tag`·드롭 타깃·정적 라벨이 달라 현행처럼 명시 마크업이 추적하기 쉽다).
+- **⚠️ `*Count` 재계산 필수**: `WaitingCount = WaitingItems.Count`(현행 `:122-125`)를 그대로 두면 **작업 수가 아니라 카테고리 수**가 표시된다(컴파일 오류 없는 무성 오작동, FR-T4 직결). 개수는 **그룹의 `Items` 합계** 또는 filtered 기준으로 재계산한다.
+- **⚠️ FR-T6 이관 필수(D12)**: `ColumnAdd_Click`은 `Vm.AddTodo` 후 **`if (dialog.AddTestRequested) Vm.CreateLinkedTest(todo);`를 반드시 포함**한다 — T4에서 헤더 버튼이 사라지면 이것이 유일한 호출부가 된다.
+- **열 구성**: `Border`(패널, `KanbanColumnStyle`) > `StackPanel` > [열 헤더(상태 dot + 상태명 + 개수)] + [`ItemsControl` 카테고리 그룹 → `TaskColumnGroupTemplate` → 내부 `ItemsControl` → `TaskKanbanCardTemplate`] + [점선 `+ 새 작업`]. 드롭 타깃(`AllowDrop`/`Tag`/`DragOver`/`Drop`)은 **패널 Border로 이동**해 빈 영역에도 드롭 가능하게 한다.
+- **Acceptance**: 빌드 성공 + 4개 열이 패널로 렌더되고 카드가 표시됨 + 열 헤더에 상태별로 다른 색 dot + 열 안 카테고리 그룹 헤더(dot+이름+개수, 해당 시 통과율 배지) + **열 헤더 개수 = 그 열의 실제 작업 수**(카테고리 수 아님) + 일치 `TestCategory` 없는 카테고리는 배지 미표시 + 점선 버튼이 **그 열 상태로** 작업 생성 + **"테스트 목록에도 추가" 토글이 여전히 테스트를 생성**(FR-T6 회귀 방지) + **드래그앤드롭 열 이동 정상**(FR-T3 회귀 방지)
+- **Edge Cases**: 카테고리 빈 문자열 → `TaskCategory_None`("미분류") 그룹(`RebuildCategoryGroups():143` 관례 계승), **미분류 그룹은 통과율 배지 미표시**(D4). 열에 작업 0개 → 그룹 0개(헤더+추가버튼만) + **빈 영역 드롭이 여전히 가능해야 함**(패널 Border 드롭 타깃 + MinHeight). `TestCategories` null → `?? []` 방어(`BuildTestStatusLookup():83` 선례). 테스트 0건 카테고리 → `total==0`이면 배지 숨김(0% 표시 금지). 통과율 배지 + 긴 카테고리명 → 그룹 헤더 Grid(`Auto`/`*`/`Auto`)로 배지 우측 고정. 열 내용 세로 넘침 → 기존 바깥 `ScrollViewer` 유지. **카테고리 필터가 걸린 상태에서 열별 `+새 작업`으로 다른 카테고리 작업을 만들면 즉시 목록에서 사라진다**(`Rebuild()`가 필터 적용, `:113-115`) — 헤더 버튼 시절과 동일한 **기존 동작이므로 유지**(버튼이 열마다 생겨 노출만 커짐).
+- **Halt Forecast**: 없음 — 결정이 D4·D12·`*Count` 블록에 전부 사전 확정됐고, 파괴적 작업(파일 삭제·외부 호출·비가역 데이터 변경)이 없다. VM 요소 타입 변경은 사전 승인 항목에 등재됨.
+
+### T4 — 헤더 정리 (세그먼트 토글 + `+새 작업` 제거) + 미사용 심볼 정리 `Type C`
+- [ ] 구현
+- **Files**: `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml`(헤더), `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml.cs`, `DevDashboard_WinUI/Presentation/ViewModels/TaskPageViewModel.cs`, `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`
+- **Design**: ① 배치 — 헤더 Grid 열 구성 축소(6열 → 4열: 뒤로가기·제목·spacer·[콤보+토글]) + VM 미사용 심볼 제거. ② 신규 심볼 — 없음(T1의 `SegmentedToggleStyle` 적용). ③ 의존 방향 — T1 스타일 소비. ④ 비추상화 — 커스텀 `SegmentedControl`을 만들지 않고 `RadioButton` 2개 + 스타일로 처리(사용처 1곳).
+- **선행 조건**: T3에서 `ColumnAdd_Click`의 FR-T6 이관(D12)이 완료된 뒤에만 헤더 `AddTask_Click`을 제거한다 — 순서가 뒤집히면 FR-T6가 죽는 구간이 생긴다.
+- **D9 처리**: 세그먼트 토글이 `ShowKanbanCommand`/`ShowListCommand`를 실제 바인딩해 소비하거나, `IsChecked` TwoWay가 더 단순하면 두 커맨드를 **제거**한다(둘 중 하나 — 미사용 잔존 금지). 미바인딩 `TotalCount` 프로퍼티도 함께 제거. 선택 결과를 완료 보고에 명시.
+- **Acceptance**: 빌드 성공 + 헤더에 카테고리 콤보와 칸반/목록 세그먼트 토글만 존재(`+새 작업` 부재) + 토글로 칸반↔목록 전환 동작 + `TaskPageViewModel`에 미사용 RelayCommand·미사용 `TotalCount` 0개(grep 대조) + `TaskAdd_Button` 키가 ko/en 양쪽에서 제거되고 잔존 참조 0건(grep 대조) + **목록 뷰가 기존과 동일하게 동작**(카드 상태 콤보·수정/삭제 버튼 그대로, D10/D11)
+- **Edge Cases**: `TaskAdd_Button` resw 키가 고아가 됨 → 열 버튼(`TaskColumnAdd`)이 즉시 대체하므로 **키 제거**(고아 대장 등재보다 즉시 정리가 맞다). 사용처는 `TaskPage.xaml:154` 단 1곳이라 안전(grep 실측). 목록 뷰 전환 시 기존 마크업 그대로 동작(D10).
+- **Halt Forecast**: 없음 — `TaskAdd_Button` 키 제거·미사용 심볼(`ShowKanban`/`ShowList`/`TotalCount`) 제거는 **사전 승인 항목에 등재**돼 있어 중단 없이 진행한다. 그 외 파괴적·외부 작업 없음.
 
 ## 사전 승인 항목 (일괄 승인 대상)
-- **도메인 확장**(T1): 신규 `Domain/Services/` 폴더 + `NotificationService`·`Notification`·`DeadlineStatus`(비파괴 신규 심볼).
-- **영속화 필드 추가**(T2): AppSettings에 `ReadNotificationIds`(List\<string\>) 추가(비파괴, AppJsonContext 자동).
-- **VM 공개 API 확장**(T3): MainViewModel 신규 공개 메서드·`UnreadNotificationCount` 추가(기존 시그니처 무변경 — 추가만). 신규 NotificationPageViewModel.
-- **신규 페이지·헤더 배선**(T4/T5): NotificationPage 신규 등록, 헤더 벨 버튼/Flyout/배지 추가.
-- .resw 신규 문자열 추가(ko/en) — 알림 제목·모두 읽음·마감상태 라벨·벨 툴팁·빈 상태.
+- **`docs/prd.md`의 FR-T8·FR-E4 문구 갱신**(D14) — 카드 배지 → 그룹 통과율 배지로 **요구 자체가 바뀐다**. 이 plan 승인이 PRD 문구 변경 승인을 포함한다.
+- `Resources/Palette.xaml`의 `Default` 딕셔너리에 색 2종(`AppInfo*`·`AppWarning*`) 추가 — 기존 키 무변경, 추가만.
+- `Resources/Styles.xaml`에 스타일 4종 추가 — 기존 스타일 무변경, 추가만.
+- resw(ko/en)에 키 6개 추가 + `TaskAdd_Button` 키 1개 제거(T4 Edge Case 근거).
+- `TaskPageViewModel`의 칸반 4개 컬렉션 **요소 타입 변경**(`TodoItem` → `TaskColumnGroup`) — 사용처가 같은 plan 내 `TaskPage.xaml` 1곳뿐(전수 확인 완료).
+- `TaskPageViewModel`의 미사용 `ShowKanban`/`ShowList` RelayCommand·`TotalCount` 소비 또는 제거(D9).
+- 로컬 작업 브랜치 `task/taskpage-design-align` 생성 및 task별 commit.
 
 ## 불가피한 Halt (위임 불가)
-- commit/push는 구현·검증 후 별도 승인. master 병합·태그·릴리즈·PR은 이 위임에 미포함.
-- 새 브랜치 `task/phase5-notifications` 생성 + 로컬 작업 commit(체크포인트·task 완료)은 implement-task 위임 범위(plan 승인 포함). push·병합만 별도.
+- master 병합·push·태그·릴리즈·PR.
+- 시안 대조의 **최종 시각 판정** — 빌드는 구조 구현만 보증하고 "시안과 같아 보이는가"는 사용자만 판정 가능(⏳ HUMAN-VERIFY로 보고).
 
 ## Deferred / Follow-up
-- [교차 작업/테스트 집계 페이지](PRD D-2) — 유관하나 별개(알림은 FR-N2 전용). 대장 유지.
-- README/스크린샷 갱신(Phase 5 시각 확인 후) — 리디자인 5개 영역 완료 시점에 통합 갱신 검토.
-- Todo*/Test* 구 resw 고아·`TestDateGroup`·`HistoryEntryDialogViewModel`·`InitKindCombo`/`KindFromCombo` 중복 정리(Phase 2/3/4 이월, 대장 등재) — 별도 세션.
-- 알림 요약 상위 N 개수·배지 상한("9+") 등 세부 수치는 시각 확인 시 조정 가능(순수 값, 후속).
-- [F-7 MINOR m1] 배지 안읽음 개수는 초기 로드 1회 + Flyout 열 때만 재계산(D8 온디맨드 설계) — 작업 페이지에서 작업 완료/편집 후 Flyout 재오픈 전까지 배지가 stale일 수 있음(Flyout Opening이 항상 먼저 재계산하므로 상호작용 시점엔 정확). 실시간 갱신 원하면 TaskPageViewModel 변경 콜백에 RebuildNotifications 배선 — 별도 후속.
-- [인코딩] `MainViewModel.cs`·`MainWindow.xaml`·`Resources.resw`(ko/en) 등 레거시 BOM 파일 — Edit 시 기존 BOM 보존(CLAUDE.md "기존 인코딩 유지" 준수, Phase 4에서 BOM 손실이 MAJOR였음). check-utf8-and-lines hook은 no-BOM을 권고하나 전체 파일 인코딩 변환은 이번 범위 밖이라 미수행(신규 파일은 no-BOM). 프로젝트 BOM/no-BOM 통일은 별도 세션.
+- **목록 뷰 시안 대조** — 시안 이미지가 칸반만 담고 있어 목록 뷰는 이번에 무변경(D10). 목록 뷰 시안 확보 시 별도 진행.
+- **TestPage·NotificationPage 시안 대조** — 사용자가 "작업 페이지만 먼저"로 한정. 작업 페이지 결과 확인 후 판단.
+- **[칸반 열 내 카드 재정렬]** — 대장 유지(이번은 시각 구조만).
+- **[FR-T7 담당자]** — 대장 유지(사용자 제외 결정 재확인, D1).
+- **AGENTS.md 부재** — 5개 Phase 내내 없음. 빌드 명령·구조가 메모리·plan에만 있어 PC 간 공유가 안 된다. `pjc:bootstrap-agents-md`로 생성 제안(완료 보고에서).
+- 기타 대장(`docs/plans/deferred.md`) 기등재 항목은 이번 작업과 무관 — 그대로 유지.
 
-## Out of Scope (이 Phase)
-- git 커밋 ↔ 작업/알림 자동 연동(PRD §7 영구 제외).
-- 실제 OS 토스트/윈도우 알림 센터 연동(PRD 범위 밖 — 인앱 알림만).
-- 특정 작업 카드 스크롤/하이라이트 포커스(D4로 프로젝트 페이지 열기 채택 — 신규 인프라 미도입).
-- 범용 교차 프로젝트 집계 페이지(D-2, Deferred).
-- 구버전 설정 export를 import해 AppSettings가 통째 교체되는 경우 `ReadNotificationIds`가 기본값(빈)으로 리셋될 수 있음 — **양성(읽음 상태 재설정) 허용**, 별도 마이그레이션 미도입(plan-reviewer m2).
+## Out of Scope
+- `TodoItem` 도메인·SQLite 스키마·직렬화 변경(담당자 제외 결정의 귀결, D1).
+- **목록 뷰 레이아웃 변경**(D10) — 기존 `TaskCardTemplate`을 목록 전용으로 존치해 실제로 무변경을 보장한다(D11). 목록 카드의 상태 콤보·수정/삭제 버튼도 그대로 유지(목록엔 드래그 경로가 없어 콤보가 유일한 상태 변경 수단).
+- 대시보드 하단 상태바·헤더 등 TaskPage 밖 화면.
+- 픽셀 단위 수치 일치 — 목업 HTML이 없어 대조 불가. 구조·구성 요소 일치까지가 이번 목표.
 
-## Progress Log
-- T1-T2 완료 (커밋 cdd861a, 다음): T1 Domain 신규 3파일(DeadlineStatus·Notification·NotificationService 정적 순수 Detect/BuildKey, 경계 D-3/오늘/경과·완료 제외·EndDate!=null). T2 AppSettings.ReadNotificationIds(List<string>) 추가(직렬화 왕복 보존 코드 대조 — AppJsonContext 통짜·ApplyTo 제자리 mutate). 빌드 x64 OK·신규 경고 0. 두 task 모두 spec/quality OK.
-  - 결정: GlobalUsings에 Domain.Services 등록은 소비처 생기는 T3로 이연(T1 단독 등록 시 CS8019 불필요 using 경고 회피). csproj 실제명 `DevDashboard.csproj`(메모리의 DevDashboard_WinUI.csproj는 부정확).
-- T3-T4 완료 (커밋 f48d4d3, 38ee59c→): T3 MainViewModel 알림 집계·읽음 처리·이동 진입점 + NotificationPageViewModel(그룹·읽음·커맨드). T4 NotificationPage(UserControl, 정적 헬퍼 색/라벨/포맷, 프로젝트별 그룹·배지·빈상태) + resw ko/en 9키. 빌드 x64 OK·신규 경고 0. 두 task 모두 spec/quality OK.
-  - 결정: csproj Page 자동 include(`<Page Remove="App.xaml"/>`만 존재)라 NotificationPage 등록 편집 불필요. 마감상태 배지 색 = 경과 코랄#f0716a/오늘 앰버#e8b45a/임박 블루#5aa3e8(PRD §3 팔레트, TestPage 헬퍼 패턴). 항목 클릭=Border Tapped→OpenTaskCommand, 읽음 버튼=Click→MarkReadCommand(TaskPage Tag 패턴). 시각 렌더는 ⏳ HUMAN-VERIFY.
-- T5 완료 (커밋 ca6c58a→): 헤더 벨 버튼(E7ED Ringer)+안읽음 배지({Binding HasUnreadNotifications/UnreadNotificationCount})+Flyout 드롭다운(요약 상위5 + 모든 알림 보기). MainWindow 핸들러 NotificationFlyout_Opening(재계산)·ViewAllNotifications_Click(→NotificationPage)·NavigateToProjectTasks(→TaskPage). MainViewModel에 HasUnreadNotifications 파생 프로퍼티+NotifyPropertyChangedFor(배지 표시용, Files 편입). resw ko/en 2키(Header_Tooltip·ViewAll). 빌드 x64 OK·신규 경고 0. spec MINOR(Files 목록 누락→plan 정정)·quality OK+SUGGEST(배지 상한 — Deferred 기등재). 전체 알림 심볼 end-to-end 배선 완결.
-  - 결정: 배지 visibility는 Window XAML x:Bind+Converter CS1503 회피 위해 {Binding ..., Converter=BoolToVisibility}(DataContext=RootGrid._viewModel 상속). 요약 항목은 List<string> 프리포맷(Window XAML 바인딩 단순화). 시각 렌더 ⏳ HUMAN-VERIFY.
+## Open Questions
+- [x] 담당자 필드 포함 여부 → **제외 유지**(사용자, 2026-07-20)
+- [x] 카드 조작 방식 → **클릭=편집 / 우클릭 메뉴=편집·삭제·상태변경**(사용자, 2026-07-20)
+- [x] 작업 범위 → **TaskPage만**(사용자, 2026-07-20)
+- [x] 통과율 배지 집계 정의 → **같은 이름의 TestCategory 기준, 없으면 숨김**(사용자, 2026-07-20)
+
+## 검증 방법
+- 빌드: `MSBuild.exe "DevDashboard_WinUI/DevDashboard.csproj" -t:Build -p:Configuration=Debug -p:Platform=x64` → 오류 0·경고 0
+- resw 대조: ko/en 신규 키 name 집합 일치 grep + `TaskAdd_Button` 잔존 참조 0건 grep
+- 미사용 심볼: `TaskPageViewModel`의 RelayCommand·`TotalCount` 사용처 grep
+- 회귀 방지 grep(⚠️ **판정 대상을 호출부로 한정** — `CreateLinkedTest`만 검색하면 정의부 `TaskPageViewModel.cs:182`가 잡혀 이관이 누락돼도 통과한다):
+  - `Vm.CreateLinkedTest(` 를 **`Presentation/Views/TaskPage.xaml.cs` 범위에서** grep → **1건 이상**(FR-T6 생존, D12)
+  - `TaskCardTemplate`의 `DataTemplate` 본문이 diff에서 무변경(D11 — 주석 1줄 갱신은 예외)
+- 회귀(빌드로 검증 불가 → ⏳ HUMAN-VERIFY): 드래그 열 이동 / 빈 열 드롭 / 카드 클릭 편집 / 우클릭 메뉴 / 열별 추가 버튼의 상태 계승 / "테스트 목록에도 추가" 토글 / 완료 전환 시 작업기록 팝업 / 카테고리 필터 / 열 헤더 개수 정확성 / **목록 뷰가 이전과 동일** / 시안 육안 대조
 
 ## Phase Ledger
-- 전 task(T1~T5) 완료.
-- Phase F 통과 (HEAD 14c4392) — F-7 plan-completion-reviewer BLOCKER 0/MAJOR 0/MINOR 2(m1 배지 최신화 시점→Deferred·m2 배지 상한→Deferred 기등재).
-- Phase G 통과 (Must 100%) — FR-N1·N2·N3·N4 Must 전부 코드 충족(F-7 전수 대조 재사용). 시각 렌더(벨/배지/드롭다운/알림 페이지/마감상태 배지)는 ⏳ HUMAN-VERIFY.
+- (implement-task가 갱신)
 
-## Next Steps
-- 권장 다음 액션: `task/phase5-notifications` 브랜치 → master 병합은 **별도 승인**(push/병합은 자율 루프 권한 밖). 병합 후 앱 실행해 시각·동작 사용자 확인(벨 배지·드롭다운·알림 페이지·마감상태 배지·읽음 왕복·클릭 이동). 리디자인 5개 영역 완료 → README/스크린샷 통합 갱신(Deferred).
-- Suggested skills: (병합 후) 공식 /code-review·/security-review 선택, pjc:llm-wiki(위키 등록 원할 시 — vault 미설정이면 불요).
-
-## 통과 체크리스트
-- [x] 요구 이해 작성(원문 인용 + 이해 4줄)
-- [x] Impact Analysis 4-A(TodoItem/EndDate·MainViewModel 집계·헤더/네비 진입점·AppSettings 영속 전수)·4-B(직렬화: AppJsonContext 자동·ApplyTo 제자리 변경으로 손실 없음 검증)·4-C(테스트 없음 — 테스트 프로젝트 부재, 사용자 결정 미추가)·4-D(재사용표 작성)
-- [x] 각 task acceptance 검증 가능(빌드 + 시각/동작 구분), 상호 모순 0
-- [x] Type 분류(T1 C·T2 C·T3 D·T4 D·T5 D), Design 필드(Type D 전부 + 신규 심볼 Type C — T1)
-- [x] Edge/Halt Forecast 각 task 명시
-- [x] Open Questions 전부 해결, 결정 분기 0
-- [x] 분할 권고(5 task ≤ 8) — 미해당
+## Progress Log
+- (implement-task가 갱신)
