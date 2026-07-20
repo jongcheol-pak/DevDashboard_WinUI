@@ -131,7 +131,7 @@
 ## 작업 단계
 
 ### T1 — 시각 자산 선행 정비 + PRD FR-T8 문구 갱신 `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `DevDashboard_WinUI/Resources/Palette.xaml`, `DevDashboard_WinUI/Resources/Styles.xaml`, `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`, `docs/prd.md`
 - **Design**: ① 배치 — 색은 `Palette.xaml`의 **`Default` 딕셔너리에만**(D13, Light 신설 금지), 스타일은 `Styles.xaml`, 문자열은 resw ko/en 양쪽. ② 신규 심볼 — `AppInfoColor/Brush`·`AppWarningColor/Brush`(상태 dot·우선순위 pill 공용 색), `DashedAddButtonStyle`(점선 추가 버튼), `SegmentedToggleStyle`(칸반/목록 토글), `KanbanColumnStyle`(열 패널 Border). ③ 의존 방향 — `TaskPage.xaml`이 참조, 역참조 없음. ④ 비추상화 — 우선순위→색, 상태→색 매핑을 **Converter로 추상화하지 않는다**(x:Bind 정적 헬퍼로 직접 반환, `TestPage.StatusBrush` 선례와 동일). 색 토큰도 "미래 테마용" 일반화 없이 필요한 2색만.
 - **신규 resw 키(ko/en 양쪽) — ⚠️ 소비 방식별로 name 형식이 다르다**: 이 레포는 두 관례가 공존한다 — `x:Uid` 방식은 **속성 접미 필수**(`TaskAdd_Button.Content`처럼, `Resources.resw:432`), `LocalizationService.Get()` 방식은 **베어네임**(`TaskPage.xaml.cs:23-26`). 접미 없이 등록하고 `x:Uid`로 쓰면 **빌드 오류 없이 빈 라벨**이 된다.
