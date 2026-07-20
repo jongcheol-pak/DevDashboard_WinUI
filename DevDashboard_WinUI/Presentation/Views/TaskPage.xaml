@@ -11,7 +11,97 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
 
     <UserControl.Resources>
-        <!-- 작업 카드 템플릿 (칸반·목록 공용) -->
+        <!--
+            칸반 카드 템플릿 — 시안 구성(제목 + 우선순위 배지 / 설명 / 날짜 범위).
+            조작은 카드 클릭(편집)과 우클릭 메뉴(편집·삭제·상태 변경)로 하며, 상태 변경은 드래그앤드롭도 함께 지원한다.
+            목록 뷰는 드롭 대상이 없어 드래그로 상태를 바꿀 수 없으므로 아래 TaskCardTemplate(상태 콤보 포함)을 그대로 쓴다.
+        -->
+        <DataTemplate x:Key="TaskKanbanCardTemplate" x:DataType="models:TodoItem">
+            <Border
+                Background="{ThemeResource AppCardBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="10"
+                Margin="0,0,0,8"
+                CanDrag="True"
+                DragStarting="Card_DragStarting"
+                Tapped="Card_Tapped">
+                <Border.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="{x:Bind local:TaskPage.MenuEditText}"
+                                        Tag="{x:Bind}"
+                                        Click="CardMenuEdit_Click">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE70F;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutSubItem Text="{x:Bind local:TaskPage.MenuMoveToText}">
+                            <MenuFlyoutItem Text="{x:Bind local:TaskPage.LabelWaiting}"
+                                            Tag="{x:Bind}" Click="CardMenuMoveWaiting_Click" />
+                            <MenuFlyoutItem Text="{x:Bind local:TaskPage.LabelActive}"
+                                            Tag="{x:Bind}" Click="CardMenuMoveActive_Click" />
+                            <MenuFlyoutItem Text="{x:Bind local:TaskPage.LabelCompleted}"
+                                            Tag="{x:Bind}" Click="CardMenuMoveCompleted_Click" />
+                            <MenuFlyoutItem Text="{x:Bind local:TaskPage.LabelHold}"
+                                            Tag="{x:Bind}" Click="CardMenuMoveHold_Click" />
+                        </MenuFlyoutSubItem>
+                        <MenuFlyoutSeparator />
+                        <MenuFlyoutItem Text="{x:Bind local:TaskPage.MenuDeleteText}"
+                                        Tag="{x:Bind}"
+                                        Click="CardMenuDelete_Click">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE74D;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                    </MenuFlyout>
+                </Border.ContextFlyout>
+
+                <StackPanel Spacing="6">
+                    <!-- 제목 + 우선순위 배지 -->
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            Text="{x:Bind Text, Mode=OneWay}"
+                            TextWrapping="Wrap"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <Border
+                            Grid.Column="1"
+                            Style="{StaticResource TagBadgeStyle}"
+                            Margin="0"
+                            VerticalAlignment="Top"
+                            Background="{x:Bind local:TaskPage.PriorityBadgeBrush(Priority), Mode=OneWay}">
+                            <TextBlock
+                                Text="{x:Bind local:TaskPage.PriorityText(Priority), Mode=OneWay}"
+                                FontSize="11"
+                                Foreground="{x:Bind local:TaskPage.PriorityBrush(Priority), Mode=OneWay}" />
+                        </Border>
+                    </Grid>
+
+                    <!-- 설명 -->
+                    <TextBlock
+                        Text="{x:Bind Description, Mode=OneWay}"
+                        FontSize="12"
+                        TextWrapping="Wrap"
+                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                        Visibility="{x:Bind Description, Converter={StaticResource StringNotEmptyToVisibility}, Mode=OneWay}" />
+
+                    <!-- 시작일 – 종료일 -->
+                    <TextBlock
+                        Text="{x:Bind local:TaskPage.FormatDateRange(StartDate, EndDate), Mode=OneWay}"
+                        FontSize="11"
+                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                        Visibility="{x:Bind local:TaskPage.DateRangeVisibility(StartDate, EndDate), Mode=OneWay}" />
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+
+        <!-- 목록 뷰 전용 카드 템플릿 (상태 콤보 + 수정/삭제 — 목록엔 드래그 경로가 없어 콤보가 유일한 상태 변경 수단) -->
         <DataTemplate x:Key="TaskCardTemplate" x:DataType="models:TodoItem">
             <Border
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"

@@ -1,8 +1,11 @@
 using DevDashboard.Infrastructure.Services;
 using DevDashboard.Presentation.ViewModels;
 using DevDashboard.Presentation.Views.Dialogs;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using Windows.ApplicationModel.DataTransfer;
 
 namespace DevDashboard.Presentation.Views;
@@ -18,6 +21,11 @@ public sealed partial class TaskPage : UserControl
     // 카드 액션 버튼 툴팁 (x:Bind 정적 참조)
     public static string EditTooltip { get; } = LocalizationService.Get("TaskEdit_Tooltip");
     public static string DeleteTooltip { get; } = LocalizationService.Get("TaskDelete_Tooltip");
+
+    // 칸반 카드 우클릭 메뉴 라벨 (x:Bind 정적 참조)
+    public static string MenuEditText { get; } = LocalizationService.Get("TaskMenu_Edit");
+    public static string MenuDeleteText { get; } = LocalizationService.Get("TaskMenu_Delete");
+    public static string MenuMoveToText { get; } = LocalizationService.Get("TaskMenu_MoveTo");
 
     // 칸반 열 헤더 라벨 (x:Bind 정적 참조 — StatusOptions와 동일 리소스 키 재사용)
     public static string LabelWaiting { get; } = LocalizationService.Get("TaskStatus_Waiting");
@@ -75,6 +83,46 @@ public sealed partial class TaskPage : UserControl
     public static Visibility DateVisibility(DateTime? date)
         => date.HasValue ? Visibility.Visible : Visibility.Collapsed;
 
+    /// <summary>칸반 카드의 날짜 범위 표시 ("MM-dd – MM-dd").
+    /// 한쪽만 지정된 경우 그쪽만 표시해 "07-24 – " 같은 반쪽 표기를 만들지 않는다.</summary>
+    public static string FormatDateRange(DateTime? start, DateTime? end)
+    {
+        if (start.HasValue && end.HasValue)
+            return string.Format(LocalizationService.Get("TaskDateRange"), $"{start.Value:MM-dd}", $"{end.Value:MM-dd}");
+        if (start.HasValue) return $"{start.Value:MM-dd}";
+        if (end.HasValue) return $"{end.Value:MM-dd}";
+        return string.Empty;
+    }
+
+    /// <summary>날짜 범위 표시 여부 (시작·종료 중 하나라도 있으면 표시).</summary>
+    public static Visibility DateRangeVisibility(DateTime? start, DateTime? end)
+        => start.HasValue || end.HasValue ? Visibility.Visible : Visibility.Collapsed;
+
+    // 우선순위 배지 색 — Palette.xaml의 AppWarning/AppInfo/AppTextMuted 및 그 저채도(Soft) 변형과 같은 값.
+    // x:Bind 함수 바인딩은 ThemeResource를 받을 수 없어 TestPage.StatusBrush와 동일하게 정적 브러시로 둔다.
+    private static readonly SolidColorBrush _priorityHighBrush = new(ColorHelper.FromArgb(0xFF, 0xD9, 0x95, 0x4A));
+    private static readonly SolidColorBrush _priorityNormalBrush = new(ColorHelper.FromArgb(0xFF, 0x5B, 0x93, 0xD8));
+    private static readonly SolidColorBrush _priorityLowBrush = new(ColorHelper.FromArgb(0xFF, 0x8A, 0x88, 0x90));
+    private static readonly SolidColorBrush _priorityHighSoftBrush = new(ColorHelper.FromArgb(0x28, 0xD9, 0x95, 0x4A));
+    private static readonly SolidColorBrush _priorityNormalSoftBrush = new(ColorHelper.FromArgb(0x28, 0x5B, 0x93, 0xD8));
+    private static readonly SolidColorBrush _priorityLowSoftBrush = new(ColorHelper.FromArgb(0x28, 0x6F, 0x6D, 0x75));
+
+    /// <summary>우선순위 배지의 글자 색</summary>
+    public static Brush PriorityBrush(TaskPriority priority) => priority switch
+    {
+        TaskPriority.High => _priorityHighBrush,
+        TaskPriority.Low => _priorityLowBrush,
+        _ => _priorityNormalBrush,
+    };
+
+    /// <summary>우선순위 배지의 배경 색 (같은 색상의 저채도 변형)</summary>
+    public static Brush PriorityBadgeBrush(TaskPriority priority) => priority switch
+    {
+        TaskPriority.High => _priorityHighSoftBrush,
+        TaskPriority.Low => _priorityLowSoftBrush,
+        _ => _priorityNormalSoftBrush,
+    };
+
     // ===== 네비게이션·뷰 =====
 
     private void Back_Click(object sender, RoutedEventArgs e)
@@ -116,22 +164,68 @@ public sealed partial class TaskPage : UserControl
         }
     }
 
-    private async void EditTask_Click(object sender, RoutedEventArgs e)
+    /// <summary>편집 다이얼로그를 열고 결과를 반영합니다 (목록 뷰 버튼·칸반 카드 클릭·우클릭 메뉴 공용).</summary>
+    private async Task EditTodoAsync(TodoItem todo)
     {
-        if (sender is not FrameworkElement { Tag: TodoItem todo }) return;
         var dialog = new TaskEditDialog(todo, _settings);
         if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.ResultTodo is not null)
             Vm.UpdateTodo(todo);
     }
 
-    private async void DeleteTask_Click(object sender, RoutedEventArgs e)
+    /// <summary>삭제 확인 후 작업을 삭제합니다 (목록 뷰 버튼·칸반 우클릭 메뉴 공용).</summary>
+    private async Task DeleteTodoAsync(TodoItem todo)
     {
-        if (sender is not FrameworkElement { Tag: TodoItem todo }) return;
         var confirmed = await DialogService.ShowConfirmAsync(
             string.Format(LocalizationService.Get("TaskDelete_Confirm"), todo.Text),
             LocalizationService.Get("TaskDelete_Title"));
         if (confirmed)
             Vm.DeleteTodo(todo);
+    }
+
+    private void EditTask_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: TodoItem todo })
+            _ = EditTodoAsync(todo);
+    }
+
+    private void DeleteTask_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: TodoItem todo })
+            _ = DeleteTodoAsync(todo);
+    }
+
+    // ===== 칸반 카드 조작 (클릭 = 편집, 우클릭 메뉴 = 편집·삭제·상태 변경) =====
+
+    /// <summary>칸반 카드를 클릭하면 편집 다이얼로그를 연다.
+    /// 드래그가 성립한 경우에는 Tapped가 발생하지 않으므로 드래그앤드롭과 충돌하지 않는다.</summary>
+    private void Card_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: TodoItem todo })
+            _ = EditTodoAsync(todo);
+    }
+
+    private void CardMenuEdit_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: TodoItem todo })
+            _ = EditTodoAsync(todo);
+    }
+
+    private void CardMenuDelete_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: TodoItem todo })
+            _ = DeleteTodoAsync(todo);
+    }
+
+    // 상태 변경 하위 메뉴 — MenuFlyoutItem은 Tag 하나만 쓸 수 있어 상태별로 얇은 핸들러를 둔다.
+    private void CardMenuMoveWaiting_Click(object sender, RoutedEventArgs e) => MoveFromMenu(sender, TodoStatus.Waiting);
+    private void CardMenuMoveActive_Click(object sender, RoutedEventArgs e) => MoveFromMenu(sender, TodoStatus.Active);
+    private void CardMenuMoveCompleted_Click(object sender, RoutedEventArgs e) => MoveFromMenu(sender, TodoStatus.Completed);
+    private void CardMenuMoveHold_Click(object sender, RoutedEventArgs e) => MoveFromMenu(sender, TodoStatus.Hold);
+
+    private void MoveFromMenu(object sender, TodoStatus status)
+    {
+        if (sender is FrameworkElement { Tag: TodoItem todo })
+            Vm.MoveToStatus(todo, status);
     }
 
     // ===== 칸반 드래그앤드롭 (상태 열 간 이동, FR-T3) =====
