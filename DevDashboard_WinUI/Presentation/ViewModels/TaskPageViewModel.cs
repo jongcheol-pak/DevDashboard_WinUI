@@ -44,7 +44,6 @@ public partial class TaskPageViewModel : ObservableObject
     [ObservableProperty] public partial int ActiveCount { get; set; }
     [ObservableProperty] public partial int CompletedCount { get; set; }
     [ObservableProperty] public partial int HoldCount { get; set; }
-    [ObservableProperty] public partial int TotalCount { get; set; }
 
     /// <summary>칸반 뷰(true) / 목록 뷰(false)</summary>
     [ObservableProperty] public partial bool IsKanbanView { get; set; } = true;
@@ -124,7 +123,6 @@ public partial class TaskPageViewModel : ObservableObject
         ActiveCount = CountItems(ActiveItems);
         CompletedCount = CountItems(CompletedItems);
         HoldCount = CountItems(HoldItems);
-        TotalCount = filtered.Count();
 
         RebuildCategoryGroups(filtered);
     }
@@ -179,12 +177,6 @@ public partial class TaskPageViewModel : ObservableObject
         foreach (var g in groups)
             CategoryGroups.Add(new TaskCategoryGroup(g.Key, g.OrderByDescending(t => t.CreatedAt).ToList()));
     }
-
-    [RelayCommand]
-    private void ShowKanban() => IsKanbanView = true;
-
-    [RelayCommand]
-    private void ShowList() => IsKanbanView = false;
 
     /// <summary>작업의 상태를 변경합니다 (칸반 드래그·상태 콤보에서 호출). 저장·카드 갱신·완료 훅을 처리합니다.</summary>
     public void MoveToStatus(TodoItem todo, TodoStatus newStatus)

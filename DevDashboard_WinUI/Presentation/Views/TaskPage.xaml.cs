@@ -30,6 +30,10 @@ public sealed partial class TaskPage : UserControl
     /// <summary>칸반 열 하단의 작업 추가 버튼 라벨</summary>
     public static string ColumnAddText { get; } = LocalizationService.Get("TaskColumnAdd");
 
+    // 칸반/목록 세그먼트 토글 라벨 (아이콘과 함께 넣어야 해서 x:Uid 대신 정적 참조로 구성)
+    public static string ViewKanbanText { get; } = LocalizationService.Get("TaskView_Kanban");
+    public static string ViewListText { get; } = LocalizationService.Get("TaskView_List");
+
     // 칸반 열 헤더의 상태 dot 색 — Palette.xaml의 AppAccent/AppInfo/AppSuccess/AppWarning과 같은 값.
     // x:Bind는 ThemeResource를 받을 수 없어 우선순위 배지와 동일하게 정적 브러시로 둔다.
     private static readonly SolidColorBrush _statusDotWaiting = new(ColorHelper.FromArgb(0xFF, 0xF0, 0x71, 0x6A));
@@ -170,18 +174,6 @@ public sealed partial class TaskPage : UserControl
     }
 
     // ===== 작업 추가/편집/삭제 =====
-
-    private async void AddTask_Click(object sender, RoutedEventArgs e)
-    {
-        var dialog = new TaskEditDialog(null, _settings);
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.ResultTodo is { } todo)
-        {
-            Vm.AddTodo(todo);
-            // FR-T6: "테스트 추가" 토글이 켜져 있으면 연결 테스트 생성
-            if (dialog.AddTestRequested)
-                Vm.CreateLinkedTest(todo);
-        }
-    }
 
     /// <summary>칸반 열 하단의 "새 작업" 버튼 — 새 작업을 그 열의 상태로 만들어 추가합니다.</summary>
     private async void ColumnAdd_Click(object sender, RoutedEventArgs e)

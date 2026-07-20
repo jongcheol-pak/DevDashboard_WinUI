@@ -427,9 +427,8 @@
   <data name="TaskPriority_Low" xml:space="preserve"><value>낮음</value></data>
   <data name="TaskPage_Title.Text" xml:space="preserve"><value>작업</value></data>
   <data name="TaskPage_BackText.Text" xml:space="preserve"><value>대시보드</value></data>
-  <data name="TaskView_Kanban.Content" xml:space="preserve"><value>칸반</value></data>
-  <data name="TaskView_List.Content" xml:space="preserve"><value>목록</value></data>
-  <data name="TaskAdd_Button.Content" xml:space="preserve"><value>새 작업</value></data>
+  <data name="TaskView_Kanban" xml:space="preserve"><value>칸반</value></data>
+  <data name="TaskView_List" xml:space="preserve"><value>목록</value></data>
   <data name="TaskStatus_Waiting" xml:space="preserve"><value>예정</value></data>
   <data name="TaskStatus_Active" xml:space="preserve"><value>진행 중</value></data>
   <data name="TaskStatus_Completed" xml:space="preserve"><value>완료</value></data>
