@@ -8,7 +8,6 @@
 - **[교차 작업/테스트 집계 페이지]** (PRD D-2) — 작업·테스트 모두 현재 프로젝트 종속만 구현됨. 전체/프로젝트 스코프 필터 교차 집계 페이지(ProjectHistoryDialog 패턴)는 별도 진행. (원 plan: Phase 2·3, 2026-07-18/19)
 - **[FR-T7 담당자(who) 필드]** — Could. 작업 항목 담당자 표시/편집. 사용자 제외 결정. (원 plan: Phase 2 작업, 2026-07-18)
 - **[칸반 열 내 카드 재정렬]** — 작업 칸반은 상태 열 이동만 구현. 열 내 정렬 순서 영속화는 별도. (원 plan: Phase 2 작업, 2026-07-19)
-- **[미사용 심볼 정리]** — ~~`TaskPageViewModel.ShowKanban`/`ShowList` RelayCommand~~ **2026-07-20 해소**(TaskPage 시안 정합 T4에서 `TotalCount`·고아 using과 함께 제거). `TaskEditDialog.xaml`의 `x:Name="TitleBox"` 미사용은 잔존 — 정리 검토. (원 plan: Phase 2 작업, 2026-07-19)
 - **[테스트→작업 역방향 링크/배지]** (FR-E4 확장) — 테스트 목록에서 연결된 작업 배지/링크 표시. 현재 TodoItem.LinkedTestId 단방향만. TestItem→Todo 역참조 조회 필요. 사용자 결정으로 Phase 3 제외. (원 plan: Phase 3 테스트, 2026-07-19)
 - **[FR-T6/E4 "방법" 필드 확장 소비]** — Phase 3에서 TestItem.Method 추가·다이얼로그 노출. 향후 필터/통계에 활용 여부는 별도. (원 plan: Phase 3 테스트, 2026-07-19)
 - **[Test* 구 resw 고아 정리]** — 삭제된 TestListDialog 전용 resw 키(`TestListDialogTitle`·`TestStatusTesting/Fix/Done.Content`·`TestTab*`·`TestGroupBy*`·`NewTestBox`·`NewCategoryBox`·`TestAddNoteLink`·`EmptyTestText`·`TestDeleteCategoryConfirm` 등)가 소스 미사용 상태로 잔존. 빌드·런타임 무해 — audit 후 제거. (원 plan: Phase 3 테스트, 2026-07-19)
@@ -28,6 +27,14 @@
 - **[칸반/목록 "미분류" 그룹 정렬 불일치]** — 칸반 `BuildColumnGroups`는 raw key(빈 문자열)로 정렬해 미분류가 항상 최상단, 목록 `RebuildCategoryGroups`는 표시명("미분류")으로 정렬해 한글 순서 중간에 온다. 시안에 그룹 정렬 규칙이 없어 결함 여부는 해석에 달림 — 통일 여부 결정 필요. (F-7 리뷰 m2, 2026-07-20)
 - **[`TaskPageViewModel.*Items` 개명 검토]** — `WaitingItems`/`ActiveItems`/`CompletedItems`/`HoldItems`가 실제로는 `TaskColumnGroup` 목록이라 이름과 내용이 어긋난다. XAML 바인딩 경로 안정을 위해 이름을 유지했고 `CountItems()` 주석이 함정을 방어하지만, 이 불일치가 `*Count` 무성 오작동 위험의 근원이다. `*Groups`로 개명 검토. (F-7 리뷰 m4, 2026-07-20)
 - **[AGENTS.md는 git 미추적 — PC 간 미공유]** — 2026-07-20에 `pjc:bootstrap-agents-md`로 루트에 AGENTS.md를 **생성 완료**(빌드 명령·구조·이 레포 함정 11건·컨벤션). 단 사용자의 **전역 `~/.gitignore_global:5`에 `AGENTS.md`가 등록**돼 있어 의도적으로 커밋하지 않는다(사용자 결정 2026-07-20 — 전역 정책 존중). 결과적으로 **이 PC에서만 유효**하며 다른 PC·새 클론에는 없다. 다른 PC에서 작업하게 되면 그 PC에서 다시 생성하거나, 그때 이 레포 `.gitignore`에 `!AGENTS.md` 예외를 넣어 추적으로 전환할 수 있다. (원 plan: TaskPage 시안 정합, 2026-07-20)
+
+- **[시작일을 지울 수단 부재]** — 새 작업의 시작일 기본값이 오늘로 채워지면서(TaskEditDialog 시안 정합 D6, 사용자 결정) **"시작일 없는 작업"을 새로 만들 방법이 사라졌다** — `CalendarDatePicker`에는 선택한 날짜를 비우는 UI가 없다(편집 모드의 기존 빈 값은 그대로 유지). 지우기 버튼 또는 "날짜 없음" 옵션 추가 검토. (원 plan: TaskEditDialog 시안 정합, 2026-07-20)
+- **[다른 다이얼로그의 라벨 스타일 불일치]** — `InputLabelStyle`(12px·저강도)이 `Styles.xaml`에 정의만 되고 **소비처가 0이었다**는 것은 다른 다이얼로그들이 모두 굵은 본문체(`BodyStrongTextBlockStyle`) 라벨을 쓴다는 뜻이다. TaskEditDialog만 시안 정합을 마쳐 **화면 간 라벨 스타일이 갈린 상태**. 다른 다이얼로그 시안 확보 후 일괄 정합 검토. (원 plan: TaskEditDialog 시안 정합 T1 조사, 2026-07-20)
+- **[빈 제목 오류 문구 제거에 따른 접근성 약화]** — `TaskEdit_TitleRequired` 문구를 없애고 테두리 색으로 대체해(D3), 빈 제목으로 등록을 누르면 **아무 문구 없이 닫히지 않기만** 한다. 스크린 리더 등 시각 외 피드백이 사라졌다. `TextBox.Description` 또는 자동화 속성으로 보완 검토. (원 plan: TaskEditDialog 시안 정합, 2026-07-20)
+- **[SUGGEST] `TaskEditDialog`의 선택적 `status` 파라미터** — C# 선택적 매개변수는 누락해도 컴파일 경고가 없어, **제3의 호출부가 새 작업을 만들며 `status`를 빠뜨리면 조용히 `Waiting`으로 생성**된다. 현재 호출부 2곳은 정확하고 편집 경로는 `existing?.Status ?? status`로 기본값을 항상 무시하므로 지금은 결함이 아니다. 3번째 호출부가 생기면 명시적 오버로드 분리 검토. (T2 quality 리뷰 SUGGEST, 2026-07-20)
+
+## 종결
+- [2026-07-19 → 2026-07-20] **[미사용 심볼 정리]** — 반영(TaskPage 시안 정합 T4: `ShowKanban`/`ShowList`/`TotalCount`/고아 using, TaskEditDialog 시안 정합 T3: `x:Name="TitleBox"`)
 
 ## 완료·재수용
 - [2026-07-18 → 2026-07-19] FR-H2 선행 PageSize 실제 소비(작업 기록 페이지네이션) — 반영(Phase 4 plan T3 로직·T5 UI 완료)

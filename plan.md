@@ -98,7 +98,7 @@
 - **구조 대조 ✅ (❌ 0건)**: 위 표의 **전 행이 diff에 실재**함을 T3 spec 리뷰가 행별로 지목해 확인했다(헤더 `<ContentDialog.Title>` StackPanel, `TagBadgeStyle`+`AppMutedSoftBrush` pill, `InputLabelStyle` 7회, 빨간 `*`, `TitleBorderBrush` ARGB가 Palette 값과 일치, `SettingsCard`+`x:Uid` 제목/부제, `OnContent=""` 라벨 없는 토글, `PrimaryButtonLabel` 등록/저장, `ErrorText` 제거).
 - **⏳ 미확인 — F-8 인계 목록 (렌더 육안 확인 필요)**: 빌드는 마크업 존재만 보증하고 "시안과 같아 보이는가"는 판정할 수 없다. 데스크톱 UI라 캡처 도구가 없어 아래는 **사용자 육안 대조로만 확정**된다.
   1. 헤더에서 pill이 제목 오른쪽에 자연스럽게 인접하는가(제목이 길 때 밀리지 않는가)
-  2. 상태 pill의 배색·크기가 시안과 같은 인상인가
+  2. 상태 pill의 배색·크기·**글자 굵기**가 시안과 같은 인상인가 — ⚠️ `ContentDialog` 기본 title presenter가 `FontWeight=SemiBold`를 걸고 폰트 속성은 시각 트리로 **상속**된다. 헤더 제목이 굵게 나오는 근거가 그 상속인데 **같은 상속이 pill 텍스트에도 걸려** 저강도 배지가 굵게 나올 수 있다(제목이 굵으면 pill도 굵은 배타 관계). 어긋나면 pill `TextBlock`에 `FontWeight="Normal"` 1줄 추가. (F-7 m1)
   3. `InputLabelStyle` 라벨 크기·색·입력칸과의 간격이 시안과 맞는가
   4. 빈 제목의 danger 테두리가 시안처럼 보이는가(+ hover 시 회색 전환이 D3-a 수용 범위로 느껴지는가)
   5. `SettingsCard` 배경이 다이얼로그 배경과 충분히 대비되는가(약하면 `Background`를 `AppCardAltBrush`로)
@@ -131,7 +131,12 @@
 | FR-T1 (작업 데이터 모델) | Must | — | 이번 범위 외 (`TodoItem` 무변경) |
 | FR-T7 (담당자(who) 필드) | Could | — | **의도적 미구현** — 사용자 제외 결정 유지(`deferred.md:9`). 미충족이 아니라 범위 제외 |
 | FR-T2·T3·T4·T8 | Must/Should | — | 이번 범위 외 (직전 plan에서 기구현, 이번 변경이 닿지 않음) |
-| FR-C3·FR-S1~S5·FR-E1~E5·FR-H*·FR-N* | Must/Should | — | 이번 범위 외 (Phase 0~5에서 기구현). 단 **FR-S5**(프로젝트 설정 다이얼로그 restyle, Should)는 기구현이 아니라 **`deferred.md:6` 대기 중** — 이번에도 유지 |
+| FR-C1·C2·C3·C4·FR-S1~S5·FR-E1~E5·FR-H*·FR-N* | Must/Should | — | 이번 범위 외 (Phase 0~5에서 기구현, 이번 diff가 닿지 않음). 단 **FR-S5**(프로젝트 설정 다이얼로그 restyle, Should)는 기구현이 아니라 **`deferred.md` 대기 중** — 이번에도 유지 |
+| NFR-1 (빌드 오류 0·신규 경고 0) | — | T1·T2·T3 | ✅ 충족 (클린 리빌드 오류 0, 경고는 AGENTS.md 기존 5건뿐) |
+| NFR-2 (계층 위반 0) | — | T2 | ✅ 충족 (VM은 `Presentation/ViewModels`, 도메인 무변경, D11로 페이지 역참조 금지) |
+| NFR-3 (DB 스키마 하위호환) | — | — | ✅ 무영향 (`TodoItem`·스키마·직렬화 무변경) |
+| NFR-4 (다국어 ko/en 대칭) | — | T1·T3 | ✅ 충족 (`TaskEdit*` 키 집합 ko/en 완전 대칭 — F-7 재확인) |
+| NFR-5 (테스트) | — | — | 조건 미발동 (테스트 프로젝트 부재 — AGENTS.md 명시) |
 
 ## 작업 단계
 
@@ -224,7 +229,10 @@
 - 회귀(빌드로 검증 불가 → ⏳ HUMAN-VERIFY): 칸반 각 열의 `+ 새 작업`에서 헤더 pill이 그 열 상태와 일치 / 카드 클릭·우클릭 편집에서 pill이 해당 작업 상태와 일치 / 빈 제목으로 등록 시 닫히지 않음 / 제목 입력 시 테두리 즉시 복귀 / **빈 제목 위 hover 시 테두리 회색 전환은 D3-a로 수용된 동작**(결함 아님) / "테스트 추가" ON → 테스트 생성 / 시작일에 오늘이 채워짐 / 편집 모드에 카드 숨김·버튼 "저장" / 목록 뷰 편집 경로 정상 / 시안 육안 대조
 
 ## Phase Ledger
-- (미시작)
+- 전 task(T1~T3) 완료.
+- Phase F 통과 (HEAD 934fae6) — F-7 plan-completion-reviewer BLOCKER 0/MAJOR 0/MINOR 4(m1 pill 글자 굵기→F-8 목록 2번에 반영, m2 NFR 행 누락→PRD Coverage에 추가, m3 FR-C1/C2/C4 표기 누락→추가, m4 문서 갱신 미커밋→최종 커밋에 포함). 클린 리빌드(-t:Rebuild) 오류 0·신규 경고 0.
+- Phase G 통과 (Must 100%) — 커버 대상 Must FR(T5) 충족, Should(T6)도 충족. NFR-1~5 전건 확인. F-7 전수 대조 재사용(incomplete·Sonnet 대체 아님). 갭 0건이라 재루프 없음.
+- **F-8 미통과 — 시각 확인 대기**: `## 시각 요소 분해`의 렌더 일치 7항목이 `⏳ 미확인`으로 남아 **완료 선언 보류**(사용자 육안 대조 필요).
 
 ## Progress Log
 - T1-T2 완료 (커밋 52d94f0, 8066961): resw 문구 정비(placeholder 4키 값 + 신규 3키 ko/en) / VM에 `HeaderTitle`·`StatusLabel`·`PrimaryButtonLabel` 추가 + 생성자에 `TodoStatus status` 선택적 파라미터 + 새 작업 시작일 기본값=오늘. 빌드 OK(기존 경고 5건만).
