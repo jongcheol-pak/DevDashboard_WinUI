@@ -25,7 +25,9 @@ public sealed partial class TaskEditDialog : ContentDialog
         Vm = new TaskEditDialogViewModel(existing, settings, status);
         InitializeComponent();
 
-        PrimaryButtonText = Vm.PrimaryButtonLabel;
+        // 헤더·버튼 문구 배선은 T3(XAML 헤더 재구성)에서 바꾼다 — 여기서는 현행 동작을 유지한다.
+        Title = Vm.HeaderTitle;
+        PrimaryButtonText = LocalizationService.Get("Dialog_Save");
         CloseButtonText = LocalizationService.Get("Dialog_Cancel");
     }
 
