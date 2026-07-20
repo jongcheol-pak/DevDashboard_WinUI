@@ -253,7 +253,10 @@ DashboardView.OnUnloaded (DashboardView.xaml.cs:38-52)
   - **T3**: 대시보드↔작업 왕복 3회 이상 후에도 재진입 정상 / 테스트·Git 상태·작업 기록·명령 슬롯 버튼 정상 / 다이얼로그가 두 번 뜨지 않음 / 복귀 후 프로젝트 추가 시 새 카드 버튼 정상 / 작업 페이지 표시 중 카드 다이얼로그가 뜨지 않음
 
 ## Phase Ledger
-- (미시작)
+- T1·T2 완료. Phase F/G 미실행.
 
 ## Progress Log
-- (미시작)
+- T1 완료 (커밋 amend): 제목 필수 표시를 조건부 4면 테두리 → Grid에 겹친 상시 하단 danger 라인(2px, IsHitTestVisible=False)으로 변경. TitleBorderBrush·정적 브러시 2개·고아 using 2개·xmlns:local 제거, OnSave 주석 갱신. 빌드 OK(신규 경고 0), spec·quality 리뷰 지적 0.
+  - 결정(D2 부수효과 확정): 라인이 TextBox 형제라 hover 시 회색 전환(이전 plan D3-a) 문제가 해소됨. 렌더 육안(라인 두께·모서리·포커스 중첩)은 F-8 인계.
+- T2 완료 (커밋 amend): 카테고리 "미분류" 선택지 제거(_noneCategoryLabel 필드 삭제), 새 작업은 CategoryOptions[0]="UI·UX" 자동 선택. SelectedCategoryOption을 string?로 전환 — 편집 빈 카테고리는 null 미선택, BuildResult에서 ?? string.Empty로 흡수(Todos.Category NOT NULL 방어, plan-reviewer B1). TaskPageViewModel의 미분류 표시·TaskCategory_None resw는 존치(D7/D8). 빌드 OK(신규 경고 0), 리뷰 지적 0.
+  - 확인: SelectedItem이 object 타입이라 string→string? 전환에 XAML 바인딩(xaml:78) 무영향.
