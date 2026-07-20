@@ -420,11 +420,9 @@
   <data name="TaskEditLabel_EndDate.Text" xml:space="preserve"><value>종료일</value></data>
   <data name="TaskEditStartDate.PlaceholderText" xml:space="preserve"><value>연도-월-일</value></data>
   <data name="TaskEditEndDate.PlaceholderText" xml:space="preserve"><value>연도-월-일</value></data>
-  <data name="TaskEdit_AddTest.Header" xml:space="preserve"><value>테스트 목록에도 추가</value></data>
   <data name="TaskEdit_AddTestCard.Header" xml:space="preserve"><value>테스트 추가</value></data>
   <data name="TaskEdit_AddTestCard.Description" xml:space="preserve"><value>이 작업을 테스트 목록에도 추가합니다.</value></data>
   <data name="TaskEdit_Submit" xml:space="preserve"><value>등록</value></data>
-  <data name="TaskEdit_TitleRequired" xml:space="preserve"><value>제목을 입력하세요.</value></data>
   <data name="TaskPriority_High" xml:space="preserve"><value>높음</value></data>
   <data name="TaskPriority_Normal" xml:space="preserve"><value>보통</value></data>
   <data name="TaskPriority_Low" xml:space="preserve"><value>낮음</value></data>

@@ -3,44 +3,74 @@
     x:Class="DevDashboard.Presentation.Views.Dialogs.TaskEditDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DevDashboard.Presentation.Views.Dialogs"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     DefaultButton="Primary"
     CornerRadius="8"
     PrimaryButtonClick="OnSave">
 
+    <!-- 헤더: 제목 + 상태 배지(새 작업은 눌린 열의 상태, 편집은 그 작업의 상태) -->
+    <ContentDialog.Title>
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="{x:Bind Vm.HeaderTitle}" VerticalAlignment="Center" />
+            <Border
+                Style="{StaticResource TagBadgeStyle}"
+                Background="{ThemeResource AppMutedSoftBrush}"
+                Margin="0"
+                VerticalAlignment="Center">
+                <TextBlock
+                    Text="{x:Bind Vm.StatusLabel}"
+                    FontSize="12"
+                    Foreground="{ThemeResource AppTextTertiaryBrush}" />
+            </Border>
+        </StackPanel>
+    </ContentDialog.Title>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="520">
         <StackPanel Spacing="12" MinWidth="360">
 
-            <TextBlock x:Uid="TaskEditLabel_Title" Style="{StaticResource BodyStrongTextBlockStyle}" />
-            <TextBox
-                x:Name="TitleBox"
-                x:Uid="TaskEditBox_Title"
-                Text="{x:Bind Vm.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                MaxLength="200" />
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock x:Uid="TaskEditLabel_Title" Style="{StaticResource InputLabelStyle}" />
+                    <!-- 필수 입력 표시. 기호라 번역 대상이 아니어서 resw에 두지 않는다. -->
+                    <TextBlock
+                        Text=" *"
+                        Style="{StaticResource InputLabelStyle}"
+                        Foreground="{ThemeResource AppDangerBrush}" />
+                </StackPanel>
+                <TextBox
+                    x:Uid="TaskEditBox_Title"
+                    Text="{x:Bind Vm.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    BorderBrush="{x:Bind local:TaskEditDialog.TitleBorderBrush(Vm.Title), Mode=OneWay}"
+                    MaxLength="200" />
+            </StackPanel>
 
-            <TextBlock x:Uid="TaskEditLabel_Description" Style="{StaticResource BodyStrongTextBlockStyle}" />
-            <TextBox
-                x:Uid="TaskEditBox_Description"
-                Text="{x:Bind Vm.Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                AcceptsReturn="True"
-                TextWrapping="Wrap"
-                MinHeight="70"
-                MaxLength="300"
-                ScrollViewer.VerticalScrollBarVisibility="Auto" />
+            <StackPanel>
+                <TextBlock x:Uid="TaskEditLabel_Description" Style="{StaticResource InputLabelStyle}" />
+                <TextBox
+                    x:Uid="TaskEditBox_Description"
+                    Text="{x:Bind Vm.Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    AcceptsReturn="True"
+                    TextWrapping="Wrap"
+                    MinHeight="70"
+                    MaxLength="300"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto" />
+            </StackPanel>
 
             <Grid ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Spacing="6">
-                    <TextBlock x:Uid="TaskEditLabel_Category" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <StackPanel Grid.Column="0">
+                    <TextBlock x:Uid="TaskEditLabel_Category" Style="{StaticResource InputLabelStyle}" />
                     <ComboBox
                         HorizontalAlignment="Stretch"
                         ItemsSource="{x:Bind Vm.CategoryOptions}"
                         SelectedItem="{x:Bind Vm.SelectedCategoryOption, Mode=TwoWay}" />
                 </StackPanel>
-                <StackPanel Grid.Column="1" Spacing="6">
-                    <TextBlock x:Uid="TaskEditLabel_Priority" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <StackPanel Grid.Column="1">
+                    <TextBlock x:Uid="TaskEditLabel_Priority" Style="{StaticResource InputLabelStyle}" />
                     <ComboBox
                         HorizontalAlignment="Stretch"
                         ItemsSource="{x:Bind Vm.Priorities}"
@@ -53,15 +83,15 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Spacing="6">
-                    <TextBlock x:Uid="TaskEditLabel_StartDate" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <StackPanel Grid.Column="0">
+                    <TextBlock x:Uid="TaskEditLabel_StartDate" Style="{StaticResource InputLabelStyle}" />
                     <CalendarDatePicker
                         x:Uid="TaskEditStartDate"
                         HorizontalAlignment="Stretch"
                         Date="{x:Bind Vm.StartDate, Mode=TwoWay}" />
                 </StackPanel>
-                <StackPanel Grid.Column="1" Spacing="6">
-                    <TextBlock x:Uid="TaskEditLabel_EndDate" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <StackPanel Grid.Column="1">
+                    <TextBlock x:Uid="TaskEditLabel_EndDate" Style="{StaticResource InputLabelStyle}" />
                     <CalendarDatePicker
                         x:Uid="TaskEditEndDate"
                         HorizontalAlignment="Stretch"
@@ -69,17 +99,17 @@
                 </StackPanel>
             </Grid>
 
-            <ToggleSwitch
-                x:Uid="TaskEdit_AddTest"
+            <toolkit:SettingsCard
+                x:Uid="TaskEdit_AddTestCard"
                 Margin="0,4,0,0"
-                Visibility="{x:Bind Vm.ShowTestToggle, Converter={StaticResource BoolToVisibility}}"
-                IsOn="{x:Bind Vm.AddTest, Mode=TwoWay}" />
+                Visibility="{x:Bind Vm.ShowTestToggle, Converter={StaticResource BoolToVisibility}}">
+                <ToggleSwitch
+                    OnContent=""
+                    OffContent=""
+                    MinWidth="0"
+                    IsOn="{x:Bind Vm.AddTest, Mode=TwoWay}" />
+            </toolkit:SettingsCard>
 
-            <TextBlock
-                x:Name="ErrorText"
-                Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                Visibility="Collapsed"
-                TextWrapping="Wrap" />
         </StackPanel>
     </ScrollViewer>
 

@@ -93,6 +93,18 @@
 | 하단 버튼 | 문구 | 좌="등록"(새 작업)/"저장"(편집), 우="취소" | 시안 + 사용자 결정 |
 | 하단 에러 문구 | 존재 | **없음**(테두리 강조로 대체) | 시안에 부재 + 사용자 결정 |
 
+### V-9 결과 (T3 수행) — 구조 ✅ / 렌더 ⏳ F-8 인계
+
+- **구조 대조 ✅ (❌ 0건)**: 위 표의 **전 행이 diff에 실재**함을 T3 spec 리뷰가 행별로 지목해 확인했다(헤더 `<ContentDialog.Title>` StackPanel, `TagBadgeStyle`+`AppMutedSoftBrush` pill, `InputLabelStyle` 7회, 빨간 `*`, `TitleBorderBrush` ARGB가 Palette 값과 일치, `SettingsCard`+`x:Uid` 제목/부제, `OnContent=""` 라벨 없는 토글, `PrimaryButtonLabel` 등록/저장, `ErrorText` 제거).
+- **⏳ 미확인 — F-8 인계 목록 (렌더 육안 확인 필요)**: 빌드는 마크업 존재만 보증하고 "시안과 같아 보이는가"는 판정할 수 없다. 데스크톱 UI라 캡처 도구가 없어 아래는 **사용자 육안 대조로만 확정**된다.
+  1. 헤더에서 pill이 제목 오른쪽에 자연스럽게 인접하는가(제목이 길 때 밀리지 않는가)
+  2. 상태 pill의 배색·크기가 시안과 같은 인상인가
+  3. `InputLabelStyle` 라벨 크기·색·입력칸과의 간격이 시안과 맞는가
+  4. 빈 제목의 danger 테두리가 시안처럼 보이는가(+ hover 시 회색 전환이 D3-a 수용 범위로 느껴지는가)
+  5. `SettingsCard` 배경이 다이얼로그 배경과 충분히 대비되는가(약하면 `Background`를 `AppCardAltBrush`로)
+  6. 토글 On 색이 실제로 살몬으로 렌더되는가(전역 accent 오버라이드 경유라 코드상으론 확실하나 렌더 확인 필요)
+  7. 전체 여백·다이얼로그 폭이 시안과 같은 밀도인가
+
 ## Decisions
 
 | # | 항목 | 카테고리 | 결정 | Source |
@@ -152,7 +164,7 @@
 - **Halt Forecast**: 없음 — 시그니처 변경이 사전 승인 항목에 등재됐고, 호출부 2곳이 전수 확인됐다. 파괴적·외부 작업 없음.
 
 ### T3 — XAML 시각 재구성 (헤더 pill·라벨·필수 강조·카드·버튼) `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `DevDashboard_WinUI/Presentation/Views/Dialogs/TaskEditDialog.xaml`, `DevDashboard_WinUI/Presentation/Views/Dialogs/TaskEditDialog.xaml.cs`, `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`
 - **Design**: ① 배치 — 마크업은 `TaskEditDialog.xaml`, 유효성 Brush 헬퍼는 같은 화면의 코드비하인드(`x:Bind` 함수 바인딩이 Converter·ThemeResource를 못 받으므로 — AGENTS.md 함정 5). ② 신규 심볼 — `TitleBorderBrush(string title)` **static** 헬퍼(빈 제목이면 danger, 아니면 기본 테두리 Brush 반환) 하나뿐. **반환 Brush는 ARGB 리터럴로 만든 `SolidColorBrush` static 필드 2개**(danger `#FFF0716A` / 기본 `#FF2E2E34`) — `TaskPage.PriorityBrush`(`:126-131`)의 선례를 그대로 따른다. ⚠️ 값이 `Palette.xaml`과 **이중 정의**되므로 "팔레트 변경 시 동기화 필요" 주석을 붙인다(m1). ③ 의존 방향 — XAML이 T2의 VM 프로퍼티와 T1의 resw 키를 소비. 역참조 없음. ④ 비추상화 — 유효성 표시를 재사용 컴포넌트·Behavior로 빼지 않고 이 화면에 직접 둔다(사용처 1곳). 카드·라벨·pill 모두 **기존 자산 재사용**이라 신규 스타일 0.
 - **구성**:
@@ -220,3 +232,7 @@
   - 결정: `StatusLabel`은 생성자에서 1회 계산해 `{ get; }`으로 고정 — 다이얼로그 수명이 짧아 상태 변경 추적이 불필요(주석 명시).
   - 결정: 상태→라벨 매핑을 `TaskPage`의 static 캐시와 공유하지 않고 VM에 `StatusLabelFor` switch를 별도로 둠 — D11(다이얼로그가 페이지를 역참조하지 않음). 사용처 1곳이라 공통화 기준(3회) 미달.
   - 구현 차이(무해): plan은 `DateTimeOffset.Now.Date`를 제시했으나 그 식은 `DateTime`을 반환해 `DateTimeOffset?`에 대입 불가 → 같은 파일 선례를 따라 `new DateTimeOffset(DateTime.Today)` 사용. 결과 동일(로컬 자정).
+- T3 완료 (커밋 예정): XAML 헤더를 `<ContentDialog.Title>`(제목+상태 pill)로 재구성, 라벨 6개를 `InputLabelStyle`로 교체 + 제목에 빨간 `*`, 제목 빈 상태 danger 테두리(`TitleBorderBrush`), "테스트 추가"를 `toolkit:SettingsCard`로 카드화, `ErrorText` 제거(차단 로직은 유지), 버튼 문구 등록/저장 배선, 고아 resw 키 2개 제거. 빌드 OK. spec·quality 리뷰 지적 0건.
+  - **빌드가 잡은 함정**: `{x:Bind TitleBorderBrush(...)}`로 쓰면 static 메서드를 인스턴스로 접근해 **CS0176**이 난다. `TaskPage.xaml:82` 선례대로 `xmlns:local` 선언 + `{x:Bind local:TaskEditDialog.TitleBorderBrush(...)}` 타입 한정으로 해결.
+  - 결정: 라벨과 입력칸을 묶는 내부 `StackPanel`은 `Spacing`을 주지 않고 `InputLabelStyle`의 `Margin 0,0,0,4`에 간격을 위임했다(바깥 `Spacing="12"`는 필드 그룹 간 간격 담당 — 책임 분리).
+  - 확인: 토글 On 살몬색은 `Palette.xaml:81-82`의 전역 accent 오버라이드(#F0716A)로 **이미 충족**돼 신규 스타일이 필요 없었다.
