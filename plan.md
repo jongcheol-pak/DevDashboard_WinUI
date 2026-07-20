@@ -152,7 +152,7 @@
 - **Halt Forecast**: 없음(신규 템플릿 추가 + 핸들러 추가만, 기존 경로 무변경 → 이 시점 앱은 현행 그대로 동작).
 
 ### T3 — VM 열별 그룹핑·통과율 + 칸반 열 재구성 (VM·XAML 동시) `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `DevDashboard_WinUI/Presentation/ViewModels/TaskPageViewModel.cs`, `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml`(칸반 본문), `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml.cs`
 - **왜 한 task인가**: VM의 컬렉션 요소 타입을 그룹으로 바꾸는 순간 기존 칸반 XAML(`x:DataType="models:TodoItem"`)이 그 컬렉션과 맞지 않아 **빌드는 통과하지만 카드가 렌더되지 않는다**. VM과 칸반 마크업은 분리 불가 — 함께 바꿔야 중간 커밋이 동작 가능 상태로 남는다.
 - **Design**: ① 배치 — VM 파일 내 + 칸반 4열 마크업 교체. ② 신규 심볼 — `TaskColumnGroup(string CategoryName, string PassRateBadge, IReadOnlyList<TodoItem> Items)` record(`TaskCategoryGroup` 옆), `BuildPassRateBadge(string category)` private 메서드, `BuildColumnGroups(...)`(기존 `FillColumn` 대체), `TaskColumnGroupTemplate` DataTemplate, `ColumnAdd_Click` 핸들러, `StatusDotBrush(TodoStatus)` x:Bind 정적 헬퍼. 4개 컬렉션은 프로퍼티 이름 유지(`WaitingItems` 등) + 요소 타입만 `TaskColumnGroup`으로 교체. ③ 의존 방향 — `_project.TestCategories`(기로드) 참조, T1 스타일·T2 카드 템플릿 소비. ④ 비추상화 — 통과율 계산을 `TestPageViewModel`과 공용 서비스로 추출하지 **않는다**(사용처 2곳, CLAUDE.md 공통화 기준 미달 + 두 화면의 필터 의미가 달라 조기 결합 위험). 4개 열도 `ItemsControl`로 데이터 구동화하지 않는다(각 열의 `Tag`·드롭 타깃·정적 라벨이 달라 현행처럼 명시 마크업이 추적하기 쉽다).
@@ -187,6 +187,8 @@
 - 시안 대조의 **최종 시각 판정** — 빌드는 구조 구현만 보증하고 "시안과 같아 보이는가"는 사용자만 판정 가능(⏳ HUMAN-VERIFY로 보고).
 
 ## Deferred / Follow-up
+- **[SUGGEST] `BuildPassRateBadge` 조회 테이블화** — 그룹마다 `_project.TestCategories`를 선형 탐색하고 `Rebuild()`는 드래그·편집마다 호출된다. 개인 대시보드 규모에선 무시할 비용이라 지금은 과한 최적화(같은 클래스의 `_testStatusById` 딕셔너리가 선례). 카테고리 수가 커지면 캐싱 검토. (T3 quality 리뷰)
+- **완료 열에 새 작업을 바로 생성하면 작업기록 팝업이 뜨지 않음** — `AddTodo()`는 `MoveToStatus()`와 달리 `WorkLogRequested`를 발생시키지 않는다. T3가 만든 결함이 아니라 기존 `AddTodo` 설계가 "완료 상태로 즉시 생성" 경로에 처음 노출된 것이며, `IsCompleted`/`CompletedAt` 동기화는 정상이라 기능 결함은 아니다. UX 일관성 관점의 후속. (T3 quality 리뷰)
 - **목록 뷰 시안 대조** — 시안 이미지가 칸반만 담고 있어 목록 뷰는 이번에 무변경(D10). 목록 뷰 시안 확보 시 별도 진행.
 - **TestPage·NotificationPage 시안 대조** — 사용자가 "작업 페이지만 먼저"로 한정. 작업 페이지 결과 확인 후 판단.
 - **[칸반 열 내 카드 재정렬]** — 대장 유지(이번은 시각 구조만).
