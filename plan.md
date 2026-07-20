@@ -164,7 +164,8 @@
 - **Halt Forecast**: 없음 — 결정이 D4·D12·`*Count` 블록에 전부 사전 확정됐고, 파괴적 작업(파일 삭제·외부 호출·비가역 데이터 변경)이 없다. VM 요소 타입 변경은 사전 승인 항목에 등재됨.
 
 ### T4 — 헤더 정리 (세그먼트 토글 + `+새 작업` 제거) + 미사용 심볼 정리 `Type C`
-- [ ] 구현
+- [x] 구현
+- **계획 외 추가 변경(사후 보고)**: `TaskView_Kanban.Content`/`TaskView_List.Content` resw 키를 베어네임 `TaskView_Kanban`/`TaskView_List`로 변경했다. 시안이 세그먼트 항목에 **아이콘+라벨**을 요구하는데 `x:Uid`는 `Content`에 문자열만 주입할 수 있어 `FontIcon`+`TextBlock` 조합이 불가능했다 — 코드 정적 참조(`LocalizationService.Get`) 소비로 바꾸면서 이 페이지의 다른 키(전부 베어네임)와 형식을 통일했다. 다른 참조처 0건(grep 확인). plan 사전 승인은 `TaskAdd_Button` 제거만 명시했으므로 완료 보고에 별도 표기.
 - **Files**: `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml`(헤더), `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml.cs`, `DevDashboard_WinUI/Presentation/ViewModels/TaskPageViewModel.cs`, `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`
 - **Design**: ① 배치 — 헤더 Grid 열 구성 축소(6열 → 4열: 뒤로가기·제목·spacer·[콤보+토글]) + VM 미사용 심볼 제거. ② 신규 심볼 — 없음(T1의 `SegmentedToggleStyle` 적용). ③ 의존 방향 — T1 스타일 소비. ④ 비추상화 — 커스텀 `SegmentedControl`을 만들지 않고 `RadioButton` 2개 + 스타일로 처리(사용처 1곳).
 - **선행 조건**: T3에서 `ColumnAdd_Click`의 FR-T6 이관(D12)이 완료된 뒤에만 헤더 `AddTask_Click`을 제거한다 — 순서가 뒤집히면 FR-T6가 죽는 구간이 생긴다.
