@@ -427,9 +427,8 @@
   <data name="TaskPriority_Low" xml:space="preserve"><value>Low</value></data>
   <data name="TaskPage_Title.Text" xml:space="preserve"><value>Tasks</value></data>
   <data name="TaskPage_BackText.Text" xml:space="preserve"><value>Dashboard</value></data>
-  <data name="TaskView_Kanban.Content" xml:space="preserve"><value>Kanban</value></data>
-  <data name="TaskView_List.Content" xml:space="preserve"><value>List</value></data>
-  <data name="TaskAdd_Button.Content" xml:space="preserve"><value>New Task</value></data>
+  <data name="TaskView_Kanban" xml:space="preserve"><value>Kanban</value></data>
+  <data name="TaskView_List" xml:space="preserve"><value>List</value></data>
   <data name="TaskStatus_Waiting" xml:space="preserve"><value>To Do</value></data>
   <data name="TaskStatus_Active" xml:space="preserve"><value>In Progress</value></data>
   <data name="TaskStatus_Completed" xml:space="preserve"><value>Done</value></data>
@@ -441,6 +440,12 @@
   <data name="TaskDelete_Tooltip" xml:space="preserve"><value>Delete</value></data>
   <data name="TaskDelete_Title" xml:space="preserve"><value>Delete Task</value></data>
   <data name="TaskDelete_Confirm" xml:space="preserve"><value>Delete task '{0}'?</value></data>
+  <data name="TaskDateRange" xml:space="preserve"><value>{0} – {1}</value></data>
+  <data name="TaskPassRateBadge" xml:space="preserve"><value>✓ {0}% passing · {1}</value></data>
+  <data name="TaskColumnAdd" xml:space="preserve"><value>+ New task</value></data>
+  <data name="TaskMenu_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="TaskMenu_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="TaskMenu_MoveTo" xml:space="preserve"><value>Change status</value></data>
   <data name="TaskLinkedTestCategory" xml:space="preserve"><value>Tasks</value></data>
   <data name="TaskTestBadge_Untested" xml:space="preserve"><value>Test: Not Run</value></data>
   <data name="TaskTestBadge_Pass" xml:space="preserve"><value>Test: Pass</value></data>
