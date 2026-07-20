@@ -253,7 +253,10 @@ DashboardView.OnUnloaded (DashboardView.xaml.cs:38-52)
   - **T3**: 대시보드↔작업 왕복 3회 이상 후에도 재진입 정상 / 테스트·Git 상태·작업 기록·명령 슬롯 버튼 정상 / 다이얼로그가 두 번 뜨지 않음 / 복귀 후 프로젝트 추가 시 새 카드 버튼 정상 / 작업 페이지 표시 중 카드 다이얼로그가 뜨지 않음
 
 ## Phase Ledger
-- T1·T2 완료. Phase F/G 미실행.
+- 전 task(T1~T3) 완료.
+- Phase F 통과 (HEAD f9ddf7d) — F-1 클린 리빌드(-t:Rebuild) 오류 0·신규 경고 0(기존 5건만). F-7 plan-completion-reviewer BLOCKER/MAJOR/MINOR 0.
+- Phase G 통과 (Must 100%) — 커버 대상 Must FR(T5·C3) 충족. FR-C3 실제 왕복 동작은 ⏳ HUMAN-VERIFY(앱 실행). Should(T6) 회귀 방지. 갭 0건이라 재루프 없음.
+- **F-8 미통과 — 시각/동작 확인 대기**: T1 하단 라인의 렌더 일치 + T3 네비게이션 왕복 동작이 `⏳ 미확인`이라 **완료 선언 보류**(사용자 육안·실행 확인 필요).
 
 ## Progress Log
 - T1 완료 (커밋 amend): 제목 필수 표시를 조건부 4면 테두리 → Grid에 겹친 상시 하단 danger 라인(2px, IsHitTestVisible=False)으로 변경. TitleBorderBrush·정적 브러시 2개·고아 using 2개·xmlns:local 제거, OnSave 주석 갱신. 빌드 OK(신규 경고 0), spec·quality 리뷰 지적 0.
