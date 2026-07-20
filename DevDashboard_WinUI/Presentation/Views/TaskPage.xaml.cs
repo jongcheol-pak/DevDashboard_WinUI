@@ -181,10 +181,10 @@ public sealed partial class TaskPage : UserControl
         if (sender is not FrameworkElement { Tag: string statusTag }) return;
         if (!Enum.TryParse<TodoStatus>(statusTag, out var status)) return;
 
-        var dialog = new TaskEditDialog(null, _settings);
+        var dialog = new TaskEditDialog(null, _settings, status);
         if (await dialog.ShowAsync() != ContentDialogResult.Primary || dialog.ResultTodo is not { } todo) return;
 
-        // 버튼이 속한 열의 상태를 이어받는다 (다이얼로그에는 상태 입력이 없다).
+        // 버튼이 속한 열의 상태를 이어받는다 (다이얼로그는 상태를 헤더에 표시만 하고 설정하지 않는다).
         todo.Status = status;
         Vm.AddTodo(todo);
 

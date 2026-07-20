@@ -16,15 +16,16 @@ public sealed partial class TaskEditDialog : ContentDialog
     /// <summary>"테스트 추가" 토글 선택 여부 (T9에서 테스트 자동 생성에 사용)</summary>
     public bool AddTestRequested { get; private set; }
 
-    public TaskEditDialog(TodoItem? existing, AppSettings settings)
+    /// <param name="status">
+    /// 헤더 배지에 표시할 상태. 새 작업은 호출한 칸반 열의 상태를 넘긴다.
+    /// 편집 모드는 이 값을 무시하고 기존 항목의 상태를 쓴다.
+    /// </param>
+    public TaskEditDialog(TodoItem? existing, AppSettings settings, TodoStatus status = TodoStatus.Waiting)
     {
-        Vm = new TaskEditDialogViewModel(existing, settings);
+        Vm = new TaskEditDialogViewModel(existing, settings, status);
         InitializeComponent();
 
-        Title = existing is null
-            ? LocalizationService.Get("TaskEdit_TitleAdd")
-            : LocalizationService.Get("TaskEdit_TitleEdit");
-        PrimaryButtonText = LocalizationService.Get("Dialog_Save");
+        PrimaryButtonText = Vm.PrimaryButtonLabel;
         CloseButtonText = LocalizationService.Get("Dialog_Cancel");
     }
 
