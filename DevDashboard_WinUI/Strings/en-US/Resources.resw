@@ -441,6 +441,12 @@
   <data name="TaskDelete_Tooltip" xml:space="preserve"><value>Delete</value></data>
   <data name="TaskDelete_Title" xml:space="preserve"><value>Delete Task</value></data>
   <data name="TaskDelete_Confirm" xml:space="preserve"><value>Delete task '{0}'?</value></data>
+  <data name="TaskDateRange" xml:space="preserve"><value>{0} – {1}</value></data>
+  <data name="TaskPassRateBadge" xml:space="preserve"><value>✓ {0}% passing · {1}</value></data>
+  <data name="TaskColumnAdd" xml:space="preserve"><value>+ New task</value></data>
+  <data name="TaskMenu_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="TaskMenu_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="TaskMenu_MoveTo" xml:space="preserve"><value>Change status</value></data>
   <data name="TaskLinkedTestCategory" xml:space="preserve"><value>Tasks</value></data>
   <data name="TaskTestBadge_Untested" xml:space="preserve"><value>Test: Not Run</value></data>
   <data name="TaskTestBadge_Pass" xml:space="preserve"><value>Test: Pass</value></data>

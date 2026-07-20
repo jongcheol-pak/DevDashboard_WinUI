@@ -37,6 +37,9 @@
             <Color x:Key="AppTextDisabledColor">#FF5F5D66</Color>
             <Color x:Key="AppSuccessColor">#FF5DB463</Color>
             <Color x:Key="AppDangerColor">#FFF0716A</Color>
+            <!-- 정보(파랑)·주의(주황) — 작업 칸반의 상태 dot(진행 중/보류)과 우선순위 배지(보통/높음)에 사용 -->
+            <Color x:Key="AppInfoColor">#FF5B93D8</Color>
+            <Color x:Key="AppWarningColor">#FFD9954A</Color>
             <Color x:Key="AppHoverFillColor">#FF2B2B31</Color>
 
             <SolidColorBrush x:Key="AppBgBrush" Color="{StaticResource AppBgColor}" />
@@ -54,6 +57,14 @@
             <SolidColorBrush x:Key="AppTextMutedBrush" Color="{StaticResource AppTextMutedColor}" />
             <SolidColorBrush x:Key="AppSuccessBrush" Color="{StaticResource AppSuccessColor}" />
             <SolidColorBrush x:Key="AppDangerBrush" Color="{StaticResource AppDangerColor}" />
+            <SolidColorBrush x:Key="AppInfoBrush" Color="{StaticResource AppInfoColor}" />
+            <SolidColorBrush x:Key="AppWarningBrush" Color="{StaticResource AppWarningColor}" />
+
+            <!-- 배지 배경용 저채도(알파) 변형 — 같은 색상의 텍스트/dot와 짝지어 pill을 만든다 -->
+            <SolidColorBrush x:Key="AppSuccessSoftBrush" Color="#285DB463" />
+            <SolidColorBrush x:Key="AppInfoSoftBrush" Color="#285B93D8" />
+            <SolidColorBrush x:Key="AppWarningSoftBrush" Color="#28D9954A" />
+            <SolidColorBrush x:Key="AppMutedSoftBrush" Color="#286F6D75" />
 
             <!-- ===== 시스템 브러시 오버라이드 (직접 참조 — 전 XAML grep 전수) ===== -->
             <!-- 텍스트 -->
