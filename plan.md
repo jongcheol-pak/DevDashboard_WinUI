@@ -143,7 +143,7 @@
 - **Halt Forecast**: PRD 문구 변경은 **plan 승인에 포함**(승인 프롬프트에 명시) → 자율 루프 중단 없음.
 
 ### T2 — 칸반 전용 카드 템플릿 신규 + 조작 경로(클릭/우클릭) `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml`(`UserControl.Resources`), `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml.cs`
 - **Design**: ① 배치 — `TaskKanbanCardTemplate`을 `UserControl.Resources`에 **신규 추가**. 기존 `TaskCardTemplate`은 **`DataTemplate` 본문을 고치지 않고 존치**(목록 뷰 전용이 됨, D11) — 따라서 `StatusCombo_Loaded`/`StatusCombo_SelectionChanged`/`EditTask_Click`/`DeleteTask_Click` 핸들러도 **전부 존치**한다. **단 `TaskPage.xaml:14`의 주석 `<!-- 작업 카드 템플릿 (칸반·목록 공용) -->`은 거짓이 되므로 "목록 뷰 전용 카드 템플릿"으로 갱신한다**(CLAUDE.md "코드를 수정하면 딸린 주석을 일치시킨다" — 주석 1줄만 예외, 본문은 무변경). ② 신규 심볼 — `FormatDateRange(DateTime?, DateTime?)`·`DateRangeVisibility(DateTime?, DateTime?)`·`PriorityBrush(TaskPriority)` x:Bind 정적 헬퍼, `Card_Tapped`·`CardMenuEdit_Click`·`CardMenuDelete_Click`·`CardMenuMove_Click` 핸들러(기존 `EditTask_Click`/`DeleteTask_Click` 본문 재사용 — 위임). ③ 의존 방향 — T1 스타일·색 참조. ④ 비추상화 — 컨텍스트 메뉴를 재사용 컴포넌트로 빼지 않고 `MenuFlyout`을 템플릿에 직접 둔다(사용처 1곳).
 - **칸반 카드 구성**: 1행 제목(굵게, 줄바꿈, Grid `*`) + 우선순위 pill(Grid `Auto`) / 2행 설명(비면 Collapsed) / 3행 날짜 범위 1줄(양쪽 다 없으면 Collapsed). 상태 콤보·수정/삭제 버튼·카드별 `LinkedTestBadge` 없음(D6). `CanDrag="True"` + `DragStarting="Card_DragStarting"` **유지**(FR-T3).
