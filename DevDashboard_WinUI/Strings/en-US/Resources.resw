@@ -411,16 +411,19 @@
   <data name="TaskEdit_TitleAdd" xml:space="preserve"><value>New Task</value></data>
   <data name="TaskEdit_TitleEdit" xml:space="preserve"><value>Edit Task</value></data>
   <data name="TaskEditLabel_Title.Text" xml:space="preserve"><value>Title</value></data>
-  <data name="TaskEditBox_Title.PlaceholderText" xml:space="preserve"><value>Enter task title...</value></data>
+  <data name="TaskEditBox_Title.PlaceholderText" xml:space="preserve"><value>What needs to be done?</value></data>
   <data name="TaskEditLabel_Description.Text" xml:space="preserve"><value>Description</value></data>
   <data name="TaskEditBox_Description.PlaceholderText" xml:space="preserve"><value>Task description (optional)</value></data>
   <data name="TaskEditLabel_Category.Text" xml:space="preserve"><value>Category</value></data>
   <data name="TaskEditLabel_Priority.Text" xml:space="preserve"><value>Priority</value></data>
   <data name="TaskEditLabel_StartDate.Text" xml:space="preserve"><value>Start Date</value></data>
   <data name="TaskEditLabel_EndDate.Text" xml:space="preserve"><value>End Date</value></data>
-  <data name="TaskEditStartDate.PlaceholderText" xml:space="preserve"><value>Pick a date</value></data>
-  <data name="TaskEditEndDate.PlaceholderText" xml:space="preserve"><value>Pick a date</value></data>
+  <data name="TaskEditStartDate.PlaceholderText" xml:space="preserve"><value>yyyy-mm-dd</value></data>
+  <data name="TaskEditEndDate.PlaceholderText" xml:space="preserve"><value>yyyy-mm-dd</value></data>
   <data name="TaskEdit_AddTest.Header" xml:space="preserve"><value>Also add to test list</value></data>
+  <data name="TaskEdit_AddTestCard.Header" xml:space="preserve"><value>Add test</value></data>
+  <data name="TaskEdit_AddTestCard.Description" xml:space="preserve"><value>Also add this task to the test list.</value></data>
+  <data name="TaskEdit_Submit" xml:space="preserve"><value>Add</value></data>
   <data name="TaskEdit_TitleRequired" xml:space="preserve"><value>Please enter a title.</value></data>
   <data name="TaskPriority_High" xml:space="preserve"><value>High</value></data>
   <data name="TaskPriority_Normal" xml:space="preserve"><value>Normal</value></data>
