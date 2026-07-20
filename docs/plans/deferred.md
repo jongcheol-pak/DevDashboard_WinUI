@@ -27,7 +27,7 @@
 - **[NU1903 의존성 취약점]** — `SQLitePCLRaw.lib.e_sqlite3` 2.1.11에 알려진 높음 심각도 권고(GHSA-2m69-gcr7-jv3q). 빌드 경고로 상시 노출되나 이번 작업과 무관한 기존 경고. 패키지 버전 업데이트 검토 필요. (F-7 리뷰 m3, 2026-07-20)
 - **[칸반/목록 "미분류" 그룹 정렬 불일치]** — 칸반 `BuildColumnGroups`는 raw key(빈 문자열)로 정렬해 미분류가 항상 최상단, 목록 `RebuildCategoryGroups`는 표시명("미분류")으로 정렬해 한글 순서 중간에 온다. 시안에 그룹 정렬 규칙이 없어 결함 여부는 해석에 달림 — 통일 여부 결정 필요. (F-7 리뷰 m2, 2026-07-20)
 - **[`TaskPageViewModel.*Items` 개명 검토]** — `WaitingItems`/`ActiveItems`/`CompletedItems`/`HoldItems`가 실제로는 `TaskColumnGroup` 목록이라 이름과 내용이 어긋난다. XAML 바인딩 경로 안정을 위해 이름을 유지했고 `CountItems()` 주석이 함정을 방어하지만, 이 불일치가 `*Count` 무성 오작동 위험의 근원이다. `*Groups`로 개명 검토. (F-7 리뷰 m4, 2026-07-20)
-- **[AGENTS.md 부재]** — 리디자인 Phase 0~5 + TaskPage 재구성 내내 이 레포에 AGENTS.md가 없다. 빌드 명령(x64 MSBuild)·디렉터리 구조·검증 절차가 Claude 메모리와 plan/notes에만 있어 PC 간 공유가 안 되고 새 세션이 매번 재발견해야 한다. `pjc:bootstrap-agents-md`로 생성 권장. (원 plan: TaskPage 시안 정합, 2026-07-20)
+- **[AGENTS.md는 git 미추적 — PC 간 미공유]** — 2026-07-20에 `pjc:bootstrap-agents-md`로 루트에 AGENTS.md를 **생성 완료**(빌드 명령·구조·이 레포 함정 11건·컨벤션). 단 사용자의 **전역 `~/.gitignore_global:5`에 `AGENTS.md`가 등록**돼 있어 의도적으로 커밋하지 않는다(사용자 결정 2026-07-20 — 전역 정책 존중). 결과적으로 **이 PC에서만 유효**하며 다른 PC·새 클론에는 없다. 다른 PC에서 작업하게 되면 그 PC에서 다시 생성하거나, 그때 이 레포 `.gitignore`에 `!AGENTS.md` 예외를 넣어 추적으로 전환할 수 있다. (원 plan: TaskPage 시안 정합, 2026-07-20)
 
 ## 완료·재수용
 - [2026-07-18 → 2026-07-19] FR-H2 선행 PageSize 실제 소비(작업 기록 페이지네이션) — 반영(Phase 4 plan T3 로직·T5 UI 완료)
