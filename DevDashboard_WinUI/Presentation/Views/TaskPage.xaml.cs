@@ -98,8 +98,12 @@ public sealed partial class TaskPage : UserControl
     public static Visibility DateRangeVisibility(DateTime? start, DateTime? end)
         => start.HasValue || end.HasValue ? Visibility.Visible : Visibility.Collapsed;
 
-    // 우선순위 배지 색 — Palette.xaml의 AppWarning/AppInfo/AppTextMuted 및 그 저채도(Soft) 변형과 같은 값.
-    // x:Bind 함수 바인딩은 ThemeResource를 받을 수 없어 TestPage.StatusBrush와 동일하게 정적 브러시로 둔다.
+    // 우선순위 배지 색 — x:Bind 함수 바인딩은 ThemeResource를 받을 수 없어
+    // TestPage.StatusBrush와 동일하게 정적 브러시로 둔다(Palette.xaml 값과 수동으로 맞춘다).
+    //   High   글자 AppWarningColor(#D9954A) / 배경 AppWarningSoftBrush(#28D9954A)
+    //   Normal 글자 AppInfoColor(#5B93D8)    / 배경 AppInfoSoftBrush(#285B93D8)
+    //   Low    글자는 배경 위 가독성을 위해 AppTextTertiary(#8A8890)를 쓰고(AppTextMuted #6F6D75는 너무 어둡다),
+    //          배경만 AppMutedSoftBrush(#286F6D75)와 같은 값.
     private static readonly SolidColorBrush _priorityHighBrush = new(ColorHelper.FromArgb(0xFF, 0xD9, 0x95, 0x4A));
     private static readonly SolidColorBrush _priorityNormalBrush = new(ColorHelper.FromArgb(0xFF, 0x5B, 0x93, 0xD8));
     private static readonly SolidColorBrush _priorityLowBrush = new(ColorHelper.FromArgb(0xFF, 0x8A, 0x88, 0x90));
@@ -182,38 +186,38 @@ public sealed partial class TaskPage : UserControl
             Vm.DeleteTodo(todo);
     }
 
-    private void EditTask_Click(object sender, RoutedEventArgs e)
+    private async void EditTask_Click(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement { Tag: TodoItem todo })
-            _ = EditTodoAsync(todo);
+            await EditTodoAsync(todo);
     }
 
-    private void DeleteTask_Click(object sender, RoutedEventArgs e)
+    private async void DeleteTask_Click(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement { Tag: TodoItem todo })
-            _ = DeleteTodoAsync(todo);
+            await DeleteTodoAsync(todo);
     }
 
     // ===== 칸반 카드 조작 (클릭 = 편집, 우클릭 메뉴 = 편집·삭제·상태 변경) =====
 
     /// <summary>칸반 카드를 클릭하면 편집 다이얼로그를 연다.
     /// 드래그가 성립한 경우에는 Tapped가 발생하지 않으므로 드래그앤드롭과 충돌하지 않는다.</summary>
-    private void Card_Tapped(object sender, TappedRoutedEventArgs e)
+    private async void Card_Tapped(object sender, TappedRoutedEventArgs e)
     {
         if (sender is FrameworkElement { DataContext: TodoItem todo })
-            _ = EditTodoAsync(todo);
+            await EditTodoAsync(todo);
     }
 
-    private void CardMenuEdit_Click(object sender, RoutedEventArgs e)
+    private async void CardMenuEdit_Click(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement { Tag: TodoItem todo })
-            _ = EditTodoAsync(todo);
+            await EditTodoAsync(todo);
     }
 
-    private void CardMenuDelete_Click(object sender, RoutedEventArgs e)
+    private async void CardMenuDelete_Click(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement { Tag: TodoItem todo })
-            _ = DeleteTodoAsync(todo);
+            await DeleteTodoAsync(todo);
     }
 
     // 상태 변경 하위 메뉴 — MenuFlyoutItem은 Tag 하나만 쓸 수 있어 상태별로 얇은 핸들러를 둔다.
