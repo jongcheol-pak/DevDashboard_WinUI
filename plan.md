@@ -1,246 +1,259 @@
-# plan.md — 새 작업(TaskEditDialog) 다이얼로그 시안 정합 재구성
+# plan.md — 새 작업 다이얼로그 후속 수정 + 대시보드 복귀 네비게이션 버그
 
-**PRD**: docs/prd.md (FR-T5 시각 재구성 — 기능 요구는 이미 충족, **시각 구조 + 기본값 1건만 변경**)
-**이전 plan**: 작업(TaskPage) 칸반 화면 시안 정합 재구성 — Phase G 통과(Must 100%), master 병합 완료(HEAD b7f3a48).
+**PRD**: docs/prd.md (FR-T5 다이얼로그 후속 정정 + **FR-C3 회귀 수정**)
+**이전 plan**: TaskEditDialog 시안 정합 재구성 — Phase G 통과(Must 100%). F-8 시각 확인 7항목 중 **6항목은 사용자 확인 완료(이상 없음), 1항목(필수 입력 테두리)이 이번 T1로 이어짐** → 이전 plan 종결(사용자 결정 2026-07-20).
 **다음 plan**: 없음.
 
 ## 요구 이해
 
-> 원문(사용자, 2026-07-20): "[이미지] 새 작업 화면 이미지처럼 수정" + 첨부 시안 이미지 1장(새 작업 다이얼로그).
+> 원문(사용자, 2026-07-20): "[이미지] - 새 작업 화면에서 필수 입력 ui에만 이미지처럼 빠간 라인을 항상 표시, 카테고리 '미분류' 삭제, 기존 카테고리가 없는 항목은 목록에서만 '미분류'로 표시 / - 작업 화면에서 대시보드 버튼을 클릭해서 대시보드로 이동후 다시 작업버튼을 클릭하면 작업 화면으로 이동하지 않는 문제가 있음"
 
 이해한 요구:
-- 첨부 이미지가 **새 작업 다이얼로그의 디자인 기준**이고, 현재 `TaskEditDialog`가 그 구조와 어긋나 있으니 **시안과 같은 구조로 재구성**한다.
-- 어긋난 이유는 이전 plan과 동일 — Phase 2 구현 당시 목업이 레포에 없어 PRD 텍스트만으로 구현했다. **기능 결함이 아니라 시각 구조 불일치**다.
-- 따라서 이번 작업도 **기능 추가가 아니라 시각 정합 재구성**이다 — 편집/신규 양쪽 동작, "테스트 목록에도 추가"(FR-T6), 카테고리·우선순위·날짜 입력은 전부 보존한다.
-- 사용자 확정: 헤더 상태 pill은 **실제 상태**를 표시(생성자에 상태 전달), 제목 필수 강조는 **비어 있으면 상시**, 버튼은 **새 작업="등록"/편집="저장"**, 기본값 변경은 **시작일=오늘 1건만**(카테고리·테스트추가 토글 기본값은 현행 유지).
+- **① 필수 입력 표시 방식 변경**: 지금은 제목이 비어 있을 때만 입력칸 **테두리 전체**가 빨개진다. 시안은 **입력칸 하단에만 빨간 라인**이고, 이를 **값이 채워져도 항상** 유지한다. 대상은 **필수 입력칸(제목)뿐** — 설명·카테고리·날짜 등 선택 입력에는 붙이지 않는다.
+- **② 카테고리 선택지에서 "미분류" 제거**: 새 작업/편집 다이얼로그의 카테고리 콤보에서 "미분류" 항목 자체를 없앤다.
+- **③ "미분류"는 표시 전용으로 남긴다**: 카테고리가 비어 있는 **기존** 작업은 칸반·목록의 그룹 헤더에서 계속 "미분류"로 보여야 한다. 즉 "미분류"는 **고를 수 있는 값이 아니라 빈 값의 표시명**이 된다.
+- **④ 네비게이션 버그**: 작업 페이지 → "대시보드" 복귀 → 다시 "작업" 클릭 시 아무 반응이 없다. 증상은 작업 버튼이지만 **원인은 카드 이벤트 구독이 복귀 시 되살아나지 않는 것**이라, 실제로는 카드의 다른 버튼(테스트·Git 상태·작업 기록·명령 슬롯)도 함께 죽는다.
 
 ## Goal
 
-`TaskEditDialog`를 시안과 동일한 구조로 재구성한다 — ① 헤더를 `제목 + 상태 pill` 구성으로 바꾸고 pill이 **실제 상태**를 표시 ② 입력 라벨을 굵은 본문체에서 **작고 저강도**(`InputLabelStyle`)로 바꾸고 제목 라벨에 빨간 필수표시 `*` ③ 제목 입력칸이 비어 있으면 상시 danger 테두리(하단 에러 문구는 제거) ④ placeholder 문구를 시안 문구로 교체 ⑤ "테스트 추가"를 `SettingsCard`(제목+부제+우측 토글)로 카드화 ⑥ 하단 버튼을 새 작업="등록"/편집="저장" ⑦ 새 작업의 시작일 기본값=오늘. 기능 동작은 무손실.
+① `TaskEditDialog` 제목 입력칸의 필수 표시를 **조건부 전체 테두리 → 상시 하단 빨간 라인**으로 바꾸고, ② 카테고리 콤보에서 "미분류" 선택지를 제거하되 **빈 카테고리 데이터는 보존**하고, ③ 칸반·목록의 "미분류" 표시는 그대로 유지하며, ④ `DashboardView`가 대시보드로 복귀할 때 카드 이벤트를 **재구독**하도록 고쳐 페이지 진입 버튼이 다시 동작하게 한다.
 
 ## Investigation Log (근거)
 
-### 위키·시안
+### 위키·문서
 - 위키 참조: vault 미설정 — 코드 1차 출처로 진행.
-- 시안: 사용자 제공 이미지 1장(새 작업 다이얼로그). 목업 HTML은 레포에 없어 **픽셀 값이 아닌 구조·구성 요소 기준**으로 대조한다(아래 `## 시각 요소 분해`).
-- AGENTS.md 존재(2026-07-20 생성) — 빌드 명령·함정 11건·컨벤션 확인 완료. 신선도 점검: 이번 계획이 참조하는 경로(`Resources/Styles.xaml`·`Palette.xaml`·`Strings/{ko-KR,en-US}`·`Presentation/Views/Dialogs`) 전부 실재 확인. 어긋남 0건.
+- AGENTS.md 존재. 신선도 점검: 이번 계획이 참조하는 경로(`Presentation/Views/DashboardView.xaml.cs`·`Views/Dialogs/TaskEditDialog.*`·`ViewModels/TaskEditDialogViewModel.cs`·`ViewModels/TaskPageViewModel.cs`·`Resources/Palette.xaml`) 전부 실재 확인. **함정 5(x:Bind 함수 바인딩은 ThemeResource 불가)·함정 11(공용 DataTemplate)** 이번 작업과 직결 — 아래 반영. 어긋남 0건.
+- PRD 경량 확인: 이번 변경이 **FR-T5**(편집 다이얼로그, `prd.md:62`)와 **FR-C3**(페이지 네비게이션 컨테이너 — "대시보드 ↔ 페이지 전환", `prd.md:47`)에 닿는다 → PRD 연결(Phase G 활성).
 
 ### Deferred 대장 확인 (docs/plans/deferred.md)
-- **재수용**: `[미사용 심볼 정리]`의 잔존 항목 — `TaskEditDialog.xaml`의 `x:Name="TitleBox"` 미사용 건. 이번 **T3**가 정확히 그 요소(제목 TextBox)를 재작성하므로 **이번에 해소**한다(x:Bind 유효성 배선이 `x:Name` 참조를 대체하거나, 남으면 제거).
-- **이번에도 유지**: `[FR-S5 프로젝트 설정 다이얼로그 restyle]`(다른 다이얼로그), `[Todo*/Test* resw 고아 정리]`, `[TestDateGroup·HistoryEntryDialogViewModel 고아]`, `[BOM 통일]`, `[NU1903]`, `[README/스크린샷]`, `[목록 뷰·TestPage·NotificationPage 시안 대조]` 등 — 이번 작업과 무관.
-- **신규 등재 예정**: 아래 Deferred 절 참조(시작일 기본값 도입에 따른 "날짜 지우기 수단 부재").
+- **이번과 인접하나 재수용하지 않음**: `[칸반/목록 "미분류" 그룹 정렬 불일치]`(`:27`) — 칸반은 raw key(빈 문자열)로, 목록은 표시명("미분류")으로 정렬해 미분류 그룹의 위치가 서로 다르다. **이번 요청은 "표시" 유지이지 정렬 통일이 아니므로 범위 밖**이며, T2·T3 어느 diff도 이 코드에 닿지 않는다. 대장에 그대로 유지.
+- **이번에도 유지(무관)**: `[FR-S5 restyle]`·`[Todo*/Test* resw 고아]`·`[BOM 통일]`·`[NU1903]`·`[README/스크린샷]`·`[시작일 지울 수단 부재]`·`[다른 다이얼로그 라벨 스타일 불일치]`·`[빈 제목 오류 문구 제거에 따른 접근성 약화]`·`[SUGGEST status 선택적 파라미터]` 등.
+- **신규 등재 예정**: 아래 Deferred 절 참조(카테고리 필터에서 미분류 선택 불가 / 편집 시 카테고리 미선택 표현).
 
-### 영향 범위 — 전수 확인 (직접 grep + Read)
-- **`TaskEditDialog` 생성자 호출부는 전 레포 2곳뿐**(grep 전수): `TaskPage.xaml.cs:184`(`ColumnAdd_Click` — 새 작업), `TaskPage.xaml.cs:199`(`EditTodoAsync` — 편집, 목록 뷰 버튼·칸반 카드 클릭·우클릭 메뉴 공용). 그 외 호출자·구현체·직렬화 대상 **0건**.
-- `ColumnAdd_Click`은 **이미 `TodoStatus status`를 파싱해 갖고 있다**(`:182` `Enum.TryParse<TodoStatus>(statusTag, out var status)`) → 상태를 생성자에 넘기는 데 신규 조회가 불필요하다.
-- `TaskEditDialogViewModel` 참조처는 `TaskEditDialog.xaml(.cs)` 1곳뿐(grep 확인).
-- `TodoItem` **무변경** — 도메인·DB 스키마·직렬화 변경 없음. 마이그레이션 불요.
-- `Dialog_Save`("저장")는 **다이얼로그 8종·코드 사이트 9곳이 공유**(grep: TestPage 2건·TestEditDialog·HistoryDialog·TaskEditDialog·GroupDialog·ProjectSettingsDialog·CommandScriptDialog·ProjectHistoryDialog) → **값을 "등록"으로 바꾸면 전 다이얼로그가 오염**된다. TaskEdit 전용 신규 키를 만든다(D5).
+### ① 필수 입력 표시 — 현행 구현 (직접 Read)
+- `TaskEditDialog.xaml:44`가 `BorderBrush="{x:Bind local:TaskEditDialog.TitleBorderBrush(Vm.Title), Mode=OneWay}"`로 **입력칸 테두리 4면 전체**를 danger로 칠한다. 시안의 "하단 라인"과 형태가 다르고, 값이 채워지면 사라져 "항상 표시"와도 다르다.
+- `TaskEditDialog.xaml.cs:17-26`의 `_titleRequiredBrush`·`_titleNormalBrush`·`TitleBorderBrush()`는 **이 바인딩 1곳에서만 소비**된다. `TitleBorderBrush` **문자열 참조는 전수 3건**이다 — 정의(`.xaml.cs:25`), XAML 바인딩(`.xaml:44`), 그리고 **`OnSave` 위 주석(`.xaml.cs:57`)**. 주석은 "빈 값일 때 danger 테두리가 이미 표시돼 있어 오류 문구를 두지 않는다"는 **이번에 사라질 동작**을 설명하므로 심볼 제거와 함께 갱신 대상이다(plan-reviewer M1 — 갱신하지 않으면 "잔존 0건" acceptance가 실패하거나 틀린 주석이 남는다).
+- 이 브러시 제거로 `using Microsoft.UI;`(`ColorHelper`)와 `using Microsoft.UI.Xaml.Media;`(`SolidColorBrush`/`Brush`)도 고아가 된다 — 파일 내 다른 소비처 0건 확인(Read 전문).
+- `ControlCornerRadius` 오버라이드는 `Resources/`에 **없다**(grep) → WinUI 기본 4px. 하단 라인의 아래 모서리를 입력칸과 맞추려면 `CornerRadius="0,0,4,4"`가 필요하다.
+- `TextControlBorderBrush`(`Palette.xaml:149`)=`AppBorderStrongColor`, `PointerOver`(`:150`)=`AppBorderStrongerColor`로 오버라이드돼 있다. **라인을 TextBox 위에 겹쳐 그리면 hover가 라인을 덮지 못하므로**, 이전 plan의 D3-a(hover 시 빨간 테두리가 회색으로 바뀌던 문제)가 **부수적으로 해소**된다.
+- `AppDangerColor`(`Palette.xaml:31`) == `AppAccentColor`(`:39`) == `#FFF0716A` — 포커스 시 TextBox 자체 하단 accent 강조선과 **동색**이라 겹쳐도 색이 어긋나지 않는다.
+- 필수 입력은 **제목 하나뿐**이다: `OnSave`(`TaskEditDialog.xaml.cs:54-62`)가 검증하는 필드는 `Vm.Title`뿐이고, 라벨에 `*`가 붙은 것도 제목뿐(`:34-39`).
 
-### 재사용 자산 (직접 Read)
-- **`InputLabelStyle`(Styles.xaml:210)** — `FontSize 12` + `TextFillColorSecondaryBrush` + `Margin 0,0,0,4`. **시안의 작고 저강도 라벨과 정확히 일치**하는데 **현재 소비처가 0**이다(grep: Styles.xaml 정의부에만 존재). 신규 스타일 없이 이 스타일을 소비하면 된다.
-- **`toolkit:SettingsCard`** — `AppSettingsDialog.xaml:87-96` 등 4곳이 이미 `x:Uid`(`.Header`/`.Description`) + 우측 `ToggleSwitch(OnContent="" OffContent="" MinWidth="0")` 패턴으로 사용 중. **시안의 "테스트 추가" 카드(제목+부제+우측 토글)와 구조가 동일** → 신규 카드 스타일 불필요, `HeaderIcon`만 생략하면 시안과 일치.
-- `TagBadgeStyle`(Styles.xaml:189, CornerRadius 4 / Padding 8,3) — 헤더 상태 pill의 기반으로 재사용.
-- `AppMutedSoftBrush`(#286F6D75) + `AppTextTertiaryBrush` — 시안의 저강도 회색 pill 배색. 칸반 우선순위 배지 "낮음"에서 쓴 조합과 동일(이전 plan Progress Log).
-- 상태 라벨: `TaskPage.xaml.cs:50-53`이 `LocalizationService.Get("TaskStatus_{Waiting|Active|Completed|Hold}")`를 static으로 캐시하는 선례. resw 키 4종 **전부 기존 존재**(ko: 예정/진행 중/완료/보류, en: To Do/…).
-- `LocalizationService.Get` + `x:Bind` 정적/VM 프로퍼티 소비가 이 화면군의 관례(`TaskPage.xaml.cs:23-26`).
+### ②③ 카테고리 "미분류" — 현행 구현 (직접 Read)
+- `TaskEditDialogViewModel.cs:59-63`: `CategoryOptions`가 `_noneCategoryLabel`("미분류")을 **첫 항목으로 붙여** 만들어진다. 이 항목이 요청 ②의 제거 대상.
+- 저장 시 역변환: `BuildResult()`(`:105`)가 `SelectedCategoryOption == _noneCategoryLabel ? string.Empty : ...` — 즉 **"미분류" 선택 = 빈 문자열 저장**. 선택지를 없애면 이 매핑도 함께 정리해야 한다.
+- 편집 로드: `:76`이 기존 항목의 빈 카테고리를 `_noneCategoryLabel`로 **되돌려 표시**한다. 선택지가 사라지면 이 대입은 목록에 없는 값을 넣는 꼴이라 콤보가 빈 상태가 된다 → 명시적으로 처리해야 한다(D3).
+- **요청 ③은 이미 충족돼 있다**(신규 구현 불필요, 회귀만 막으면 된다):
+  - 칸반: `TaskPageViewModel.BuildColumnGroups:140` — `string.IsNullOrEmpty(g.Key) ? Get("TaskCategory_None") : g.Key`
+  - 목록: `TaskPageViewModel.RebuildCategoryGroups:173` — 동일 매핑
+  - 두 곳 모두 **빈 카테고리를 표시 시점에만** "미분류"로 바꾸며 저장값은 빈 문자열 그대로다. 이번 diff는 이 파일에 닿지 않는다.
+- `TaskCategory_None` resw 키(ko `미분류` / en `Uncategorized`, `Resources.resw:410`)는 **위 표시 2곳이 계속 소비**하므로 **제거하지 않는다**. (VM에서의 소비만 사라진다.)
+- ⚠️ **`Category`에 null이 새면 DB가 깨진다**(plan-reviewer B1 — 직접 확인): 스키마가 `Todos.Category TEXT NOT NULL DEFAULT ''`(`DatabaseContext.cs:254`, 마이그레이션 `:127`도 동일)이고, 쓰기는 `cmd.Parameters["@category"].Value = t.Category`(`SqliteProjectRepository.cs:571`)로 **값을 그대로 바인딩**하며, 읽기는 `reader.GetString(...)`(`:114`, `:860`)이다. 즉 null이 저장 경로에 들어가면 **NOT NULL 제약 위반**, 어떻게든 저장되면 **읽기에서 캐스트 예외**가 난다.
+  - 관련 위험: `SelectedCategoryOption`은 **비-nullable `string`**(`TaskEditDialogViewModel.cs:18`)인데 XAML 바인딩은 `SelectedItem="{x:Bind ... Mode=TwoWay}"`(`TaskEditDialog.xaml:70`)이고 `SelectedItem`은 `object`다. **ItemsSource에 없는 값을 넣으면 ComboBox가 선택을 거부하고 null을 TwoWay로 되써넣을 수 있다** — 이 프레임워크 동작은 이번 계획에서 **확인하지 않았다.**
+  - 현행 코드는 항상 목록 내 값(`_noneCategoryLabel` 포함)이 선택돼 이 경로가 잠재돼 있었고, **T2의 D6(미선택 표현)이 이 경로를 처음 활성화**한다. 따라서 D6은 ComboBox 동작에 대한 추측 위에 세우지 않고 **VM 쪽 null 방어로 성립을 보장**한다(D6 참조).
+- `AppSettingsDialogViewModel.DefaultTaskCategories`(`:218-221`) = `["UI·UX", "프론트엔드", "백엔드"]` — 항상 3개 이상이라 "미분류" 제거 후에도 `CategoryOptions`가 비지 않는다(D2의 성립 근거).
+- `settings.TaskCategories`(사용자 정의)는 앞의 기본 3개 뒤에 붙는다 → 제거 후 **첫 항목은 항상 "UI·UX"**.
 
-### 기술 제약 (확인 완료)
-- **`AppDangerColor`(#FFF0716A) == `AppAccentColor`(#FFF0716A)** — 이 레포에서 danger와 accent는 **같은 살몬색**이다(`Palette.xaml:31,39` 직접 Read). 시안의 "빨간 테두리"는 이 살몬 danger 색이다.
-  - 이것이 제목 TextBox 강조 구현의 성립 근거다: WinUI `TextBox`의 로컬 `BorderBrush`는 **Normal 상태에서만** 유효하고 `PointerOver`/`Focused`에서는 `TextControlBorderBrush*` ThemeResource가 덮어쓴다. 그런데 `Focused` 기본값은 accent(=`AccentFillColorDefaultBrush` `Palette.xaml:82`, `AccentControlElevationBorderBrush` `:85` — **둘 다** #F0716A) → **포커스 시에도 같은 살몬**이라 시각이 어긋나지 않는다. 따라서 템플릿 복사 없이 로컬 `BorderBrush` 바인딩으로 충분하다(D3).
-  - `Palette.xaml`에 `TextControlBorderBrushFocused` 오버라이드는 **없다**(`:149-150`에 `TextControlBorderBrush`/`PointerOver`만) → WinUI 기본(accent)이 적용된다.
-  - ⚠️ **단 `PointerOver`는 예외다**(plan-reviewer M1): `TextControlBorderBrushPointerOver`가 `AppBorderStrongerColor`(**#FF35353C 회색**)로 오버라이드돼 있다(`:150`). 즉 빈 제목 위에 **마우스를 올리는 동안만** 살몬 테두리가 회색으로 바뀌고, 떼면 즉시 돌아온다. accent==danger 논리는 `Focused`에만 적용되고 `PointerOver`에는 적용되지 않는다 → D3에서 별도 결정으로 처리.
-- **`LocalizationService.Get`은 키를 찾지 못하면 키 문자열 자체를 반환한다**(`LocalizationService.cs:56,60` — plan-reviewer 확인). 따라서 소비 중인 resw 키를 먼저 지우면 화면에 `TaskEdit_TitleRequired` 같은 **raw 키가 그대로 표시**된다. "미소비 키는 무해"가 성립하려면 **참조를 끊은 뒤에 지워야** 한다(T3에서 제거하는 이유).
-- **`x:Bind` 함수 바인딩은 Converter·ThemeResource를 받지 못한다**(AGENTS.md 함정 5) → 유효성 테두리는 코드비하인드 정적 헬퍼가 `Brush`를 **직접 반환**한다(`TaskPage.PriorityBrush`·`TestPage.StatusBrush` 선례).
-- **`ContentDialog`는 `FrameworkElement`다**(ContentControl 파생) → AGENTS.md 함정 9(`Window`에서 `x:Bind`+Converter가 CS1503)는 **이 파일에 해당하지 않는다**. 현행 `TaskEditDialog.xaml:75`가 이미 `{x:Bind Vm.ShowTestToggle, Converter=...}`로 정상 빌드되는 것이 증거.
-- **`ContentDialog.Title`은 `object`** → XAML `<ContentDialog.Title>`에 커스텀 콘텐츠(StackPanel)를 넣을 수 있다. 단 **코드비하인드의 `Title = LocalizationService.Get(...)`(TaskEditDialog.xaml.cs:24-26)이 XAML Title을 런타임에 덮어쓰므로 반드시 함께 제거**한다(D2).
-- **`CalendarDatePicker`는 선택한 날짜를 UI로 지울 수단이 없다** — 시작일 기본값을 오늘로 채우면 "시작일 없는 작업"을 만들 방법이 사라진다(D6 Edge Case → Deferred 등재).
+### ④ 네비게이션 버그 — 근본 원인 확정 (직접 Read)
+`DashboardView`는 **재사용되는 단일 인스턴스**인데(`MainWindow.xaml.cs:24` 필드, `:126` 생성, `:524` 복귀 시 같은 인스턴스 재부착), 그 인스턴스가 시각 트리에서 떨어질 때 **모든 구독을 끊고 되살릴 경로를 스스로 없앤다**:
+
+```
+DashboardView.OnUnloaded (DashboardView.xaml.cs:38-52)
+  :40  Unloaded -= OnUnloaded;                    ← 자기 자신을 해제
+  :41  DataContextChanged -= OnDataContextChanged; ← 재구독 트리거를 해제  ★
+  :46  DisplayCards.CollectionChanged -= ...
+  :47-48 foreach(card) UnsubscribeCardEvents(card) ← 카드 이벤트 전부 해제  ★
+  :50  _subscribedVm = null;
+```
+
+재현 경로(코드로 확정):
+1. 대시보드 최초 표시 → `OnDataContextChanged`(`:74-98`)가 카드별 `OpenTodoRequested` 등을 구독 → 작업 버튼 동작.
+2. 작업 버튼 클릭 → `MainWindow.ShowPage`(`:515-519`)가 `DashboardContent.Content`를 `TaskPage`로 교체 → **DashboardView가 트리에서 분리돼 `Unloaded` 발생** → 위 해제 실행.
+3. "대시보드" 클릭 → `TaskPage.Back_Click`(`:151-152`) → `MainWindow.ShowDashboard`(`:522-527`)가 **같은 `_dashboardView` 인스턴스**를 다시 붙인다. **`DataContext`는 처음부터 끝까지 동일한 `MainViewModel`이라 `DataContextChanged`가 발생하지 않는다.**
+4. → 재구독이 일어나지 않고, 3단계에서 `DataContextChanged` 핸들러마저 이미 떨어져 있어 **영구적으로 죽는다.** 카드의 작업 버튼을 눌러도 `OpenTodoRequested` 구독자가 0이라 아무 일도 일어나지 않는다. **증상과 정확히 일치.**
+
+영향 범위(같은 원인, 전수):
+- `SubscribeCardEvents`(`:136-144`)가 묶는 **6개 이벤트 전부**가 함께 죽는다 — `ShowGitStatusRequested`·`OpenTodoRequested`·`OpenHistoryRequested`·`OpenTestListRequested`·`ConfigureCommandSlotRequested`·`ChangeCommandIconRequested`.
+- `DisplayCards.CollectionChanged` 구독도 끊겨, 복귀 후 **프로젝트 추가/삭제 시 카드 이벤트 구독이 갱신되지 않는다**(신규 카드의 버튼도 무반응).
+- 진입 경로 무관하게 동일: `TaskPage`·`TestPage`·`NotificationPage`의 `Back_Click`이 모두 `ShowDashboard()`를 호출한다(grep 3건: `TaskPage.xaml.cs:152`·`TestPage.xaml.cs:86`·`NotificationPage.xaml.cs:66`).
+- 반대로 `TaskPage`/`TestPage`/`NotificationPage`는 **진입할 때마다 새로 생성**되므로(`DashboardView.xaml.cs:184,217`·`MainWindow.xaml.cs:590,598`) 같은 문제가 없다 — 수정 대상은 `DashboardView` 한 곳뿐이다.
+- `ReloadLanguageUI`(`MainWindow.xaml.cs:510`)는 `DashboardView`를 **새로 만들어** 붙이므로 새 인스턴스의 `DataContextChanged`가 정상 발동한다 — 이 경로는 버그 없음(수정 후에도 유지돼야 함).
 
 ### 4-D. 재사용 확인
 
 | 신규 심볼 | 유사 기존 구현 검색 결과 | 재사용/신규 사유 |
 |---|---|---|
-| 입력 라벨 스타일 | `InputLabelStyle`(Styles.xaml:210) | **재사용** — 시안 값(12px·저강도)과 정확히 일치. 현재 소비처 0이라 신규로 착각하기 쉬우나 이미 존재한다. |
-| "테스트 추가" 카드 | `toolkit:SettingsCard`(AppSettingsDialog.xaml:87 등 4곳) | **재사용** — 제목+부제+우측 컨트롤 구조가 시안과 동일. 카드 Border 스타일 신규 작성 불필요. |
-| 헤더 상태 pill | `TagBadgeStyle`(Styles.xaml:189) + `AppMutedSoftBrush` | **재사용** — 칸반 우선순위 배지와 같은 조합. |
-| `TitleBorderBrush(string)` 정적 헬퍼 | `TaskPage.PriorityBrush`·`TestPage.StatusBrush` | **신규(패턴 재사용)** — 대상 화면이 달라 공용화 불가. x:Bind 함수 바인딩이 Brush를 직접 반환하는 기존 패턴을 따른다. |
-| `HeaderTitle`/`StatusLabel`/`PrimaryButtonLabel` VM 프로퍼티 | 없음 | **신규** — 다이얼로그 모드·상태에 따른 표시 문자열. 기존 VM에 상태 개념 자체가 없었다. |
-| 상태→라벨 매핑 | `TaskPage.xaml.cs:50-53`·`StatusOptions`(:56-62) | **신규(계산식 재사용)** — 같은 resw 키를 쓰되 `TaskPage`의 static 캐시는 그 파일 전용이라 참조하지 않는다(다이얼로그가 페이지에 의존하면 방향이 역전). 2회 미만 중복이라 공용 추출 안 함. |
+| 제목 입력칸 하단 빨간 라인 | `Border`/`Rectangle`로 라인을 그리는 공용 스타일 없음(grep: `Height="2"`·`VerticalAlignment="Bottom"` 0건). `DashedAddButtonStyle`은 점선 테두리용이라 용도 불일치 | **신규(인라인, 스타일 미신설)** — 소비처 1곳뿐이라 `Styles.xaml`에 스타일을 만들면 소비처 0인 자산이 또 생긴다(`InputLabelStyle`이 그렇게 방치됐던 전례). 색은 기존 `AppDangerBrush` ThemeResource 재사용 |
+| `DashboardView.OnLoaded` 핸들러 | 같은 파일의 `OnUnloaded`(`:38`)·`OnDataContextChanged`(`:74`)와 대칭. `MainWindow.OnRootGridLoaded`(`:85`)가 `Loaded`로 초기화하는 선례 | **신규(패턴 재사용)** — 기존 `Loaded` 핸들러가 이 클래스에 없다 |
+| 구독/해제 본문 | 기존 `SubscribeCardEvents`/`UnsubscribeCardEvents`(`:136-154`) 및 `OnDataContextChanged`의 구독 루프 | **재사용 + 추출** — 구독 루프가 `OnDataContextChanged`·`OnDisplayCardsChanged`·(신규)`OnLoaded` **3곳**에서 반복되므로 공통화 기준(2회 이상)을 넘는다 → **카드 수준 2개 + VM 수준 2개, 총 4개 메서드로 추출**(D10 — 한 쌍으로 합치면 Reset 분기 동작이 바뀐다) |
+| 카테고리 표시명 매핑 | `TaskPageViewModel:140,173`에 이미 존재 | **재사용(무변경)** — 요청 ③은 기존 코드가 이미 충족. 신규 작성 0 |
 
 ## 시각 요소 분해
 
-> 출처: 사용자 제공 시안 이미지. 목업 HTML이 없어 **px 값은 확정 불가** — 구조·구성 요소·상대 관계를 명세하고, 수치는 기존 관례(`InputLabelStyle`·`SettingsCard`·`TagBadgeStyle` 현행 값)를 따른다. 확인은 빌드 후 사용자 육안 대조(⏳ HUMAN-VERIFY).
+> 출처: 사용자 제공 시안 이미지(새 작업 다이얼로그). 목업 HTML이 없어 **px 값은 확정 불가** — 구조·상대 관계를 명세하고 수치는 기존 관례(WinUI 기본 `CornerRadius` 4, 포커스 강조선 2px)를 따른다. 최종 판정은 빌드 후 사용자 육안 대조(⏳ HUMAN-VERIFY).
+>
+> 이번 범위는 **제목 입력칸 1요소**다. 나머지 요소(헤더 pill·라벨·카드·버튼·여백)는 이전 plan에서 정합을 마쳤고 **사용자가 이상 없음으로 확인**했으므로 이 표에 다시 넣지 않는다.
 
 | 요소 | 속성 | 디자인 값 | 확인 방법 |
 |---|---|---|---|
-| 헤더 | 구성 | `제목(굵게)` + **제목 오른쪽에 인접한** 상태 pill, 한 줄 가로 배치(다이얼로그 우측 끝 정렬 아님) | 시안 상단 |
-| 헤더 제목 | 문구 | 새 작업="새 작업" / 편집="작업 편집"(기존 키 재사용) | 시안 + resw 기존값 |
-| 상태 pill | 형태·색 | 라운드 배지, 저채도 회색 배경 + 저강도 회색 텍스트, 작은 글자 | 시안 헤더 |
-| 상태 pill | 내용 | 실제 상태 문구("예정"/"진행 중"/"완료"/"보류") | 사용자 결정 2026-07-20 |
-| 입력 라벨 | 스타일 | **작고 저강도**(굵은 본문체 아님), 입력칸 바로 위 | 시안 전 라벨 |
-| 제목 라벨 | 구성 | `제목` + 빨간 `*` 필수표시 | 시안 |
-| 제목 입력칸 | 테두리 | 비어 있으면 danger(살몬) 테두리 | 시안(빈 상태에서 빨간 테두리) |
-| 제목 입력칸 | placeholder | `무엇을 해야 하나요?` | 시안 |
-| 설명 입력칸 | placeholder | `작업 내용 설명 (선택)` | 시안 |
-| 설명 입력칸 | 형태 | 여러 줄, 높이가 제목칸보다 큼 | 시안 |
-| 카테고리·우선순위 | 배치 | 2열 등폭, 각 라벨 + 콤보 | 시안 (현행 유지) |
-| 시작일·종료일 | 배치 | 2열 등폭, 각 라벨 + 날짜 입력 | 시안 (현행 유지) |
-| 시작일 | 초기값 | 오늘 날짜 | 시안 + 사용자 결정 |
-| 종료일 | placeholder | `연도-월-일` | 시안 |
-| 테스트 추가 | 컨테이너 | 배경+1px 테두리+라운드 **카드**로 감쌈 | 시안 |
-| 테스트 추가 | 구성 | 제목("테스트 추가") + 부제("이 작업을 테스트 목록에도 추가합니다.") + **우측** 토글 | 시안 |
-| 테스트 추가 토글 | 색·라벨 | On=살몬(accent), 켜짐/꺼짐 문자 라벨 없음 | 시안 |
-| 하단 버튼 | 문구 | 좌="등록"(새 작업)/"저장"(편집), 우="취소" | 시안 + 사용자 결정 |
-| 하단 에러 문구 | 존재 | **없음**(테두리 강조로 대체) | 시안에 부재 + 사용자 결정 |
-
-### V-9 결과 (T3 수행) — 구조 ✅ / 렌더 ⏳ F-8 인계
-
-- **구조 대조 ✅ (❌ 0건)**: 위 표의 **전 행이 diff에 실재**함을 T3 spec 리뷰가 행별로 지목해 확인했다(헤더 `<ContentDialog.Title>` StackPanel, `TagBadgeStyle`+`AppMutedSoftBrush` pill, `InputLabelStyle` 7회, 빨간 `*`, `TitleBorderBrush` ARGB가 Palette 값과 일치, `SettingsCard`+`x:Uid` 제목/부제, `OnContent=""` 라벨 없는 토글, `PrimaryButtonLabel` 등록/저장, `ErrorText` 제거).
-- **⏳ 미확인 — F-8 인계 목록 (렌더 육안 확인 필요)**: 빌드는 마크업 존재만 보증하고 "시안과 같아 보이는가"는 판정할 수 없다. 데스크톱 UI라 캡처 도구가 없어 아래는 **사용자 육안 대조로만 확정**된다.
-  1. 헤더에서 pill이 제목 오른쪽에 자연스럽게 인접하는가(제목이 길 때 밀리지 않는가)
-  2. 상태 pill의 배색·크기·**글자 굵기**가 시안과 같은 인상인가 — ⚠️ `ContentDialog` 기본 title presenter가 `FontWeight=SemiBold`를 걸고 폰트 속성은 시각 트리로 **상속**된다. 헤더 제목이 굵게 나오는 근거가 그 상속인데 **같은 상속이 pill 텍스트에도 걸려** 저강도 배지가 굵게 나올 수 있다(제목이 굵으면 pill도 굵은 배타 관계). 어긋나면 pill `TextBlock`에 `FontWeight="Normal"` 1줄 추가. (F-7 m1)
-  3. `InputLabelStyle` 라벨 크기·색·입력칸과의 간격이 시안과 맞는가
-  4. 빈 제목의 danger 테두리가 시안처럼 보이는가(+ hover 시 회색 전환이 D3-a 수용 범위로 느껴지는가)
-  5. `SettingsCard` 배경이 다이얼로그 배경과 충분히 대비되는가(약하면 `Background`를 `AppCardAltBrush`로)
-  6. 토글 On 색이 실제로 살몬으로 렌더되는가(전역 accent 오버라이드 경유라 코드상으론 확실하나 렌더 확인 필요)
-  7. 전체 여백·다이얼로그 폭이 시안과 같은 밀도인가
+| 제목 입력칸 | 필수 강조 형태 | **하단 가로 라인만** (4면 테두리 아님) | 시안 — 좌·우·상단은 다른 입력칸과 같은 저강도 테두리 |
+| 제목 입력칸 | 라인 색 | danger 살몬 `AppDangerBrush`(#F0716A) | 시안 + `Palette.xaml:31` |
+| 제목 입력칸 | 라인 두께 | 2px (입력칸 기본 테두리 1px보다 굵게) | 시안에서 하단만 뚜렷 |
+| 제목 입력칸 | 라인 표시 조건 | **항상** — 값이 채워져도, 포커스·hover 여부와 무관하게 유지 | 사용자 요청 "항상 표시" |
+| 제목 입력칸 | 라인 폭·모서리 | 입력칸 가로폭과 일치. 아래 모서리는 입력칸 라운드와 **육안상 이질감이 없는 수준**(정확한 4px 재현은 불가 — `Height="2"` 요소의 `CornerRadius`는 높이 절반인 1px로 클램프된다, plan-reviewer m1). 삐져나오면 좌우 `Margin` 1px로 보정 | 시안 + ⏳ HUMAN-VERIFY |
+| 설명·카테고리·우선순위·날짜 | 필수 강조 | **없음** (선택 입력) | 사용자 요청 "필수 입력 ui에만" |
+| 제목 라벨 빨간 `*` | 존재 | 유지(현행) | 시안 |
 
 ## Decisions
 
 | # | 항목 | 카테고리 | 결정 | Source |
 |---|---|---|---|---|
-| D1 | 헤더 상태 pill | UX·API | **실제 상태 표시** — `TaskEditDialog` 생성자에 `TodoStatus`를 추가해 새 작업은 눌린 열의 상태를, 편집은 기존 작업의 상태를 표시. ⚠️ 시그니처 변경(사전 승인 항목) | 사용자 결정 2026-07-20 |
-| D2 | 헤더 구현 | 기술 | XAML `<ContentDialog.Title>`에 커스텀 콘텐츠. **코드비하인드의 `Title = ...` 할당(`:24-26`)을 반드시 제거** — 남기면 XAML Title을 런타임에 덮어써 pill이 사라진다 | `ContentDialog.Title`은 object + 현행 코드 Read |
-| D3 | 제목 필수 강조 | UX | **비어 있으면 상시 danger 테두리**, 입력 시 즉시 정상 복귀. 하단 에러 문구(`ErrorText`)는 **제거**(중복). 구현은 로컬 `BorderBrush`를 x:Bind 함수 바인딩 — accent==danger 동색이라 포커스 상태에서도 어긋나지 않음 | 사용자 결정 2026-07-20 + Palette.xaml:31,39 |
-| D3-a | hover 시 테두리 회색 전환 | UX | **허용한다(수용)** — 빈 제목 위에 마우스를 올리는 동안만 회색으로 바뀌고 떼면 즉시 살몬 복귀. 근거: ① **라벨의 빨간 `*`가 상시 표시**되어 hover 중에도 필수 신호가 사라지지 않는다(정보 손실 0) ② 시안은 정적 이미지라 hover 상태를 정의하지 않는다 ③ 회색 hover는 다른 입력칸과 동일한 WinUI 표준 피드백이라 오히려 일관적이다. **기각한 대안**: TextBox를 `Border`로 감싸면(테두리 완전 제어) focus 표시가 사라져 다른 입력칸과 불일치하고, 로컬 `Resources` 오버라이드는 정적이라 **제목이 채워진 뒤에도** hover가 빨개지는 부작용이 있다 | plan-reviewer M1 + Palette.xaml:150 |
-| D4 | 저장 시 검증 | 로직 | `OnSave`의 **빈 제목 차단(`args.Cancel = true`)은 유지**한다 — 테두리는 시각 표시일 뿐 저장을 막지 못하므로, 제거하면 빈 제목 작업이 생성된다(회귀) | 현행 `TaskEditDialog.xaml.cs:39-45` |
-| D5 | 버튼 문구 | 위치 | 새 작업="등록"(신규 키 `TaskEdit_Submit`), 편집="저장"(기존 공용 `Dialog_Save` 재사용). **`Dialog_Save` 값 자체는 건드리지 않는다** — 8개 다이얼로그 공용 | 사용자 결정 + grep 8건 |
-| D6 | 기본값 변경 | 로직 | **시작일=오늘 1건만.** 카테고리 기본(미분류)·테스트추가 토글 기본(꺼짐)은 **현행 유지** | 사용자 결정 2026-07-20 |
-| D7 | 라벨 스타일 | 재사용 | 기존 `InputLabelStyle` 소비(신규 스타일 0). `BodyStrongTextBlockStyle`에서 교체 | Styles.xaml:210 + 소비처 0 grep |
-| D8 | 테스트 추가 카드 | 재사용 | `toolkit:SettingsCard` 사용(`HeaderIcon` 없음). 신규 카드 스타일 만들지 않음 | AppSettingsDialog.xaml:87-96 선례 |
-| D9 | 필수표시 `*` | 구현 | 라벨 `TextBlock` 옆에 별도 `TextBlock`(`*`, `AppDangerBrush`)을 가로 배치. **`*`는 번역 대상 문구가 아닌 기호라 resw 미등록**(하드코딩 금지 규칙의 대상 아님 — 주석으로 명시) | AGENTS.md "문구 하드코딩 금지"의 취지 해석 |
-| D10 | 편집 모드 카드 | 범위 | "테스트 추가" 카드는 **새 작업일 때만 표시**(현행 `ShowTestToggle` 유지) — 편집 시 숨김 | 현행 VM `:36` 무변경 |
-| D11 | 상태→라벨 매핑 위치 | 위치 | `TaskEditDialogViewModel`에 둔다. `TaskPage`의 static 캐시를 참조하지 **않는다**(다이얼로그가 페이지에 의존하면 방향 역전) | 4-D 표 |
+| D1 | 하단 라인 구현 방식 | 기술 | `TextBox`를 `Grid`로 감싸고 **하단 정렬 `Border`(Height 2, `AppDangerBrush`, `CornerRadius 0,0,4,4`, `IsHitTestVisible="False"`)를 겹쳐 그린다.** **기각한 대안**: ⓐ `BorderThickness="1,1,1,2"` + `BorderBrush` — 4면이 한 브러시라 상·좌·우까지 빨개져 시안과 다르다. ⓑ `TextBox` 템플릿 복사 — 유지비가 크고 이 화면 1곳에만 필요하다. ⓒ `Styles.xaml`에 전용 스타일 신설 — 소비처 1곳(4-D) | 시안 + `ControlCornerRadius` 미오버라이드 grep |
+| D2 | 라인이 hover/포커스에 가려지지 않음 | 기술 | 라인은 `TextBox` **바깥에 겹친 형제 요소**라 `TextControlBorderBrushPointerOver`(회색) 오버라이드의 영향을 받지 않는다 → 이전 plan의 **D3-a(hover 시 회색 전환) 문제가 부수적으로 해소**된다. 포커스 시 TextBox 자체 하단 강조선은 accent(#F0716A)로 danger와 **동색**이라 겹쳐도 어긋나지 않는다 | `Palette.xaml:31,39,150` |
+| D3 | `TitleBorderBrush` 처리 | 위치 | **제거**한다 — 유일한 소비처(XAML `BorderBrush` 바인딩)가 사라져 고아가 된다. 정적 브러시 2개(`_titleRequiredBrush`·`_titleNormalBrush`)와 고아가 되는 `using Microsoft.UI;`·`using Microsoft.UI.Xaml.Media;`도 함께 정리하고, **이 이름을 지목하는 `OnSave` 위 주석(`:57`)도 갱신**한다 | grep 전수 **3건**(정의 `:25` · XAML `:44` · 주석 `:57`) |
+| D4 | 빈 제목 저장 차단 | 로직 | **유지**한다(`OnSave`의 `args.Cancel = true`). 라인이 상시 표시로 바뀌면 "비어 있음" 신호 기능은 오히려 약해지므로, 저장 차단이 유일한 실제 방어선이 된다 — 제거하면 빈 제목 작업이 생성되는 회귀 | `TaskEditDialog.xaml.cs:54-62` |
+| D5 | 카테고리 콤보 기본값 | UX | **첫 카테고리("UI·UX")를 자동 선택**한다 | 사용자 결정 2026-07-20 |
+| D6 | 편집 모드의 빈 카테고리 | 로직 | **콤보를 미선택 상태로 열고, 사용자가 고르지 않으면 빈 카테고리를 그대로 저장**한다(D5의 자동 선택은 **새 작업에만** 적용). 근거: 요청 ③이 "기존 카테고리 없는 항목은 목록에서 미분류로 표시"를 요구하므로 그 항목의 빈 값이 **보존돼야** 규칙이 성립한다. 편집창을 여는 것만으로 "UI·UX"가 붙으면 그 항목이 미분류 그룹에서 조용히 사라진다(무성 데이터 변경) | 요청 ③ + `TaskPageViewModel:140,173` |
+| D6-a | 미선택의 null 방어 | 기술 | **`SelectedCategoryOption`을 `string?`으로 바꾸고 `BuildResult()`에서 `?? string.Empty`로 흡수**한다. 근거: ComboBox가 목록에 없는 값을 받았을 때 null을 TwoWay로 되써넣는지는 **확인되지 않은 프레임워크 동작**이고, null이 새면 `Todos.Category`(`TEXT NOT NULL`)에서 저장 실패 또는 읽기 예외가 난다. 방어 한 줄로 **ComboBox가 어느 쪽으로 동작하든 D6이 성립**하게 만든다(추측 대신 무해화). **기각한 대안**: 실제 동작을 실험해 한쪽으로 확정 — 실행 확인이 필요해 계획 단계에서 끝나지 않고, 확정해도 방어보다 안전하지 않다 | plan-reviewer B1 + `DatabaseContext.cs:254` + `SqliteProjectRepository.cs:571,114,860` |
+| D7 | `TaskCategory_None` resw 키 | 위치 | **존치**한다 — VM 소비는 사라지지만 칸반·목록 표시 2곳이 계속 쓴다. 지우면 표시명이 raw 키로 렌더된다(`LocalizationService.Get`은 미존재 키를 키 문자열로 반환) | `TaskPageViewModel:140,173` + `LocalizationService.cs:56,60` |
+| D8 | 목록·칸반 "미분류" 표시 | 범위 | **무변경**(요청 ③은 이미 충족). 이번 diff는 `TaskPageViewModel`에 닿지 않으며, 회귀 방지 확인만 acceptance에 둔다 | Investigation Log ②③ |
+| D9 | 네비게이션 버그 수정 방식 | 기술 | **`Loaded`에서 재구독**한다. `Unloaded`에서는 구독만 해제하고 **`Unloaded`·`DataContextChanged` 핸들러 자체는 떼지 않는다**(그것이 재구독 경로를 없앤 원인). **기각한 대안**: ⓐ `Unloaded`에서 아예 해제하지 않기 — 페이지 표시 중에도 카드 이벤트가 살아 있어 백그라운드 다이얼로그가 뜰 수 있다. ⓑ `MainWindow.ShowDashboard()`에서 재구독 호출 — 뷰 내부 사정을 창이 알아야 해 의존이 역전되고, 다른 복귀 경로가 생기면 또 빠뜨린다 | `DashboardView.xaml.cs:38-52` + `MainWindow.xaml.cs:126,524` |
+| D10 | 구독 로직 중복 | 구조 | 구독/해제 루프를 private 메서드로 추출하되 **카드 수준(`SubscribeCards`/`UnsubscribeCards`)과 VM 수준(`SubscribeAll`/`UnsubscribeAll`) 2단으로 나눈다.** 한 쌍으로 묶으면 4개 호출처의 요구가 충돌한다 — `OnLoaded`/`OnUnloaded`는 `CollectionChanged`·`_subscribedVm`까지 포함해야 하지만, `OnDisplayCardsChanged`의 Reset 분기는 **카드만** 재구축하는 것이 현행 동작이라 같은 쌍을 쓰면 자기 이벤트를 해제·재등록하는 다른 동작이 된다. 호출처별 매핑은 T3 구성의 표에 못박는다 | plan-reviewer M2 + `DashboardView.xaml.cs:74-134` |
+| D11 | 수정 범위(버튼 6종) | 범위 | **한 곳 수정으로 6개 이벤트가 함께 되살아난다** — 작업 버튼만 선별 복구하는 것은 불가능하고 무의미하다. 요청 범위 확대가 아니라 **같은 결함의 전체 영향** | `SubscribeCardEvents:136-144` |
 
 ## PRD Coverage
 
 | PRD ID | 우선순위 | 대응 task | 상태 |
 |---|---|---|---|
-| FR-T5 (편집 다이얼로그 + 삭제 확인) | Must | T1, T2, T3 | ✅ 커버(시각 재구성 + 시작일 기본값, 기능 기구현) |
-| FR-T6 (테스트 추가 토글) | Should | T3 | ✅ 커버(**회귀 방지** — 카드화하되 `AddTestRequested` 경로 보존) |
-| FR-T1 (작업 데이터 모델) | Must | — | 이번 범위 외 (`TodoItem` 무변경) |
-| FR-T7 (담당자(who) 필드) | Could | — | **의도적 미구현** — 사용자 제외 결정 유지(`deferred.md:9`). 미충족이 아니라 범위 제외 |
-| FR-T2·T3·T4·T8 | Must/Should | — | 이번 범위 외 (직전 plan에서 기구현, 이번 변경이 닿지 않음) |
-| FR-C1·C2·C3·C4·FR-S1~S5·FR-E1~E5·FR-H*·FR-N* | Must/Should | — | 이번 범위 외 (Phase 0~5에서 기구현, 이번 diff가 닿지 않음). 단 **FR-S5**(프로젝트 설정 다이얼로그 restyle, Should)는 기구현이 아니라 **`deferred.md` 대기 중** — 이번에도 유지 |
-| NFR-1 (빌드 오류 0·신규 경고 0) | — | T1·T2·T3 | ✅ 충족 (클린 리빌드 오류 0, 경고는 AGENTS.md 기존 5건뿐) |
-| NFR-2 (계층 위반 0) | — | T2 | ✅ 충족 (VM은 `Presentation/ViewModels`, 도메인 무변경, D11로 페이지 역참조 금지) |
+| FR-T5 (편집 다이얼로그 + 삭제 확인) | Must | T1, T2 | ✅ 커버 (필수 표시 형태 + 카테고리 선택지 정정) |
+| FR-C3 (페이지 네비 컨테이너 — 대시보드 ↔ 페이지 전환) | Must | T3 | ✅ 커버 (**회귀 수정** — 복귀 후 재진입 불가 상태 해소) |
+| FR-T2 (작업 전체 페이지 + 칸반/목록) | Must | — | 이번 범위 외 (기구현). 단 T3이 **진입 경로**를 복구하므로 간접 관련 |
+| FR-T1 (작업 데이터 모델) | Must | — | 이번 범위 외 (`TodoItem` 무변경, 스키마·직렬화 무변경) |
+| FR-T6 (테스트 추가 토글) | Should | — | 이번 범위 외 (기구현 — `AddTestRequested` 경로 무변경, T1 acceptance에 회귀 방지) |
+| FR-T7 (담당자(who) 필드) | Could | — | **의도적 미구현** — 사용자 제외 결정 유지(`deferred.md:9`) |
+| FR-E1 (테스트 페이지) | Must | — | 이번 범위 외 (기구현). T3이 진입 경로를 함께 복구 |
+| FR-T3·T4·T8·FR-C1·C2·C4·FR-S1~S5·FR-E2~E5·FR-H*·FR-N* | Must/Should | — | 이번 범위 외 (Phase 0~5에서 기구현, 이번 diff가 닿지 않음). 단 **FR-S5**는 기구현이 아니라 `deferred.md:6` 대기 중 — 이번에도 유지 |
+| NFR-1 (빌드 오류 0·신규 경고 0) | — | T1·T2·T3 | 검증 대상 (기존 경고 5건 제외) |
+| NFR-2 (계층 위반 0) | — | T2·T3 | 검증 대상 (도메인 무변경, VM→페이지 역참조 없음) |
 | NFR-3 (DB 스키마 하위호환) | — | — | ✅ 무영향 (`TodoItem`·스키마·직렬화 무변경) |
-| NFR-4 (다국어 ko/en 대칭) | — | T1·T3 | ✅ 충족 (`TaskEdit*` 키 집합 ko/en 완전 대칭 — F-7 재확인) |
+| NFR-4 (다국어 ko/en 대칭) | — | T2 | ✅ 충족 예정 (**신규·제거 resw 키 0** — `TaskCategory_None` 존치) |
 | NFR-5 (테스트) | — | — | 조건 미발동 (테스트 프로젝트 부재 — AGENTS.md 명시) |
 
 ## 작업 단계
 
-### T1 — resw 문구 정비 (ko/en) `Type B`
+### T1 — 제목 필수 표시를 상시 하단 빨간 라인으로 변경 `Type C`
 - [x] 구현
-- **Files**: `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`
-- **값 변경(기존 키 유지)**:
-  - `TaskEditBox_Title.PlaceholderText` → ko `무엇을 해야 하나요?` / en `What needs to be done?`
-  - `TaskEditBox_Description.PlaceholderText` → ko `작업 내용 설명 (선택)` / en `Task description (optional)`
-  - `TaskEditStartDate.PlaceholderText`·`TaskEditEndDate.PlaceholderText` → ko `연도-월-일` / en `yyyy-mm-dd`
-- **신규 키**: `TaskEdit_AddTestCard.Header`(ko `테스트 추가` / en `Add test`), `TaskEdit_AddTestCard.Description`(ko `이 작업을 테스트 목록에도 추가합니다.` / en `Also add this task to the test list.`) — **`x:Uid` 소비이므로 속성 접미 필수**(AGENTS.md 함정 3). `TaskEdit_Submit`(ko `등록` / en `Add`) — **코드 `LocalizationService.Get` 소비이므로 베어네임**.
-- **제거 키는 이 task에서 다루지 않는다** — `TaskEdit_AddTest.Header`·`TaskEdit_TitleRequired`는 T1 시점에 **아직 실제로 소비 중**이다(`TaskEditDialog.xaml:73` `x:Uid`, `TaskEditDialog.xaml.cs:41` `Get()`). 여기서 지우면 `LocalizationService.Get`이 **키 문자열을 그대로 화면에 표시**한다. 참조를 끊는 **T3에서 함께 제거**한다(plan-reviewer M2).
-- **Design**: 해당 없음 — 신규 심볼 없음(리소스 문구만).
-- **Acceptance**: 빌드 성공(신규 경고 0) + 신규 3키·변경 4키가 **ko/en 양쪽에 동일 name으로 존재**(grep 대조) + **기존 파일의 BOM 유무 보존**(AGENTS.md 함정 1) + 이 시점 앱 동작은 **placeholder 문구만 바뀌고 나머지는 현행과 동일**
-- **Edge Cases**: 한쪽 언어만 추가하면 다른 언어에서 빈 문자열이 되고 **빌드는 통과**한다(함정 2) → 양쪽 grep 대조가 acceptance. `x:Uid` 키에 접미를 빠뜨리면 빌드 오류 없이 빈 라벨(함정 3).
-- **Halt Forecast**: 없음 — 리소스 추가·값 변경만. **키 제거는 이 task에 없다(T3로 이관)**.
-
-### T2 — VM 확장: 상태 라벨·버튼 문구·시작일 기본값 + 생성자 시그니처 `Type C`
-- [x] 구현
-- **Files**: `DevDashboard_WinUI/Presentation/ViewModels/TaskEditDialogViewModel.cs`, `DevDashboard_WinUI/Presentation/Views/Dialogs/TaskEditDialog.xaml.cs`, `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml.cs`
-- **Design**: ① 배치 — 표시 문자열은 전부 `TaskEditDialogViewModel`(Presentation/ViewModels), 다이얼로그는 VM을 읽기만 한다. ② 신규 심볼 — `HeaderTitle`(모드별 제목), `StatusLabel`(상태 문구), `PrimaryButtonLabel`(등록/저장) 3개 계산 프로퍼티 + VM 생성자에 `TodoStatus status` 파라미터. ③ 의존 방향 — VM은 `LocalizationService`만 참조하고 **`TaskPage`를 참조하지 않는다**(D11 — 페이지 역참조 금지). 호출부(`TaskPage.xaml.cs`) → 다이얼로그 → VM 단방향. ④ 비추상화 — 상태→라벨을 Converter·공용 매퍼로 빼지 않고 VM 안 `switch` 식으로 직접 반환(사용처 1곳, `TestPage.StatusBrush` 선례와 같은 결).
-- **생성자 시그니처(사전 승인 항목)**:
-  - `TaskEditDialog(TodoItem? existing, AppSettings settings, TodoStatus status = TodoStatus.Waiting)`
-  - `TaskEditDialogViewModel(TodoItem? existing, AppSettings settings, TodoStatus status = TodoStatus.Waiting)`
-  - **편집 모드는 `existing.Status`가 우선**한다(파라미터 무시) — 편집 호출부가 상태를 중복 전달하지 않아도 정확하다.
-  - 기본값을 두어 **`EditTodoAsync`(`:199`) 호출부는 무변경**, `ColumnAdd_Click`(`:184`)만 `status`를 넘기도록 1줄 수정한다.
-- **시작일 기본값(D6)**: VM 생성자의 신규 작업 분기에 `StartDate = DateTimeOffset.Now.Date;` — **`.Date`로 시각을 버린다**(`BuildResult()`가 `StartDate?.DateTime`을 그대로 넣으므로 시각이 섞이면 저장값에 잔여 시각이 남는다).
-- **Acceptance**: 빌드 성공(신규 경고 0) + `TaskEditDialog` 생성자 호출부 2곳이 모두 컴파일됨 + 새 작업 시 `StatusLabel`이 **넘긴 상태**의 문구, 편집 시 **기존 작업 상태**의 문구를 반환(코드 경로 대조) + `PrimaryButtonLabel`이 새 작업="등록"/편집="저장" + **VM이 `TaskPage`를 참조하지 않음**(grep 대조) + 이 시점 XAML은 신규 VM 프로퍼티를 아직 소비하지 않으므로 **화면상 변화는 시작일 기본값(오늘)과 T1의 placeholder 문구뿐**(헤더·버튼 문구는 T3에서 배선되기 전까지 현행 유지)
-- **Edge Cases**: 정의되지 않은 `TodoStatus` 값이 들어오면 → `switch` 식의 `_` 분기가 "예정" 문구로 폴백(예외 대신). 편집 대상의 상태가 나중에 바뀌어도 다이얼로그는 **열린 시점 스냅샷**을 표시(다이얼로그 수명이 짧아 무해 — 주석 명시). `DateTimeOffset.Now.Date`는 로컬 자정 기준 → 자정 직전 생성 시 날짜가 하루 넘어갈 수 있으나 사용자 로컬 시각 기준이라 의도된 동작.
-- **Halt Forecast**: 없음 — 시그니처 변경이 사전 승인 항목에 등재됐고, 호출부 2곳이 전수 확인됐다. 파괴적·외부 작업 없음.
-
-### T3 — XAML 시각 재구성 (헤더 pill·라벨·필수 강조·카드·버튼) `Type C`
-- [x] 구현
-- **Files**: `DevDashboard_WinUI/Presentation/Views/Dialogs/TaskEditDialog.xaml`, `DevDashboard_WinUI/Presentation/Views/Dialogs/TaskEditDialog.xaml.cs`, `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`
-- **Design**: ① 배치 — 마크업은 `TaskEditDialog.xaml`, 유효성 Brush 헬퍼는 같은 화면의 코드비하인드(`x:Bind` 함수 바인딩이 Converter·ThemeResource를 못 받으므로 — AGENTS.md 함정 5). ② 신규 심볼 — `TitleBorderBrush(string title)` **static** 헬퍼(빈 제목이면 danger, 아니면 기본 테두리 Brush 반환) 하나뿐. **반환 Brush는 ARGB 리터럴로 만든 `SolidColorBrush` static 필드 2개**(danger `#FFF0716A` / 기본 `#FF2E2E34`) — `TaskPage.PriorityBrush`(`:126-131`)의 선례를 그대로 따른다. ⚠️ 값이 `Palette.xaml`과 **이중 정의**되므로 "팔레트 변경 시 동기화 필요" 주석을 붙인다(m1). ③ 의존 방향 — XAML이 T2의 VM 프로퍼티와 T1의 resw 키를 소비. 역참조 없음. ④ 비추상화 — 유효성 표시를 재사용 컴포넌트·Behavior로 빼지 않고 이 화면에 직접 둔다(사용처 1곳). 카드·라벨·pill 모두 **기존 자산 재사용**이라 신규 스타일 0.
+- **Files**: `DevDashboard_WinUI/Presentation/Views/Dialogs/TaskEditDialog.xaml`, `DevDashboard_WinUI/Presentation/Views/Dialogs/TaskEditDialog.xaml.cs`
+- **Design**: ① 배치 — 마크업은 `TaskEditDialog.xaml`의 제목 필드 블록(`:41-45`)에만. 코드비하인드에는 **아무것도 추가하지 않고 제거만** 한다. ② 신규 심볼 — 없음(인라인 `Grid` + `Border` 1개, 이름 없음). ③ 의존 방향 — XAML이 `AppDangerBrush` ThemeResource를 소비. 역참조 없음. ④ 비추상화 — 필수 표시를 `Style`·`Behavior`·재사용 컨트롤로 빼지 않는다(소비처 1곳, 4-D).
 - **구성**:
-  - `<ContentDialog.Title>` → `StackPanel`(가로, `Spacing`) = 제목 `TextBlock`(`{x:Bind Vm.HeaderTitle}`) + `Border`(`TagBadgeStyle` + `AppMutedSoftBrush`) 안에 `{x:Bind Vm.StatusLabel}`. **pill은 제목 오른쪽에 인접**시킨다(다이얼로그 우측 끝 정렬이 아니므로 `Grid` 2열·`Stretch` 불필요 — m2).
-  - **코드비하인드의 `Title = LocalizationService.Get(...)` 3줄 제거**(D2) + `PrimaryButtonText = Vm.PrimaryButtonLabel`로 교체.
-  - 라벨 6개: `BodyStrongTextBlockStyle` → `InputLabelStyle`(D7). 제목 라벨만 가로 `StackPanel` + 빨간 `*`(D9).
-  - 제목 `TextBox`: `BorderBrush="{x:Bind TitleBorderBrush(Vm.Title), Mode=OneWay}"` — `Vm.Title`이 `UpdateSourceTrigger=PropertyChanged`라 입력 즉시 재평가된다.
-  - `ToggleSwitch` → `toolkit:SettingsCard x:Uid="TaskEdit_AddTestCard"` + 내부 `ToggleSwitch(OnContent="" OffContent="" MinWidth="0")`(D8). `Visibility`는 기존 `ShowTestToggle` 바인딩 유지(D10). **`toolkit` xmlns 선언 추가 필요**(현재 이 파일에 없음 — `AppSettingsDialog.xaml`의 선언을 그대로 따른다).
-  - `ErrorText` `TextBlock` **제거**(D3). 단 `OnSave`의 `args.Cancel = true` 차단 로직은 **유지**(D4) — 문구 표시 2줄만 걷어낸다.
-  - Deferred 재수용: 미사용 `x:Name="TitleBox"` 정리(유효성 배선이 대체).
-  - **고아 resw 키 제거(T1에서 이관 — M2)**: 위 마크업·코드 변경으로 참조가 끊긴 뒤 `TaskEdit_AddTest.Header`·`TaskEdit_TitleRequired`를 **ko/en 양쪽에서 제거**한다. 제거 직전 잔존 참조가 실제로 0건인지 grep으로 확인한다(이 시점에는 정말 0이다).
-- **Acceptance**: 빌드 성공(신규 경고 0) + 헤더에 제목과 상태 pill이 함께 렌더 + **코드비하인드에 `Title =` 할당이 남아 있지 않음**(grep 대조 — 남으면 pill이 런타임에 사라진다) + 라벨 6개가 모두 `InputLabelStyle` 소비(grep: `BodyStrongTextBlockStyle` 잔존 0) + 제목이 빈 상태에서 danger 테두리, 입력 시 기본 테두리 + `SettingsCard`가 제목·부제·우측 토글로 렌더 + **빈 제목으로 "등록"을 눌러도 저장되지 않음**(D4 회귀 방지) + **"테스트 추가" ON으로 만든 작업이 여전히 테스트를 생성**(FR-T6 회귀 방지 — `AddTestRequested` 경로 무변경) + `ErrorText`·`TitleBox` 심볼 잔존 0(grep) + **제거 2키가 ko/en 양쪽에서 사라지고 잔존 참조 0건**(grep 대조)
-- **Edge Cases**: 코드비하인드 `Title` 할당 잔존 → pill 소실(위 acceptance가 grep으로 차단). `x:Uid` 접미 누락 → 카드 제목·부제가 **빈 문자열로 조용히 렌더**(함정 3). `toolkit` xmlns 누락 → 빌드 오류(즉시 발견). 제목이 매우 길 때 → 헤더 `StackPanel`에서 pill이 밀릴 수 있어 제목 `TextBlock`에 `TextTrimming` 적용 검토(⏳ HUMAN-VERIFY). 편집 모드에서는 카드가 숨겨져 다이얼로그 높이가 줄어듦(기존 동작과 동일). `SettingsCard` 기본 배경이 다이얼로그 배경과 대비가 약할 수 있음(⏳ HUMAN-VERIFY — 어긋나면 `Background`를 `AppCardAltBrush`로 지정). **빈 제목 위 hover 시 테두리가 회색으로 전환**되는 것은 D3-a로 수용된 동작이라 결함이 아니다(빨간 `*`가 상시 보조).
-- **Halt Forecast**: 없음 — 결정이 D1~D11에 사전 확정됐고 파괴적 작업이 없다. 기존 키 2개 제거는 사전 승인 항목 등재.
+  - 제목 `TextBox`를 `Grid`로 감싸고, 형제로 `Border`(`Height="2"`, `VerticalAlignment="Bottom"`, `Background="{ThemeResource AppDangerBrush}"`, `CornerRadius="0,0,4,4"`, `IsHitTestVisible="False"`)를 겹친다(D1).
+  - `TextBox`의 `BorderBrush="{x:Bind local:TaskEditDialog.TitleBorderBrush(...)}"` **바인딩 제거** → 다른 입력칸과 같은 기본 테두리로 복귀.
+  - 코드비하인드에서 `TitleBorderBrush()`·`_titleRequiredBrush`·`_titleNormalBrush`와 고아가 되는 `using Microsoft.UI;`·`using Microsoft.UI.Xaml.Media;` **제거**(D3).
+  - `xmlns:local` 선언은 **다른 소비처가 없으면 함께 제거**한다(제거 전 이 파일 내 `local:` 참조 0건을 grep으로 확인 — 남기면 미사용 선언).
+  - `OnSave`의 **차단 로직(`args.Cancel = true`)은 손대지 않되**, 그 위 주석(`.xaml.cs:56-57`)은 **갱신**한다(plan-reviewer M1) — 현재 주석이 "빈 값일 때 danger 테두리가 이미 표시돼 있어"라는 **사라질 동작**을 근거로 들고 제거될 `TitleBorderBrush`를 지목한다. 새 문구는 D4의 실제 근거(라인이 상시 표시라 "비어 있음" 신호로 쓸 수 없고, **저장 차단이 유일한 방어선**)를 적는다.
+- **Acceptance**: 빌드 성공(신규 경고 0) + 제목 입력칸 아래에 danger 라인이 **값 유무와 무관하게** 렌더 + **설명·카테고리·우선순위·날짜 입력에는 라인이 없음** + `TitleBorderBrush`·`_titleRequiredBrush`·`_titleNormalBrush` 문자열 잔존 **0건**(grep — **주석 포함**, M1) + `OnSave` 위 주석이 새 동작을 설명함(사라진 테두리 동작을 근거로 들지 않음) + `TaskEditDialog.xaml`에 `BorderBrush=` 잔존 0건(grep) + **빈 제목으로 "등록"을 눌러도 다이얼로그가 닫히지 않음**(D4 회귀 방지) + **"테스트 추가" ON으로 만든 작업이 여전히 테스트를 생성**(FR-T6 회귀 방지 — `AddTestRequested` 경로 무변경)
+- **Edge Cases**: `IsHitTestVisible="False"`를 빠뜨리면 **라인이 입력칸 하단 클릭을 가로채** 커서가 안 잡힌다. `Grid`로 감싸며 기존 `StackPanel`의 세로 흐름이 깨지지 않게 할 것(라벨-입력칸 간격은 `InputLabelStyle`의 `Margin 0,0,0,4`가 담당 — 이전 plan Progress Log). 다이얼로그 폭이 바뀌어도 라인은 `Grid` 폭을 따라 늘어난다(고정 `Width` 금지). 포커스 시 TextBox 자체 강조선과 2중으로 겹쳐 라인이 더 굵어 보일 수 있음(동색이라 색은 어긋나지 않음 — ⏳ HUMAN-VERIFY). 라인이 입력칸 라운드 밖으로 삐져나오면 `CornerRadius`/좌우 `Margin` 1px 조정(⏳ HUMAN-VERIFY).
+- **Halt Forecast**: 없음 — 파일 2개, 파괴적·외부 작업 없음. 심볼 제거는 사전 승인 항목 등재.
+
+### T2 — 카테고리 "미분류" 선택지 제거 + 빈 카테고리 보존 `Type C`
+- [ ] 구현
+- **Files**: `DevDashboard_WinUI/Presentation/ViewModels/TaskEditDialogViewModel.cs`
+- **Design**: ① 배치 — 선택지 구성·초기 선택·저장 역변환 모두 `TaskEditDialogViewModel` 안에서 끝난다(다이얼로그·페이지 무변경). ② 신규 심볼 — 없음(기존 `CategoryOptions`·생성자·`BuildResult` 수정 + `SelectedCategoryOption`의 nullable 전환). `_noneCategoryLabel` 필드는 **제거**(소비처가 전부 사라진다). ③ 의존 방향 — VM은 `AppSettingsDialogViewModel.DefaultTaskCategories`와 `settings.TaskCategories`만 참조(현행 유지), `TaskPage`를 참조하지 않는다. ④ 비추상화 — "빈 카테고리 ↔ 표시명" 매핑을 공용 헬퍼로 빼지 않는다(표시 쪽 2곳은 이미 각자 처리 중이고 이번엔 VM 쪽 매핑이 **사라지는** 방향이라 공통화 대상이 아니다).
+- **구성**:
+  - `CategoryOptions`에서 선두 `_noneCategoryLabel` 제거 → `DefaultTaskCategories` + `settings.TaskCategories`만(D5 성립 근거: 기본 3개가 항상 존재).
+  - `_noneCategoryLabel` 필드와 `LocalizationService.Get("TaskCategory_None")` 호출 제거. **resw 키 자체는 존치**(D7).
+  - **`SelectedCategoryOption`을 `string?`으로 전환**(`:18`, D6-a) — 미선택을 정식으로 표현할 수 있게 하고, ComboBox가 null을 되써넣어도 타입이 깨지지 않게 한다.
+  - 새 작업 분기: `SelectedCategoryOption = CategoryOptions[0]`(D5).
+  - 편집 분기: 기존 카테고리가 비어 있으면 `SelectedCategoryOption = null`로 두어 **콤보 미선택**(D6). 값이 있으면 현행대로 그 값.
+  - `BuildResult()`: **`todo.Category = SelectedCategoryOption ?? string.Empty;`**(D6-a) — 미선택이든 ComboBox가 null을 되써넣었든 **빈 문자열로 흡수**돼 `Todos.Category`(NOT NULL)가 깨지지 않는다. `_noneCategoryLabel` 비교 제거.
+  - 관련 주석(`:13` "미분류 표시 라벨", `:26` "미분류 + 기본 + 사용자 정의") 갱신 — 새 동작과 어긋나는 주석을 남기지 않는다. `?? string.Empty`에는 **왜** 방어하는지(NOT NULL 스키마 + ComboBox 미선택) 한 줄 주석을 단다.
+- **Acceptance**: 빌드 성공(신규 경고 0 — **nullable 전환으로 인한 CS8600/CS8618 등 신규 경고 0 포함**) + 카테고리 콤보에 **"미분류" 항목이 없음** + 새 작업 시 콤보가 **"UI·UX"로 선택된 상태**로 열림 + **카테고리가 빈 기존 작업을 편집하면 콤보가 미선택으로 열리고, 그대로 저장하면 카테고리가 여전히 빈 문자열**(D6) + **그 저장이 예외 없이 완료되고, 저장 후 목록을 다시 열어도 항목이 정상 표시**(D6-a — null이 DB에 새면 여기서 드러난다) + 카테고리가 있는 기존 작업 편집 시 그 값이 선택된 채 열림 + **칸반·목록에서 빈 카테고리 항목이 계속 "미분류" 그룹으로 표시**(D8 회귀 방지) + `_noneCategoryLabel` 심볼 잔존 **0건**(grep) + `BuildResult`에 `?? string.Empty` **1건**(grep — D6-a 방어 생존) + `TaskCategory_None` resw 키는 ko/en 양쪽 **존치**(grep — 지우면 표시가 raw 키로 깨진다)
+- **Edge Cases**: **`SelectedCategoryOption`이 null**(ComboBox 미선택 또는 목록에 없는 값을 거부하며 되써넣은 경우) → `BuildResult`의 `?? string.Empty`가 흡수(D6-a). **빈 문자열** → 그대로 빈 카테고리로 저장돼 미분류 그룹에 들어간다(동일 결과). `settings.TaskCategories`가 비어도 기본 3개가 있어 `CategoryOptions[0]`은 항상 성립(빈 컬렉션 인덱싱 예외 없음) — 사용자가 앱 설정에서 카테고리를 전부 지워도 `DefaultTaskCategories`는 하드코딩이라 리스트가 빌 수 없다. 편집 대상의 카테고리가 목록에 없는 값일 때(설정에서 그 카테고리를 삭제한 뒤 편집) → 콤보가 미선택으로 열리고, 그대로 저장하면 **원래 카테고리가 빈 문자열로 바뀐다**(기존 코드도 동일한 성질이었으나 이번에 관찰 가능해짐 → Deferred 등재). 새 작업의 기본 선택이 생겨 **"카테고리 없는 작업"을 새로 만들 수단이 사라진다**(사용자 D5 선택의 의도된 귀결 → Deferred 등재).
+- **Halt Forecast**: 없음 — 단일 파일, 스키마·resw 변경 0.
+
+### T3 — 대시보드 복귀 시 카드 이벤트 재구독 (네비게이션 버그) `Type C`
+- [ ] 구현
+- **Files**: `DevDashboard_WinUI/Presentation/Views/DashboardView.xaml.cs`
+- **Design**: ① 배치 — 수정은 `DashboardView` 코드비하인드 한 곳. `MainWindow`·`TaskPage`·VM은 건드리지 않는다(D9 ⓑ 기각 — 뷰의 구독 수명을 창이 알아야 하는 역의존 회피). ② 신규 심볼 — `OnLoaded(object, RoutedEventArgs)` 핸들러 1개 + **2단으로 분리한** private 메서드 4개(아래 D10 표). ③ 의존 방향 — `DashboardView` → `MainViewModel`/`ProjectCardViewModel`(현행 그대로), 역참조 신설 없음. ④ 비추상화 — 구독 수명을 관리하는 범용 헬퍼·베이스 클래스·`WeakEventListener`를 도입하지 않는다(같은 문제를 가진 뷰가 이 하나뿐 — 다른 페이지는 매번 새로 생성된다).
+- **구성**:
+  - 생성자에 `Loaded += OnLoaded;` 추가(기존 `DataContextChanged`·`Unloaded` 구독은 유지).
+  - **추출 메서드의 책임을 2단으로 나눈다**(plan-reviewer M2 — 한 쌍으로는 4개 호출처의 요구가 서로 충돌한다). 카드 수준과 VM 수준을 섞지 않는 것이 핵심:
+
+    | 메서드 | 책임 |
+    |---|---|
+    | `SubscribeCards()` | **`_subscribedVm`이 null이면 반환**(현행 `:109` 가드 보존 — 없으면 CS8602 신규 경고). 아니면 `_subscribedVm.DisplayCards`의 카드에 `SubscribeCardEvents` + `_subscribedCards`에 등록 |
+    | `UnsubscribeCards()` | `_subscribedCards` 전체에 `UnsubscribeCardEvents` + 집합 비우기 |
+    | `SubscribeAll(MainViewModel? vm)` | **VM을 파라미터로 받는다**(아래 사유). null이면 **조용히 반환**. 아니면 `_subscribedVm = vm` + `DisplayCards.CollectionChanged` 구독 + `SubscribeCards()` |
+    | `UnsubscribeAll()` | `_subscribedVm`이 null이면 반환. 아니면 `CollectionChanged` 해제 + `UnsubscribeCards()` + `_subscribedVm = null` |
+
+    `SubscribeAll`이 `DataContext`를 직접 읽지 않고 **파라미터로 받는 이유**: 현행 `OnDataContextChanged`는 `args.NewValue`로 구독하는데(`:87`), 이벤트 발생 시점에 `DataContext` 프로퍼티가 이미 갱신돼 있는지는 **확인하지 않은 프레임워크 동작**이다(B1과 같은 유형의 가정). 파라미터화하면 `OnDataContextChanged`는 `args.NewValue`를, `OnLoaded`는 `DataContext`를 넘겨 **가정 없이 양쪽 모두 성립**한다.
+
+    | 호출처 | 사용 | 이유 |
+    |---|---|---|
+    | `OnLoaded`(신규) | `SubscribeAll(DataContext as MainViewModel)` | 복귀 시 VM 수준까지 통째로 복원해야 `CollectionChanged`도 되살아난다 |
+    | `OnUnloaded` | `UnsubscribeAll()` | 트리에서 떨어지는 동안 전부 해제 |
+    | `OnDataContextChanged` | `UnsubscribeAll()` → `SubscribeAll(args.NewValue as MainViewModel)` | 기존 동작(이전 VM 해제 후 새 VM 구독)과 동일. `args.NewValue`를 그대로 쓰므로 현행과 의미가 바뀌지 않는다 |
+    | `OnDisplayCardsChanged` **Reset 분기** | `UnsubscribeCards()` → `SubscribeCards()` | **카드 전용**을 쓴다. VM 수준을 쓰면 자기가 처리 중인 `CollectionChanged`를 해제·재등록하고 `_subscribedVm`을 null로 만들었다 되살리는 **다른 동작**이 된다 |
+    | `OnDisplayCardsChanged` Add/Remove 분기 | 현행 유지(개별 항목 구독/해제) | 전체 재구축이 불필요 |
+  - `OnLoaded`: **`_subscribedVm`이 현재 `DataContext`와 다르거나 null이면** `UnsubscribeAll()` 후 `SubscribeAll()`. 같으면 아무것도 하지 않는다. 단순히 `is null`만 보지 않는 이유는 plan-reviewer m3 — `Loaded`/`Unloaded`가 같은 레이아웃 패스에서 역순 처리되면 `is null` 가드가 재구독을 건너뛴 뒤 `Unloaded`가 해제해 **원래 버그로 되돌아갈** 수 있다. "현재 DataContext 기준으로 구독 상태가 맞는가"를 판정하면 순서 가정에 기대지 않는다.
+  - `OnUnloaded`: `UnsubscribeAll()`만 호출하고 **`Unloaded -= OnUnloaded`·`DataContextChanged -= OnDataContextChanged` 두 줄을 제거**한다(D9 — 이 두 줄이 재구독 경로를 없앤 직접 원인).
+  - 왜 이렇게 두는지 주석으로 남긴다 — "이 뷰는 `MainWindow._dashboardView`로 **재사용**되므로 트리에서 분리됐다 다시 붙는다. `DataContext`가 바뀌지 않아 `DataContextChanged`가 재발동하지 않으니 `Loaded`가 재구독 지점이다."
+- **Acceptance**: 빌드 성공(신규 경고 0) + `OnUnloaded`에 `Unloaded -=`·`DataContextChanged -=` 잔존 **0건**(grep — 남으면 버그 그대로) + `Loaded +=` **1건**(grep) + **대시보드 → 작업 → 대시보드 → 작업 재진입이 동작**(수동 확인) + 같은 왕복 후 **테스트·Git 상태·작업 기록·명령 슬롯 버튼도 동작**(D11, 수동 확인) + 복귀 후 **프로젝트를 추가하면 새 카드의 버튼도 동작**(`DisplayCards.CollectionChanged` 재구독 확인) + **작업 페이지를 보는 동안 카드 이벤트가 발동하지 않음**(D9 ⓐ 기각 근거 — 페이지 위에 다이얼로그가 뜨지 않는다) + **왕복을 3회 이상 반복해도 다이얼로그·페이지가 한 번만 열림**(중복 구독 회귀 방지) + 언어 변경 후 대시보드 재생성 경로(`ReloadLanguageUI`)에서도 버튼 정상
+- **Edge Cases**: `Loaded`는 창 최초 표시 시에도 발동하므로 `OnDataContextChanged`의 최초 구독과 **겹칠 수 있다** → "`_subscribedVm`이 현재 `DataContext`와 같으면 아무것도 하지 않는" 가드가 중복 구독을 막는다(가드 없으면 버튼 1회 클릭에 다이얼로그 2개). **`Loaded`/`Unloaded` 처리 순서가 뒤바뀌어도** 같은 가드가 상태를 기준으로 판정하므로 재구독이 누락되지 않는다(m3). `Loaded` 시점에 `DataContext`가 아직 `null`일 수 있다(`MainWindow`는 `:126`에서 생성과 동시에 `DataContext`를 넣지만 순서 보장에 기대지 않는다) → `SubscribeAll()`이 null이면 조용히 반환. `Unloaded`는 창을 닫을 때도 발동하며, 그때는 재부착이 없어 해제만 되고 끝난다(누수 없음). `ReloadLanguageUI`(`MainWindow.xaml.cs:510`)는 **새 인스턴스**를 만들어 붙이는데, 새 인스턴스의 `DataContextChanged` 구독이 구 인스턴스의 `Unloaded`보다 **먼저** 일어나 같은 `ProjectCardViewModel`들에 잠시 이중 구독되는 구간이 생긴다 — 다만 핸들러가 **인스턴스별 델리게이트**라 서로의 구독을 해제하지 못해 충돌이 없고, 그 사이 사용자 입력이 불가능해 무해하다(기존 동작과 동일 — plan-reviewer m2).
+- **Halt Forecast**: 없음 — 단일 파일, 공개 API·시그니처 변경 없음(추가 심볼 전부 private).
 
 ## 사전 승인 항목 (일괄 승인 대상)
-- **`TaskEditDialog`·`TaskEditDialogViewModel` 생성자에 `TodoStatus status` 파라미터 추가**(D1) — 기본값을 둬 호출부 2곳 중 1곳만 수정. 사용처 전수 확인 완료.
-- resw(ko/en)에 신규 키 3개 추가 + 기존 키 4개 값 변경(T1) + 고아 키 2개(`TaskEdit_AddTest.Header`·`TaskEdit_TitleRequired`) 제거(**T3** — 참조를 끊은 뒤).
-- 코드비하인드의 `Title = LocalizationService.Get(...)` 할당 제거(D2) 및 `ErrorText` `TextBlock` 제거(D3).
-- 새 작업의 **시작일 기본값을 오늘로 설정**(D6) — 동작 변경이며 사용자가 명시 선택.
-- 로컬 작업 브랜치 `task/taskedit-dialog-design-align` 생성 및 task별 commit.
+- `TaskEditDialog.xaml.cs`에서 `TitleBorderBrush()`·정적 브러시 2개·고아 `using` 2개 **제거** + `OnSave` 위 주석 갱신(T1, D3) — 소비처 전수 확인 완료(**참조 3건** = 정의 `:25` + XAML `:44` + 주석 `:57`).
+- `TaskEditDialogViewModel`의 `_noneCategoryLabel` 필드 **제거**, `SelectedCategoryOption`을 **`string?`로 전환**, `CategoryOptions`·`BuildResult` 동작 변경(T2, D5·D6·D6-a) — 호출부는 `TaskEditDialog` 1곳뿐(이전 plan grep 확인, 이번에 재확인). 도메인·스키마 무변경.
+- `DashboardView.OnUnloaded`에서 핸들러 해제 2줄 **제거** + 구독 로직 4개 메서드로 추출(T3, D9·D10) — 전부 private, 외부 계약 무변경.
+- 로컬 작업 브랜치 `task/taskedit-dialog-design-align`(현행 유지, 사용자 결정)에서 task별 commit.
 
 ## 불가피한 Halt (위임 불가)
-- master 병합·push·태그·릴리즈·PR.
-- 시안 대조의 **최종 시각 판정** — 빌드는 구조 구현만 보증하고 "시안과 같아 보이는가"는 사용자만 판정 가능(⏳ HUMAN-VERIFY로 보고).
+- master 병합·push·태그·릴리즈·PR — **이번 작업 완료 후 이전 작업분과 함께 한 번에 별도 승인**(사용자 결정 2026-07-20).
+- 시안 대조의 **최종 시각 판정** — 빌드는 마크업 존재만 보증하고 "시안과 같아 보이는가"는 사용자만 판정 가능(⏳ HUMAN-VERIFY).
+- **T3의 동작 확인** — 네비게이션 왕복은 빌드로 검증 불가하며 앱 실행이 필요하다(⏳ HUMAN-VERIFY).
 
 ## Deferred / Follow-up
-- **[시작일을 지울 수단 부재]** — `CalendarDatePicker`는 선택된 날짜를 UI로 비울 수 없다. 시작일 기본값이 오늘로 채워지면서 "시작일 없는 작업"을 새로 만들 방법이 사라진다(편집 모드의 기존 빈 값은 그대로 유지된다). 지우기 버튼 또는 "날짜 없음" 옵션 추가는 별도 진행. (이번 D6의 귀결)
-- **[다른 다이얼로그의 라벨 스타일 불일치]** — `InputLabelStyle`이 정의만 되고 소비처가 0이었다는 것은, 다른 다이얼로그들도 굵은 본문체 라벨을 쓰고 있어 이 화면만 시안 정합 후 **화면 간 라벨 스타일이 갈린다**는 뜻이다. 다른 다이얼로그 시안 확보 후 일괄 정합 검토. (T1 조사에서 발견)
-- **[`TaskEdit_TitleRequired` 제거에 따른 검증 피드백 약화]** — 빈 제목으로 등록을 누르면 이제 **아무 문구 없이 닫히지 않기만** 한다(테두리는 이미 빨간 상태). 접근성(스크린 리더) 관점에서 시각 외 피드백이 없어진다. 필요 시 `TextBox.Description` 또는 자동화 속성으로 보완 검토.
-- **[미사용 심볼 정리]** 대장 항목 중 `TaskEditDialog.xaml x:Name="TitleBox"` 건은 **이번 T3에서 해소** — 완료 후 대장에서 해당 문구를 제거한다.
-- **[SUGGEST] `TaskEditDialog`의 선택적 `status` 파라미터가 미래의 함정** — C# 선택적 매개변수는 누락해도 컴파일 경고가 없어, **제3의 호출부가 "새 작업"을 만들며 `status`를 빠뜨리면 조용히 `Waiting`으로 생성**된다. 현재 호출부 2곳은 정확하고(편집 경로는 `existing?.Status ?? status`로 기본값을 항상 무시) plan이 근거를 문서화했으므로 지금은 결함이 아니다. 3번째 호출부가 생기면 명시적 오버로드 분리를 검토. (T2 quality 리뷰 SUGGEST)
+- **[카테고리 필터에서 "미분류"를 고를 수 없음]** — `TaskPage`의 카테고리 필터 콤보는 `AvailableCategories`(실제 카테고리만)로 구성돼(`TaskPage.xaml.cs:72-75`) **"미분류" 그룹만 골라 보는 필터가 없다**. 이번 변경으로 "미분류"가 표시 전용이 되면서 이 비대칭이 더 두드러진다. 필터에 "미분류" 항목 추가 검토. (T2 조사에서 발견)
+- **[삭제된 카테고리를 가진 작업을 편집하면 카테고리가 사라짐]** — 앱 설정에서 카테고리를 지운 뒤 그 카테고리를 쓰던 작업을 편집하면, 콤보에 해당 값이 없어 미선택으로 열리고 그대로 저장 시 **빈 카테고리가 된다**. 기존 코드도 같은 성질이었으나 D6으로 미선택 상태가 정식 표현이 되면서 관찰 가능해졌다. 콤보에 "현재 값"을 임시 항목으로 추가하는 방식 검토. (T2 Edge Case)
+- **[카테고리 없는 작업을 새로 만들 수단 부재]** — D5(첫 카테고리 자동 선택)의 귀결로, 새 작업은 항상 카테고리를 갖게 된다. "미분류"로 두고 싶으면 콤보를 비울 방법이 필요하다(선택 해제 항목 또는 지우기 버튼). 기존 빈 카테고리 항목은 그대로 유지되므로 표시 규칙 자체는 계속 유효하다. (D5의 귀결)
+- **[이전 plan Deferred 유지]** — `[시작일을 지울 수단 부재]`·`[다른 다이얼로그 라벨 스타일 불일치]`·`[빈 제목 오류 문구 제거에 따른 접근성 약화]`·`[SUGGEST status 선택적 파라미터]`는 이번 작업이 해소하지 않는다 → `docs/plans/deferred.md`에 그대로 유지. 단 **hover 시 테두리 회색 전환(D3-a)** 은 T1의 D2로 **해소**되므로 완료 처리한다.
 - 기타 대장(`docs/plans/deferred.md`) 기등재 항목은 이번 작업과 무관 — 그대로 유지.
 
 ## Out of Scope
 - `TodoItem` 도메인·SQLite 스키마·직렬화 변경.
-- **다른 다이얼로그**(테스트/작업 기록/설정/프로젝트 설정 등)의 restyle — 이번은 `TaskEditDialog` 한 화면.
-- `Dialog_Save` 공용 키의 값 변경(8개 다이얼로그 오염).
-- 카테고리 기본값·테스트추가 토글 기본값 변경(사용자가 명시적으로 제외 — D6).
-- 픽셀 단위 수치 일치 — 목업 HTML이 없어 대조 불가. 구조·구성 요소 일치까지가 이번 목표.
+- **칸반/목록의 "미분류" 그룹 정렬 통일**(`deferred.md:27`) — 이번 요청은 표시 유지이지 정렬 규칙 변경이 아니다.
+- 다른 다이얼로그·다른 페이지의 필수 입력 표시 정합 — 이번은 `TaskEditDialog` 제목 1곳.
+- `TaskCategory_None` resw 키 제거(D7 — 표시가 깨진다).
+- 다른 화면의 이벤트 구독 수명 점검 — `DashboardView` 외에는 매번 새로 생성돼 같은 결함이 없음을 확인했다(Investigation Log ④).
+- 픽셀 단위 수치 일치 — 목업 HTML이 없어 대조 불가. 구조·형태 일치까지가 목표.
 
 ## Open Questions
-- [x] 헤더 상태 pill 처리 → **실제 상태 표시(생성자에 상태 전달)**(사용자, 2026-07-20)
-- [x] 제목 필수 강조 시점 → **비어 있으면 상시 빨간 테두리**(사용자, 2026-07-20)
-- [x] 편집 모드 버튼 문구 → **새 작업="등록" / 편집="저장"**(사용자, 2026-07-20)
-- [x] 시안의 기본값 3종 중 반영 범위 → **시작일=오늘 1건만**(사용자, 2026-07-20)
+- [x] 카테고리 "미분류" 제거 후 새 작업의 기본 선택값 → **첫 카테고리("UI·UX") 자동 선택**(사용자, 2026-07-20)
+- [x] 이번 작업을 진행할 브랜치 → **현재 `task/taskedit-dialog-design-align`에서 이어서, 병합은 최종 1회**(사용자, 2026-07-20)
+- [x] 이전 plan의 F-8 미확인 7항목 처리 → **필수 테두리 1건만 이번에 수정, 나머지 6건은 이상 없음으로 종결**(사용자, 2026-07-20)
+- [x] 편집 모드에서 빈 카테고리 항목의 콤보 표현 → **미선택 유지 + 빈 값 보존**(요청 ③의 성립 조건에서 도출 — D6)
 
 ## 검증 방법
 - 빌드: `"C:/Program Files/Microsoft Visual Studio/18/Professional/MSBuild/Current/Bin/MSBuild.exe" "DevDashboard_WinUI/DevDashboard.csproj" -t:Build -p:Configuration=Debug -p:Platform=x64` → 오류 0 + **AGENTS.md 기존 경고 5건(NU1903 1 + CS0612 4) 외 신규 경고 0**
-- resw 대조: 신규·변경 키의 name 집합이 ko/en 일치 grep + 제거 2키의 잔존 참조 0건 grep
 - 회귀 방지 grep(⚠️ **판정 대상을 정확히 한정**):
-  - `TaskEditDialog.xaml.cs`에 `Title =` 할당 **0건**(D2 — 남으면 헤더 pill이 런타임 소실, 빌드로는 못 잡는다)
-  - `TaskEditDialog.xaml`에 `BodyStrongTextBlockStyle` **0건**(D7 라벨 교체 완료)
+  - `TaskEditDialog.xaml.cs`에 `TitleBorderBrush`·`_titleRequiredBrush`·`_titleNormalBrush` **0건**(T1 — **주석 포함**. `:57` 주석이 이 이름을 지목하므로 갱신하지 않으면 실패한다)
+  - `TaskEditDialog.xaml`에 `BorderBrush=` **0건**(T1) / `IsHitTestVisible="False"` **1건**(라인이 클릭을 가로채지 않음)
   - `TaskEditDialog.xaml.cs`에 `args.Cancel = true` **1건 이상**(D4 — 빈 제목 저장 차단 생존)
   - `AddTestRequested` 대입부 **1건 이상**(FR-T6 생존)
-  - `ErrorText`·`TitleBox` 심볼 **0건**
-- 회귀(빌드로 검증 불가 → ⏳ HUMAN-VERIFY): 칸반 각 열의 `+ 새 작업`에서 헤더 pill이 그 열 상태와 일치 / 카드 클릭·우클릭 편집에서 pill이 해당 작업 상태와 일치 / 빈 제목으로 등록 시 닫히지 않음 / 제목 입력 시 테두리 즉시 복귀 / **빈 제목 위 hover 시 테두리 회색 전환은 D3-a로 수용된 동작**(결함 아님) / "테스트 추가" ON → 테스트 생성 / 시작일에 오늘이 채워짐 / 편집 모드에 카드 숨김·버튼 "저장" / 목록 뷰 편집 경로 정상 / 시안 육안 대조
+  - `TaskEditDialogViewModel.cs`에 `_noneCategoryLabel`·`TaskCategory_None` **0건**(T2)
+  - `TaskEditDialogViewModel.cs`의 `BuildResult`에 `?? string.Empty` **1건**(D6-a — null이 `Todos.Category`(NOT NULL)로 새는 것을 막는 방어)
+  - `Strings/{ko-KR,en-US}/Resources.resw`에 `TaskCategory_None` **각 1건 존치**(D7 — 지우면 표시가 raw 키로 깨진다)
+  - `TaskPageViewModel.cs`의 `TaskCategory_None` 소비 **2건 유지**(D8 — 칸반·목록 표시)
+  - `DashboardView.xaml.cs`의 `OnUnloaded`에 `Unloaded -=`·`DataContextChanged -=` **0건**, `Loaded +=` **1건**(T3)
+  - `DashboardView.xaml.cs`에 `SubscribeCards`·`UnsubscribeCards`·`SubscribeAll`·`UnsubscribeAll` **4개 모두 정의됨**(M2 2단 분리 — 한 쌍으로 합치면 Reset 분기 동작이 바뀐다)
+- 동작 확인(빌드로 검증 불가 → ⏳ HUMAN-VERIFY):
+  - **T1**: 제목 입력칸 하단 라인이 값 유무·포커스·hover와 무관하게 유지 / 다른 입력칸엔 라인 없음 / 라인 위를 클릭해도 입력 커서 정상 / 빈 제목으로 "등록" 시 닫히지 않음 / 시안 육안 대조
+  - **T2**: 콤보에 "미분류" 없음 / 새 작업이 "UI·UX"로 열림 / 빈 카테고리 기존 작업 편집→그대로 저장 시 미분류 그룹에 남아 있음 / 칸반·목록의 "미분류" 그룹 정상 표시
+  - **T3**: 대시보드↔작업 왕복 3회 이상 후에도 재진입 정상 / 테스트·Git 상태·작업 기록·명령 슬롯 버튼 정상 / 다이얼로그가 두 번 뜨지 않음 / 복귀 후 프로젝트 추가 시 새 카드 버튼 정상 / 작업 페이지 표시 중 카드 다이얼로그가 뜨지 않음
 
 ## Phase Ledger
-- 전 task(T1~T3) 완료.
-- Phase F 통과 (HEAD 934fae6) — F-7 plan-completion-reviewer BLOCKER 0/MAJOR 0/MINOR 4(m1 pill 글자 굵기→F-8 목록 2번에 반영, m2 NFR 행 누락→PRD Coverage에 추가, m3 FR-C1/C2/C4 표기 누락→추가, m4 문서 갱신 미커밋→최종 커밋에 포함). 클린 리빌드(-t:Rebuild) 오류 0·신규 경고 0.
-- Phase G 통과 (Must 100%) — 커버 대상 Must FR(T5) 충족, Should(T6)도 충족. NFR-1~5 전건 확인. F-7 전수 대조 재사용(incomplete·Sonnet 대체 아님). 갭 0건이라 재루프 없음.
-- **F-8 미통과 — 시각 확인 대기**: `## 시각 요소 분해`의 렌더 일치 7항목이 `⏳ 미확인`으로 남아 **완료 선언 보류**(사용자 육안 대조 필요).
+- (미시작)
 
 ## Progress Log
-- T1-T2 완료 (커밋 52d94f0, 8066961): resw 문구 정비(placeholder 4키 값 + 신규 3키 ko/en) / VM에 `HeaderTitle`·`StatusLabel`·`PrimaryButtonLabel` 추가 + 생성자에 `TodoStatus status` 선택적 파라미터 + 새 작업 시작일 기본값=오늘. 빌드 OK(기존 경고 5건만).
-  - **리뷰 지적 반영(T2, spec BLOCKER + quality MAJOR 동시 지적)**: 코드비하인드의 `Title =` 제거와 `PrimaryButtonText = Vm.PrimaryButtonLabel` 교체는 **T3 몫인데 T2에서 선반영**해, 그 커밋 단독으로는 XAML `<ContentDialog.Title>`이 아직 없어 **헤더 제목이 빈 상태로 렌더되는 회귀**가 났다. `Title = Vm.HeaderTitle`(문구 결과는 기존과 동치)과 `PrimaryButtonText = Get("Dialog_Save")`(현행)로 되돌려 해소.
-  - 결정: `StatusLabel`은 생성자에서 1회 계산해 `{ get; }`으로 고정 — 다이얼로그 수명이 짧아 상태 변경 추적이 불필요(주석 명시).
-  - 결정: 상태→라벨 매핑을 `TaskPage`의 static 캐시와 공유하지 않고 VM에 `StatusLabelFor` switch를 별도로 둠 — D11(다이얼로그가 페이지를 역참조하지 않음). 사용처 1곳이라 공통화 기준(3회) 미달.
-  - 구현 차이(무해): plan은 `DateTimeOffset.Now.Date`를 제시했으나 그 식은 `DateTime`을 반환해 `DateTimeOffset?`에 대입 불가 → 같은 파일 선례를 따라 `new DateTimeOffset(DateTime.Today)` 사용. 결과 동일(로컬 자정).
-- T3 완료 (커밋 예정): XAML 헤더를 `<ContentDialog.Title>`(제목+상태 pill)로 재구성, 라벨 6개를 `InputLabelStyle`로 교체 + 제목에 빨간 `*`, 제목 빈 상태 danger 테두리(`TitleBorderBrush`), "테스트 추가"를 `toolkit:SettingsCard`로 카드화, `ErrorText` 제거(차단 로직은 유지), 버튼 문구 등록/저장 배선, 고아 resw 키 2개 제거. 빌드 OK. spec·quality 리뷰 지적 0건.
-  - **빌드가 잡은 함정**: `{x:Bind TitleBorderBrush(...)}`로 쓰면 static 메서드를 인스턴스로 접근해 **CS0176**이 난다. `TaskPage.xaml:82` 선례대로 `xmlns:local` 선언 + `{x:Bind local:TaskEditDialog.TitleBorderBrush(...)}` 타입 한정으로 해결.
-  - 결정: 라벨과 입력칸을 묶는 내부 `StackPanel`은 `Spacing`을 주지 않고 `InputLabelStyle`의 `Margin 0,0,0,4`에 간격을 위임했다(바깥 `Spacing="12"`는 필드 그룹 간 간격 담당 — 책임 분리).
-  - 확인: 토글 On 살몬색은 `Palette.xaml:81-82`의 전역 accent 오버라이드(#F0716A)로 **이미 충족**돼 신규 스타일이 필요 없었다.
+- (미시작)

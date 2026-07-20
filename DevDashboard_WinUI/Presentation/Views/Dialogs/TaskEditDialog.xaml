@@ -3,7 +3,6 @@
     x:Class="DevDashboard.Presentation.Views.Dialogs.TaskEditDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:DevDashboard.Presentation.Views.Dialogs"
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     DefaultButton="Primary"
     CornerRadius="8"
@@ -38,11 +37,20 @@
                         Style="{StaticResource InputLabelStyle}"
                         Foreground="{ThemeResource AppDangerBrush}" />
                 </StackPanel>
-                <TextBox
-                    x:Uid="TaskEditBox_Title"
-                    Text="{x:Bind Vm.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                    BorderBrush="{x:Bind local:TaskEditDialog.TitleBorderBrush(Vm.Title), Mode=OneWay}"
-                    MaxLength="200" />
+                <!-- 필수 입력 표시: 입력칸 하단에 danger 라인을 상시 겹쳐 그린다(값 유무와 무관).
+                     IsHitTestVisible=False 라 라인이 입력 클릭을 가로채지 않는다. -->
+                <Grid>
+                    <TextBox
+                        x:Uid="TaskEditBox_Title"
+                        Text="{x:Bind Vm.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        MaxLength="200" />
+                    <Border
+                        Height="2"
+                        VerticalAlignment="Bottom"
+                        Background="{ThemeResource AppDangerBrush}"
+                        CornerRadius="0,0,4,4"
+                        IsHitTestVisible="False" />
+                </Grid>
             </StackPanel>
 
             <StackPanel>
