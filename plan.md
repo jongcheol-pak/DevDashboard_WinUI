@@ -119,6 +119,7 @@
 | PRD ID | 우선순위 | 대응 task | 상태 |
 |---|---|---|---|
 | FR-T1 (작업 데이터 모델: 상태·카테고리·우선순위·날짜) | Must | — | 이번 범위 외 (Phase 2 기구현, `TodoItem` 무변경 — D1) |
+| FR-T7 (담당자(who) 필드) | Could | — | **의도적 미구현** — 사용자 제외 결정(D1), `deferred.md:9` 대기 유지. 미충족이 아니라 범위 제외 |
 | FR-T2 (전체 페이지 + 칸반/목록 전환) | Must | T4 | ✅ 커버(시각 재구성, 기능 기구현) |
 | FR-T3 (드래그앤드롭 상태 변경) | Must | T2, T3 | ✅ 커버(기구현 — **회귀 방지**가 acceptance에 포함) |
 | FR-T4 (카테고리 필터·그룹핑·상태별 개수) | Must | T3, T4 | ✅ 커버(칸반 내 그룹핑 신규 충족 — T3 그룹핑·개수, T4 헤더 필터 콤보 재배치) |
@@ -219,7 +220,14 @@
 - 회귀(빌드로 검증 불가 → ⏳ HUMAN-VERIFY): 드래그 열 이동 / 빈 열 드롭 / 카드 클릭 편집 / 우클릭 메뉴 / 열별 추가 버튼의 상태 계승 / "테스트 목록에도 추가" 토글 / 완료 전환 시 작업기록 팝업 / 카테고리 필터 / 열 헤더 개수 정확성 / **목록 뷰가 이전과 동일** / 시안 육안 대조
 
 ## Phase Ledger
-- (implement-task가 갱신)
+- 전 task(T1~T4) 완료.
+- Phase F 통과 (HEAD 8f8cf20) — F-7 plan-completion-reviewer BLOCKER 0/MAJOR 0/MINOR 4(m1 FR-T7 행 누락→PRD Coverage에 추가, m2 미분류 정렬 불일치·m3 NU1903·m4 `*Items` 개명→deferred 대장 등재). 클린 리빌드(-t:Rebuild) 오류 0·신규 경고 0.
+- Phase G 통과 (Must 100%) — 커버 대상 Must FR(T2·T3·T4·T5) 전부 충족, Should(T6·T8·E4)도 충족. F-7 전수 대조 재사용. **시각 렌더 일치는 ⏳ HUMAN-VERIFY**(빌드가 원리적으로 판정 불가 — ✅로 올리지 않음).
+
+## Next Steps
+- 권장 다음 액션: 앱을 실행해 작업 페이지를 시안과 육안 대조(아래 확인 목록). 이상 없으면 `task/taskpage-design-align` → master 병합은 **별도 승인** 필요(push·병합은 자율 루프 권한 밖).
+- 시각·동작 확인 목록: 시안 대조 / 드래그 열 이동·빈 열 드롭 / **카드 클릭 편집이 드래그와 충돌하지 않는지**(T2 Edge Case가 예고한 지점 — 오작동 시 `PointerReleased`+이동거리 판정으로 전환) / 우클릭 메뉴 / 열별 추가 버튼의 상태 계승 / "테스트 목록에도 추가" 토글 / 점선 버튼 렌더 / 세그먼트 토글의 선택+호버 동시 상태 / 열 헤더 개수 정확성 / **목록 뷰가 이전과 동일한지**
+- Suggested skills: (병합 후) `/code-review`, `pjc:bootstrap-agents-md`(AGENTS.md 부재 해소).
 
 ## Progress Log
 - T1-T2 완료 (커밋 da29448, 5103db9): 시각 자산(Palette 색 2종+Soft 4종·Styles 3종·resw 6키)·PRD FR-T8/E4 문구 갱신 / 칸반 전용 카드 템플릿 신규 + 클릭 편집·우클릭 메뉴. 빌드 OK.
