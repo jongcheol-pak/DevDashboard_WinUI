@@ -10,12 +10,11 @@ public partial class TaskEditDialogViewModel : ObservableObject
 {
     private readonly TodoItem? _existing;
 
-    /// <summary>"미분류" 카테고리 표시 라벨 (내부 저장은 빈 문자열)</summary>
-    private readonly string _noneCategoryLabel;
-
     [ObservableProperty] public partial string Title { get; set; } = string.Empty;
     [ObservableProperty] public partial string Description { get; set; } = string.Empty;
-    [ObservableProperty] public partial string SelectedCategoryOption { get; set; } = string.Empty;
+    // 미선택(빈 카테고리)을 null로 표현한다. ComboBox가 목록에 없는 값을 거부하며 null을
+    // 되써넣어도 타입이 깨지지 않게 nullable로 둔다(저장은 BuildResult에서 빈 문자열로 흡수).
+    [ObservableProperty] public partial string? SelectedCategoryOption { get; set; }
     [ObservableProperty] public partial TaskPriorityItem SelectedPriority { get; set; }
     [ObservableProperty] public partial DateTimeOffset? StartDate { get; set; }
     [ObservableProperty] public partial DateTimeOffset? EndDate { get; set; }
@@ -23,7 +22,7 @@ public partial class TaskEditDialogViewModel : ObservableObject
     /// <summary>"테스트 추가" 토글 (FR-T6 — 새 작업 시 테스트 목록에도 등록). 실제 생성은 T9에서 처리.</summary>
     [ObservableProperty] public partial bool AddTest { get; set; }
 
-    /// <summary>카테고리 선택 목록 (미분류 + 기본 + 사용자 정의)</summary>
+    /// <summary>카테고리 선택 목록 (기본 + 사용자 정의). "미분류"는 선택지가 아니라 빈 값의 표시명이므로 제외한다.</summary>
     public IReadOnlyList<string> CategoryOptions { get; }
 
     /// <summary>우선순위 선택 목록 (높음/보통/낮음)</summary>
@@ -53,11 +52,9 @@ public partial class TaskEditDialogViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(settings);
         _existing = existing;
-        _noneCategoryLabel = LocalizationService.Get("TaskCategory_None");
         StatusLabel = StatusLabelFor(existing?.Status ?? status);
 
-        CategoryOptions = new[] { _noneCategoryLabel }
-            .Concat(AppSettingsDialogViewModel.DefaultTaskCategories)
+        CategoryOptions = AppSettingsDialogViewModel.DefaultTaskCategories
             .Concat(settings.TaskCategories)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -73,14 +70,16 @@ public partial class TaskEditDialogViewModel : ObservableObject
         {
             Title = existing.Text;
             Description = existing.Description;
-            SelectedCategoryOption = string.IsNullOrEmpty(existing.Category) ? _noneCategoryLabel : existing.Category;
+            // 빈 카테고리는 미선택(null)으로 열어 그대로 저장 시 빈 값이 보존되게 한다("미분류" 표시는 목록에서만).
+            SelectedCategoryOption = string.IsNullOrEmpty(existing.Category) ? null : existing.Category;
             SelectedPriority = Priorities.First(p => p.Value == existing.Priority);
             StartDate = existing.StartDate.HasValue ? new DateTimeOffset(existing.StartDate.Value) : null;
             EndDate = existing.EndDate.HasValue ? new DateTimeOffset(existing.EndDate.Value) : null;
         }
         else
         {
-            SelectedCategoryOption = _noneCategoryLabel;
+            // 새 작업은 첫 카테고리를 기본 선택한다(기본 카테고리 3종이 항상 존재해 인덱싱 안전).
+            SelectedCategoryOption = CategoryOptions[0];
             SelectedPriority = Priorities.First(p => p.Value == TaskPriority.Normal);
             // 새 작업은 시작일을 오늘로 미리 채운다(시안 기준). 시각을 버려 저장값에 잔여 시각이 남지 않게 한다.
             StartDate = new DateTimeOffset(DateTime.Today);
@@ -102,7 +101,8 @@ public partial class TaskEditDialogViewModel : ObservableObject
         var todo = _existing ?? new TodoItem { Status = TodoStatus.Waiting };
         todo.Text = Title.Trim();
         todo.Description = Description?.Trim() ?? string.Empty;
-        todo.Category = SelectedCategoryOption == _noneCategoryLabel ? string.Empty : SelectedCategoryOption;
+        // 미선택(null)이거나 ComboBox가 null을 되써넣어도 빈 문자열로 흡수한다 — Todos.Category는 NOT NULL이다.
+        todo.Category = SelectedCategoryOption ?? string.Empty;
         todo.Priority = SelectedPriority.Value;
         todo.StartDate = StartDate?.DateTime;
         todo.EndDate = EndDate?.DateTime;

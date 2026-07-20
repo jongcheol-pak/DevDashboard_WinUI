@@ -156,7 +156,7 @@ DashboardView.OnUnloaded (DashboardView.xaml.cs:38-52)
 - **Halt Forecast**: 없음 — 파일 2개, 파괴적·외부 작업 없음. 심볼 제거는 사전 승인 항목 등재.
 
 ### T2 — 카테고리 "미분류" 선택지 제거 + 빈 카테고리 보존 `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `DevDashboard_WinUI/Presentation/ViewModels/TaskEditDialogViewModel.cs`
 - **Design**: ① 배치 — 선택지 구성·초기 선택·저장 역변환 모두 `TaskEditDialogViewModel` 안에서 끝난다(다이얼로그·페이지 무변경). ② 신규 심볼 — 없음(기존 `CategoryOptions`·생성자·`BuildResult` 수정 + `SelectedCategoryOption`의 nullable 전환). `_noneCategoryLabel` 필드는 **제거**(소비처가 전부 사라진다). ③ 의존 방향 — VM은 `AppSettingsDialogViewModel.DefaultTaskCategories`와 `settings.TaskCategories`만 참조(현행 유지), `TaskPage`를 참조하지 않는다. ④ 비추상화 — "빈 카테고리 ↔ 표시명" 매핑을 공용 헬퍼로 빼지 않는다(표시 쪽 2곳은 이미 각자 처리 중이고 이번엔 VM 쪽 매핑이 **사라지는** 방향이라 공통화 대상이 아니다).
 - **구성**:
