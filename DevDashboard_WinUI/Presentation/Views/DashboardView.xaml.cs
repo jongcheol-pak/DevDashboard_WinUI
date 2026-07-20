@@ -19,10 +19,10 @@ public sealed partial class DashboardView : UserControl
     // DragStarting에서 설정 — DragOver/Drop에서 동기적으로 사용
     private string? _draggedCardId;
 
-    // DataContextChanged 시 이전 구독 해제용
+    // 현재 구독 중인 VM (Loaded·Unloaded·DataContextChanged 경로에서 구독 상태를 추적)
     private MainViewModel? _subscribedVm;
 
-    // Reset 시 이전 구독 대상을 추적하는 집합
+    // 현재 구독 중인 카드 집합 (구독/해제 대칭 유지용)
     private readonly HashSet<ProjectCardViewModel> _subscribedCards = [];
 
     private MainViewModel? Vm => DataContext as MainViewModel;
