@@ -411,17 +411,18 @@
   <data name="TaskEdit_TitleAdd" xml:space="preserve"><value>새 작업</value></data>
   <data name="TaskEdit_TitleEdit" xml:space="preserve"><value>작업 편집</value></data>
   <data name="TaskEditLabel_Title.Text" xml:space="preserve"><value>제목</value></data>
-  <data name="TaskEditBox_Title.PlaceholderText" xml:space="preserve"><value>작업 제목 입력...</value></data>
+  <data name="TaskEditBox_Title.PlaceholderText" xml:space="preserve"><value>무엇을 해야 하나요?</value></data>
   <data name="TaskEditLabel_Description.Text" xml:space="preserve"><value>설명</value></data>
-  <data name="TaskEditBox_Description.PlaceholderText" xml:space="preserve"><value>작업 설명 (선택)</value></data>
+  <data name="TaskEditBox_Description.PlaceholderText" xml:space="preserve"><value>작업 내용 설명 (선택)</value></data>
   <data name="TaskEditLabel_Category.Text" xml:space="preserve"><value>카테고리</value></data>
   <data name="TaskEditLabel_Priority.Text" xml:space="preserve"><value>우선순위</value></data>
   <data name="TaskEditLabel_StartDate.Text" xml:space="preserve"><value>시작일</value></data>
   <data name="TaskEditLabel_EndDate.Text" xml:space="preserve"><value>종료일</value></data>
-  <data name="TaskEditStartDate.PlaceholderText" xml:space="preserve"><value>날짜 선택</value></data>
-  <data name="TaskEditEndDate.PlaceholderText" xml:space="preserve"><value>날짜 선택</value></data>
-  <data name="TaskEdit_AddTest.Header" xml:space="preserve"><value>테스트 목록에도 추가</value></data>
-  <data name="TaskEdit_TitleRequired" xml:space="preserve"><value>제목을 입력하세요.</value></data>
+  <data name="TaskEditStartDate.PlaceholderText" xml:space="preserve"><value>연도-월-일</value></data>
+  <data name="TaskEditEndDate.PlaceholderText" xml:space="preserve"><value>연도-월-일</value></data>
+  <data name="TaskEdit_AddTestCard.Header" xml:space="preserve"><value>테스트 추가</value></data>
+  <data name="TaskEdit_AddTestCard.Description" xml:space="preserve"><value>이 작업을 테스트 목록에도 추가합니다.</value></data>
+  <data name="TaskEdit_Submit" xml:space="preserve"><value>등록</value></data>
   <data name="TaskPriority_High" xml:space="preserve"><value>높음</value></data>
   <data name="TaskPriority_Normal" xml:space="preserve"><value>보통</value></data>
   <data name="TaskPriority_Low" xml:space="preserve"><value>낮음</value></data>

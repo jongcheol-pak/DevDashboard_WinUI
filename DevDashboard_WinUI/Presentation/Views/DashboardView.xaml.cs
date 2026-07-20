@@ -19,10 +19,10 @@ public sealed partial class DashboardView : UserControl
     // DragStarting에서 설정 — DragOver/Drop에서 동기적으로 사용
     private string? _draggedCardId;
 
-    // DataContextChanged 시 이전 구독 해제용
+    // 현재 구독 중인 VM (Loaded·Unloaded·DataContextChanged 경로에서 구독 상태를 추적)
     private MainViewModel? _subscribedVm;
 
-    // Reset 시 이전 구독 대상을 추적하는 집합
+    // 현재 구독 중인 카드 집합 (구독/해제 대칭 유지용)
     private readonly HashSet<ProjectCardViewModel> _subscribedCards = [];
 
     private MainViewModel? Vm => DataContext as MainViewModel;
@@ -32,23 +32,28 @@ public sealed partial class DashboardView : UserControl
         InitializeLocalizedResources();
         InitializeComponent();
         DataContextChanged += OnDataContextChanged;
+        Loaded += OnLoaded;
         Unloaded += OnUnloaded;
+    }
+
+    // 이 뷰는 MainWindow._dashboardView로 재사용된다 — 페이지 전환 시 트리에서 분리됐다 다시 붙는다.
+    // DataContext(MainViewModel)가 바뀌지 않아 DataContextChanged가 재발동하지 않으므로,
+    // 복귀 시 카드 이벤트 재구독 지점은 Loaded다. 구독 대상이 현재 DataContext와 어긋날 때만
+    // 재구독해(Loaded/Unloaded 처리 순서가 뒤바뀌어도 안전) 중복 구독을 막는다.
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        var vm = DataContext as MainViewModel;
+        if (ReferenceEquals(_subscribedVm, vm)) return;
+
+        UnsubscribeAll();
+        SubscribeAll(vm);
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
-        Unloaded -= OnUnloaded;
-        DataContextChanged -= OnDataContextChanged;
-
-        // 이전 VM 구독 해제
-        if (_subscribedVm is not null)
-        {
-            _subscribedVm.DisplayCards.CollectionChanged -= OnDisplayCardsChanged;
-            foreach (var card in _subscribedCards)
-                UnsubscribeCardEvents(card);
-            _subscribedCards.Clear();
-            _subscribedVm = null;
-        }
+        // 재사용 뷰이므로 Unloaded·DataContextChanged 핸들러 자체는 떼지 않는다
+        // (떼면 복귀 시 Loaded/재구독 경로가 사라져 카드 버튼이 영구히 죽는다).
+        UnsubscribeAll();
     }
 
     /// <summary>DataTemplate 내 요소는 x:Name 접근이 불가하여 InitializeComponent() 전
@@ -73,46 +78,21 @@ public sealed partial class DashboardView : UserControl
 
     private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
     {
-        // 이전 VM 구독 해제
-        if (_subscribedVm is not null)
-        {
-            _subscribedVm.DisplayCards.CollectionChanged -= OnDisplayCardsChanged;
-            foreach (var card in _subscribedCards)
-                UnsubscribeCardEvents(card);
-            _subscribedCards.Clear();
-            _subscribedVm = null;
-        }
-
-        // 새 VM 구독
-        if (args.NewValue is MainViewModel vm)
-        {
-            _subscribedVm = vm;
-            vm.DisplayCards.CollectionChanged += OnDisplayCardsChanged;
-            foreach (var item in vm.DisplayCards)
-                if (item is ProjectCardViewModel card)
-                {
-                    SubscribeCardEvents(card);
-                    _subscribedCards.Add(card);
-                }
-        }
+        // 이전 VM 해제 후 새 VM 구독. args.NewValue를 그대로 넘겨 현행 동작을 유지한다
+        // (DataContext 프로퍼티가 이 시점에 갱신됐는지 가정하지 않는다).
+        UnsubscribeAll();
+        SubscribeAll(args.NewValue as MainViewModel);
     }
 
     private void OnDisplayCardsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        // Reset 액션은 OldItems/NewItems가 null — 기존 구독 전체 해제 후 현재 항목 재구독
+        // Reset 액션은 OldItems/NewItems가 null — 카드 구독만 통째로 재구축한다.
+        // (VM 수준 SubscribeAll/UnsubscribeAll을 쓰면 자기가 처리 중인 CollectionChanged를
+        //  해제·재등록하고 _subscribedVm을 null로 만들었다 되살리는 다른 동작이 된다.)
         if (e.Action == NotifyCollectionChangedAction.Reset)
         {
-            foreach (var card in _subscribedCards)
-                UnsubscribeCardEvents(card);
-            _subscribedCards.Clear();
-
-            if (_subscribedVm is not null)
-                foreach (var item in _subscribedVm.DisplayCards)
-                    if (item is ProjectCardViewModel card)
-                    {
-                        SubscribeCardEvents(card);
-                        _subscribedCards.Add(card);
-                    }
+            UnsubscribeCards();
+            SubscribeCards();
             return;
         }
 
@@ -131,6 +111,46 @@ public sealed partial class DashboardView : UserControl
                     UnsubscribeCardEvents(card);
                     _subscribedCards.Remove(card);
                 }
+    }
+
+    // ─── 구독 수명 관리 (카드 수준 / VM 수준 2단) ──────────────────────
+
+    /// <summary>현재 구독 중인 VM의 카드 전부에 이벤트를 구독합니다.</summary>
+    private void SubscribeCards()
+    {
+        if (_subscribedVm is null) return;
+        foreach (var item in _subscribedVm.DisplayCards)
+            if (item is ProjectCardViewModel card)
+            {
+                SubscribeCardEvents(card);
+                _subscribedCards.Add(card);
+            }
+    }
+
+    /// <summary>구독 중인 카드 전부의 이벤트를 해제합니다.</summary>
+    private void UnsubscribeCards()
+    {
+        foreach (var card in _subscribedCards)
+            UnsubscribeCardEvents(card);
+        _subscribedCards.Clear();
+    }
+
+    /// <summary>VM 수준 구독: CollectionChanged + 현재 카드 전부. vm이 null이면 아무것도 하지 않습니다.</summary>
+    private void SubscribeAll(MainViewModel? vm)
+    {
+        if (vm is null) return;
+        _subscribedVm = vm;
+        vm.DisplayCards.CollectionChanged += OnDisplayCardsChanged;
+        SubscribeCards();
+    }
+
+    /// <summary>VM 수준 해제: 카드 전부 + CollectionChanged + _subscribedVm 정리.</summary>
+    private void UnsubscribeAll()
+    {
+        if (_subscribedVm is null) return;
+        _subscribedVm.DisplayCards.CollectionChanged -= OnDisplayCardsChanged;
+        UnsubscribeCards();
+        _subscribedVm = null;
     }
 
     private void SubscribeCardEvents(ProjectCardViewModel card)
