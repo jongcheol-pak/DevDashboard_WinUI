@@ -138,7 +138,7 @@
 - **Halt Forecast**: 없음 — 리소스 추가·값 변경만. **키 제거는 이 task에 없다(T3로 이관)**.
 
 ### T2 — VM 확장: 상태 라벨·버튼 문구·시작일 기본값 + 생성자 시그니처 `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `DevDashboard_WinUI/Presentation/ViewModels/TaskEditDialogViewModel.cs`, `DevDashboard_WinUI/Presentation/Views/Dialogs/TaskEditDialog.xaml.cs`, `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml.cs`
 - **Design**: ① 배치 — 표시 문자열은 전부 `TaskEditDialogViewModel`(Presentation/ViewModels), 다이얼로그는 VM을 읽기만 한다. ② 신규 심볼 — `HeaderTitle`(모드별 제목), `StatusLabel`(상태 문구), `PrimaryButtonLabel`(등록/저장) 3개 계산 프로퍼티 + VM 생성자에 `TodoStatus status` 파라미터. ③ 의존 방향 — VM은 `LocalizationService`만 참조하고 **`TaskPage`를 참조하지 않는다**(D11 — 페이지 역참조 금지). 호출부(`TaskPage.xaml.cs`) → 다이얼로그 → VM 단방향. ④ 비추상화 — 상태→라벨을 Converter·공용 매퍼로 빼지 않고 VM 안 `switch` 식으로 직접 반환(사용처 1곳, `TestPage.StatusBrush` 선례와 같은 결).
 - **생성자 시그니처(사전 승인 항목)**:
@@ -184,6 +184,7 @@
 - **[다른 다이얼로그의 라벨 스타일 불일치]** — `InputLabelStyle`이 정의만 되고 소비처가 0이었다는 것은, 다른 다이얼로그들도 굵은 본문체 라벨을 쓰고 있어 이 화면만 시안 정합 후 **화면 간 라벨 스타일이 갈린다**는 뜻이다. 다른 다이얼로그 시안 확보 후 일괄 정합 검토. (T1 조사에서 발견)
 - **[`TaskEdit_TitleRequired` 제거에 따른 검증 피드백 약화]** — 빈 제목으로 등록을 누르면 이제 **아무 문구 없이 닫히지 않기만** 한다(테두리는 이미 빨간 상태). 접근성(스크린 리더) 관점에서 시각 외 피드백이 없어진다. 필요 시 `TextBox.Description` 또는 자동화 속성으로 보완 검토.
 - **[미사용 심볼 정리]** 대장 항목 중 `TaskEditDialog.xaml x:Name="TitleBox"` 건은 **이번 T3에서 해소** — 완료 후 대장에서 해당 문구를 제거한다.
+- **[SUGGEST] `TaskEditDialog`의 선택적 `status` 파라미터가 미래의 함정** — C# 선택적 매개변수는 누락해도 컴파일 경고가 없어, **제3의 호출부가 "새 작업"을 만들며 `status`를 빠뜨리면 조용히 `Waiting`으로 생성**된다. 현재 호출부 2곳은 정확하고(편집 경로는 `existing?.Status ?? status`로 기본값을 항상 무시) plan이 근거를 문서화했으므로 지금은 결함이 아니다. 3번째 호출부가 생기면 명시적 오버로드 분리를 검토. (T2 quality 리뷰 SUGGEST)
 - 기타 대장(`docs/plans/deferred.md`) 기등재 항목은 이번 작업과 무관 — 그대로 유지.
 
 ## Out of Scope
@@ -214,4 +215,8 @@
 - (미시작)
 
 ## Progress Log
-- (없음)
+- T1-T2 완료 (커밋 52d94f0, 8066961): resw 문구 정비(placeholder 4키 값 + 신규 3키 ko/en) / VM에 `HeaderTitle`·`StatusLabel`·`PrimaryButtonLabel` 추가 + 생성자에 `TodoStatus status` 선택적 파라미터 + 새 작업 시작일 기본값=오늘. 빌드 OK(기존 경고 5건만).
+  - **리뷰 지적 반영(T2, spec BLOCKER + quality MAJOR 동시 지적)**: 코드비하인드의 `Title =` 제거와 `PrimaryButtonText = Vm.PrimaryButtonLabel` 교체는 **T3 몫인데 T2에서 선반영**해, 그 커밋 단독으로는 XAML `<ContentDialog.Title>`이 아직 없어 **헤더 제목이 빈 상태로 렌더되는 회귀**가 났다. `Title = Vm.HeaderTitle`(문구 결과는 기존과 동치)과 `PrimaryButtonText = Get("Dialog_Save")`(현행)로 되돌려 해소.
+  - 결정: `StatusLabel`은 생성자에서 1회 계산해 `{ get; }`으로 고정 — 다이얼로그 수명이 짧아 상태 변경 추적이 불필요(주석 명시).
+  - 결정: 상태→라벨 매핑을 `TaskPage`의 static 캐시와 공유하지 않고 VM에 `StatusLabelFor` switch를 별도로 둠 — D11(다이얼로그가 페이지를 역참조하지 않음). 사용처 1곳이라 공통화 기준(3회) 미달.
+  - 구현 차이(무해): plan은 `DateTimeOffset.Now.Date`를 제시했으나 그 식은 `DateTime`을 반환해 `DateTimeOffset?`에 대입 불가 → 같은 파일 선례를 따라 `new DateTimeOffset(DateTime.Today)` 사용. 결과 동일(로컬 자정).
