@@ -172,7 +172,7 @@ DashboardView.OnUnloaded (DashboardView.xaml.cs:38-52)
 - **Halt Forecast**: 없음 — 단일 파일, 스키마·resw 변경 0.
 
 ### T3 — 대시보드 복귀 시 카드 이벤트 재구독 (네비게이션 버그) `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `DevDashboard_WinUI/Presentation/Views/DashboardView.xaml.cs`
 - **Design**: ① 배치 — 수정은 `DashboardView` 코드비하인드 한 곳. `MainWindow`·`TaskPage`·VM은 건드리지 않는다(D9 ⓑ 기각 — 뷰의 구독 수명을 창이 알아야 하는 역의존 회피). ② 신규 심볼 — `OnLoaded(object, RoutedEventArgs)` 핸들러 1개 + **2단으로 분리한** private 메서드 4개(아래 D10 표). ③ 의존 방향 — `DashboardView` → `MainViewModel`/`ProjectCardViewModel`(현행 그대로), 역참조 신설 없음. ④ 비추상화 — 구독 수명을 관리하는 범용 헬퍼·베이스 클래스·`WeakEventListener`를 도입하지 않는다(같은 문제를 가진 뷰가 이 하나뿐 — 다른 페이지는 매번 새로 생성된다).
 - **구성**:
