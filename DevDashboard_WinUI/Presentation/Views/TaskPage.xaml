@@ -101,6 +101,50 @@
             </Border>
         </DataTemplate>
 
+        <!-- 칸반 열 안의 카테고리 그룹 (색 dot + 카테고리명 + 개수 + 테스트 통과율 배지) -->
+        <DataTemplate x:Key="TaskColumnGroupTemplate" x:DataType="vm:TaskColumnGroup">
+            <StackPanel Margin="0,0,0,2">
+                <Grid ColumnSpacing="6" Margin="2,0,2,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Ellipse
+                        Grid.Column="0"
+                        Width="8" Height="8"
+                        VerticalAlignment="Center"
+                        Fill="{x:Bind CategoryName, Converter={StaticResource TagColor}}" />
+                    <TextBlock
+                        Grid.Column="1"
+                        Text="{x:Bind CategoryName}"
+                        FontSize="12"
+                        FontWeight="SemiBold"
+                        VerticalAlignment="Center" />
+                    <TextBlock
+                        Grid.Column="2"
+                        Text="{x:Bind Items.Count}"
+                        FontSize="12"
+                        VerticalAlignment="Center"
+                        Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    <Border
+                        Grid.Column="3"
+                        Style="{StaticResource TagBadgeStyle}"
+                        Margin="0"
+                        VerticalAlignment="Center"
+                        Background="{ThemeResource AppSuccessSoftBrush}"
+                        Visibility="{x:Bind PassRateBadge, Converter={StaticResource StringNotEmptyToVisibility}}">
+                        <TextBlock
+                            Text="{x:Bind PassRateBadge}"
+                            FontSize="10"
+                            Foreground="{ThemeResource AppSuccessBrush}" />
+                    </Border>
+                </Grid>
+                <ItemsControl ItemsSource="{x:Bind Items}" ItemTemplate="{StaticResource TaskKanbanCardTemplate}" />
+            </StackPanel>
+        </DataTemplate>
+
         <!-- 목록 뷰 전용 카드 템플릿 (상태 콤보 + 수정/삭제 — 목록엔 드래그 경로가 없어 콤보가 유일한 상태 변경 수단) -->
         <DataTemplate x:Key="TaskCardTemplate" x:DataType="models:TodoItem">
             <Border
@@ -255,7 +299,7 @@
                 VerticalScrollBarVisibility="Auto"
                 HorizontalScrollMode="Auto"
                 Visibility="{x:Bind Vm.IsKanbanView, Converter={StaticResource BoolToVisibility}, Mode=OneWay}">
-                <Grid ColumnSpacing="8">
+                <Grid ColumnSpacing="10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
@@ -263,57 +307,78 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
+                    <!--
+                        각 열은 배경·테두리를 가진 패널이며 드롭 대상도 이 패널이다.
+                        (드롭을 안쪽 목록이 아니라 패널이 받아야 카드가 없는 빈 열에도 놓을 수 있다.)
+                    -->
+
                     <!-- 예정 -->
-                    <StackPanel Grid.Column="0" MinWidth="220" MinHeight="120"
-                                AllowDrop="True" Tag="Waiting"
-                                DragOver="Column_DragOver" Drop="Column_Drop">
-                        <Border Background="{ThemeResource SolidBackgroundFillColorBaseBrush}" CornerRadius="6" Padding="10,6" Margin="0,0,0,8">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <TextBlock Text="{x:Bind local:TaskPage.LabelWaiting}" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <TextBlock Text="{x:Bind Vm.WaitingCount, Mode=OneWay}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    <Border Grid.Column="0" Style="{StaticResource KanbanColumnStyle}" MinWidth="230"
+                            AllowDrop="True" Tag="Waiting"
+                            DragOver="Column_DragOver" Drop="Column_Drop">
+                        <StackPanel MinHeight="120">
+                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="2,2,2,12">
+                                <Ellipse Width="8" Height="8" VerticalAlignment="Center" Fill="{x:Bind local:TaskPage.StatusDotWaiting}" />
+                                <TextBlock Text="{x:Bind local:TaskPage.LabelWaiting}" VerticalAlignment="Center" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock Text="{x:Bind Vm.WaitingCount, Mode=OneWay}" FontSize="12" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                             </StackPanel>
-                        </Border>
-                        <ItemsControl ItemsSource="{x:Bind Vm.WaitingItems, Mode=OneWay}" ItemTemplate="{StaticResource TaskCardTemplate}" />
-                    </StackPanel>
+                            <ItemsControl ItemsSource="{x:Bind Vm.WaitingItems, Mode=OneWay}" ItemTemplate="{StaticResource TaskColumnGroupTemplate}" />
+                            <Button Style="{StaticResource DashedAddButtonStyle}"
+                                    Content="{x:Bind local:TaskPage.ColumnAddText}"
+                                    Tag="Waiting" Click="ColumnAdd_Click" />
+                        </StackPanel>
+                    </Border>
 
                     <!-- 진행 중 -->
-                    <StackPanel Grid.Column="1" MinWidth="220" MinHeight="120"
-                                AllowDrop="True" Tag="Active"
-                                DragOver="Column_DragOver" Drop="Column_Drop">
-                        <Border Background="{ThemeResource SolidBackgroundFillColorBaseBrush}" CornerRadius="6" Padding="10,6" Margin="0,0,0,8">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <TextBlock Text="{x:Bind local:TaskPage.LabelActive}" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <TextBlock Text="{x:Bind Vm.ActiveCount, Mode=OneWay}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    <Border Grid.Column="1" Style="{StaticResource KanbanColumnStyle}" MinWidth="230"
+                            AllowDrop="True" Tag="Active"
+                            DragOver="Column_DragOver" Drop="Column_Drop">
+                        <StackPanel MinHeight="120">
+                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="2,2,2,12">
+                                <Ellipse Width="8" Height="8" VerticalAlignment="Center" Fill="{x:Bind local:TaskPage.StatusDotActive}" />
+                                <TextBlock Text="{x:Bind local:TaskPage.LabelActive}" VerticalAlignment="Center" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock Text="{x:Bind Vm.ActiveCount, Mode=OneWay}" FontSize="12" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                             </StackPanel>
-                        </Border>
-                        <ItemsControl ItemsSource="{x:Bind Vm.ActiveItems, Mode=OneWay}" ItemTemplate="{StaticResource TaskCardTemplate}" />
-                    </StackPanel>
+                            <ItemsControl ItemsSource="{x:Bind Vm.ActiveItems, Mode=OneWay}" ItemTemplate="{StaticResource TaskColumnGroupTemplate}" />
+                            <Button Style="{StaticResource DashedAddButtonStyle}"
+                                    Content="{x:Bind local:TaskPage.ColumnAddText}"
+                                    Tag="Active" Click="ColumnAdd_Click" />
+                        </StackPanel>
+                    </Border>
 
                     <!-- 완료 -->
-                    <StackPanel Grid.Column="2" MinWidth="220" MinHeight="120"
-                                AllowDrop="True" Tag="Completed"
-                                DragOver="Column_DragOver" Drop="Column_Drop">
-                        <Border Background="{ThemeResource SolidBackgroundFillColorBaseBrush}" CornerRadius="6" Padding="10,6" Margin="0,0,0,8">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <TextBlock Text="{x:Bind local:TaskPage.LabelCompleted}" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <TextBlock Text="{x:Bind Vm.CompletedCount, Mode=OneWay}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    <Border Grid.Column="2" Style="{StaticResource KanbanColumnStyle}" MinWidth="230"
+                            AllowDrop="True" Tag="Completed"
+                            DragOver="Column_DragOver" Drop="Column_Drop">
+                        <StackPanel MinHeight="120">
+                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="2,2,2,12">
+                                <Ellipse Width="8" Height="8" VerticalAlignment="Center" Fill="{x:Bind local:TaskPage.StatusDotCompleted}" />
+                                <TextBlock Text="{x:Bind local:TaskPage.LabelCompleted}" VerticalAlignment="Center" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock Text="{x:Bind Vm.CompletedCount, Mode=OneWay}" FontSize="12" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                             </StackPanel>
-                        </Border>
-                        <ItemsControl ItemsSource="{x:Bind Vm.CompletedItems, Mode=OneWay}" ItemTemplate="{StaticResource TaskCardTemplate}" />
-                    </StackPanel>
+                            <ItemsControl ItemsSource="{x:Bind Vm.CompletedItems, Mode=OneWay}" ItemTemplate="{StaticResource TaskColumnGroupTemplate}" />
+                            <Button Style="{StaticResource DashedAddButtonStyle}"
+                                    Content="{x:Bind local:TaskPage.ColumnAddText}"
+                                    Tag="Completed" Click="ColumnAdd_Click" />
+                        </StackPanel>
+                    </Border>
 
                     <!-- 보류 -->
-                    <StackPanel Grid.Column="3" MinWidth="220" MinHeight="120"
-                                AllowDrop="True" Tag="Hold"
-                                DragOver="Column_DragOver" Drop="Column_Drop">
-                        <Border Background="{ThemeResource SolidBackgroundFillColorBaseBrush}" CornerRadius="6" Padding="10,6" Margin="0,0,0,8">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <TextBlock Text="{x:Bind local:TaskPage.LabelHold}" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <TextBlock Text="{x:Bind Vm.HoldCount, Mode=OneWay}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    <Border Grid.Column="3" Style="{StaticResource KanbanColumnStyle}" MinWidth="230"
+                            AllowDrop="True" Tag="Hold"
+                            DragOver="Column_DragOver" Drop="Column_Drop">
+                        <StackPanel MinHeight="120">
+                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="2,2,2,12">
+                                <Ellipse Width="8" Height="8" VerticalAlignment="Center" Fill="{x:Bind local:TaskPage.StatusDotHold}" />
+                                <TextBlock Text="{x:Bind local:TaskPage.LabelHold}" VerticalAlignment="Center" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock Text="{x:Bind Vm.HoldCount, Mode=OneWay}" FontSize="12" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                             </StackPanel>
-                        </Border>
-                        <ItemsControl ItemsSource="{x:Bind Vm.HoldItems, Mode=OneWay}" ItemTemplate="{StaticResource TaskCardTemplate}" />
-                    </StackPanel>
+                            <ItemsControl ItemsSource="{x:Bind Vm.HoldItems, Mode=OneWay}" ItemTemplate="{StaticResource TaskColumnGroupTemplate}" />
+                            <Button Style="{StaticResource DashedAddButtonStyle}"
+                                    Content="{x:Bind local:TaskPage.ColumnAddText}"
+                                    Tag="Hold" Click="ColumnAdd_Click" />
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </ScrollViewer>
 

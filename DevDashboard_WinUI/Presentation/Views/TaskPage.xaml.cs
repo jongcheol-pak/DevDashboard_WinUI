@@ -27,6 +27,21 @@ public sealed partial class TaskPage : UserControl
     public static string MenuDeleteText { get; } = LocalizationService.Get("TaskMenu_Delete");
     public static string MenuMoveToText { get; } = LocalizationService.Get("TaskMenu_MoveTo");
 
+    /// <summary>칸반 열 하단의 작업 추가 버튼 라벨</summary>
+    public static string ColumnAddText { get; } = LocalizationService.Get("TaskColumnAdd");
+
+    // 칸반 열 헤더의 상태 dot 색 — Palette.xaml의 AppAccent/AppInfo/AppSuccess/AppWarning과 같은 값.
+    // x:Bind는 ThemeResource를 받을 수 없어 우선순위 배지와 동일하게 정적 브러시로 둔다.
+    private static readonly SolidColorBrush _statusDotWaiting = new(ColorHelper.FromArgb(0xFF, 0xF0, 0x71, 0x6A));
+    private static readonly SolidColorBrush _statusDotActive = new(ColorHelper.FromArgb(0xFF, 0x5B, 0x93, 0xD8));
+    private static readonly SolidColorBrush _statusDotCompleted = new(ColorHelper.FromArgb(0xFF, 0x5D, 0xB4, 0x63));
+    private static readonly SolidColorBrush _statusDotHold = new(ColorHelper.FromArgb(0xFF, 0xD9, 0x95, 0x4A));
+
+    public static Brush StatusDotWaiting => _statusDotWaiting;
+    public static Brush StatusDotActive => _statusDotActive;
+    public static Brush StatusDotCompleted => _statusDotCompleted;
+    public static Brush StatusDotHold => _statusDotHold;
+
     // 칸반 열 헤더 라벨 (x:Bind 정적 참조 — StatusOptions와 동일 리소스 키 재사용)
     public static string LabelWaiting { get; } = LocalizationService.Get("TaskStatus_Waiting");
     public static string LabelActive { get; } = LocalizationService.Get("TaskStatus_Active");
@@ -166,6 +181,24 @@ public sealed partial class TaskPage : UserControl
             if (dialog.AddTestRequested)
                 Vm.CreateLinkedTest(todo);
         }
+    }
+
+    /// <summary>칸반 열 하단의 "새 작업" 버튼 — 새 작업을 그 열의 상태로 만들어 추가합니다.</summary>
+    private async void ColumnAdd_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: string statusTag }) return;
+        if (!Enum.TryParse<TodoStatus>(statusTag, out var status)) return;
+
+        var dialog = new TaskEditDialog(null, _settings);
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary || dialog.ResultTodo is not { } todo) return;
+
+        // 버튼이 속한 열의 상태를 이어받는다 (다이얼로그에는 상태 입력이 없다).
+        todo.Status = status;
+        Vm.AddTodo(todo);
+
+        // FR-T6: "테스트 추가" 토글이 켜져 있으면 연결 테스트 생성 (헤더 버튼이 제거되면 이 경로가 유일한 생성 지점)
+        if (dialog.AddTestRequested)
+            Vm.CreateLinkedTest(todo);
     }
 
     /// <summary>편집 다이얼로그를 열고 결과를 반영합니다 (목록 뷰 버튼·칸반 카드 클릭·우클릭 메뉴 공용).</summary>

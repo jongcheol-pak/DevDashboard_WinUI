@@ -219,4 +219,8 @@
 - (implement-task가 갱신)
 
 ## Progress Log
-- (implement-task가 갱신)
+- T1-T2 완료 (커밋 da29448, 5103db9): 시각 자산(Palette 색 2종+Soft 4종·Styles 3종·resw 6키)·PRD FR-T8/E4 문구 갱신 / 칸반 전용 카드 템플릿 신규 + 클릭 편집·우클릭 메뉴. 빌드 OK.
+  - 리뷰 지적 반영: SegmentedToggleStyle이 CommonStates·CheckStates가 같은 요소 Background를 건드리는 GoToState 덮어쓰기 함정 → SettingsNavItemStyle과 동일하게 CheckedBackground/HoverBackground 요소 분리로 수정.
+  - 리뷰 지적 반영: 카드 조작 핸들러를 `_ = XxxAsync()` fire-and-forget → `async void` + `await`로 통일(예외 무음화 방지, AddTask_Click 기존 관례와 일치).
+  - 결정: 우선순위 배지의 Low 글자색은 AppTextMuted(#6F6D75)가 너무 어두워 AppTextTertiary(#8A8890)를 쓴다(배경만 AppMutedSoft). 주석에 명시.
+  - 결정: 신규 resw 6키는 전부 베어네임 — TaskPage가 `LocalizationService.Get` + x:Bind 정적 프로퍼티로 소비하는 기존 관례(TaskPage.xaml.cs:23-26)를 따름.
