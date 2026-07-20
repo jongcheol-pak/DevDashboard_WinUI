@@ -265,8 +265,11 @@
                                                 Value="{ThemeResource TextFillColorPrimaryBrush}" />
                                     </VisualState.Setters>
                                 </VisualState>
+                                <!-- 같은 그룹의 상태는 배타적이라 PointerOver의 Stroke가 되돌아간다 — Pressed에서도 함께 지정한다 -->
                                 <VisualState x:Name="Pressed">
                                     <VisualState.Setters>
+                                        <Setter Target="DashBorder.Stroke"
+                                                Value="{ThemeResource AppAccentBrush}" />
                                         <Setter Target="DashBorder.Fill"
                                                 Value="{ThemeResource SubtleFillColorTertiaryBrush}" />
                                     </VisualState.Setters>
@@ -280,7 +283,12 @@
     </Style>
 
     <!-- ===== 세그먼트 토글 스타일 (칸반/목록 전환) ===== -->
-    <!-- 두 버튼이 맞붙은 그룹으로 보이도록 바깥 Border가 테두리를 그리고, 각 항목은 선택 시에만 배경을 채운다. -->
+    <!--
+        두 항목이 맞붙은 그룹으로 보이도록 바깥 Border가 테두리를 그리고, 각 항목은 선택 시에만 배경을 채운다.
+        SettingsNavItemStyle과 동일하게 선택 배경(CheckStates)과 호버 오버레이(CommonStates)를 별도 요소로 분리한다 —
+        한 요소의 같은 프로퍼티를 두 그룹이 함께 건드리면 GoToState가 서로를 덮어써
+        "선택된 항목에 마우스를 올리면 선택 표시가 사라지는" 버그가 생긴다(이 파일 상단 주석 참조).
+    -->
     <Style x:Key="SegmentedToggleStyle" TargetType="RadioButton">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
@@ -291,35 +299,45 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
-                    <Border x:Name="Root"
-                            Background="{TemplateBinding Background}"
-                            Padding="{TemplateBinding Padding}"
-                            CornerRadius="5">
-                        <ContentPresenter x:Name="Content"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"
-                                          Foreground="{TemplateBinding Foreground}"
-                                          FontSize="{TemplateBinding FontSize}" />
+                    <Grid Background="Transparent">
+                        <!-- CheckStates 그룹이 제어하는 선택 배경 -->
+                        <Border x:Name="CheckedBackground"
+                                Background="Transparent"
+                                CornerRadius="5" />
+                        <!-- CommonStates 그룹이 제어하는 호버/프레스 오버레이 -->
+                        <Border x:Name="HoverBackground"
+                                Background="Transparent"
+                                CornerRadius="5"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter x:Name="Content"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Foreground="{TemplateBinding Foreground}"
+                                              FontSize="{TemplateBinding FontSize}" />
+                        </Border>
                         <VisualStateManager.VisualStateGroups>
+                            <!-- 포인터 상태: CheckStates와 독립적으로 동작 -->
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
-                                        <Setter Target="Root.Background"
+                                        <Setter Target="HoverBackground.Background"
                                                 Value="{ThemeResource SubtleFillColorTertiaryBrush}" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Pressed">
                                     <VisualState.Setters>
-                                        <Setter Target="Root.Background"
+                                        <Setter Target="HoverBackground.Background"
                                                 Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
                                     </VisualState.Setters>
                                 </VisualState>
+                                <VisualState x:Name="Disabled" />
                             </VisualStateGroup>
+                            <!-- 선택 상태: CommonStates와 독립적으로 동작 -->
                             <VisualStateGroup x:Name="CheckStates">
                                 <VisualState x:Name="Checked">
                                     <VisualState.Setters>
-                                        <Setter Target="Root.Background"
+                                        <Setter Target="CheckedBackground.Background"
                                                 Value="{ThemeResource AppCardAltBrush}" />
                                         <Setter Target="Content.Foreground"
                                                 Value="{ThemeResource TextFillColorPrimaryBrush}" />
@@ -329,7 +347,7 @@
                                 <VisualState x:Name="Indeterminate" />
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
-                    </Border>
+                    </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
