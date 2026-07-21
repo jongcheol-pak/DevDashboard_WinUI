@@ -405,6 +405,8 @@
   <data name="TestSuitePassCount" xml:space="preserve"><value>{0}/{1} 통과</value></data>
   <data name="TestStatusPill_Tooltip" xml:space="preserve"><value>클릭하면 상태가 바뀝니다 (통과 → 실패 → 미실행)</value></data>
   <data name="TestNote_Tooltip" xml:space="preserve"><value>메모</value></data>
+  <data name="TestNote_Title" xml:space="preserve"><value>메모 추가</value></data>
+  <data name="TestNote_Placeholder" xml:space="preserve"><value>메모를 입력하세요. 비워 두고 저장하면 메모가 삭제됩니다.</value></data>
   <data name="TestStatus_All" xml:space="preserve"><value>전체</value></data>
   <data name="TestStatus_Pass" xml:space="preserve"><value>통과</value></data>
   <data name="TestStatus_Fail" xml:space="preserve"><value>실패</value></data>

@@ -230,25 +230,10 @@ public sealed partial class TestPage : UserControl
     {
         if (sender is not FrameworkElement { Tag: TestItem test }) return;
 
-        var textBox = new TextBox
-        {
-            Text = test.ProgressNote,
-            MaxLength = 500,
-            TextWrapping = TextWrapping.Wrap,
-            AcceptsReturn = true,
-            Height = 120,
-        };
-        var dialog = new ContentDialog
-        {
-            Title = LocalizationService.Get("TestEditNoteTitle"),
-            Content = textBox,
-            PrimaryButtonText = LocalizationService.Get("Dialog_Save"),
-            CloseButtonText = LocalizationService.Get("Dialog_Cancel"),
-            DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = App.MainWindow?.Content?.XamlRoot,
-        };
+        var dialog = new Dialogs.TestNoteDialog(test.Text, test.ProgressNote);
+        // 메모를 비운 채 저장하면 메모가 삭제된다(다이얼로그 안내 문구와 같은 동작).
         if (await dialog.ShowAsync() == ContentDialogResult.Primary)
-            Vm.EditProgressNote(test, textBox.Text);
+            Vm.EditProgressNote(test, dialog.ResultNote);
     }
 
 }

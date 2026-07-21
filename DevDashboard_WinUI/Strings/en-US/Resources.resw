@@ -405,6 +405,8 @@
   <data name="TestSuitePassCount" xml:space="preserve"><value>{0}/{1} passed</value></data>
   <data name="TestStatusPill_Tooltip" xml:space="preserve"><value>Click to change status (passed → failed → not run)</value></data>
   <data name="TestNote_Tooltip" xml:space="preserve"><value>Note</value></data>
+  <data name="TestNote_Title" xml:space="preserve"><value>Add note</value></data>
+  <data name="TestNote_Placeholder" xml:space="preserve"><value>Enter a note. Save it empty to remove the note.</value></data>
   <data name="TestStatus_All" xml:space="preserve"><value>All</value></data>
   <data name="TestStatus_Pass" xml:space="preserve"><value>Pass</value></data>
   <data name="TestStatus_Fail" xml:space="preserve"><value>Fail</value></data>
