@@ -152,6 +152,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -190,18 +191,6 @@
                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
             </Border>
 
-            <!-- 상태 필터 (T4에서 개수 탭바로 이설 예정) -->
-            <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                <RadioButton Content="{x:Bind local:TestPage.LabelAll}" Tag="" GroupName="TestStatusFilter"
-                             IsChecked="True" Checked="StatusTab_Checked" />
-                <RadioButton Content="{x:Bind local:TestPage.LabelPass}" Tag="Pass" GroupName="TestStatusFilter"
-                             Checked="StatusTab_Checked" />
-                <RadioButton Content="{x:Bind local:TestPage.LabelFail}" Tag="Fail" GroupName="TestStatusFilter"
-                             Checked="StatusTab_Checked" />
-                <RadioButton Content="{x:Bind local:TestPage.LabelUntested}" Tag="Untested" GroupName="TestStatusFilter"
-                             Checked="StatusTab_Checked" />
-            </StackPanel>
-
             <!-- 스위트(작업 카테고리) 필터 — 상태 필터와 직교하게 함께 적용된다 -->
             <ComboBox Grid.Column="5" x:Name="SuiteFilterCombo"
                       MinWidth="130" VerticalAlignment="Center"
@@ -214,39 +203,100 @@
                     Click="AddTest_Click" />
         </Grid>
 
-        <!-- ===== 상태 통계 카드 ===== -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="0,0,0,12">
-            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
-                    CornerRadius="6" Padding="12,8">
-                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Ellipse Width="10" Height="10" Fill="{x:Bind local:TestPage.PassBrush}" VerticalAlignment="Center" />
+        <!-- ===== 상태 통계 카드 (가로 3등분 — 좌측 색점+라벨, 우측 큰 숫자) ===== -->
+        <Grid Grid.Row="1" Margin="0,0,0,12" ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource StatCardStyle}">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Left">
+                        <Ellipse Width="10" Height="10" Fill="{x:Bind local:TestPage.PassBrush}" VerticalAlignment="Center" />
+                        <TextBlock Text="{x:Bind local:TestPage.LabelPass}" FontSize="13" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="{x:Bind Vm.PassCount, Mode=OneWay}"
+                               FontSize="22" FontWeight="SemiBold"
+                               VerticalAlignment="Center" HorizontalAlignment="Right"
+                               Foreground="{x:Bind local:TestPage.PassBrush}" />
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1" Style="{StaticResource StatCardStyle}">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Left">
+                        <Ellipse Width="10" Height="10" Fill="{x:Bind local:TestPage.FailBrush}" VerticalAlignment="Center" />
+                        <TextBlock Text="{x:Bind local:TestPage.LabelFail}" FontSize="13" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="{x:Bind Vm.FailCount, Mode=OneWay}"
+                               FontSize="22" FontWeight="SemiBold"
+                               VerticalAlignment="Center" HorizontalAlignment="Right"
+                               Foreground="{x:Bind local:TestPage.FailBrush}" />
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Style="{StaticResource StatCardStyle}">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Left">
+                        <Ellipse Width="10" Height="10" Fill="{x:Bind local:TestPage.UntestedBrush}" VerticalAlignment="Center" />
+                        <TextBlock Text="{x:Bind local:TestPage.LabelUntested}" FontSize="13" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="{x:Bind Vm.UntestedCount, Mode=OneWay}"
+                               FontSize="22" FontWeight="SemiBold"
+                               VerticalAlignment="Center" HorizontalAlignment="Right"
+                               Foreground="{x:Bind local:TestPage.UntestedBrush}" />
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ===== 상태 필터 탭바 (각 탭에 개수 배지, 선택 탭은 밑줄) ===== -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="16" Margin="0,0,0,12">
+            <RadioButton Style="{StaticResource FilterTabStyle}" Tag="" GroupName="TestStatusFilter"
+                         IsChecked="True" Checked="StatusTab_Checked">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="{x:Bind local:TestPage.LabelAll}" VerticalAlignment="Center" />
+                    <Border Style="{StaticResource TagBadgeStyle}" Margin="0" VerticalAlignment="Center"
+                            Background="{ThemeResource AppMutedSoftBrush}">
+                        <TextBlock Text="{x:Bind Vm.TotalCount, Mode=OneWay}" FontSize="10" />
+                    </Border>
+                </StackPanel>
+            </RadioButton>
+            <RadioButton Style="{StaticResource FilterTabStyle}" Tag="Pass" GroupName="TestStatusFilter"
+                         Checked="StatusTab_Checked">
+                <StackPanel Orientation="Horizontal" Spacing="6">
                     <TextBlock Text="{x:Bind local:TestPage.LabelPass}" VerticalAlignment="Center" />
-                    <TextBlock Text="{x:Bind Vm.PassCount, Mode=OneWay}" FontWeight="Bold" VerticalAlignment="Center" />
+                    <Border Style="{StaticResource TagBadgeStyle}" Margin="0" VerticalAlignment="Center"
+                            Background="{ThemeResource AppMutedSoftBrush}">
+                        <TextBlock Text="{x:Bind Vm.PassCount, Mode=OneWay}" FontSize="10" />
+                    </Border>
                 </StackPanel>
-            </Border>
-            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
-                    CornerRadius="6" Padding="12,8">
-                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Ellipse Width="10" Height="10" Fill="{x:Bind local:TestPage.FailBrush}" VerticalAlignment="Center" />
+            </RadioButton>
+            <RadioButton Style="{StaticResource FilterTabStyle}" Tag="Fail" GroupName="TestStatusFilter"
+                         Checked="StatusTab_Checked">
+                <StackPanel Orientation="Horizontal" Spacing="6">
                     <TextBlock Text="{x:Bind local:TestPage.LabelFail}" VerticalAlignment="Center" />
-                    <TextBlock Text="{x:Bind Vm.FailCount, Mode=OneWay}" FontWeight="Bold" VerticalAlignment="Center" />
+                    <Border Style="{StaticResource TagBadgeStyle}" Margin="0" VerticalAlignment="Center"
+                            Background="{ThemeResource AppMutedSoftBrush}">
+                        <TextBlock Text="{x:Bind Vm.FailCount, Mode=OneWay}" FontSize="10" />
+                    </Border>
                 </StackPanel>
-            </Border>
-            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
-                    CornerRadius="6" Padding="12,8">
-                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Ellipse Width="10" Height="10" Fill="{x:Bind local:TestPage.UntestedBrush}" VerticalAlignment="Center" />
+            </RadioButton>
+            <RadioButton Style="{StaticResource FilterTabStyle}" Tag="Untested" GroupName="TestStatusFilter"
+                         Checked="StatusTab_Checked">
+                <StackPanel Orientation="Horizontal" Spacing="6">
                     <TextBlock Text="{x:Bind local:TestPage.LabelUntested}" VerticalAlignment="Center" />
-                    <TextBlock Text="{x:Bind Vm.UntestedCount, Mode=OneWay}" FontWeight="Bold" VerticalAlignment="Center" />
+                    <Border Style="{StaticResource TagBadgeStyle}" Margin="0" VerticalAlignment="Center"
+                            Background="{ThemeResource AppMutedSoftBrush}">
+                        <TextBlock Text="{x:Bind Vm.UntestedCount, Mode=OneWay}" FontSize="10" />
+                    </Border>
                 </StackPanel>
-            </Border>
+            </RadioButton>
         </StackPanel>
 
         <!-- ===== 스위트 그룹 목록 ===== -->
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
             <ItemsControl ItemsSource="{x:Bind Vm.SuiteGroups, Mode=OneWay}"
                           ItemTemplate="{StaticResource TestSuiteGroupTemplate}" />
         </ScrollViewer>

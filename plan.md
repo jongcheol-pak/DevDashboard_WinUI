@@ -173,8 +173,8 @@
 - **Halt Forecast**: 없음 — XAML/resw restyle 위주, 파괴적·외부·의존성 요소 없음.
 
 ### T4 — TestPage.xaml 통계 카드(넓게) + 상태 필터 탭바(개수) `Type C`
-- [ ] 구현
-- **Files**: `DevDashboard_WinUI/Presentation/Views/TestPage.xaml`, `DevDashboard_WinUI/Presentation/Views/TestPage.xaml.cs`, `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`
+- [x] 구현
+- **Files**: `DevDashboard_WinUI/Presentation/Views/TestPage.xaml`, `DevDashboard_WinUI/Presentation/Views/TestPage.xaml.cs`, `DevDashboard_WinUI/Resources/Styles.xaml` *(구현 중 추가 — `StatCardStyle`·`FilterTabStyle` 신설, 프로젝트 관례상 페이지 전용 스타일도 Styles.xaml에 둔다: `KanbanColumnStyle`·`DashedAddButtonStyle` 선례)*, `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw` *(이번 task는 기존 상태 라벨 키를 재사용해 resw 변경 없음)*
 - **Design**: ① 배치 — TestPage 통계·필터 영역 XAML + 상태 탭 핸들러(기존 `StatusTab_Checked` 재사용). ② 신규 심볼 — 없음(레이아웃 재구성, 개수 바인딩은 기존 `PassCount` 등). ③ 의존 방향 — XAML→`Vm.PassCount/FailCount/UntestedCount/TotalCount`. ④ 비추상화 — 카드/탭 전용 스타일 신설 최소화, 기존 카드 Border 패턴 재사용.
 - **구성**:
   - 통계 카드 3개를 **가로 균등(넓게)** 재배치(`Grid` 3열 `*` 또는 `Stretch`), 각 카드 좌측 색점+라벨 / 우측 큰 숫자(`FontWeight Bold`, 큰 FontSize). 색점=상태 브러시(PassBrush/FailBrush/UntestedBrush).

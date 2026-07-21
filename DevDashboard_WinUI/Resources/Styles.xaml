@@ -353,4 +353,88 @@
         </Setter>
     </Style>
 
+    <!-- ===== 상태 통계 카드 스타일 (테스트 페이지 통과/실패/미실행) ===== -->
+    <Style x:Key="StatCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource AppCardBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource AppBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="14,12" />
+    </Style>
+
+    <!-- ===== 개수 표시 필터 탭 스타일 (테스트 페이지 상태 탭바) ===== -->
+    <!--
+        선택된 탭을 밑줄로 표시한다. SegmentedToggleStyle과 동일하게 선택 밑줄(CheckStates)과
+        호버 오버레이(CommonStates)를 별도 요소로 분리한다 — 한 요소의 같은 프로퍼티를 두 그룹이
+        건드리면 GoToState가 서로를 덮어써 "선택된 탭에 마우스를 올리면 밑줄이 사라지는" 버그가 생긴다.
+    -->
+    <Style x:Key="FilterTabStyle" TargetType="RadioButton">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="4,6" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{ThemeResource TextFillColorTertiaryBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Grid Background="Transparent">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <!-- CommonStates 그룹이 제어하는 호버/프레스 오버레이 -->
+                        <Border x:Name="HoverBackground"
+                                Grid.Row="0"
+                                Background="Transparent"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter x:Name="Content"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Foreground="{TemplateBinding Foreground}"
+                                              FontSize="{TemplateBinding FontSize}" />
+                        </Border>
+                        <!-- CheckStates 그룹이 제어하는 선택 밑줄 -->
+                        <Border x:Name="SelectedUnderline"
+                                Grid.Row="1"
+                                Height="2"
+                                CornerRadius="1"
+                                Background="Transparent" />
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="HoverBackground.Background"
+                                                Value="{ThemeResource SubtleFillColorTertiaryBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="HoverBackground.Background"
+                                                Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Disabled" />
+                            </VisualStateGroup>
+                            <VisualStateGroup x:Name="CheckStates">
+                                <VisualState x:Name="Checked">
+                                    <VisualState.Setters>
+                                        <Setter Target="SelectedUnderline.Background"
+                                                Value="{ThemeResource AppAccentBrush}" />
+                                        <Setter Target="Content.Foreground"
+                                                Value="{ThemeResource TextFillColorPrimaryBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Unchecked" />
+                                <VisualState x:Name="Indeterminate" />
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
 </ResourceDictionary>
