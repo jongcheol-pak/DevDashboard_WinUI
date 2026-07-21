@@ -449,6 +449,7 @@
   <data name="TaskDelete_Confirm" xml:space="preserve"><value>'{0}' 작업을 삭제할까요?</value></data>
   <data name="TaskDateRange" xml:space="preserve"><value>{0} – {1}</value></data>
   <data name="TaskPassRateBadge" xml:space="preserve"><value>✓ 통과율 {0}% · {1}건</value></data>
+  <data name="TaskNoTestBadge" xml:space="preserve"><value>✓ 테스트 미실행</value></data>
   <data name="TaskColumnAdd" xml:space="preserve"><value>+ 새 작업</value></data>
   <data name="TaskMenu_Edit" xml:space="preserve"><value>편집</value></data>
   <data name="TaskMenu_Delete" xml:space="preserve"><value>삭제</value></data>

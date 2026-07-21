@@ -135,31 +135,37 @@ public partial class TaskPageViewModel : ObservableObject
         foreach (var g in groups)
         {
             var displayName = string.IsNullOrEmpty(g.Key) ? LocalizationService.Get("TaskCategory_None") : g.Key;
+            var (badgeText, hasResult) = BuildPassRateBadge(g.Key);
             column.Add(new TaskColumnGroup(
                 displayName,
-                BuildPassRateBadge(g.Key),
+                badgeText,
+                hasResult,
                 g.OrderByDescending(t => t.CreatedAt).ToList()));
         }
     }
 
     private static int CountItems(IEnumerable<TaskColumnGroup> groups) => groups.Sum(g => g.Items.Count);
 
-    /// <summary>카테고리 그룹 헤더에 표시할 테스트 통과율 배지 텍스트를 만듭니다.
-    /// 같은 이름의 테스트 카테고리를 기준으로 하며, 일치하는 카테고리가 없거나 테스트가 0건이면 빈 문자열(배지 미표시).
-    /// "미분류"는 실제 카테고리가 아니므로 대상에서 제외한다.</summary>
-    private string BuildPassRateBadge(string category)
+    /// <summary>카테고리 그룹 헤더에 표시할 테스트 배지를 만듭니다 (텍스트 + 통과율을 아는지 여부).
+    /// 같은 이름의 테스트 카테고리를 기준으로 하며, 테스트가 없거나 한 건도 실행되지 않았으면
+    /// "테스트 미실행" 배지를 낸다(통과율 0%와 구분 — 실행해서 다 실패한 것과 아직 안 돌린 것은 다르다).
+    /// "미분류"는 실제 카테고리가 아니므로 배지를 달지 않는다.</summary>
+    private (string Text, bool HasResult) BuildPassRateBadge(string category)
     {
-        if (string.IsNullOrEmpty(category)) return string.Empty;
+        if (string.IsNullOrEmpty(category)) return (string.Empty, false);
 
         var testCategory = (_project.TestCategories ?? [])
             .FirstOrDefault(c => string.Equals(c.Name, category, StringComparison.OrdinalIgnoreCase));
 
-        var total = testCategory?.Items.Count ?? 0;
-        if (total == 0) return string.Empty;
+        var items = testCategory?.Items;
+        var total = items?.Count ?? 0;
+        var executed = items?.Count(t => t.Status != TestItem.StatusUntested) ?? 0;
+        if (total == 0 || executed == 0)
+            return (LocalizationService.Get("TaskNoTestBadge"), false);
 
-        var pass = testCategory!.Items.Count(t => t.Status == TestItem.StatusPass);
+        var pass = items!.Count(t => t.Status == TestItem.StatusPass);
         var rate = (double)pass / total * 100d;
-        return string.Format(LocalizationService.Get("TaskPassRateBadge"), $"{rate:0}", total);
+        return (string.Format(LocalizationService.Get("TaskPassRateBadge"), $"{rate:0}", total), true);
     }
 
     /// <summary>목록 뷰용 카테고리 그룹을 구성합니다 (빈 카테고리는 "미분류").</summary>
@@ -288,6 +294,6 @@ public partial class TaskPageViewModel : ObservableObject
 public sealed record TaskCategoryGroup(string CategoryName, IReadOnlyList<TodoItem> Items);
 
 /// <summary>칸반 열 안에서 카테고리별로 묶은 작업 그룹.
-/// 목록 뷰의 TaskCategoryGroup과 달리 그룹 헤더에 표시할 테스트 통과율 배지를 함께 갖는다
-/// (빈 문자열이면 배지 미표시).</summary>
-public sealed record TaskColumnGroup(string CategoryName, string PassRateBadge, IReadOnlyList<TodoItem> Items);
+/// 목록 뷰의 TaskCategoryGroup과 달리 그룹 헤더에 표시할 테스트 배지를 함께 갖는다
+/// (`PassRateBadge`가 빈 문자열이면 배지 미표시, `HasTestResult`가 false면 "테스트 미실행" 배지라 색이 다르다).</summary>
+public sealed record TaskColumnGroup(string CategoryName, string PassRateBadge, bool HasTestResult, IReadOnlyList<TodoItem> Items);

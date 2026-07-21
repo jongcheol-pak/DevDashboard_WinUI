@@ -109,11 +109,13 @@
         <DataTemplate x:Key="TaskColumnGroupTemplate" x:DataType="vm:TaskColumnGroup">
             <StackPanel Margin="0,0,0,2">
                 <Grid ColumnSpacing="6" Margin="2,0,2,6">
+                    <!-- 배지는 카테고리·개수 바로 옆에 붙인다(마지막 * 컬럼이 남는 폭을 흡수) -->
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Ellipse
                         Grid.Column="0"
@@ -130,19 +132,21 @@
                         Grid.Column="2"
                         Text="{x:Bind Items.Count}"
                         FontSize="12"
+                        Margin="0,0,8,0"
                         VerticalAlignment="Center"
                         Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    <!-- 테스트 배지 — 통과율을 아는 경우 초록, 아직 한 건도 실행 안 됐으면 회색("테스트 미실행") -->
                     <Border
                         Grid.Column="3"
                         Style="{StaticResource TagBadgeStyle}"
                         Margin="0"
                         VerticalAlignment="Center"
-                        Background="{ThemeResource AppSuccessSoftBrush}"
+                        Background="{x:Bind local:TaskPage.TestBadgeBackground(HasTestResult)}"
                         Visibility="{x:Bind PassRateBadge, Converter={StaticResource StringNotEmptyToVisibility}}">
                         <TextBlock
                             Text="{x:Bind PassRateBadge}"
                             FontSize="10"
-                            Foreground="{ThemeResource AppSuccessBrush}" />
+                            Foreground="{x:Bind local:TaskPage.TestBadgeForeground(HasTestResult)}" />
                     </Border>
                 </Grid>
                 <ItemsControl ItemsSource="{x:Bind Items}" ItemTemplate="{StaticResource TaskKanbanCardTemplate}" />

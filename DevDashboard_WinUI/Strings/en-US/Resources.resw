@@ -449,6 +449,7 @@
   <data name="TaskDelete_Confirm" xml:space="preserve"><value>Delete task '{0}'?</value></data>
   <data name="TaskDateRange" xml:space="preserve"><value>{0} – {1}</value></data>
   <data name="TaskPassRateBadge" xml:space="preserve"><value>✓ {0}% passing · {1}</value></data>
+  <data name="TaskNoTestBadge" xml:space="preserve"><value>✓ No tests run</value></data>
   <data name="TaskColumnAdd" xml:space="preserve"><value>+ New task</value></data>
   <data name="TaskMenu_Edit" xml:space="preserve"><value>Edit</value></data>
   <data name="TaskMenu_Delete" xml:space="preserve"><value>Delete</value></data>

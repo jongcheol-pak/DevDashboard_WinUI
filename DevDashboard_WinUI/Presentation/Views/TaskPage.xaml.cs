@@ -146,6 +146,19 @@ public sealed partial class TaskPage : UserControl
         _ => _priorityNormalSoftBrush,
     };
 
+    // 테스트 배지 색 — 통과율을 아는 경우 AppSuccess(#5DB463), 아직 한 건도 실행 안 된 경우 회색.
+    // (우선순위 배지와 같은 이유로 정적 브러시: x:Bind 함수 바인딩은 ThemeResource를 받지 못한다)
+    private static readonly SolidColorBrush _testBadgeBrush = new(ColorHelper.FromArgb(0xFF, 0x5D, 0xB4, 0x63));
+    private static readonly SolidColorBrush _testBadgeSoftBrush = new(ColorHelper.FromArgb(0x28, 0x5D, 0xB4, 0x63));
+
+    /// <summary>테스트 배지의 글자 색 (미실행이면 우선순위 Low와 같은 회색)</summary>
+    public static Brush TestBadgeForeground(bool hasTestResult)
+        => hasTestResult ? _testBadgeBrush : _priorityLowBrush;
+
+    /// <summary>테스트 배지의 배경 색 (미실행이면 우선순위 Low와 같은 회색 저채도)</summary>
+    public static Brush TestBadgeBackground(bool hasTestResult)
+        => hasTestResult ? _testBadgeSoftBrush : _priorityLowSoftBrush;
+
     // ===== 네비게이션·뷰 =====
 
     private void Back_Click(object sender, RoutedEventArgs e)
