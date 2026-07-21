@@ -76,8 +76,8 @@ public partial class TaskEditDialogViewModel : ObservableObject
         {
             Title = existing.Text;
             Description = existing.Description;
-            // 빈 카테고리는 미선택(null)으로 열어 그대로 저장 시 빈 값이 보존되게 한다("미분류" 표시는 목록에서만).
-            SelectedCategoryOption = string.IsNullOrEmpty(existing.Category) ? null : existing.Category;
+            // 빈 카테고리(미분류) 항목은 콤보가 비어 보이지 않도록 첫 카테고리를 기본 표시한다.
+            SelectedCategoryOption = string.IsNullOrEmpty(existing.Category) ? CategoryOptions[0] : existing.Category;
             SelectedPriority = Priorities.First(p => p.Value == existing.Priority);
             StartDate = existing.StartDate.HasValue ? new DateTimeOffset(existing.StartDate.Value) : null;
             EndDate = existing.EndDate.HasValue ? new DateTimeOffset(existing.EndDate.Value) : null;

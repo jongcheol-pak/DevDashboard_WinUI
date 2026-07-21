@@ -112,6 +112,12 @@
                 x:Uid="TaskEdit_AddTestCard"
                 Margin="0,4,0,0"
                 Visibility="{x:Bind Vm.ShowTestToggle, Converter={StaticResource BoolToVisibility}}">
+                <!-- 다이얼로그 폭이 좁아도 토글을 세로로 내리지 않고 헤더 오른쪽에 유지한다.
+                     기본 임계값(476/286px)을 0으로 덮어써 SettingsCard의 세로 wrap을 끈다. -->
+                <toolkit:SettingsCard.Resources>
+                    <x:Double x:Key="SettingsCardWrapThreshold">0</x:Double>
+                    <x:Double x:Key="SettingsCardWrapNoIconThreshold">0</x:Double>
+                </toolkit:SettingsCard.Resources>
                 <ToggleSwitch
                     OnContent=""
                     OffContent=""

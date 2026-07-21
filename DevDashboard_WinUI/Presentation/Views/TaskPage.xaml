@@ -68,6 +68,8 @@
                             Grid.Column="0"
                             Text="{x:Bind Text, Mode=OneWay}"
                             TextWrapping="Wrap"
+                            MaxLines="2"
+                            TextTrimming="CharacterEllipsis"
                             VerticalAlignment="Center"
                             Style="{StaticResource BodyStrongTextBlockStyle}" />
                         <Border
@@ -83,11 +85,13 @@
                         </Border>
                     </Grid>
 
-                    <!-- 설명 -->
+                    <!-- 설명 (최대 2줄, 넘치면 말줄임) -->
                     <TextBlock
                         Text="{x:Bind Description, Mode=OneWay}"
                         FontSize="12"
                         TextWrapping="Wrap"
+                        MaxLines="2"
+                        TextTrimming="CharacterEllipsis"
                         Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                         Visibility="{x:Bind Description, Converter={StaticResource StringNotEmptyToVisibility}, Mode=OneWay}" />
 
@@ -191,10 +195,12 @@
                         </Border>
                     </StackPanel>
 
-                    <!-- 제목 -->
+                    <!-- 제목 (최대 2줄, 넘치면 말줄임) -->
                     <TextBlock
                         Text="{x:Bind Text, Mode=OneWay}"
                         TextWrapping="Wrap"
+                        MaxLines="2"
+                        TextTrimming="CharacterEllipsis"
                         Style="{StaticResource BodyStrongTextBlockStyle}" />
 
                     <!-- 시작/종료일 -->
@@ -311,11 +317,20 @@
         <Grid Grid.Row="1">
             <!-- 칸반 뷰 -->
             <ScrollViewer
+                x:Name="KanbanScrollViewer"
                 HorizontalScrollBarVisibility="Auto"
                 VerticalScrollBarVisibility="Auto"
                 HorizontalScrollMode="Auto"
                 Visibility="{x:Bind Vm.IsKanbanView, Converter={StaticResource BoolToVisibility}, Mode=OneWay}">
-                <Grid ColumnSpacing="10">
+                <!--
+                    가로 스크롤 ScrollViewer는 콘텐츠에 무한 너비를 주므로 Width="*" 열이 뷰포트에 맞지 않고
+                    카드 텍스트 길이만큼 늘어나 줄바꿈(TextWrapping/MaxLines)이 깨진다.
+                    Grid 너비를 뷰포트 너비에 묶어 유한하게 만들고(→ 열이 균등 분배·텍스트 줄바꿈 동작),
+                    MinWidth로 좁은 창에서는 가로 스크롤이 나오게 한다(열 4개×MinWidth 230 + 간격 3×10 = 950).
+                -->
+                <Grid ColumnSpacing="10"
+                      MinWidth="950"
+                      Width="{Binding ViewportWidth, ElementName=KanbanScrollViewer}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
