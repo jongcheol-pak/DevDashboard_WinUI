@@ -38,6 +38,10 @@ public sealed partial class TestPage : UserControl
     private static readonly SolidColorBrush _failSoftBrush = new(ColorHelper.FromArgb(0x28, 0xE8, 0xB4, 0x5A));
     private static readonly SolidColorBrush _untestedSoftBrush = new(ColorHelper.FromArgb(0x28, 0x8A, 0x88, 0x90));
 
+    // 상태색으로 채운 아이콘 위의 글리프 색 / 테두리·배경을 그리지 않을 때 쓰는 투명 브러시
+    private static readonly SolidColorBrush _glyphOnFillBrush = new(Colors.White);
+    private static readonly SolidColorBrush _transparentBrush = new(Colors.Transparent);
+
     public static Brush PassBrush => _passBrush;
     public static Brush FailBrush => _failBrush;
     public static Brush UntestedBrush => _untestedBrush;
@@ -75,6 +79,32 @@ public sealed partial class TestPage : UserControl
         TestItem.StatusFail => _failSoftBrush,
         _ => _untestedSoftBrush,
     };
+
+    /// <summary>상태 아이콘 배경 — 통과·실패는 상태색으로 채우고, 미실행은 저투명(테두리로 표현)</summary>
+    public static Brush StatusIconBackground(string status) => status switch
+    {
+        TestItem.StatusPass => _passBrush,
+        TestItem.StatusFail => _failBrush,
+        _ => _untestedSoftBrush,
+    };
+
+    /// <summary>상태 아이콘 테두리 — 채워지지 않는 미실행만 회색 테두리를 그린다</summary>
+    public static Brush StatusIconBorderBrush(string status) => status switch
+    {
+        TestItem.StatusPass or TestItem.StatusFail => _transparentBrush,
+        _ => _untestedBrush,
+    };
+
+    /// <summary>상태 아이콘 글리프 색 — 채워진 배경 위에서는 흰색, 미실행은 회색</summary>
+    public static Brush StatusGlyphForeground(string status) => status switch
+    {
+        TestItem.StatusPass or TestItem.StatusFail => _glyphOnFillBrush,
+        _ => _untestedBrush,
+    };
+
+    /// <summary>메모 블록 표시 여부 (메모가 있을 때만 행 아래에 붙는다)</summary>
+    public static Visibility NoteVisibility(string note)
+        => string.IsNullOrWhiteSpace(note) ? Visibility.Collapsed : Visibility.Visible;
 
     /// <summary>상태 아이콘 글리프 (통과 ✓ / 실패 ✕ / 미실행 ○)</summary>
     public static string StatusGlyph(string status) => status switch
@@ -123,6 +153,20 @@ public sealed partial class TestPage : UserControl
         // 첫 항목은 "전체"(SelectedIndex 0)이므로 필터를 해제한다.
         if (sender is not ComboBox { SelectedIndex: var index } combo) return;
         Vm.SelectedSuiteFilter = index <= 0 ? null : combo.SelectedItem as string;
+    }
+
+    // ===== 항목 행 마우스 오버 =====
+    // DataTemplate 안에서는 VisualStateManager의 GoToState가 동작하지 않으므로 배경을 직접 바꾼다.
+
+    private void Row_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border row) row.Background = (Brush)Resources["RowHoverBrush"];
+    }
+
+    private void Row_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        // null이 아니라 Transparent로 되돌린다 — null이면 hit-test 영역이 텍스트로 좁아져 행 hover가 끊긴다.
+        if (sender is Border row) row.Background = _transparentBrush;
     }
 
     // ===== 항목 상태 pill (클릭하면 다음 상태로 순환) =====

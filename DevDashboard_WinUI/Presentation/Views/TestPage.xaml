@@ -11,14 +11,22 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
 
     <UserControl.Resources>
+        <!-- 행 마우스 오버 배경 — 코드비하인드에서 조회하므로 팔레트 색을 이름 있는 리소스로 둔다 -->
+        <SolidColorBrush x:Key="RowHoverBrush" Color="{ThemeResource SubtleFillColorTertiary}" />
+
         <!--
-            테스트 항목 행 — 시안 구성(좌측 상태 아이콘 + 이름 / 우측 상태 pill).
+            테스트 항목 행 — 시안 구성(좌측 상태 아이콘 + 이름·메모 / 우측 상태 pill).
             조작 버튼은 노출하지 않는다: 상태는 pill 클릭으로 순환하고, 편집·메모·삭제는 우클릭 메뉴로 한다
-            (작업 칸반 카드와 동일한 방식). 방법·메모 본문은 행에 싣지 않고 편집·메모 다이얼로그에서 다룬다.
+            (작업 칸반 카드와 동일한 방식). 방법 본문은 행에 싣지 않고 편집 다이얼로그에서 다룬다.
         -->
         <DataTemplate x:Key="TestItemRowTemplate" x:DataType="models:TestItem">
-            <Grid ColumnSpacing="10" Padding="12,9" Background="Transparent">
-                <Grid.ContextFlyout>
+            <!-- 상단 1px 선이 행 사이 구분선이 된다(첫 행의 선은 헤더와 목록을 가른다) -->
+            <Border BorderThickness="0,1,0,0"
+                    BorderBrush="{ThemeResource AppBorderBrush}"
+                    Background="Transparent"
+                    PointerEntered="Row_PointerEntered"
+                    PointerExited="Row_PointerExited">
+                <Border.ContextFlyout>
                     <MenuFlyout>
                         <MenuFlyoutItem Text="{x:Bind local:TestPage.EditTooltip}"
                                         Tag="{x:Bind}" Click="EditTest_Click">
@@ -40,48 +48,81 @@
                             </MenuFlyoutItem.Icon>
                         </MenuFlyoutItem>
                     </MenuFlyout>
-                </Grid.ContextFlyout>
+                </Border.ContextFlyout>
 
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+                <!-- Background=Transparent 유지: 빈 영역까지 hit-test 돼야 행 전체가 hover·우클릭 대상이 된다 -->
+                <Grid ColumnSpacing="10" Padding="12,9" Background="Transparent">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-                <!-- 상태 아이콘 (원형 저투명 배경) -->
-                <Border Grid.Column="0"
-                        Width="22" Height="22"
-                        CornerRadius="11"
-                        VerticalAlignment="Center"
-                        Background="{x:Bind local:TestPage.StatusSoftBrush(Status), Mode=OneWay}">
-                    <TextBlock Text="{x:Bind local:TestPage.StatusGlyph(Status), Mode=OneWay}"
-                               Foreground="{x:Bind local:TestPage.StatusBrush(Status), Mode=OneWay}"
-                               FontSize="12" FontWeight="Bold"
-                               HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Border>
+                    <!-- 상태 아이콘 — 통과·실패는 상태색으로 채우고 흰 글리프, 미실행은 테두리만 -->
+                    <Border Grid.Column="0" Grid.RowSpan="2"
+                            Width="22" Height="22"
+                            CornerRadius="6"
+                            VerticalAlignment="Center"
+                            Background="{x:Bind local:TestPage.StatusIconBackground(Status), Mode=OneWay}"
+                            BorderBrush="{x:Bind local:TestPage.StatusIconBorderBrush(Status), Mode=OneWay}"
+                            BorderThickness="1.5">
+                        <TextBlock Text="{x:Bind local:TestPage.StatusGlyph(Status), Mode=OneWay}"
+                                   Foreground="{x:Bind local:TestPage.StatusGlyphForeground(Status), Mode=OneWay}"
+                                   FontSize="12" FontWeight="Bold"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
 
-                <TextBlock Grid.Column="1"
-                           Text="{x:Bind Text, Mode=OneWay}"
-                           FontSize="13"
-                           VerticalAlignment="Center"
-                           TextWrapping="Wrap"
-                           MaxLines="2"
-                           TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1" Grid.Row="0"
+                               Text="{x:Bind Text, Mode=OneWay}"
+                               FontSize="13"
+                               VerticalAlignment="Center"
+                               TextWrapping="Wrap"
+                               MaxLines="2"
+                               TextTrimming="CharacterEllipsis" />
 
-                <!-- 상태 pill — 클릭할 때마다 통과 → 실패 → 미실행 순으로 바뀐다 -->
-                <Border Grid.Column="2"
-                        Style="{StaticResource TagBadgeStyle}"
-                        Margin="0"
-                        VerticalAlignment="Center"
-                        Background="{x:Bind local:TestPage.StatusSoftBrush(Status), Mode=OneWay}"
-                        Tag="{x:Bind}"
-                        Tapped="StatusPill_Click"
-                        ToolTipService.ToolTip="{x:Bind local:TestPage.StatusPillTooltip}">
-                    <TextBlock Text="{x:Bind local:TestPage.StatusText(Status), Mode=OneWay}"
-                               FontSize="11"
-                               Foreground="{x:Bind local:TestPage.StatusBrush(Status), Mode=OneWay}" />
-                </Border>
-            </Grid>
+                    <!-- 메모 — 있을 때만 이름 아래에 인용 블록으로 붙는다 -->
+                    <Border Grid.Column="1" Grid.Row="1"
+                            Visibility="{x:Bind local:TestPage.NoteVisibility(ProgressNote), Mode=OneWay}"
+                            Background="{ThemeResource AppInputBrush}"
+                            BorderBrush="{ThemeResource AppWarningBrush}"
+                            BorderThickness="2,0,0,0"
+                            CornerRadius="4"
+                            Padding="8,6"
+                            Margin="0,6,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE7C1;" FontSize="11"
+                                      Foreground="{ThemeResource AppWarningBrush}"
+                                      VerticalAlignment="Top" Margin="0,2,0,0" />
+                            <TextBlock Text="{x:Bind ProgressNote, Mode=OneWay}"
+                                       FontSize="12"
+                                       TextWrapping="Wrap"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 상태 pill — 클릭할 때마다 통과 → 실패 → 미실행 순으로 바뀐다.
+                         MinWidth로 세 상태의 폭을 맞춘다("미실행" 3자가 최대 폭) -->
+                    <Border Grid.Column="2" Grid.RowSpan="2"
+                            Style="{StaticResource TagBadgeStyle}"
+                            Margin="0"
+                            MinWidth="52"
+                            VerticalAlignment="Center"
+                            Background="{x:Bind local:TestPage.StatusSoftBrush(Status), Mode=OneWay}"
+                            Tag="{x:Bind}"
+                            Tapped="StatusPill_Click"
+                            ToolTipService.ToolTip="{x:Bind local:TestPage.StatusPillTooltip}">
+                        <TextBlock Text="{x:Bind local:TestPage.StatusText(Status), Mode=OneWay}"
+                                   FontSize="11"
+                                   HorizontalAlignment="Stretch"
+                                   TextAlignment="Center"
+                                   Foreground="{x:Bind local:TestPage.StatusBrush(Status), Mode=OneWay}" />
+                    </Border>
+                </Grid>
+            </Border>
         </DataTemplate>
 
         <!--

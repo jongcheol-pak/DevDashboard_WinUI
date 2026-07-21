@@ -167,7 +167,7 @@
 - **Halt Forecast**: 없음 — `FilterTabStyle` 소비처는 TestPage 상태 탭 4곳뿐(grep 전수), 파괴적·외부 작업 없음.
 
 ### T2 — 테스트 항목 행 재구성: 구분선·pill 폭·상태 아이콘·hover·메모 표시 `Type D`
-- [ ] 구현
+- [x] 구현
 - **Files**: `DevDashboard_WinUI/Presentation/Views/TestPage.xaml`(`TestItemRowTemplate` + `UserControl.Resources`), `DevDashboard_WinUI/Presentation/Views/TestPage.xaml.cs`(아이콘 헬퍼·`NoteVisibility`·hover 핸들러)
 - **Design**: ① 배치 — 전부 `TestPage`(뷰 국소, Presentation). ② 신규 심볼 — `NoteVisibility(string note)`(메모 유무 → `Visibility` 직접 반환) / `StatusIconBackground(string status)`(통과·실패는 상태색 채움, 미실행은 저투명) / `StatusIconBorderBrush(string status)`(미실행만 회색 테두리, 나머지 투명) / `StatusGlyphForeground(string status)`(통과·실패 흰색, 미실행 회색) / `Row_PointerEntered`·`Row_PointerExited`(행 배경 토글). ③ 의존 방향 — XAML `x:Bind` 함수 바인딩이 코드비하인드 정적 헬퍼를 참조(함정 5), 헬퍼는 기존 `_passBrush`/`_failBrush`/`_untestedBrush`·`StatusSoftBrush`만 참조하며 외부 의존 없음. ④ 비추상화 — 상태색을 `Palette.xaml`로 이관하거나 상태별 스타일 리소스를 만들지 않는다(현행 코드비하인드 고정 방식 유지 — 이관은 Deferred `[SUGGEST]`).
 - **구성**:
@@ -275,6 +275,7 @@
 
 > 마크업 수준 대조는 각 task의 V-9/spec 리뷰에서 완료. 아래는 **빌드로 판정 불가한 렌더 외형·실동작**이라 완료 선언 전 사용자 확인이 필요한 항목이다.
 
+- **T2**: 행 사이 구분선 농도·간격 / 상태 아이콘 라운드 사각형(통과·실패 채움+흰 글리프, 미실행 테두리형) / 상태 pill 3종 폭 동일 / 행 마우스 오버 배경 변화 / 메모 블록(좌측 주황 바·깃발·본문) 배치와 이름 2줄일 때 아이콘·pill 세로 중앙 정렬
 - **T1**: 선택 탭 라벨이 굵게 보이는지 / 개수 배지는 굵어지지 않았는지 / 선택 탭에 마우스를 올려도 밑줄이 유지되는지(함정 7) / **미실행 → 전체 클릭 시 전 항목 재표시**(D1 가설 검증)
 
 ## Phase Ledger
