@@ -95,6 +95,14 @@ public sealed partial class TestPage : UserControl
         _ => _untestedBrush,
     };
 
+    /// <summary>상태 아이콘 테두리 두께 — Border의 배경은 테두리 안쪽에만 그려지므로,
+    /// 채움 상태에 두께를 남기면 색 사각형이 그만큼 작아져 미실행과 크기가 달라 보인다.</summary>
+    public static Thickness StatusIconBorderThickness(string status) => status switch
+    {
+        TestItem.StatusPass or TestItem.StatusFail => new Thickness(0),
+        _ => new Thickness(1.5),
+    };
+
     /// <summary>상태 아이콘 글리프 색 — 채워진 배경 위에서는 흰색, 미실행은 회색</summary>
     public static Brush StatusGlyphForeground(string status) => status switch
     {

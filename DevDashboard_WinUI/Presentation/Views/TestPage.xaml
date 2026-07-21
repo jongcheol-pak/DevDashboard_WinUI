@@ -69,7 +69,7 @@
                             VerticalAlignment="Center"
                             Background="{x:Bind local:TestPage.StatusIconBackground(Status), Mode=OneWay}"
                             BorderBrush="{x:Bind local:TestPage.StatusIconBorderBrush(Status), Mode=OneWay}"
-                            BorderThickness="1.5">
+                            BorderThickness="{x:Bind local:TestPage.StatusIconBorderThickness(Status), Mode=OneWay}">
                         <TextBlock Text="{x:Bind local:TestPage.StatusGlyph(Status), Mode=OneWay}"
                                    Foreground="{x:Bind local:TestPage.StatusGlyphForeground(Status), Mode=OneWay}"
                                    FontSize="12" FontWeight="Bold"
