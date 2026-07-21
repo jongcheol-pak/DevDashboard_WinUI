@@ -118,7 +118,7 @@
 |---|---|---|---|
 | FR-E1 (테스트 전체 페이지 + 통계 카드 + 상태 필터 탭) | Must | T1, T4 | ✅ 커버(통계 카드 restyle + 개수 탭바) |
 | FR-E3 (등록/편집 다이얼로그 이름/스위트/방법) | Must | T2 | ✅ 커버(스위트=작업 카테고리 드롭다운 + 문구 정합) |
-| FR-E5 (테스트 목록 restyle — 스위트 그룹·통과율 바·상태 아이콘/배지) | Should | T3, T5 | ✅ 커버 |
+| FR-E5 (테스트 목록 restyle — 스위트 그룹·통과율 바·상태 아이콘/배지·**에러/메모 표시**) | Should | T3, T5 | ⚠️ **부분 커버** — 스위트 그룹·통과율 바·상태 아이콘/배지는 충족. **"에러/메모 표시"는 시안(이미지2) 반영으로 행에서 제외**(데이터·편집 경로는 유지, Deferred 등재). PRD 본문 갱신은 **사용자 승인 대기**(F-7 M1) |
 | FR-E4 / FR-T8 (테스트↔작업 연결·칸반 통과율 배지 배선) | Should | T1·T2(스위트=작업 카테고리로 정렬) + 선행 CreateLinkedTest 수정 | ✅ 커버(배선 완성) |
 | FR-E2 (테스트 상태 모델 통과/실패/미실행) | Must | — | 이번 범위 외 (기구현 — 상태 모델 무변경) |
 | FR-T1~T8·FR-C*·FR-S*·FR-H*·FR-N* | Must/Should | — | 이번 범위 외 (기구현, 이번 diff 무관) |
@@ -256,7 +256,10 @@
 - **통합**: 새 테스트를 작업 카테고리(예 UI·UX) 스위트로 등록 → **칸반 그 카테고리 그룹에 통과율 배지 표시**(이번 작업의 궁극 목표)
 
 ## Phase Ledger
-- (진행 중) T1·T2 완료.
+- 전 task(T1~T5) 완료.
+- **Phase F 통과 (HEAD b920314)** — F-1 Goal 재확인, F-2 클린 리빌드(`-t:Rebuild`) 오류 0·신규 경고 0(기존 NU1903 1 + CS0612 4만), F-3 영향 회귀 0, F-4/F-5 follow-up 등재, F-6 자기정직성 통과, F-6.5 notes·deferred 대장 반영(아카이브 due 아님 — 21,778자·최신 3일 내, 인덱스↔파일 5:5 정합). F-7 `plan-completion-reviewer`: BLOCKER 0 / MAJOR 1(M1 — FR-E5 부분 커버 표기 정정, plan 측 반영 완료·PRD 측은 승인 대기) / MINOR 4(m1~m4 — Deferred 등재 및 커밋 반영).
+- **Phase G 통과 (Must 100%)** — 커버 대상 active Must FR(FR-E1·FR-E3) 전부 충족, 재루프 0회. Should FR-E5는 시안 반영으로 "에러/메모 표시" 부분 제외(사용자 판단 대상), FR-E4/FR-T8은 배선 완료·실동작 ⏳ HUMAN-VERIFY.
+- **F-8 미통과 — 시각/동작 확인 대기**: `## F-8 인계 목록`의 `⏳ 미확인` 항목이 남아 **완료 선언 보류**(사용자 육안·실행 확인 필요).
 
 ## Progress Log
 - T1 완료 (커밋 1f2bd6b): TestPageViewModel에 AppSettings 주입(호출부 ProjectCardViewModel 1곳), AvailableCategories(작업 카테고리)·SelectedSuiteFilter 추가, Rebuild에 스위트 필터를 상태 필터와 직교 적용(통계는 전체 기준 유지). 빌드 OK.
