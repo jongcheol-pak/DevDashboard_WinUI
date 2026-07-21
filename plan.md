@@ -185,7 +185,7 @@
 - **Halt Forecast**: 없음 — XAML/resw restyle 위주, 파괴적·외부·의존성 요소 없음.
 
 ### T5 — TestPage.xaml 스위트 그룹 + 테스트 행 재구성 + 조작(pill 순환·우클릭) `Type D`
-- [ ] 구현
+- [x] 구현
 - **Files**: `DevDashboard_WinUI/Presentation/Views/TestPage.xaml`, `DevDashboard_WinUI/Presentation/Views/TestPage.xaml.cs`, `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`
 - **Design**: ① 배치 — TestPage 스위트 그룹·항목 DataTemplate + 코드비하인드 헬퍼/핸들러. ② 신규 심볼 — `FormatPassCount(int,int)`(정적, "N/M 통과"), `StatusSoftBrush(string)`(정적, 상태 soft Brush — 함정 5), `StatusPill_Click`(순환 핸들러), 순환 다음상태 계산(인라인 or `NextStatus(string)`). ③ 의존 방향 — XAML→정적 헬퍼·`Vm.ChangeTestStatus`. ④ 비추상화 — 상태별 색을 Converter로 빼지 않고 정적 헬퍼 직접 반환(함정 5), pill/아이콘 전용 UserControl 만들지 않음(인라인 템플릿).
 - **구성**:
@@ -213,7 +213,9 @@
 - **[NotificationPage 시안 대조]** — 대장 `:23`의 NotificationPage 몫은 이번 범위 밖. 시안 확보 후 별도 진행(대장 유지).
 - **[실패 색 시안 불일치]** — 이미지2의 실패가 붉게 보이나 PRD·코드는 호박 `#E8B45A`. 붉은 실패색 원하면 순수 값 치환(D5).
 - **[기존 자유명/"작업" 스위트 마이그레이션]** — 등록을 작업 카테고리로 제한해도 과거 자유명·"작업" 스위트 테스트는 남는다(배지 미반영). 필요 시 마이그레이션 별도 논의(D8).
-- **[스위트 조작(이름수정/삭제) 배치]** — 행/그룹에서 버튼을 뺀 자리(우클릭)로 옮길지 이미지에 근거 부족 — 구현 중 최소 유지, 시각 확인 후 정리.
+- **[스위트 조작(이름수정/삭제) 배치]** — 시안에 버튼이 없어 **헤더 우클릭 메뉴로 이동**해 기능을 보존했다(T5). 우클릭이 발견하기 어렵다는 피드백이 있으면 hover 시 노출되는 "…" 버튼 등 대안 검토.
+- **[SUGGEST] 상태 soft 브러시의 Palette 이관** — `TestPage.xaml.cs`의 상태색 3종(PRD §3 지정)과 이번에 추가한 soft 3종(0x28 알파)이 코드비하인드에 고정돼 있다. 지금은 국소 일관성이 있으나 색이 더 늘면 `Palette.xaml`(Default 딕셔너리)로 이관하는 편이 관리에 유리하다. (T5 quality 리뷰 S1, 2026-07-21)
+- **[테스트 행에서 방법·메모 미표시]** — 시안 반영으로 행에서 `Method`·`ProgressNote` 표시를 제거했다(데이터·편집 경로는 유지). 메모가 있는 항목을 목록에서 구분할 표식(작은 아이콘 등)이 필요한지 사용 후 판단. (T5, 2026-07-21)
 
 ## Out of Scope
 - `TestItem`·`TestCategory` 도메인·SQLite 스키마·직렬화 변경.
@@ -250,6 +252,8 @@
 - **T2(이미지1 다이얼로그)**: 이름칸 하단 danger 라인의 두께·모서리·입력칸 폭 일치 / 스위트 드롭다운이 작업 카테고리만 보이고 자유 입력 불가 / 라벨(InputLabelStyle) 크기·간격 / 제목 "새 테스트 등록"·버튼 "등록" 렌더 / 전체 여백이 시안과 유사한지
 - **T3(헤더)**: 프로젝트명 배지의 pill 모양·색 대비·제목과의 간격 / 스위트 필터 드롭다운 폭·위치(우측 정렬) / "+ 테스트 등록" accent 버튼 색·크기 / 헤더 한 줄 정렬이 시안과 유사한지
 - **T4(통계·탭)**: 통계 카드 3등분 폭·큰 숫자 크기(22)·색 대비(특히 미실행 회색) / 탭 선택 밑줄이 보이고 **선택된 탭에 마우스를 올려도 밑줄이 유지**되는지(함정 7 회귀 확인) / 개수 배지 크기·간격 / 카드-탭-목록 세로 간격
+- **T5(그룹·행)**: 스위트 카드 헤더의 폴더 아이콘·"N/M 통과"·우측 진행바(폭 120) 배치 / 행의 원형 상태 아이콘(22px) 크기·색 / 상태 pill 색 대비 / **pill 클릭 시 통과→실패→미실행 순환**과 개수·진행바 즉시 갱신 / **행·헤더 우클릭 메뉴**(수정·메모·삭제 / 이름수정·삭제) 동작 / 행 높이·구분감이 시안과 유사한지
+- **통합**: 새 테스트를 작업 카테고리(예 UI·UX) 스위트로 등록 → **칸반 그 카테고리 그룹에 통과율 배지 표시**(이번 작업의 궁극 목표)
 
 ## Phase Ledger
 - (진행 중) T1·T2 완료.
@@ -261,3 +265,6 @@
   - 결정: 편집 대상의 기존 스위트가 작업 카테고리에 없으면(레거시 자유명·"작업") VM 생성자가 그 값을 옵션에 보강한다 — 넣지 않으면 ComboBox 선택이 비어 필수 검증에 막히고 기존 스위트가 소실된다.
 - T3-T4 완료 (커밋 ab9b756, T4 pre-review 0f0c9c7): 헤더에 프로젝트명 배지·스위트 필터 드롭다운·"+ 테스트 등록" 버튼 배치(T3), 통계 카드를 가로 3등분(좌 색점+라벨 / 우 큰 숫자)으로 바꾸고 상태 필터를 헤더에서 **개수 배지 포함 밑줄형 탭바**로 이설(T4). 빌드 OK, 두 task 모두 spec·quality 리뷰 지적 0.
   - 결정: 페이지 전용 스타일도 프로젝트 관례대로 `Styles.xaml`에 둔다(`StatCardStyle` 3회·`FilterTabStyle` 4회 — 3회 문턱 충족, `KanbanColumnStyle`·`DashedAddButtonStyle` 선례). `FilterTabStyle`은 함정 7대로 선택 밑줄(CheckStates)과 호버 오버레이(CommonStates)를 별도 요소로 분리.
+- T5 완료 (커밋 4810794 기반): 테스트 항목을 카드 → **행**(좌 원형 상태 아이콘 + 이름 / 우 상태 pill)으로, 스위트 그룹을 카드형 Border + 헤더(폴더 아이콘·이름·"N/M 통과"·우측 진행바)로 재구성. 인라인 콤보·버튼을 없애고 **pill 클릭 상태 순환 + 우클릭 메뉴**(행: 수정/메모/삭제, 헤더: 이름수정/삭제)로 대체. 신규 헬퍼 `StatusSoftBrush`·`StatusText`·`FormatPassCount`·`NextStatus`. 빌드 OK, spec·quality 리뷰 지적 0(SUGGEST 1건 Deferred 등록).
+  - 결정: 행에 조작 버튼이 없어 발견성이 떨어지므로 상태 pill에 툴팁(`TestStatusPill_Tooltip`)으로 "클릭하면 상태가 바뀝니다"를 알린다.
+  - 정리: 마지막 소비처가 사라진 `StatusOptions`·`TestStatusOption`·`NoteVisibility`·`MethodVisibility`·`FormatPassRate`·`StatusCombo_*` 제거(V-7 역방향, 잔존 참조 0 — TaskPage 동명 심볼은 별개라 무영향).
