@@ -18,6 +18,12 @@ public sealed partial class TestPage : UserControl
         Vm = vm;
         InitializeComponent();
         DataContext = vm;
+
+        // 스위트 필터 콤보 구성 (전체 + 작업 카테고리) — TaskPage 카테고리 필터와 같은 방식
+        var suiteOptions = new List<string> { LocalizationService.Get("TestSuiteFilter_All") };
+        suiteOptions.AddRange(vm.AvailableCategories);
+        SuiteFilterCombo.ItemsSource = suiteOptions;
+        SuiteFilterCombo.SelectedIndex = 0;
     }
 
     // ===== 상태 색·라벨 (PRD §3: 통과 #5aa3e8 / 실패 #e8b45a / 미실행 #8a8890) =====
@@ -92,6 +98,15 @@ public sealed partial class TestPage : UserControl
         // 생성자에서 Vm이 InitializeComponent보다 먼저 설정되므로, XAML 파싱 중 초기 IsChecked=True 발화 시에도 Vm은 non-null이다.
         if (sender is not RadioButton { Tag: string tag }) return;
         Vm.SelectedStatus = string.IsNullOrEmpty(tag) ? null : tag;
+    }
+
+    // ===== 스위트(작업 카테고리) 필터 =====
+
+    private void SuiteFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        // 첫 항목은 "전체"(SelectedIndex 0)이므로 필터를 해제한다.
+        if (sender is not ComboBox { SelectedIndex: var index } combo) return;
+        Vm.SelectedSuiteFilter = index <= 0 ? null : combo.SelectedItem as string;
     }
 
     // ===== 항목 상태 콤보 =====

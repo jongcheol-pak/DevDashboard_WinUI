@@ -400,7 +400,8 @@
   <data name="TestEdit_SuiteRequired" xml:space="preserve"><value>Please select a suite.</value></data>
   <data name="TestPage_Title" xml:space="preserve"><value>Test</value></data>
   <data name="TestPage_Back" xml:space="preserve"><value>Dashboard</value></data>
-  <data name="TestAdd_Button" xml:space="preserve"><value>New Test</value></data>
+  <data name="TestAdd_Button" xml:space="preserve"><value>+ Register Test</value></data>
+  <data name="TestSuiteFilter_All" xml:space="preserve"><value>All</value></data>
   <data name="TestNote_Tooltip" xml:space="preserve"><value>Note</value></data>
   <data name="TestStatus_All" xml:space="preserve"><value>All</value></data>
   <data name="TestStatus_Pass" xml:space="preserve"><value>Pass</value></data>

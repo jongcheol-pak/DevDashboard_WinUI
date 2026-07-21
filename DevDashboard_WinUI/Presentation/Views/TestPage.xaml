@@ -160,7 +160,9 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
@@ -177,7 +179,19 @@
                        Style="{StaticResource SubtitleTextBlockStyle}"
                        VerticalAlignment="Center" Margin="6,0,0,0" />
 
-            <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+            <!-- 대상 프로젝트명 배지 — 어느 프로젝트의 테스트를 보고 있는지 헤더에서 바로 알 수 있게 한다 -->
+            <Border Grid.Column="2"
+                    Style="{StaticResource TagBadgeStyle}"
+                    Margin="0"
+                    VerticalAlignment="Center"
+                    Background="{ThemeResource AppMutedSoftBrush}">
+                <TextBlock Text="{x:Bind Vm.Project.Name}"
+                           FontSize="12"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </Border>
+
+            <!-- 상태 필터 (T4에서 개수 탭바로 이설 예정) -->
+            <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                 <RadioButton Content="{x:Bind local:TestPage.LabelAll}" Tag="" GroupName="TestStatusFilter"
                              IsChecked="True" Checked="StatusTab_Checked" />
                 <RadioButton Content="{x:Bind local:TestPage.LabelPass}" Tag="Pass" GroupName="TestStatusFilter"
@@ -188,7 +202,12 @@
                              Checked="StatusTab_Checked" />
             </StackPanel>
 
-            <Button Grid.Column="4"
+            <!-- 스위트(작업 카테고리) 필터 — 상태 필터와 직교하게 함께 적용된다 -->
+            <ComboBox Grid.Column="5" x:Name="SuiteFilterCombo"
+                      MinWidth="130" VerticalAlignment="Center"
+                      SelectionChanged="SuiteFilter_SelectionChanged" />
+
+            <Button Grid.Column="6"
                     Content="{x:Bind local:TestPage.AddButtonText}"
                     Style="{StaticResource AccentButtonStyle}"
                     VerticalAlignment="Center"
