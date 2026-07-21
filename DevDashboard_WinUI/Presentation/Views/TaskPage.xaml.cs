@@ -146,18 +146,29 @@ public sealed partial class TaskPage : UserControl
         _ => _priorityNormalSoftBrush,
     };
 
-    // 테스트 배지 색 — 통과율을 아는 경우 AppSuccess(#5DB463), 아직 한 건도 실행 안 된 경우 회색.
+    // 테스트 배지 색 — 시안 기준: 100% 통과는 초록(#5DB463), 실행했으나 100% 미만이면 호박(#E8B45A).
+    // 미실행("테스트 미실행")은 배지 자체가 별도 테두리형 Border라 배경·글자색을 XAML에 직접 적었다(아래 IdleTestBadgeVisibility 참조).
     // (우선순위 배지와 같은 이유로 정적 브러시: x:Bind 함수 바인딩은 ThemeResource를 받지 못한다)
     private static readonly SolidColorBrush _testBadgeBrush = new(ColorHelper.FromArgb(0xFF, 0x5D, 0xB4, 0x63));
     private static readonly SolidColorBrush _testBadgeSoftBrush = new(ColorHelper.FromArgb(0x28, 0x5D, 0xB4, 0x63));
+    private static readonly SolidColorBrush _testBadgeAmberBrush = new(ColorHelper.FromArgb(0xFF, 0xE8, 0xB4, 0x5A));
+    private static readonly SolidColorBrush _testBadgeAmberSoftBrush = new(ColorHelper.FromArgb(0x28, 0xE8, 0xB4, 0x5A));
 
-    /// <summary>테스트 배지의 글자 색 (미실행이면 우선순위 Low와 같은 회색)</summary>
-    public static Brush TestBadgeForeground(bool hasTestResult)
-        => hasTestResult ? _testBadgeBrush : _priorityLowBrush;
+    /// <summary>테스트 배지(실행됨)의 글자 색 — 100% 통과면 초록, 그 미만이면 호박</summary>
+    public static Brush TestBadgeForeground(bool isFullPass)
+        => isFullPass ? _testBadgeBrush : _testBadgeAmberBrush;
 
-    /// <summary>테스트 배지의 배경 색 (미실행이면 우선순위 Low와 같은 회색 저채도)</summary>
-    public static Brush TestBadgeBackground(bool hasTestResult)
-        => hasTestResult ? _testBadgeSoftBrush : _priorityLowSoftBrush;
+    /// <summary>테스트 배지(실행됨)의 배경 색 (같은 색상의 저채도 변형)</summary>
+    public static Brush TestBadgeBackground(bool isFullPass)
+        => isFullPass ? _testBadgeSoftBrush : _testBadgeAmberSoftBrush;
+
+    /// <summary>"테스트 미실행" 테두리형 배지의 표시 여부 (배지 대상이고 아직 한 건도 실행 안 됐을 때만)</summary>
+    public static Visibility IdleTestBadgeVisibility(string badge, bool hasTestResult)
+        => !string.IsNullOrEmpty(badge) && !hasTestResult ? Visibility.Visible : Visibility.Collapsed;
+
+    /// <summary>통과율 채움형 배지의 표시 여부 (배지 대상이고 한 건이라도 실행됐을 때만)</summary>
+    public static Visibility RanTestBadgeVisibility(string badge, bool hasTestResult)
+        => !string.IsNullOrEmpty(badge) && hasTestResult ? Visibility.Visible : Visibility.Collapsed;
 
     // ===== 네비게이션·뷰 =====
 

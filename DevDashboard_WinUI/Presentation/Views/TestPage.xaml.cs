@@ -38,8 +38,10 @@ public sealed partial class TestPage : UserControl
     private static readonly SolidColorBrush _failSoftBrush = new(ColorHelper.FromArgb(0x28, 0xE8, 0xB4, 0x5A));
     private static readonly SolidColorBrush _untestedSoftBrush = new(ColorHelper.FromArgb(0x28, 0x8A, 0x88, 0x90));
 
-    // 상태색으로 채운 아이콘 위의 글리프 색 / 테두리·배경을 그리지 않을 때 쓰는 투명 브러시
-    private static readonly SolidColorBrush _glyphOnFillBrush = new(Colors.White);
+    // 미실행 아이콘 배경 — 시안(#2b2b31, Palette SubtleFillColorSecondary와 동일값)은 통과·실패와 달리
+    // 색조 없는 불투명 회색이라 위 소프트 브러시와 별도로 둔다.
+    private static readonly SolidColorBrush _untestedFillBrush = new(ColorHelper.FromArgb(0xFF, 0x2B, 0x2B, 0x31));
+
     private static readonly SolidColorBrush _transparentBrush = new(Colors.Transparent);
 
     public static Brush PassBrush => _passBrush;
@@ -80,53 +82,24 @@ public sealed partial class TestPage : UserControl
         _ => _untestedSoftBrush,
     };
 
-    /// <summary>상태 아이콘 배경 — 통과·실패는 상태색으로 채우고, 미실행은 속이 빈 원이라 채우지 않는다</summary>
+    /// <summary>상태 아이콘 배경 — 통과·실패는 상태색 소프트 틴트(pill과 동일), 미실행은 불투명 회색(시안 기준)</summary>
     public static Brush StatusIconBackground(string status) => status switch
     {
-        TestItem.StatusPass => _passBrush,
-        TestItem.StatusFail => _failBrush,
-        _ => _transparentBrush,
-    };
-
-    /// <summary>상태 아이콘 테두리 — 채워지지 않는 미실행만 회색 테두리를 그린다</summary>
-    public static Brush StatusIconBorderBrush(string status) => status switch
-    {
-        TestItem.StatusPass or TestItem.StatusFail => _transparentBrush,
-        _ => _untestedBrush,
-    };
-
-    /// <summary>상태 아이콘 테두리 두께 — Border의 배경은 테두리 안쪽에만 그려지므로,
-    /// 채움 상태에 두께를 남기면 색 사각형이 그만큼 작아져 미실행과 크기가 달라 보인다.</summary>
-    public static Thickness StatusIconBorderThickness(string status) => status switch
-    {
-        TestItem.StatusPass or TestItem.StatusFail => new Thickness(0),
-        _ => new Thickness(1.5),
-    };
-
-    /// <summary>상태 아이콘 글리프 색 — 채워진 배경 위에서는 흰색, 미실행은 회색</summary>
-    public static Brush StatusGlyphForeground(string status) => status switch
-    {
-        TestItem.StatusPass or TestItem.StatusFail => _glyphOnFillBrush,
-        _ => _untestedBrush,
+        TestItem.StatusPass => _passSoftBrush,
+        TestItem.StatusFail => _failSoftBrush,
+        _ => _untestedFillBrush,
     };
 
     /// <summary>메모 블록 표시 여부 (메모가 있을 때만 행 아래에 붙는다)</summary>
     public static Visibility NoteVisibility(string note)
         => string.IsNullOrWhiteSpace(note) ? Visibility.Collapsed : Visibility.Visible;
 
-    /// <summary>상태 아이콘 글리프 (통과 ✓ / 실패 ✕ / 미실행은 빈 원이라 글리프 없음)</summary>
+    /// <summary>상태 아이콘 글리프 (통과 ✓ / 실패 ✕ / 미실행 ○ — 시안은 세 상태 모두 문자 글리프)</summary>
     public static string StatusGlyph(string status) => status switch
     {
         TestItem.StatusPass => "✓",
         TestItem.StatusFail => "✕",
-        _ => string.Empty,
-    };
-
-    /// <summary>상태 아이콘 모서리 — 통과·실패는 라운드 사각형, 미실행은 원(시안 기준)</summary>
-    public static CornerRadius StatusIconCornerRadius(string status) => status switch
-    {
-        TestItem.StatusPass or TestItem.StatusFail => new CornerRadius(6),
-        _ => new CornerRadius(11),
+        _ => "○",
     };
 
     /// <summary>상태 표시 텍스트 (통과/실패/미실행)</summary>

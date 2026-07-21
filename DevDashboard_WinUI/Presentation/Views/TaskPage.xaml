@@ -135,18 +135,34 @@
                         Margin="0,0,8,0"
                         VerticalAlignment="Center"
                         Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                    <!-- 테스트 배지 — 통과율을 아는 경우 초록, 아직 한 건도 실행 안 됐으면 회색("테스트 미실행") -->
+                    <!-- 테스트 배지 — 시안 기준 3분기: 미실행(회색 테두리만·보통 굵기) / 실행+100% 미만(호박 채움·굵게) / 실행+100%(초록 채움·굵게) -->
                     <Border
                         Grid.Column="3"
-                        Style="{StaticResource TagBadgeStyle}"
+                        CornerRadius="6"
+                        Padding="7,2"
                         Margin="0"
+                        BorderThickness="1"
+                        BorderBrush="#35353C"
                         VerticalAlignment="Center"
-                        Background="{x:Bind local:TaskPage.TestBadgeBackground(HasTestResult)}"
-                        Visibility="{x:Bind PassRateBadge, Converter={StaticResource StringNotEmptyToVisibility}}">
+                        Visibility="{x:Bind local:TaskPage.IdleTestBadgeVisibility(PassRateBadge, HasTestResult)}">
                         <TextBlock
                             Text="{x:Bind PassRateBadge}"
-                            FontSize="10"
-                            Foreground="{x:Bind local:TaskPage.TestBadgeForeground(HasTestResult)}" />
+                            FontSize="11"
+                            Foreground="#8A8890" />
+                    </Border>
+                    <Border
+                        Grid.Column="3"
+                        CornerRadius="6"
+                        Padding="7,2"
+                        Margin="0"
+                        VerticalAlignment="Center"
+                        Background="{x:Bind local:TaskPage.TestBadgeBackground(IsFullPass)}"
+                        Visibility="{x:Bind local:TaskPage.RanTestBadgeVisibility(PassRateBadge, HasTestResult)}">
+                        <TextBlock
+                            Text="{x:Bind PassRateBadge}"
+                            FontSize="11"
+                            FontWeight="Bold"
+                            Foreground="{x:Bind local:TaskPage.TestBadgeForeground(IsFullPass)}" />
                     </Border>
                 </Grid>
                 <ItemsControl ItemsSource="{x:Bind Items}" ItemTemplate="{StaticResource TaskKanbanCardTemplate}" />

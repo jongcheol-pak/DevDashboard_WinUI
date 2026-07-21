@@ -277,7 +277,7 @@
 
 > 마크업 수준 대조는 각 task의 V-9/spec 리뷰에서 완료. 아래는 **빌드로 판정 불가한 렌더 외형·실동작**이라 완료 선언 전 사용자 확인이 필요한 항목이다.
 
-- **아이콘 재수정(2026-07-21 재지적)**: 미실행이 **속이 빈 회색 원 하나**로 보이는지(사각 테두리·내부 ○ 글리프 없이) / 통과·실패의 라운드 사각형과 미실행 원의 크기가 비슷해 보이는지
+- **아이콘 재정정(2026-07-21, 시안 원본 대조 후)**: 앞선 "미실행=속 빈 원" 정정(D3)이 시안 원본(`docs/DevDashboard WinUI/DevDashboard Redesign.dc.html`의 `statusMeta` JS, 1046~1082줄)과 다시 대조한 결과 **틀린 것으로 확인**됐다 — 실제 시안은 세 상태 모두 동일한 라운드 사각형(20×20)이고, 통과·실패는 진한 단색 채움이 아니라 연한 색조 배경 + 색 글리프, 미실행은 불투명 회색 배경 + 문자 "○" 글리프다. `TestPage.xaml(.cs)`를 이 원본 사양대로 재수정(아이콘 배경을 pill과 같은 `StatusSoftBrush`/신규 불투명 회색 브러시로, 글리프 색은 `StatusBrush` 재사용, 미실행 글리프 "○" 복원, 형태 분기 헬퍼 4종 삭제). 빌드 오류 0·신규 경고 0. **확인 필요**: 통과·실패 아이콘이 연한 색조 배경(진한 단색 아님) + 색 글리프로 보이는지 / 미실행 아이콘이 통과·실패와 **완전히 같은 라운드 사각형 크기**에 "○" 글리프가 든 회색 배지로 보이는지(더 이상 원형이 아님)
 - **공통(F-7 리뷰 지적)**: 세 상태 아이콘의 **외곽 크기가 동일하게** 보이는지(m1 — 채움 상태의 테두리 두께를 0으로 바꿔 대응했으나 렌더 확인 필요) / 행을 **우클릭해 메뉴를 연 뒤 hover 배경이 잔존**하지 않는지(m6 — 잔존하면 `Tapped`/Flyout `Closed`에서 복원 필요)
 - **T4**: 메모 다이얼로그의 제목("메모 추가")·대상 테스트명 부제 색/위치·입력칸 높이·placeholder 문구 / 취소·저장 버튼 배치와 저장 버튼 accent / 메모를 비우고 저장하면 실제로 삭제되는지
 - **T3**: 진행바 두께가 통과율 0%·중간·100% 모두 같은지 / 인디케이터 색(통과색)과 트랙 대비 / 스위트 헤더 우클릭 시 메뉴가 뜨지 않는지 / 항목 없는 스위트 카드가 보이지 않는지
@@ -296,3 +296,4 @@
 - T4 완료 (커밋 fa8dd1a): 인라인 ContentDialog를 신규 `TestNoteDialog`로 교체(제목·대상 테스트명 부제·안내 placeholder·취소/저장), resw 신규 2키 ko/en. 빌드 OK, spec·quality 리뷰 지적 0.
 - Phase F 마무리 (F-7 반영): FR-E5 "에러 표시" 몫을 부분 커버로 정정하고 Deferred 등재(M1), 상태 아이콘의 채움 상태 테두리 두께를 0으로 바꿔 세 상태의 외곽 크기를 맞춤(m1 — `StatusIconBorderThickness` 추가). 재빌드 OK.
   - 결정(T2): DataTemplate 안에서는 VSM `GoToState`가 안 먹으므로 hover를 `PointerEntered`/`PointerExited` 핸들러로 처리하고, Exited 복원값을 `null`이 아닌 `Transparent`로 둬 hit-test 영역이 좁아지지 않게 했다.
+- **아이콘 재정정 (2026-07-21, F-8 진행 중)**: 사용자가 렌더 스크린샷과 시안이 "너무 다르다"고 재지적, 시안 원본 파일(`docs/DevDashboard WinUI/DevDashboard Redesign.dc.html`)을 직접 확인해 위 D3(미실행=원형)이 시안과 다시 어긋나 있었음을 확인. 원본 JS(`statusMeta`)대로 세 상태를 동일한 라운드 사각형(소프트 틴트/불투명 회색 배경 + 색 글리프)으로 재수정. `TestPage.xaml(.cs)`에서 `StatusIconBorderBrush`·`StatusIconBorderThickness`·`StatusIconCornerRadius`·`StatusGlyphForeground`·`_glyphOnFillBrush` 삭제(소비처 0 확인), `StatusIconBackground`·`StatusGlyph` 수정. 빌드 오류 0·신규 경고 0. F-8은 여전히 미통과 — 이번 수정분도 사용자 육안 확인 대기(위 인계 목록 반영).
