@@ -160,7 +160,7 @@
 - **Halt Forecast**: 없음 — 파일 5개(다이얼로그·VM·호출부·resw 2), 파괴적 없음. 신규 resw 키는 사전 승인 등재.
 
 ### T3 — TestPage.xaml 헤더: 프로젝트명 배지 + 스위트 필터 드롭다운 + 등록 버튼 `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `DevDashboard_WinUI/Presentation/Views/TestPage.xaml`, `DevDashboard_WinUI/Presentation/Views/TestPage.xaml.cs`, `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`
 - **Design**: ① 배치 — TestPage 헤더 Grid + 코드비하인드 필터 핸들러. ② 신규 심볼 — `SuiteFilter_SelectionChanged`(핸들러). ③ 의존 방향 — XAML→`Vm.Project.Name`·`Vm.AvailableCategories`·`Vm.SelectedSuiteFilter`(T1). ④ 비추상화 — 배지용 신규 스타일 만들지 않고 `TagBadgeStyle`+`AppMutedSoftBrush` 재사용.
 - **구성**:
@@ -248,6 +248,7 @@
 > 마크업·resw 수준 대조는 각 task의 V-9/spec 리뷰에서 ✅ 완료. 아래는 **빌드로 판정 불가한 렌더 외형**이라 완료 선언 전 사용자 확인이 필요한 항목이다.
 
 - **T2(이미지1 다이얼로그)**: 이름칸 하단 danger 라인의 두께·모서리·입력칸 폭 일치 / 스위트 드롭다운이 작업 카테고리만 보이고 자유 입력 불가 / 라벨(InputLabelStyle) 크기·간격 / 제목 "새 테스트 등록"·버튼 "등록" 렌더 / 전체 여백이 시안과 유사한지
+- **T3(헤더)**: 프로젝트명 배지의 pill 모양·색 대비·제목과의 간격 / 스위트 필터 드롭다운 폭·위치(우측 정렬) / "+ 테스트 등록" accent 버튼 색·크기 / 헤더 한 줄 정렬이 시안과 유사한지
 
 ## Phase Ledger
 - (진행 중) T1·T2 완료.
