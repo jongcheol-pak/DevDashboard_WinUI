@@ -131,9 +131,9 @@
 ## 작업 단계
 
 ### T1 — TestPageViewModel: settings 주입 + 작업 카테고리 노출 + 스위트 필터 `Type D`
-- [ ] 구현
+- [x] 구현
 - **Files**: `DevDashboard_WinUI/Presentation/ViewModels/TestPageViewModel.cs`, `DevDashboard_WinUI/Presentation/ViewModels/ProjectCardViewModel.cs`, `DevDashboard_WinUI/Presentation/ViewModels/AppSettingsDialogViewModel.cs`, `DevDashboard_WinUI/Presentation/ViewModels/TaskPageViewModel.cs`, `DevDashboard_WinUI/Presentation/ViewModels/TaskEditDialogViewModel.cs` *(뒤 3개는 V-6 quality 리뷰 M1 대응으로 추가 — 아래 D10)*
-- **Design**: ① 배치 — VM 로직은 `TestPageViewModel`, 배선은 `ProjectCardViewModel.CreateTestPageViewModel`. ② 신규 심볼 — `_settings`(필드), `AvailableCategories`(작업 카테고리, `IReadOnlyList<string>`), `SelectedSuiteFilter`([ObservableProperty] `string?`)+`OnSelectedSuiteFilterChanged`→`Rebuild`. ③ 의존 방향 — `TestPageViewModel`→`AppSettings`/`AppSettingsDialogViewModel.DefaultTaskCategories`(TaskPageViewModel과 동일), 페이지 역참조 없음. ④ 비추상화 — 작업 카테고리 계산을 공용 헬퍼로 추출하지 않는다(소비 2곳, YAGNI).
+- **Design**: ① 배치 — VM 로직은 `TestPageViewModel`, 배선은 `ProjectCardViewModel.CreateTestPageViewModel`, 공용 카테고리 결합은 `AppSettingsDialogViewModel`. ② 신규 심볼 — `AvailableCategories`(작업 카테고리, `IReadOnlyList<string>`), `SelectedSuiteFilter`([ObservableProperty] `string?`)+`OnSelectedSuiteFilterChanged`→`Rebuild`, `AppSettingsDialogViewModel.ResolveTaskCategories(AppSettings)`(D10). **`_settings` 필드는 두지 않는다** — 생성자에서 카테고리 계산에만 쓰고 이후 참조가 없어 쓰기 전용 필드가 된다(D10/m1). ③ 의존 방향 — `TestPageViewModel`→`AppSettings`/`AppSettingsDialogViewModel`(TaskPageViewModel과 동일), 페이지 역참조 없음. ④ 비추상화 — 필터·그룹 구성을 별도 서비스로 빼지 않는다(VM 내부 유지). 단 작업 카테고리 결합식은 **3곳 도달로 공통화**한다(D10 — 4-D의 "2곳" 계수가 `TaskEditDialogViewModel`을 누락했음).
 - **구성**:
   - 생성자 `(project, repository, refreshCardState)` → `(project, repository, settings, refreshCardState)`. `ArgumentNullException.ThrowIfNull(settings)` 추가, `_settings` 보관.
   - `AvailableCategories = AppSettingsDialogViewModel.DefaultTaskCategories.Concat(settings.TaskCategories).Distinct(StringComparer.OrdinalIgnoreCase).ToList();`(TaskPageViewModel:68-71 복제).
