@@ -11,7 +11,6 @@ public partial class TestPageViewModel : ObservableObject
 {
     private readonly ProjectItem _project;
     private readonly IProjectRepository _repository;
-    private readonly AppSettings _settings;
     private readonly Action _refreshCardState;
 
     // 저장 직렬화 체인 — SaveTestCategories는 delete+reinsert 전체 스냅샷 방식이라
@@ -50,13 +49,9 @@ public partial class TestPageViewModel : ObservableObject
 
         _project = project;
         _repository = repository;
-        _settings = settings;
         _refreshCardState = refreshCardState;
 
-        AvailableCategories = AppSettingsDialogViewModel.DefaultTaskCategories
-            .Concat(settings.TaskCategories)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        AvailableCategories = AppSettingsDialogViewModel.ResolveTaskCategories(settings);
 
         Rebuild();
     }

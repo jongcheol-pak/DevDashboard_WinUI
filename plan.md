@@ -110,6 +110,7 @@
 | D7 | "N/M 통과" 표시 | 기술 | 정적 헬퍼 `FormatPassCount(pass,total)`→"N/M 통과". `TestSuiteGroup.PassCount/TotalCount` 소비. 기존 `FormatPassRate`(N%)는 진행바 값용으로 유지 or 제거(사용처만 남기면) | `TestSuiteGroup`(:217) |
 | D8 | 기존 비-작업-카테고리 스위트 처리 | 범위 | **표시는 무제한**(스위트명 그대로 그룹 표시) — 등록 시에만 작업 카테고리로 제한. 기존 "작업"·자유명 스위트의 테스트는 이동/마이그레이션 하지 않음(go-forward). 배지는 작업 카테고리 이름 스위트만 반영(설계) | 근본 원인 조사(디버깅 세션) |
 | D9 | 이름 필수 하단 라인 | UX | TaskEditDialog 제목칸과 동일하게 `TextBox`를 `Grid`로 감싸 하단 danger 라인(`AppDangerBrush`, Height 2, IsHitTestVisible=False) 상시 표시. `OnSave`의 이름 필수 검증은 유지 | 이미지1 + TaskEditDialog 선례 |
+| D10 | 작업 카테고리 결합식 공통화 | 구조 | **계획 수정(T1 구현 중, V-6 quality M1)**: 4-D는 소비 2곳으로 보고 YAGNI 유지를 택했으나, 실제로는 `TaskEditDialogViewModel:63`이 같은 표현식을 이미 쓰고 있어 T1이 추가되면 **3곳**이 된다(프로젝트 공통화 문턱 3회 도달). `AppSettingsDialogViewModel.ResolveTaskCategories(AppSettings)` 정적 헬퍼로 추출하고 3곳 모두 호출로 교체. 부수로 쓰기 전용이던 `TestPageViewModel._settings` 필드 제거(m1) | V-6 리뷰 M1/m1 + grep 3곳 확인 |
 
 ## PRD Coverage
 
@@ -131,7 +132,7 @@
 
 ### T1 — TestPageViewModel: settings 주입 + 작업 카테고리 노출 + 스위트 필터 `Type D`
 - [ ] 구현
-- **Files**: `DevDashboard_WinUI/Presentation/ViewModels/TestPageViewModel.cs`, `DevDashboard_WinUI/Presentation/ViewModels/ProjectCardViewModel.cs`
+- **Files**: `DevDashboard_WinUI/Presentation/ViewModels/TestPageViewModel.cs`, `DevDashboard_WinUI/Presentation/ViewModels/ProjectCardViewModel.cs`, `DevDashboard_WinUI/Presentation/ViewModels/AppSettingsDialogViewModel.cs`, `DevDashboard_WinUI/Presentation/ViewModels/TaskPageViewModel.cs`, `DevDashboard_WinUI/Presentation/ViewModels/TaskEditDialogViewModel.cs` *(뒤 3개는 V-6 quality 리뷰 M1 대응으로 추가 — 아래 D10)*
 - **Design**: ① 배치 — VM 로직은 `TestPageViewModel`, 배선은 `ProjectCardViewModel.CreateTestPageViewModel`. ② 신규 심볼 — `_settings`(필드), `AvailableCategories`(작업 카테고리, `IReadOnlyList<string>`), `SelectedSuiteFilter`([ObservableProperty] `string?`)+`OnSelectedSuiteFilterChanged`→`Rebuild`. ③ 의존 방향 — `TestPageViewModel`→`AppSettings`/`AppSettingsDialogViewModel.DefaultTaskCategories`(TaskPageViewModel과 동일), 페이지 역참조 없음. ④ 비추상화 — 작업 카테고리 계산을 공용 헬퍼로 추출하지 않는다(소비 2곳, YAGNI).
 - **구성**:
   - 생성자 `(project, repository, refreshCardState)` → `(project, repository, settings, refreshCardState)`. `ArgumentNullException.ThrowIfNull(settings)` 추가, `_settings` 보관.

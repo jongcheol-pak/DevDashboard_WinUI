@@ -65,10 +65,7 @@ public partial class TaskPageViewModel : ObservableObject
         _settings = settings;
         _refreshCardState = refreshCardState;
 
-        AvailableCategories = AppSettingsDialogViewModel.DefaultTaskCategories
-            .Concat(settings.TaskCategories)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        AvailableCategories = AppSettingsDialogViewModel.ResolveTaskCategories(settings);
 
         BuildTestStatusLookup();
         Rebuild();
