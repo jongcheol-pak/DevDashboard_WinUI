@@ -425,6 +425,9 @@
                                                 Value="{ThemeResource AppAccentBrush}" />
                                         <Setter Target="Content.Foreground"
                                                 Value="{ThemeResource TextFillColorPrimaryBrush}" />
+                                        <!-- 선택 탭은 라벨이 굵어진다. ContentPresenter의 FontWeight는 자식에 상속되므로
+                                             개수 배지는 소비 지점(TestPage)에서 FontWeight="Normal"로 상속을 끊는다. -->
+                                        <Setter Target="Content.FontWeight" Value="SemiBold" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Unchecked" />

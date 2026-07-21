@@ -252,13 +252,14 @@
 
         <!-- ===== 상태 필터 탭바 (각 탭에 개수 배지, 선택 탭은 밑줄) ===== -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="16" Margin="0,0,0,12">
-            <RadioButton Style="{StaticResource FilterTabStyle}" Tag="" GroupName="TestStatusFilter"
+            <RadioButton Style="{StaticResource FilterTabStyle}" Tag="All" GroupName="TestStatusFilter"
                          IsChecked="True" Checked="StatusTab_Checked">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <TextBlock Text="{x:Bind local:TestPage.LabelAll}" VerticalAlignment="Center" />
+                    <!-- 선택 탭은 라벨만 굵어진다 — 개수 배지는 상속을 끊어 시안대로 보통 굵기를 유지한다 -->
                     <Border Style="{StaticResource TagBadgeStyle}" Margin="0" VerticalAlignment="Center"
                             Background="{ThemeResource AppMutedSoftBrush}">
-                        <TextBlock Text="{x:Bind Vm.TotalCount, Mode=OneWay}" FontSize="10" />
+                        <TextBlock Text="{x:Bind Vm.TotalCount, Mode=OneWay}" FontSize="10" FontWeight="Normal" />
                     </Border>
                 </StackPanel>
             </RadioButton>
@@ -268,7 +269,7 @@
                     <TextBlock Text="{x:Bind local:TestPage.LabelPass}" VerticalAlignment="Center" />
                     <Border Style="{StaticResource TagBadgeStyle}" Margin="0" VerticalAlignment="Center"
                             Background="{ThemeResource AppMutedSoftBrush}">
-                        <TextBlock Text="{x:Bind Vm.PassCount, Mode=OneWay}" FontSize="10" />
+                        <TextBlock Text="{x:Bind Vm.PassCount, Mode=OneWay}" FontSize="10" FontWeight="Normal" />
                     </Border>
                 </StackPanel>
             </RadioButton>
@@ -278,7 +279,7 @@
                     <TextBlock Text="{x:Bind local:TestPage.LabelFail}" VerticalAlignment="Center" />
                     <Border Style="{StaticResource TagBadgeStyle}" Margin="0" VerticalAlignment="Center"
                             Background="{ThemeResource AppMutedSoftBrush}">
-                        <TextBlock Text="{x:Bind Vm.FailCount, Mode=OneWay}" FontSize="10" />
+                        <TextBlock Text="{x:Bind Vm.FailCount, Mode=OneWay}" FontSize="10" FontWeight="Normal" />
                     </Border>
                 </StackPanel>
             </RadioButton>
@@ -288,7 +289,7 @@
                     <TextBlock Text="{x:Bind local:TestPage.LabelUntested}" VerticalAlignment="Center" />
                     <Border Style="{StaticResource TagBadgeStyle}" Margin="0" VerticalAlignment="Center"
                             Background="{ThemeResource AppMutedSoftBrush}">
-                        <TextBlock Text="{x:Bind Vm.UntestedCount, Mode=OneWay}" FontSize="10" />
+                        <TextBlock Text="{x:Bind Vm.UntestedCount, Mode=OneWay}" FontSize="10" FontWeight="Normal" />
                     </Border>
                 </StackPanel>
             </RadioButton>

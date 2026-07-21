@@ -103,11 +103,17 @@ public sealed partial class TestPage : UserControl
 
     // ===== 상태 필터 탭 =====
 
+    /// <summary>전체 탭의 Tag 값 — 빈 문자열을 쓰면 XAML 파싱 결과에 따라 Tag가 null이 되어
+    /// 필터 해제가 통째로 무시될 수 있으므로 명시값을 쓴다.</summary>
+    private const string StatusTagAll = "All";
+
     private void StatusTab_Checked(object sender, RoutedEventArgs e)
     {
         // 생성자에서 Vm이 InitializeComponent보다 먼저 설정되므로, XAML 파싱 중 초기 IsChecked=True 발화 시에도 Vm은 non-null이다.
-        if (sender is not RadioButton { Tag: string tag }) return;
-        Vm.SelectedStatus = string.IsNullOrEmpty(tag) ? null : tag;
+        if (sender is not RadioButton radio) return;
+        // Tag를 패턴 매칭으로 받으면 null일 때 조용히 빠져나가 직전 필터가 남는다 — null·빈 문자열·"All"을 모두 전체로 본다.
+        var tag = radio.Tag as string;
+        Vm.SelectedStatus = string.IsNullOrEmpty(tag) || tag == StatusTagAll ? null : tag;
     }
 
     // ===== 스위트(작업 카테고리) 필터 =====

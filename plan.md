@@ -1,273 +1,284 @@
-# plan.md — 테스트 화면(TestPage)·테스트 등록 다이얼로그 시안 정합 재구현
+# plan.md — 테스트 화면(TestPage) 시안 정합 후속 수정 10건
 
-**PRD**: docs/prd.md (FR-E1 통계·필터 / FR-E3 등록 다이얼로그 / FR-E5 목록 restyle / FR-E4·FR-T8 배지 배선)
-**이전 plan**: 다이얼로그 후속 수정 + 네비게이션 버그 — Phase G 통과(Must 100%), 종결. Deferred는 `docs/plans/deferred.md`에 이관 완료.
-**관련 선행 수정(미커밋)**: `CreateLinkedTest`가 링크 테스트를 작업 카테고리 이름 스위트에 넣도록 수정(TaskPageViewModel.cs) + prd FR-T6 노트 + notes 항목. code-quality 리뷰 통과. 이 plan과 같은 목표(배지 정합)라 유지하며, 이 plan의 첫 commit(baseline)에 함께 포함한다.
+**PRD**: docs/prd.md (FR-E1 상태 필터 탭 / FR-E3 메모 다이얼로그 / FR-E5 목록 restyle — 메모 표시 포함)
+**이전 plan**: 테스트 화면·등록 다이얼로그 시안 정합 재구현(T1~T5) — Phase G 통과(Must 100%), **F-8(시각 육안 확인) 대기 상태로 종결**. 이번 요청이 그 F-8 확인 결과다.
 
 ## 요구 이해
 
-> 원문(사용자, 2026-07-21): "테스트 화면부터 잘못 구현되어 있어 배지가 표시 안 되는 거 같은데 일단 테스트 화면부터 제대로 구현해 / [이미지1] 1번 이미지처럼 테스트 등록 화면의 스위트 항목은 작업 카테고리 표시하고, [이미지2] 2번 이미지처럼 테스트 화면 구현해"
+> 원문(사용자, 2026-07-21): "[1번 디자인, 2번 현재 구현된 디자인]
+> - 항목 사이에 라인이 없음
+> - 항목 오른쪽에 표시되는 실패, 미실행, 통과 배지 크기가 동일해야 하는데 다름
+> - 헤더(UI.UX 표시 부분)에 컨텍스트 메뉴가 있는데 필요 없음, 항목이 없으면 해당 카테고리 카드는 표시하지 않음.
+> - 메모를 추가한 경우 디자인 화면 처럼 표시되지 않음
+> - 필터(전체,통과,실패, 미실행)에서 선택하면 디자인 처럼 글자가 두껍게 표시되어야 하는데 색상만 변경 되는거 같음.
+> - 필터(전체,통과,실패, 미실행)에서 전체 필터가 동작 하지 않음. 미실행 클릭 후 전체 클릭하면 미실행 항목만 표시 됨.
+> - 항목 헤더의 오른쪽에 표시되는 그래프에서 세로 사이즈가 다른데 확인해서 수정
+> - 목록에 마우스 오버시 색생 번경 되는데 적용 안된거 같음
+> - 항목에서 앞부분에 통과,미실행,실패 상태를 표시하는 아이콘이 있는데 원으로 구현되어 있는데 디자인하고 다름 확인해서 수정
+> - [3번 이미지]처럼 메모 입력 화면이 구현되어야 하는데 다르게 구현되어 있음 동일하게 화면 수정."
 
 이해한 요구:
-- **① 테스트 등록 다이얼로그 스위트 = 작업 카테고리**: 스위트 필드를 자유 입력이 아니라 **작업 카테고리 드롭다운**(UI·UX·프론트엔드·백엔드 + 사용자 정의)으로 바꾸고, 라벨을 "스위트 (작업 카테고리)"로 한다. 이렇게 하면 수동 등록 테스트도 작업 카테고리 이름 스위트로 들어가 칸반 통과율 배지(FR-T8)에 반영된다(= 배지가 안 뜨던 근본 원인의 UI 측 해소).
-- **② 테스트 화면 시안 정합(이미지2)**: 헤더(프로젝트명 배지 + 스위트 필터 드롭다운 + 등록 버튼), 넓은 통계 카드 3개, 개수 포함 상태 필터 탭바, 스위트 그룹(폴더 아이콘·"N/M 통과"·우측 인라인 진행바), 테스트 항목을 **행 형태**(상태 아이콘 원 + 이름 + 우측 상태 pill)로 재구성.
-- **③ 조작 방식**: 상태 pill 클릭 = 상태 순환(통과→실패→미실행), 우클릭 = 편집/삭제/메모(작업 칸반 카드와 일관). 이미지처럼 행에 버튼을 노출하지 않는다.
+- **① 목록 외형을 시안(이미지1)에 맞춤**: 테스트 행 사이 구분선 추가, 상태 pill 폭 통일, 상태 아이콘을 원형 → **라운드 사각형**, 행 마우스 오버 배경색, 메모가 있으면 **행 아래 인용 블록**(좌측 컬러 바 + 깃발 아이콘 + 메모 텍스트)으로 표시.
+- **② 스위트 그룹 정리**: 그룹 헤더의 우클릭 메뉴(이름수정/삭제)를 **기능째 제거**(사용자 확정), 표시할 항목이 없는 스위트 카드는 **아예 표시하지 않음**(전체 필터에서도).
+- **③ 진행바 세로 크기 불일치 해소**: 통과율에 따라 바 두께가 달라 보이는 문제를 두께 고정으로 해소.
+- **④ 상태 필터 탭 결함 2건**: 선택 탭 글자를 **굵게**(현재는 색만 변함), **"전체" 탭이 필터를 해제하지 못하는 버그** 수정.
+- **⑤ 메모 입력 다이얼로그를 시안(이미지3)대로 재구성**: 제목 "메모 추가" + 대상 테스트 이름 + 안내 placeholder + 취소/저장.
 
 ## Goal
 
-`TestPage`를 시안(이미지2)대로 재구성하고 `TestEditDialog`의 스위트 선택을 작업 카테고리 드롭다운으로 바꿔, ① 테스트를 작업 카테고리 스위트로 정렬해 칸반 통과율 배지가 실제로 뜨게 하고 ② 통계 카드·상태 탭·스위트 그룹·행 레이아웃·조작(pill 순환·우클릭 메뉴)을 디자인에 맞춘다.
+이전 plan의 F-8(육안 확인)에서 드러난 시안 불일치 8건과 기능 결함 2건(전체 필터 미동작·탭 굵기 미표시)을 해소해, `TestPage`의 목록·필터·메모 경로가 시안(이미지1·3)과 일치하고 필터가 정상 동작하게 한다.
 
 ## Investigation Log (근거)
 
-### 위키·문서
+### 문서·대장
 - 위키 참조: vault 미설정 — 코드 1차 출처로 진행.
-- AGENTS.md 존재. 신선도 점검: 이번 계획이 참조하는 경로(`Presentation/Views/TestPage.xaml(.cs)`·`Views/Dialogs/TestEditDialog.*`·`ViewModels/TestPageViewModel.cs`·`ViewModels/TestEditDialogViewModel.cs`·`ViewModels/ProjectCardViewModel.cs`·`ViewModels/AppSettingsDialogViewModel.cs`·`Resources/Palette.xaml`·`Strings/{ko-KR,en-US}/Resources.resw`) 전부 실재 확인. **함정 2(다국어 ko/en 양쪽)·3(resw 접미 형식)·5(x:Bind 함수 바인딩은 Converter/ThemeResource 불가 → 코드비하인드 정적 헬퍼가 Brush 직접 반환)·7(RadioButton 커스텀 템플릿 GoToState)** 이번 작업과 직결 — 아래 반영. 어긋남 0건.
-- **Deferred 대장 재수용**: `docs/plans/deferred.md:23` **[TestPage·NotificationPage 시안 대조]** — "사용자가 '작업 페이지만 먼저'로 범위 한정, 두 페이지도 목업 부재로 시안과 갈라졌을 가능성. 각 페이지 시안 확보 후 진행." 사용자가 이제 TestPage 시안(이미지2)을 제공 → **이 항목의 TestPage 몫을 이번에 재수용**한다(NotificationPage는 이번 범위 밖 — 대장에 유지).
-- **Deferred 인접(유지)**: `:11` [테스트→작업 역방향 링크], `:12` [Method 필드 확장 소비], `:24` [BuildPassRateBadge 조회 테이블화], `:13` [Test* 구 resw 고아 정리] — 이번 범위 밖, 그대로 유지.
-- PRD 경량 확인: 이번 변경이 **FR-E1**(통계 카드·상태 필터 탭)·**FR-E3**(등록/편집 다이얼로그 이름/스위트/방법)·**FR-E5**(목록 restyle: 스위트 그룹·통과율 바·상태 아이콘/배지)·**FR-E4/FR-T8**(배지 배선)에 닿는다 → PRD 연결(Phase G 활성).
+- **AGENTS.md 신선도 점검**: 이번에 참조하는 경로(`Presentation/Views/TestPage.xaml(.cs)`·`Views/Dialogs/`·`ViewModels/TestPageViewModel.cs`·`Resources/{Styles,Palette}.xaml`·`Strings/{ko-KR,en-US}/Resources.resw`) 전부 실재. **함정 2(ko/en 양쪽)·3(resw 키 형식)·5(x:Bind 함수 바인딩은 Brush/Visibility 직접 반환)·7(RadioButton 커스텀 템플릿 GoToState 분리)·11(공용 DataTemplate 소비처 확인)** 직결 — 아래 반영. 어긋남 0건.
+- **Deferred 대장(`docs/plans/deferred.md`) 확인**: 관련 항목 — `[테스트 행에서 방법·메모 미표시]`(이전 plan Deferred) 중 **메모 몫을 이번에 재수용**(T2), 방법(Method) 몫은 잔여 유지. `[Test* 구 resw 고아 정리]`(대장)에 이번에 고아가 되는 키(`TestEditNoteTitle`·`TestEditCategoryTitle`)를 합류시킨다(정리 자체는 이번 범위 밖). `[실패 색 시안 불일치]`(대장 마지막 줄) — 사용자가 이번에 언급하지 않아 **호박색 유지**. 나머지 대기 항목은 무관.
+- **PRD 경량 확인**: 이번 변경은 **FR-E1**(상태 필터 탭 — 전체 필터 결함·선택 표시)·**FR-E3**(메모 다이얼로그)·**FR-E5**(목록 restyle — 스위트 그룹·상태 아이콘/배지·**메모 표시**)에 닿는다 → PRD 연결(Phase G 활성). FR-E5는 이전 plan에서 "메모 표시" 몫을 시안 반영으로 제외했었는데, 이번 요구 ①로 **다시 커버 대상이 된다**.
 
-### ① 테스트 등록 다이얼로그 — 현행 구현 (직접 Read)
-- `TestEditDialog.xaml:18-24`: 스위트 필드가 **`IsEditable="True"` ComboBox** + `SuiteOptions`(기존 스위트 이름) 바인딩 → 자유 입력 허용. 라벨 `TestEditLabel_Suite.Text`="스위트"(`resw:394`).
-- `TestEditDialogViewModel.cs:17-18,26-32`: `SuiteOptions`가 **호출부가 넘긴 기존 스위트 이름 목록**. 생성자 `(existing, suiteNames, presetSuite)`. `CanEditSuite`(:24)는 새 테스트일 때만 true(편집 시 스위트 이동 미지원 — 유지).
-- 호출부 `TestPage.xaml.cs:117-121`(AddTest), `:127-128`(EditTest): `SuiteNames()`(:200-201, `Project.TestCategories.Select(Name)`)를 넘긴다 → **기존 테스트 카테고리 이름**을 스위트 옵션으로 씀. 요구 ①은 이를 **작업 카테고리 목록**으로 바꾸는 것.
-- `TestEditDialog.xaml.cs:19-29`: Title은 `TestEdit_TitleAdd`/`TestEdit_TitleEdit`, 버튼은 `Dialog_Save`/`Dialog_Cancel`로 **이미 설정됨**. `OnSave`(:37-54)가 이름·스위트 필수 검증(`args.Cancel`). `ShowAsync` `new` 섀도잉으로 `XamlRoot` 설정(:31-35) — 기존 패턴 유지.
-- **작업 카테고리 소스 확정**: `AppSettingsDialogViewModel.DefaultTaskCategories`(:218-221)=`["UI·UX","프론트엔드","백엔드"]` + `settings.TaskCategories`(사용자 정의). `TaskPageViewModel`이 `AvailableCategories`(:68-71)로 이 둘을 `Distinct`해 이미 쓴다 → 동일 패턴 재사용.
+### 현행 구현 (직접 Read)
 
-### ② TestPage — 현행 구현 (직접 Read)
-- `TestPage.xaml.cs:16-21` 생성자 `TestPage(TestPageViewModel vm)` — **settings 미보유**. 호출부는 **단 1곳** `DashboardView.xaml.cs:237` `new TestPage(card.CreateTestPageViewModel())`(grep 전수: `new TestPage(` 1건).
-- `ProjectCardViewModel.cs:533-537` `CreateTestPageViewModel()`: `EnsureTestsLoaded(); return new TestPageViewModel(_item, _repository, RefreshTestCardState);`. **`_settings` 미전달**. `new TestPageViewModel` 호출부도 **이 1곳뿐**(grep 전수 1건). `ProjectCardViewModel`은 `_settings`를 이미 보유(TaskPageViewModel 생성에 사용).
-- `TestPageViewModel.cs:36-47` 생성자 `(project, repository, refreshCardState)` — 요구 ①의 작업 카테고리 노출을 위해 **`settings` 파라미터 추가 필요**(signature 변경, 호출부 1곳).
-- 상태별 개수는 이미 계산: `PassCount`/`FailCount`/`UntestedCount`/`TotalCount`(:28-31, 프로젝트 전체 기준·필터 무관 — 통계 카드·탭 개수 공용). `SelectedStatus`(:34) 상태 필터 존재. **스위트 필터는 없음** → 요구 ② 헤더 드롭다운용 `SelectedSuiteFilter` 신규 필요.
-- `TestSuiteGroup`(:217-222) record: `Category, Items, PassCount, TotalCount, PassRate` — "N/M 통과" 표시에 필요한 값 **이미 보유**(신규 필드 불필요, 표시 헬퍼만).
-- `TestPage.xaml` 현행: 헤더에 상태 필터 RadioButton(개수 없음)·통계 카드는 작은 인라인 3개·스위트 그룹은 이름+통과율%+ProgressBar·항목은 큰 카드(방법·메모·상태 콤보·수정/삭제 버튼). **프로젝트명 배지·스위트 필터 드롭다운·개수 탭·행 레이아웃·pill 없음.**
-- 상태 색 정적 브러시 확정(`TestPage.xaml.cs:25-31`, PRD §3): 통과 `#5AA3E8`(파랑)·실패 `#E8B45A`(호박)·미실행 `#8A8890`(회색). `StatusBrush`/`StatusGlyph`(✓/✕/○) 헬퍼 존재 → 아이콘·pill에 재사용.
-- 조작 핸들러 존재: `EditTest_Click`/`DeleteTest_Click`/`EditNote_Click`(:124-167) → **우클릭 메뉴에서 재사용**. `StatusCombo_Loaded`/`StatusCombo_SelectionChanged`(:99-111)는 콤보 전용 → 행 재구성 시 **제거**, pill 클릭 순환(`ChangeTestStatus` 재사용)으로 대체.
+**`TestPage.xaml`**
+- `TestItemRowTemplate`(:19-85): 행 Grid 1행 3열(상태 아이콘 Border / 이름 / 상태 pill). **구분선 없음, 메모 표시 없음, hover 없음.**
+  - 상태 아이콘(:52-61): `Width/Height=22`, **`CornerRadius="11"`(원형)**, 배경 `StatusSoftBrush`, 글리프 색 `StatusBrush`.
+  - 상태 pill(:72-83): `TagBadgeStyle`(CornerRadius 4·Padding 8,3) + 배경 `StatusSoftBrush`. **폭 지정 없음** → 텍스트 길이("통과" 2자 vs "미실행" 3자)만큼 폭이 달라진다 = 지적 ②의 원인.
+- `TestSuiteGroupTemplate`(:91-147): 헤더에 `Grid.ContextFlyout`(이름수정/삭제 MenuFlyout, :99-115) — 제거 대상. 우측 `ProgressBar Value={PassRate} Width=120`(:137-141).
+- 상태 필터 탭바(:254-295): `RadioButton Style=FilterTabStyle`, **전체 탭만 `Tag=""`**(:255), 나머지 `Tag="Pass"/"Fail"/"Untested"`.
+- 그룹 목록(:298-301): `ItemsControl`(`ListView` 아님 → 기본 hover 없음).
+- **소비처 전수**: `TestItemRowTemplate`·`TestSuiteGroupTemplate` 모두 이 파일 안에서만 참조(grep — `:144`, `:300`). 함정 11(공용 템플릿) 해당 없음.
 
-### 팔레트·스타일 (직접 Read/grep)
-- `Palette.xaml`: `AppSuccessBrush #5DB463`/`AppSuccessSoftBrush #285DB463`, `AppWarningBrush #D9954A`/`AppWarningSoftBrush #28D9954A`, `AppDangerBrush #F0716A`, `AppMutedSoftBrush #286F6D75`, `AppCardBrush`/`AppInputBrush`. 상태 pill 배경은 **상태색의 soft(저투명) 버전**이 필요 — 통과(파랑)·미실행(회색)은 soft 브러시가 없어 코드비하인드에서 status→soft Brush 반환 헬퍼 신규(함정 5: x:Bind 함수 바인딩이 Brush 직접 반환).
-- `Styles.xaml:189` `TagBadgeStyle`(Border, pill 형태) — 배지·pill 컨테이너로 재사용. `AccentButtonStyle`(등록 버튼)·`SegmentedToggleStyle`(탭)·`DashedAddButtonStyle` 등 기존 스타일 확인.
+**`TestPage.xaml.cs`**
+- `StatusTab_Checked`(:106-111): `if (sender is not RadioButton { Tag: string tag }) return;` → `Vm.SelectedStatus = string.IsNullOrEmpty(tag) ? null : tag;`
+  - **⑥ "전체 필터 미동작"의 가장 유력한 정적 설명**: 전체 탭의 `Tag=""`가 패턴 `Tag: string tag`에 걸리지 못하면(빈 attribute가 `null`로 파싱되는 경우) **`return`으로 조용히 빠져나가 `SelectedStatus`가 직전 값("Untested") 그대로 남는다** — 사용자 증상(미실행 클릭 후 전체를 눌러도 미실행만 표시)과 정확히 일치한다. RadioButton 자체는 체크되므로 밑줄·색은 바뀐다(사용자가 "색상만 변경"이라 관찰한 것과도 정합).
+  - 반증 자료 확인: 레포 전체에서 `Tag=""`는 이 한 곳뿐(grep 전수) — 정상 동작하는 선례가 없어 이 가설을 반증할 근거가 없다. VM 경로(`OnSelectedStatusChanged`→`Rebuild`, `SelectedStatus is null`이면 전 항목 표시)·`Checked` 배선·`SuiteGroups` 갱신은 코드상 정상임을 직접 확인했고, 이 외에 증상을 설명하는 정적 경로를 찾지 못했다.
+  - **가설 한계(중요)**: `Tag=""`가 `string.Empty`로 파싱된다면 기존 코드가 이미 정상이고 D1의 수정은 **동작상 no-op**가 된다(그 경우 원인은 코드 밖 — 런타임 재조사 필요). 파싱 결과는 정적으로 확인 불가하므로, T1의 grep acceptance만으로 "고쳐졌다"고 단정하지 않는다 — 실동작 확인은 ⏳ HUMAN-VERIFY이며, 재현이 남으면 **가설 기각 → 런타임 재조사**로 넘긴다(아래 D1·Deferred).
+  - **수정 방향(원인 제거 + 경로 견고화)**: 전체 탭 Tag를 빈 문자열이 아닌 명시값(`"All"`)으로 바꾸고, 핸들러도 `Tag`를 `as string`으로 받아 **null·빈 문자열·"All"을 모두 전체로** 해석한다. 어느 파싱 결과여도 전체 필터가 성립한다.
+- 상태 브러시·글리프 헬퍼(:32-93): `StatusBrush`/`StatusSoftBrush`/`StatusGlyph`(✓/✕/○)/`StatusText` 존재 — 아이콘 재구성에 재사용.
+- `EditNote_Click`(:172-195): **인라인 `ContentDialog` + 맨 TextBox**(Title=`TestEditNoteTitle`="진행 내용 수정"). 시안(이미지3)의 대상 테스트명·안내 placeholder 없음 = 지적 ⑩.
+- `RenameSuite_Click`(:199-215)·`DeleteSuite_Click`(:217-225): 헤더 메뉴 제거 시 고아가 된다 → 함께 제거.
+
+**`TestPageViewModel.cs`**
+- `Rebuild()`(:65-101): `if (items.Count == 0 && SelectedStatus is not null) continue;` — **전체 필터에서는 빈 스위트도 노출**한다 = 지적 ③ 후반의 원인. 조건에서 상태 필터 종속을 빼면 해소.
+- `RenameSuite`(:120-129)·`DeleteSuite`(:132-138): 소비처는 위 두 핸들러뿐(grep 전수) → 함께 제거.
+- `AddSuite`(:106-117): **이미 소비처 0(고아)** — 이번 변경으로 생긴 것이 아니므로 이번 범위 밖(Deferred 등재).
+
+**`Resources/Styles.xaml`**
+- `FilterTabStyle`(:371-438): `CheckStates/Checked`가 `SelectedUnderline.Background`와 `Content.Foreground`만 설정 — **FontWeight 없음** = 지적 ⑤의 원인. 함정 7대로 CommonStates(호버)와 요소가 분리돼 있어 `Content.FontWeight` 추가는 이 구조를 깨지 않는다. 소비처는 TestPage 상태 탭 4곳뿐(grep 전수).
+- `TagBadgeStyle`(:189-193): CornerRadius 4·Padding 8,3·Margin 0,0,4,4 — pill·배지 공용(소비처 다수) → **스타일 자체는 건드리지 않고** 소비 지점에서 `MinWidth`를 준다.
+
+**`Resources/Palette.xaml`** (다크 `Default` 단일 — 함정 4)
+- 사용 가능: `AppBorderBrush #26262C`(구분선)·`AppBorderStrongBrush #2E2E34`(진행바 트랙)·`SubtleFillColorTertiary #26262C`(행 hover)·`AppWarningBrush #D9954A`(메모 강조)·`AppInputBrush`(메모 블록 배경)·`AppInfoBrush #5B93D8`(다이얼로그 부제)·`AppAccentBrush #F0716A`.
+- **`AppHoverFillColor`는 있으나 대응 Brush가 없다**(`AppHoverFillBrush` 미정의 — grep 확인) → hover에는 정의된 `SubtleFillColorTertiary`를 쓴다.
+
+**진행바 두께 불일치(⑦)의 원인**: WinUI `ProgressBar`는 **트랙(배경)과 인디케이터의 높이가 서로 다른 기본 디자인**이라, 통과율 0%인 스위트는 얇은 트랙 선만, 통과율이 있는 스위트는 두꺼운 인디케이터가 보여 "세로 사이즈가 다른" 것으로 관찰된다(스크린샷2의 UI·UX 두꺼운 바 vs 프론트엔드 얇은 선). 컨트롤 `Height` 지정이 트랙·인디케이터 중 어디에 걸리는지는 템플릿 내부 구현에 의존하므로, **직접 그린 2겹 Border**(트랙 + 좌측 정렬 인디케이터, 둘 다 Height 4)로 대체해 결과를 확정한다(함정 5와 같은 "직접 반환/직접 그림" 방침).
+
+**resw 현황**(`Strings/ko-KR/Resources.resw`, ko/en 대칭 확인): `TestEditNoteTitle`="진행 내용 수정"(:385)·`TestEditCategoryTitle`(:390)·`TestStatus_*`(:408-411)·`TestSuitePassCount`(:405)·`Dialog_Save`/`Dialog_Cancel`(공용) 존재. 신규 필요: 메모 다이얼로그 제목·placeholder.
 
 ### 4-D. 재사용 확인
 
 | 신규 심볼 | 유사 기존 구현 검색 결과 | 재사용/신규 사유 |
 |---|---|---|
-| 작업 카테고리 목록(다이얼로그 스위트 옵션) | `TaskPageViewModel.AvailableCategories`(:68-71)가 `DefaultTaskCategories.Concat(settings.TaskCategories).Distinct()` | **재사용(패턴 복제)** — TestPageViewModel에 동일 방식 `AvailableCategories` 추가. 공용 헬퍼 추출은 소비 2곳뿐이라 보류(YAGNI) |
-| 스위트 필터(`SelectedSuiteFilter`) | `TaskPageViewModel.SelectedCategoryFilter`(:51)+`OnSelectedCategoryFilterChanged`→`Rebuild` 선례 | **신규(패턴 재사용)** — 같은 [ObservableProperty]+partial OnChanged→Rebuild 구조 |
-| "N/M 통과" 표시 텍스트 | `TestPage.FormatPassRate`(:81) "N%"만 있음 | **신규(정적 헬퍼)** `FormatPassCount(pass,total)`→"N/M 통과". `TestSuiteGroup`은 값 보유 |
-| 상태 pill soft 배경 브러시 | `StatusBrush`(:57) 불투명 색만. soft 버전 없음 | **신규(정적 헬퍼)** `StatusSoftBrush(status)`→저투명 Brush(함정 5) |
-| 상태 pill 클릭 순환 | `ChangeTestStatus`(VM:165) 존재, 순환 로직 없음 | **재사용+신규** — 순환 다음상태 계산 헬퍼 + 기존 `ChangeTestStatus` 호출 |
-| 프로젝트명 배지 | `ProjectItem.Name` + `TagBadgeStyle`+`AppMutedSoftBrush`(TaskEditDialog 상태 pill 선례) | **재사용** — 신규 심볼 0 |
-| 우클릭 편집/삭제/메모 | `EditTest_Click`/`DeleteTest_Click`/`EditNote_Click`(:124-167) 존재 | **재사용(무변경)** — MenuFlyout에서 호출 |
+| `TestNoteDialog`(메모 다이얼로그) | `TestEditDialog`(ContentDialog 서브클래스 + `ShowAsync` 섀도잉 + `InputLabelStyle` 라벨) | **신규(패턴 복제)** — 기존은 인라인 `ContentDialog`라 시안의 부제·placeholder를 담을 구조가 없다. 레포 관례(다이얼로그 = ContentDialog 서브클래스, AGENTS.md)에 맞춰 파일로 분리 |
+| `NoteVisibility(string)` | 이전 plan T5에서 제거된 동명 헬퍼(현재 부재), `TaskPage`에 유사 Visibility 헬퍼 선례 | **신규(선례 재현)** — 함정 5(x:Bind 함수 바인딩은 Converter 불가)로 `Visibility` 직접 반환 |
+| `IndicatorWidth(double)` | 없음(현행은 `ProgressBar.Value` 바인딩) | **신규(정적 헬퍼)** — 커스텀 진행바의 인디케이터 폭 계산 |
+| `StatusIconBackground`/`StatusIconBorderBrush`/`StatusGlyphForeground` | `StatusBrush`·`StatusSoftBrush` 존재하나 "채움 + 흰 글리프 / 테두리형" 구분이 없음 | **재사용 + 신규** — 기존 브러시 재사용, 아이콘 3요소(배경·테두리·글리프색) 판정만 신규 헬퍼 |
+| 행 hover 배경 | `FilterTabStyle`은 ControlTemplate VisualState 방식(DataTemplate에는 적용 불가) | **신규(이벤트 핸들러)** — `DataTemplate` 안에서는 VSM `GoToState`가 동작하지 않으므로 `PointerEntered`/`PointerExited`로 명시 처리 |
+| 행 구분선 | `SeparatorStyle`(Rectangle, `Styles.xaml:196`) | **미사용(재사용 검토 결과)** — 행 루트 Border의 `BorderThickness="0,1,0,0"`로 충분(요소 추가 없음) |
 
 ## 시각 요소 분해
 
-> 출처: 사용자 제공 시안 이미지 2장(이미지1 새 테스트 등록 / 이미지2 테스트 화면). 목업 HTML이 없어 **px 값은 확정 불가** — 구조·상대 관계를 명세하고 수치는 기존 관례(WinUI 기본 `CornerRadius` 4~8, 기존 카드 Padding)를 따른다. 최종 판정은 빌드 후 사용자 육안 대조(⏳ HUMAN-VERIFY). CSS 대응은 없음(웹 시안 아님, 렌더 이미지).
-
-### 이미지1 — 테스트 등록 다이얼로그
+> 기준 디자인: 사용자 제공 렌더 이미지 — 이미지1(테스트 목록 시안)·이미지3(메모 다이얼로그 시안). HTML/CSS 소스는 없으므로 **px 수치는 시각 판독 근사**이며 구조·형태가 기준이다. 최종 판정은 빌드 후 사용자 육안 대조(⏳ HUMAN-VERIFY).
 
 | 요소 | 속성 | 디자인 값 | 확인 방법 |
 |---|---|---|---|
-| 다이얼로그 제목 | 텍스트 | "새 테스트 등록" | 이미지1 상단 |
-| 테스트 이름 라벨 | 텍스트 | "테스트 이름" + 빨간 `*` | 이미지1 |
-| 테스트 이름 입력 | placeholder | "예: 로그인_실패시_잠금처리" | 이미지1 |
-| 테스트 이름 입력 | 필수 강조 | 하단 빨간 라인(상시) — TaskEditDialog 제목칸과 동일 처리 | 이미지1(입력칸 하단 살몬 라인) |
-| 스위트 라벨 | 텍스트 | "스위트 (작업 카테고리)" | 이미지1(사용자 명시) |
-| 스위트 입력 | 형태 | **드롭다운(비편집 ComboBox)**, 항목=작업 카테고리, 예시값 "UI·UX" | 이미지1 + 사용자 요구 ① |
-| 테스트 방법 라벨 | 텍스트 | "테스트 방법" | 이미지1 |
-| 테스트 방법 입력 | placeholder | "테스트 수행 방법을 입력하세요 (선택)" | 이미지1 |
-| 버튼 | 텍스트 | 등록 / 취소 | 이미지1 |
-
-### 이미지2 — 테스트 화면
-
-| 요소 | 속성 | 디자인 값 | 확인 방법 |
-|---|---|---|---|
-| 헤더 | 구성 | ← 대시보드 · "테스트" 제목 · 프로젝트명 배지 · (우측) 스위트 필터 드롭다운 · "+ 테스트 등록" | 이미지2 |
-| 프로젝트명 배지 | 형태 | pill(저강도 배경 `AppMutedSoftBrush`), 텍스트=프로젝트명(예 "Aurora API") | 이미지2 |
-| 스위트 필터 | 형태 | 드롭다운, 기본 "전체" | 이미지2(우측 상단) + 결정(스위트 필터) |
-| 등록 버튼 | 텍스트/스타일 | "+ 테스트 등록", accent(살몬) | 이미지2 |
-| 통계 카드 | 레이아웃 | 3개 가로 균등(넓게), 각 카드: 좌측 색점+라벨, 우측 큰 숫자 | 이미지2 |
-| 통계 카드 | 값·색 | 통과 4(파랑점)/실패 1(호박점)/미실행 1(회색점) | 이미지2 + PRD §3 색 |
-| 상태 필터 탭 | 형태 | 탭바, 각 탭에 개수 배지: 전체 6·통과 4·실패 1·미실행 1, 활성 탭 강조 | 이미지2 |
-| 스위트 그룹 헤더 | 구성 | 폴더 아이콘 + 스위트명(굵게) + "N/M 통과"(저강도) + (우측) 인라인 진행바 | 이미지2 |
-| 진행바 | 위치·값 | 헤더 우측 인라인, 값=통과율(0~100) | 이미지2 |
-| 테스트 항목 행 | 레이아웃 | 좌: 상태 아이콘(원형 배경) + 이름 / 우: 상태 pill | 이미지2 |
-| 상태 아이콘 | 글리프·색 | 통과 ✓(파랑)/실패 ✕(살몬·빨강)/미실행 ○(회색), 원형 soft 배경 | 이미지2 |
-| 상태 pill | 텍스트·색 | 통과/실패/미실행, soft 배경 + 상태색 텍스트 | 이미지2 |
-| 항목 행 | 조작 노출 | 버튼 없음(우클릭 메뉴·pill 클릭) | 이미지2 + 결정(행 조작) |
-
-> ⚠️ 색 주의(⏳ HUMAN-VERIFY): 이미지2의 "실패"는 붉게 보이나 PRD §3·기존 코드는 실패=호박 `#E8B45A`. 이번엔 **기존 PRD 색을 유지**(신규 색 도입 안 함) — 붉은 실패색을 원하면 별도 값 치환(Deferred 후보).
+| 테스트 행 | 행 사이 구분선 | 있음(얇은 1px, 어두운 회색). 헤더와 첫 행 사이에도 있음 | 이미지1 판독 |
+| 테스트 행 | 마우스 오버 | 배경이 살짝 밝아짐 | 사용자 요구(⑧) — 시안은 정적 이미지라 hover 미포함 |
+| 상태 아이콘 | 형태 | **라운드 사각형**(모서리 둥근 정사각, 약 22px) | 이미지1 + 사용자 확정(Q1: 세 상태 모두 라운드 사각형) |
+| 상태 아이콘 | 통과 | 파란 채움 + **흰색** ✓ | 이미지1 |
+| 상태 아이콘 | 실패 | 호박 채움 + **흰색** ✕ | 사용자 확정(Q1 preview `[■✕]`) |
+| 상태 아이콘 | 미실행 | 저투명 배경 + 회색 테두리 + 회색 ○ | 이미지1 + Q1 preview `[□○]` |
+| 상태 pill | 폭 | **세 상태 동일**("미실행" 3자 기준 고정 폭) | 사용자 요구(②), 이미지1 |
+| 상태 pill | 텍스트 정렬 | 가운데 | 이미지1 |
+| 메모 블록 | 위치 | 테스트 이름 **아래**, 이름 열에 정렬(아이콘 열 들여쓰기 유지) | 이미지1(결제취소_웹훅_서명검증) |
+| 메모 블록 | 좌측 표시 | 세로 컬러 바(주황 계열) | 이미지1 |
+| 메모 블록 | 아이콘 | 깃발(⚑) 1개, 텍스트 앞 | 이미지1 |
+| 메모 블록 | 배경 | 행보다 어두운 입력칸 계열 박스, 모서리 둥금 | 이미지1 |
+| 메모 블록 | 표시 조건 | 메모가 있을 때만 | 이미지1(다른 두 행에는 없음) |
+| 스위트 진행바 | 두께 | **통과율과 무관하게 일정**(얇은 막대) | 이미지1(백엔드 2/3) + 사용자 요구(⑦) |
+| 스위트 진행바 | 인디케이터 색 | 파랑(통과색 계열) | 이미지1 |
+| 스위트 헤더 | 우클릭 메뉴 | 없음 | 사용자 요구(③) |
+| 스위트 카드 | 표시 조건 | 표시할 항목이 있을 때만 | 사용자 요구(③) |
+| 필터 탭 | 선택 시 글자 | **굵게** + 밝은 색 + 밑줄 | 이미지1("전체"가 굵고 밑줄) |
+| 필터 탭 | 비선택 글자 | 보통 굵기, 저강도 회색 | 이미지1 |
+| 메모 다이얼로그 | 제목 | "메모 추가"(굵게) | 이미지3 |
+| 메모 다이얼로그 | 부제 | 대상 테스트 이름, 파랑 계열, 제목 아래 | 이미지3 |
+| 메모 다이얼로그 | 입력칸 | 여러 줄, placeholder "메모를 입력하세요. 비워 두고 저장하면 메모가 삭제됩니다." | 이미지3(원문 그대로) |
+| 메모 다이얼로그 | 버튼 | 좌 "취소"(보통) / 우 "저장"(accent 채움), 우측 정렬 | 이미지3 |
 
 ## Decisions
 
-| # | 항목 | 카테고리 | 결정 | Source |
-|---|---|---|---|---|
-| D1 | 스위트 필드 = 작업 카테고리 드롭다운 | UX | `IsEditable="False"` ComboBox, 항목=`Vm.AvailableCategories`(작업 카테고리). 자유 스위트명 입력 제거. **기각**: 편집형 콤보 유지(자유 입력 병행) — 배지는 이름 일치가 필요한데 자유 입력을 두면 작업 카테고리와 어긋난 스위트가 계속 생겨 근본 해소가 안 됨 | 사용자 요구 ① + `BuildPassRateBadge`(TaskPageViewModel:157) |
-| D2 | TestPageViewModel에 settings 주입 | 구조 | 생성자에 `AppSettings settings` 추가, 호출부 `ProjectCardViewModel:536` 1곳 갱신(`_settings` 전달). `AvailableCategories`를 TaskPageViewModel과 동일식으로 노출. **호출부 전수 1곳**(grep) | `ProjectCardViewModel:536` + `TaskPageViewModel:68-71` |
-| D3 | 헤더 드롭다운 = 스위트 필터 | UX | `SelectedSuiteFilter`(null=전체)로 스위트(카테고리) 필터. 상태 탭과 직교. `AvailableCategories` + "전체"로 드롭다운 구성 | 사용자 결정 2026-07-21 |
-| D4 | 행 조작 = pill 클릭 순환 + 우클릭 메뉴 | UX | 상태 pill 클릭 = 통과→실패→미실행→통과 순환(`ChangeTestStatus` 재사용), 우클릭 MenuFlyout = 편집/삭제/메모(기존 핸들러 재사용). 인라인 상태 콤보·버튼 제거 | 사용자 결정 2026-07-21 + 작업 칸반 카드 선례 |
-| D5 | 상태 색 | UX | 기존 PRD §3 색 유지(통과 #5AA3E8·실패 #E8B45A·미실행 #8A8890). pill/아이콘 배경은 soft(저투명). 신규 색 도입 안 함 | `TestPage.xaml.cs:25-31` + PRD §3 |
-| D6 | 통계 카드 개수 vs 탭 개수 | 범위 | 둘 다 프로젝트 전체 기준 동일 값(`PassCount` 등, 필터 무관) — 시안이 둘 다 표시하므로 그대로 둔다. "전체" 탭 개수=`TotalCount` | 이미지2 + `TestPageViewModel:28-31` |
-| D7 | "N/M 통과" 표시 | 기술 | 정적 헬퍼 `FormatPassCount(pass,total)`→"N/M 통과". `TestSuiteGroup.PassCount/TotalCount` 소비. 기존 `FormatPassRate`(N%)는 진행바 값용으로 유지 or 제거(사용처만 남기면) | `TestSuiteGroup`(:217) |
-| D8 | 기존 비-작업-카테고리 스위트 처리 | 범위 | **표시는 무제한**(스위트명 그대로 그룹 표시) — 등록 시에만 작업 카테고리로 제한. 기존 "작업"·자유명 스위트의 테스트는 이동/마이그레이션 하지 않음(go-forward). 배지는 작업 카테고리 이름 스위트만 반영(설계) | 근본 원인 조사(디버깅 세션) |
-| D9 | 이름 필수 하단 라인 | UX | TaskEditDialog 제목칸과 동일하게 `TextBox`를 `Grid`로 감싸 하단 danger 라인(`AppDangerBrush`, Height 2, IsHitTestVisible=False) 상시 표시. `OnSave`의 이름 필수 검증은 유지 | 이미지1 + TaskEditDialog 선례 |
-| D10 | 작업 카테고리 결합식 공통화 | 구조 | **계획 수정(T1 구현 중, V-6 quality M1)**: 4-D는 소비 2곳으로 보고 YAGNI 유지를 택했으나, 실제로는 `TaskEditDialogViewModel:63`이 같은 표현식을 이미 쓰고 있어 T1이 추가되면 **3곳**이 된다(프로젝트 공통화 문턱 3회 도달). `AppSettingsDialogViewModel.ResolveTaskCategories(AppSettings)` 정적 헬퍼로 추출하고 3곳 모두 호출로 교체. 부수로 쓰기 전용이던 `TestPageViewModel._settings` 필드 제거(m1) | V-6 리뷰 M1/m1 + grep 3곳 확인 |
+- **D1 (전체 필터 수정 방식)**: 전체 탭 `Tag="All"` + 핸들러에서 `Tag as string`으로 받아 null·빈 문자열·"All"을 모두 전체로 해석. *Source*: `TestPage.xaml:255`, `TestPage.xaml.cs:106-111`. 어느 파싱 결과여도 전체 필터가 성립한다. **가설이 틀린 경우의 경로**: 사용자 확인에서 증상이 그대로 재현되면 Tag 가설을 기각하고 런타임 재조사(`pjc:pjc-systematic-debugging`)로 전환한다 — 이번 plan 안에서 추가 추측 수정을 하지 않는다.
+- **D2 (탭 굵기)**: `FilterTabStyle`의 `CheckStates/Checked`에 `Content.FontWeight = SemiBold` Setter 추가. *Source*: `Styles.xaml:421-429` — 같은 요소의 다른 프로퍼티라 CommonStates(호버)와 충돌하지 않는다(함정 7 구조 유지). **부작용 차단**: `Content`(ContentPresenter)의 FontWeight는 자식에 상속되므로 개수 배지 숫자(`TestPage.xaml:261` 등 4곳, FontSize 10)까지 굵어진다 — 시안(이미지1)의 배지 숫자는 굵지 않으므로 배지 TextBlock에 `FontWeight="Normal"`을 명시해 라벨만 굵어지게 한다.
+- **D3 (상태 아이콘)**: 세 상태 모두 `CornerRadius="6"` 22×22. 통과·실패는 상태색 **채움 + 흰 글리프**, 미실행은 **저투명 배경 + 회색 테두리 + 회색 ○**. *Source*: 사용자 Q1 답변(2026-07-21).
+- **D4 (pill 폭 통일)**: 소비 지점에 `MinWidth="52"` + 텍스트 `TextAlignment="Center"`. 공용 `TagBadgeStyle`은 무변경(다른 화면 영향 차단). "미실행"(11px 3자 ≈ 33px) + Padding 16 = 49px가 최댓값이라 52px면 세 상태 모두 넘치지 않는다.
+- **D5 (구분선 범위)**: 행 루트 Border `BorderThickness="0,1,0,0"`, 색 `AppBorderBrush`. 첫 행 상단에도 선이 생겨 **헤더와 목록 사이 구분선**이 함께 만들어진다(이미지1과 일치). 마지막 행 아래에는 선이 없어 카드 하단 경계와 겹치지 않는다.
+- **D6 (진행바)**: `ProgressBar` → **Grid(Width 120, Height 4) 안에 트랙 Border + 좌측 정렬 인디케이터 Border**. 인디케이터 색은 통과색(`PassBrush` — 이미지1의 파란 바), 트랙은 `AppBorderStrongBrush`. 폭은 정적 헬퍼 `IndicatorWidth(PassRate)`. *Source*: 이미지1 + 위 "진행바 두께 불일치 원인".
+- **D7 (스위트 조작 제거 범위)**: 헤더 `ContextFlyout` + `RenameSuite_Click`/`DeleteSuite_Click` 핸들러 + VM `RenameSuite`/`DeleteSuite` 메서드까지 제거. *Source*: 사용자 Q2 답변(2026-07-21) — 사용자가 "기능째 제거"를 확정했다.
+  - **사실 확인(정정)**: `TestCategory`는 등록 시 작업 카테고리 **이름을 복사해 프로젝트 DB에 별도로 생성**되므로, 앱 설정에서 작업 카테고리를 고치거나 지워도 기존 `TestCategory`에는 반영되지 않는다(`AddTestToSuite`, `TestPageViewModel.cs:143-161`). 따라서 "앱 설정에서 관리된다"는 정당화는 성립하지 않는다 — 제거의 근거는 사용자 확정이며, 결과적으로 **오타·구 이름 스위트를 정리할 UI가 0이 된다**(T3의 빈 스위트 숨김으로 화면에서는 사라지되 DB에는 잔존). 이 잔존 문제는 Deferred `[스위트 정리 경로 부재]`로 등재한다.
+  - `AddSuite`는 이전부터 고아라 이번 범위 밖(Deferred).
+- **D8 (행 hover 구현)**: `DataTemplate` 안에서는 VisualStateManager `GoToState`가 동작하지 않으므로 행 루트 Border의 `PointerEntered`/`PointerExited` 핸들러로 `Background`를 바꾼다. 색은 `UserControl.Resources`에 `RowHoverBrush`(Color=`SubtleFillColorTertiary`)를 두고 코드에서 `Resources["RowHoverBrush"]`로 가져온다(팔레트 색 유지 + `Application.Current.Resources` 경유 ThemeDictionaries 조회의 불확실성 회피).
+- **D9 (메모 블록 스타일)**: 배경 `AppInputBrush`, 좌측 `BorderThickness="2,0,0,0"` + `AppWarningBrush`, 깃발 아이콘(Segoe Fluent `&#xE7C1;`) + 텍스트 `TextFillColorSecondaryBrush` 12px, `CornerRadius="4"`. 표시 여부는 `NoteVisibility(ProgressNote)`.
+- **D10 (메모 다이얼로그 구조)**: 신규 `Presentation/Views/Dialogs/TestNoteDialog.xaml(.cs)` — ContentDialog 서브클래스, 생성자 `(string testName, string currentNote)`, 결과는 `ResultNote`. 제목·버튼은 `TestEditDialog`와 같은 방식(코드비하인드 `LocalizationService.Get`), 부제는 `AppInfoBrush`. 시안 문구 "비워 두고 저장하면 메모가 삭제됩니다"는 **현재 동작과 일치**(`EditProgressNote`가 빈 문자열을 그대로 저장) — 동작 변경 없음.
+- **D11 (신규 resw 키)**: `TestNote_Title`("메모 추가")·`TestNote_Placeholder`("메모를 입력하세요. 비워 두고 저장하면 메모가 삭제됩니다.") ko/en 양쪽(함정 2). 코드 소비이므로 **접미 없는 베어네임**(함정 3). 구 `TestEditNoteTitle`·`TestEditCategoryTitle`은 고아가 되지만 삭제는 대장의 고아 정리 항목에 합류(이번 범위 밖).
+- **D12 (실패 색)**: 호박 `#E8B45A` 유지(PRD §3). 시안 이미지1에 실패 예시가 없고 사용자가 이번에 언급하지 않음 — 대장의 `[실패 색 시안 불일치]` 항목 그대로 유지.
 
 ## PRD Coverage
 
 | PRD ID | 우선순위 | 대응 task | 상태 |
 |---|---|---|---|
-| FR-E1 (테스트 전체 페이지 + 통계 카드 + 상태 필터 탭) | Must | T1, T4 | ✅ 커버(통계 카드 restyle + 개수 탭바) |
-| FR-E3 (등록/편집 다이얼로그 이름/스위트/방법) | Must | T2 | ✅ 커버(스위트=작업 카테고리 드롭다운 + 문구 정합) |
-| FR-E5 (테스트 목록 restyle — 스위트 그룹·통과율 바·상태 아이콘/배지·**에러/메모 표시**) | Should | T3, T5 | ⚠️ **부분 커버** — 스위트 그룹·통과율 바·상태 아이콘/배지는 충족. **"에러/메모 표시"는 시안(이미지2) 반영으로 행에서 제외**(데이터·편집 경로는 유지, Deferred 등재). PRD 본문 갱신은 **사용자 승인 대기**(F-7 M1) |
-| FR-E4 / FR-T8 (테스트↔작업 연결·칸반 통과율 배지 배선) | Should | T1·T2(스위트=작업 카테고리로 정렬) + 선행 CreateLinkedTest 수정 | ✅ 커버(배선 완성) |
+| FR-E1 (테스트 전체 페이지 + 통계 카드 + 상태 필터 탭) | Must | T1 | ✅ 커버(필터 탭 결함 수정 몫) |
+| FR-E3 (등록/편집·**메모**·삭제 확인 다이얼로그) | Must | T4 | ✅ 커버(메모 다이얼로그 몫) |
+| FR-E5 (목록 restyle — 스위트 그룹·통과율 바·상태 아이콘/배지·**메모 표시**) | Should | T2, T3 | ✅ 커버(이전 plan에서 제외했던 "메모 표시" 포함) |
 | FR-E2 (테스트 상태 모델 통과/실패/미실행) | Must | — | 이번 범위 외 (기구현 — 상태 모델 무변경) |
-| FR-T1~T8·FR-C*·FR-S*·FR-H*·FR-N* | Must/Should | — | 이번 범위 외 (기구현, 이번 diff 무관) |
+| FR-E4 / FR-T8 (테스트↔작업 연결·칸반 통과율 배지) | Should | — | 이번 범위 외 (기구현, 실동작 확인은 사용자) |
+| FR-T*·FR-C*·FR-S*·FR-H*·FR-N* 등 그 외 active Must | Must/Should | — | 이번 범위 외 (기구현, 이번 diff 무관) |
 | NFR-1 (빌드 오류 0·신규 경고 0) | — | 전 task | 검증 대상(기존 경고 5건 제외) |
 | NFR-2 (계층 위반 0) | — | 전 task | 검증 대상(VM→페이지 역참조 없음) |
-| NFR-3 (DB 스키마 하위호환) | — | — | ✅ 무영향(TestItem·TestCategory·스키마·직렬화 무변경) |
-| NFR-4 (다국어 ko/en 대칭) | — | T2·T3·T4·T5 | 신규·변경 resw 키 ko/en 양쪽(함정 2) |
+| NFR-3 (DB 스키마 하위호환) | — | — | ✅ 무영향(도메인·스키마·직렬화 무변경) |
+| NFR-4 (다국어 ko/en 대칭) | — | T4 | 신규 resw 키 ko/en 양쪽(함정 2) |
 | NFR-5 (테스트) | — | — | 조건 미발동(테스트 프로젝트 부재 — AGENTS.md) |
 
 ## 작업 단계
 
-### T1 — TestPageViewModel: settings 주입 + 작업 카테고리 노출 + 스위트 필터 `Type D`
+### T1 — 상태 필터 탭: "전체" 필터 정상화 + 선택 탭 굵게 `Type C`
 - [x] 구현
-- **Files**: `DevDashboard_WinUI/Presentation/ViewModels/TestPageViewModel.cs`, `DevDashboard_WinUI/Presentation/ViewModels/ProjectCardViewModel.cs`, `DevDashboard_WinUI/Presentation/ViewModels/AppSettingsDialogViewModel.cs`, `DevDashboard_WinUI/Presentation/ViewModels/TaskPageViewModel.cs`, `DevDashboard_WinUI/Presentation/ViewModels/TaskEditDialogViewModel.cs` *(뒤 3개는 V-6 quality 리뷰 M1 대응으로 추가 — 아래 D10)*
-- **Design**: ① 배치 — VM 로직은 `TestPageViewModel`, 배선은 `ProjectCardViewModel.CreateTestPageViewModel`, 공용 카테고리 결합은 `AppSettingsDialogViewModel`. ② 신규 심볼 — `AvailableCategories`(작업 카테고리, `IReadOnlyList<string>`), `SelectedSuiteFilter`([ObservableProperty] `string?`)+`OnSelectedSuiteFilterChanged`→`Rebuild`, `AppSettingsDialogViewModel.ResolveTaskCategories(AppSettings)`(D10). **`_settings` 필드는 두지 않는다** — 생성자에서 카테고리 계산에만 쓰고 이후 참조가 없어 쓰기 전용 필드가 된다(D10/m1). ③ 의존 방향 — `TestPageViewModel`→`AppSettings`/`AppSettingsDialogViewModel`(TaskPageViewModel과 동일), 페이지 역참조 없음. ④ 비추상화 — 필터·그룹 구성을 별도 서비스로 빼지 않는다(VM 내부 유지). 단 작업 카테고리 결합식은 **3곳 도달로 공통화**한다(D10 — 4-D의 "2곳" 계수가 `TaskEditDialogViewModel`을 누락했음).
+- **Files**: `DevDashboard_WinUI/Presentation/Views/TestPage.xaml`(탭 Tag), `DevDashboard_WinUI/Presentation/Views/TestPage.xaml.cs`(`StatusTab_Checked`), `DevDashboard_WinUI/Resources/Styles.xaml`(`FilterTabStyle`)
 - **구성**:
-  - 생성자 `(project, repository, refreshCardState)` → `(project, repository, settings, refreshCardState)`. `ArgumentNullException.ThrowIfNull(settings)` 추가, `_settings` 보관.
-  - `AvailableCategories = AppSettingsDialogViewModel.DefaultTaskCategories.Concat(settings.TaskCategories).Distinct(StringComparer.OrdinalIgnoreCase).ToList();`(TaskPageViewModel:68-71 복제).
-  - `SelectedSuiteFilter`([ObservableProperty] `string?`) 추가 + `partial void OnSelectedSuiteFilterChanged(string?) => Rebuild();`.
-  - `Rebuild()`: 스위트 필터 적용 — `SelectedSuiteFilter` 비null이면 그 이름의 카테고리만 그룹으로. 통계 카드/탭 개수(`PassCount` 등)는 **전체 기준 유지**(필터 무관 — 시안 통계는 프로젝트 전체).
-  - `ProjectCardViewModel.CreateTestPageViewModel()`: `new TestPageViewModel(_item, _repository, _settings, RefreshTestCardState)`로 `_settings` 전달.
-- **Acceptance**: 빌드 성공(신규 경고 0) + `new TestPageViewModel(` 호출부가 4-인자로 갱신됨(grep — 잔존 3-인자 0건) + `AvailableCategories` 정의 1건(grep) + `SelectedSuiteFilter` 설정 시 그 스위트만 그룹 표시(스위트 필터 동작) + 통계 카드 개수는 스위트 필터와 무관하게 전체 유지 + 기존 상태 필터(`SelectedStatus`)·통계·통과율 회귀 없음(기존 테스트 표시 정상)
-- **Edge Cases**: `settings.TaskCategories` 비어도 `DefaultTaskCategories` 3개로 `AvailableCategories` 비지 않음. `SelectedSuiteFilter`가 실제 스위트에 없는 값이면 그룹 0개(빈 목록) — 드롭다운은 실재 카테고리만 담으므로 정상 경로엔 없음. `_project.TestCategories`가 빈 신규 프로젝트 → 그룹 0·개수 0(예외 없음).
-- **Halt Forecast**: 없음 — signature 변경이지만 호출부 1곳(사전 승인 등재), 파괴적·외부 작업 없음.
+  - (D1) 전체 탭 `Tag=""` → `Tag="All"`. 핸들러를 `if (sender is not RadioButton rb) return; var tag = rb.Tag as string; Vm.SelectedStatus = string.IsNullOrEmpty(tag) || tag == "All" ? null : tag;`로 교체(빈 Tag가 null로 파싱돼도 전체로 해석되도록 — 원인 제거 + 경로 견고화).
+  - (D2) `FilterTabStyle`의 `CheckStates/Checked`에 `<Setter Target="Content.FontWeight" Value="SemiBold" />` 추가 + 탭 4개의 개수 배지 TextBlock에 `FontWeight="Normal"` 명시(상속으로 배지 숫자까지 굵어지는 것 차단 — 시안의 배지 숫자는 굵지 않다).
+- **Acceptance**:
+  1. 빌드 오류 0 · 신규 경고 0(기존 5건 제외).
+  2. `TestPage.xaml`에 `Tag=""` 잔존 0건, `Tag="All"` 1건.
+  3. `StatusTab_Checked`에 `Tag: string` 패턴 매칭이 없고 `as string` + null/빈문자열/"All" 분기가 있다.
+  4. `Styles.xaml`의 `CheckStates/Checked`에 `Content.FontWeight` Setter가 있고, `CommonStates`는 여전히 `HoverBackground`만 건드린다(함정 7 회귀 없음).
+  5. 탭 4개의 개수 배지 TextBlock에 `FontWeight="Normal"`이 있다.
+  > ⚠️ 이 acceptance는 전부 마크업 존재 확인이라 **"전체 필터가 실제로 동작하는가"를 검증하지 못한다**(D1 가설 한계). 실동작은 ⏳ HUMAN-VERIFY이며, 재현되면 가설 기각 후 런타임 재조사로 전환한다.
+- **Edge Cases**: XAML 초기 로드 시 전체 탭 `IsChecked="True"` 발화(Vm은 `InitializeComponent` 전에 대입되므로 non-null — 기존 주석 근거 유지) / Tag가 null인 경우 / 같은 탭 재클릭(Checked 미발화 — 상태 유지가 정상).
+- **Halt Forecast**: 없음 — `FilterTabStyle` 소비처는 TestPage 상태 탭 4곳뿐(grep 전수), 파괴적·외부 작업 없음.
 
-### T2 — TestEditDialog: 스위트=작업 카테고리 드롭다운 + 문구/이름 필수 라인 `Type C`
-- [x] 구현
-- **Files**: `DevDashboard_WinUI/Presentation/Views/Dialogs/TestEditDialog.xaml`, `DevDashboard_WinUI/Presentation/ViewModels/TestEditDialogViewModel.cs`, `DevDashboard_WinUI/Presentation/Views/TestPage.xaml.cs`, `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`
-- **Design**: ① 배치 — 다이얼로그 XAML/VM + 호출부(TestPage.xaml.cs)에서 옵션 소스 교체. ② 신규 심볼 — 없음(기존 `SuiteOptions` 의미만 "기존 스위트명"→"작업 카테고리"로, 편집형 콤보→드롭다운). ③ 의존 방향 — 호출부가 `Vm.AvailableCategories`(T1)를 다이얼로그에 전달. ④ 비추상화 — 스위트 옵션 소스를 다이얼로그 내부에서 계산하지 않고 주입 유지(현행 구조).
+### T2 — 테스트 항목 행 재구성: 구분선·pill 폭·상태 아이콘·hover·메모 표시 `Type D`
+- [ ] 구현
+- **Files**: `DevDashboard_WinUI/Presentation/Views/TestPage.xaml`(`TestItemRowTemplate` + `UserControl.Resources`), `DevDashboard_WinUI/Presentation/Views/TestPage.xaml.cs`(아이콘 헬퍼·`NoteVisibility`·hover 핸들러)
+- **Design**: ① 배치 — 전부 `TestPage`(뷰 국소, Presentation). ② 신규 심볼 — `NoteVisibility(string note)`(메모 유무 → `Visibility` 직접 반환) / `StatusIconBackground(string status)`(통과·실패는 상태색 채움, 미실행은 저투명) / `StatusIconBorderBrush(string status)`(미실행만 회색 테두리, 나머지 투명) / `StatusGlyphForeground(string status)`(통과·실패 흰색, 미실행 회색) / `Row_PointerEntered`·`Row_PointerExited`(행 배경 토글). ③ 의존 방향 — XAML `x:Bind` 함수 바인딩이 코드비하인드 정적 헬퍼를 참조(함정 5), 헬퍼는 기존 `_passBrush`/`_failBrush`/`_untestedBrush`·`StatusSoftBrush`만 참조하며 외부 의존 없음. ④ 비추상화 — 상태색을 `Palette.xaml`로 이관하거나 상태별 스타일 리소스를 만들지 않는다(현행 코드비하인드 고정 방식 유지 — 이관은 Deferred `[SUGGEST]`).
 - **구성**:
-  - `TestEditDialog.xaml`: 스위트 ComboBox `IsEditable="True"`→**제거(false 기본)**, `Text=` TwoWay 바인딩→`SelectedItem` 또는 `SelectedValue` 방식으로 전환(비편집이므로 항목 선택). 라벨 `TestEditLabel_Suite.Text`="스위트 (작업 카테고리)"로 resw 갱신.
-  - 이름 필수 하단 라인(D9): 이름 `TextBox`를 `Grid`로 감싸 하단 danger `Border`(Height 2, `AppDangerBrush`, `CornerRadius 0,0,4,4`, `IsHitTestVisible="False"`) 겹침(TaskEditDialog 선례).
-  - placeholder resw: `TestEditBox_Name.PlaceholderText`="예: 로그인_실패시_잠금처리", `TestEditBox_Method.PlaceholderText`="테스트 수행 방법을 입력하세요 (선택)". 이름 라벨 `TestEditLabel_Name.Text`="테스트 이름"(+ XAML에 빨간 `*` 별도 요소). 다이얼로그 제목 `TestEdit_TitleAdd`="새 테스트 등록"(현행 값 확인 후 갱신). 등록 버튼은 공용 `Dialog_Save`("저장")인데 시안은 "등록" — 새 테스트 전용 버튼 문구는 다이얼로그 코드비하인드에서 `TestEdit_TitleAdd` 경로에 맞춰 결정(신규 키 `TestEdit_Submit`="등록"/ 편집 "저장"). **공용 `Dialog_Save` 값은 건드리지 않음**(다이얼로그 8종 공용).
-  - `TestPage.xaml.cs` `AddTest_Click`(:117-121)/`EditTest_Click`(:124-132): `SuiteNames()` → `Vm.AvailableCategories`로 옵션 소스 교체. `presetSuite`는 편집 시 기존 카테고리, 새 테스트 시 첫 작업 카테고리.
-  - `TestEditDialogViewModel`: `SuiteOptions` 주석·의미 갱신("작업 카테고리 목록"). 비편집이므로 `SelectedSuite`가 목록 밖 값이면 미선택 — 편집 대상 테스트의 스위트가 작업 카테고리에 없을 수 있음(기존 자유명 스위트) → `presetSuite`가 목록에 없으면 첫 항목 fallback 또는 그대로(편집은 스위트 이동 미지원이라 표시만).
-  - resw는 ko/en 양쪽(함정 2). x:Uid 소비 키는 접미(`.Text`/`.PlaceholderText`) 유지(함정 3).
-- **Acceptance**: 빌드 성공(신규 경고 0) + 다이얼로그 스위트 필드가 **드롭다운(작업 카테고리 목록)**이고 자유 입력 불가 + 라벨 "스위트 (작업 카테고리)" + 새 테스트 시 첫 작업 카테고리 기본 선택 + 이름칸 하단 danger 라인 상시 표시 + placeholder·제목·버튼 문구가 시안과 일치 + 새 테스트 등록 시 선택 작업 카테고리 이름 스위트로 저장(`AddTestToSuite`가 그 이름 스위트 생성/연결) + 이름 빈 채 등록 시 닫히지 않음(기존 검증 유지) + resw ko/en 대칭(신규 키 양쪽)
-- **Edge Cases**: 편집 대상 테스트의 기존 스위트가 작업 카테고리에 없는 자유명이면 드롭다운에 없음 → 편집은 스위트 이동 미지원(`CanEditSuite=false`)이라 표시만 되고 저장 시 스위트 무변경(회귀 없음 확인). `AvailableCategories` 첫 항목 항상 존재(빈 목록 아님). `SelectedItem` 전환 시 XAML 바인딩 타입(object) 확인.
-- **Halt Forecast**: 없음 — 파일 5개(다이얼로그·VM·호출부·resw 2), 파괴적 없음. 신규 resw 키는 사전 승인 등재.
+  - (D5) 행 루트를 `Border`로 감싸 `BorderThickness="0,1,0,0"` + `BorderBrush={ThemeResource AppBorderBrush}`, 내부에 기존 Grid. `ContextFlyout`은 이 Border로 옮긴다(행 전체 우클릭 유지).
+  - (D3) 상태 아이콘 `CornerRadius="11"` → `"6"`, 배경/테두리/글리프색을 신규 헬퍼로 교체(`BorderThickness="1.5"`).
+  - (D4) 상태 pill에 `MinWidth="52"`, 내부 TextBlock `TextAlignment="Center"` + `HorizontalAlignment="Stretch"`.
+  - (D9) 행 Grid를 2행으로 확장 — 1행 이름, 2행 메모 블록(이름 열에 배치, `Visibility={x:Bind local:TestPage.NoteVisibility(ProgressNote), Mode=OneWay}`). 상태 아이콘·pill은 `Grid.RowSpan="2"` + 세로 중앙.
+  - (D8) 행 루트 Border에 `PointerEntered`/`PointerExited` 배선, `UserControl.Resources`에 `RowHoverBrush` 추가. **내부 Grid의 `Background="Transparent"`는 유지**하고(빈 영역까지 hit-test 되어야 행 전체 hover가 성립), Exited 시 루트 Border 배경은 `null`이 아니라 **`Transparent`로 복원**한다.
+- **Acceptance**:
+  1. 빌드 오류 0 · 신규 경고 0.
+  2. `TestItemRowTemplate`에 `CornerRadius="11"` 잔존 0건, 상태 아이콘에 `CornerRadius="6"` 1건.
+  3. 상태 pill에 `MinWidth` 지정이 있고 `TagBadgeStyle` 정의(`Styles.xaml:189-193`)는 무변경.
+  4. `TestPage.xaml.cs`에 `NoteVisibility`·`StatusIconBackground`·`StatusIconBorderBrush`·`StatusGlyphForeground`·`Row_PointerEntered`·`Row_PointerExited`가 정의되고 전부 XAML에서 소비된다(고아 0).
+  5. 메모 블록이 `ProgressNote`에 `Mode=OneWay`로 바인딩돼 메모 편집 후 갱신된다.
+- **Edge Cases**: 메모가 빈 문자열·공백만 → 블록 미표시 / 메모가 매우 김 → `TextWrapping="Wrap"`으로 행 높이 증가(잘라내지 않음 — 시안이 전체 표시) / 이름 2줄 + 메모 동시 → 아이콘·pill 세로 중앙 유지 / 스위트에 항목이 1개여도 상단 구분선은 그려짐(헤더 아래 선 — 의도) / pill 클릭(`Tapped`)이 행 hover·우클릭과 충돌하지 않음(기존 `e.Handled=true` 유지).
+- **Halt Forecast**: (i) 사전 해소 — `TestItemRowTemplate` 소비처가 TestPage 1곳임을 grep 전수 확인해 함정 11 리스크 제거. 그 외 파괴적·외부 의존 없음.
 
-### T3 — TestPage.xaml 헤더: 프로젝트명 배지 + 스위트 필터 드롭다운 + 등록 버튼 `Type C`
-- [x] 구현
-- **Files**: `DevDashboard_WinUI/Presentation/Views/TestPage.xaml`, `DevDashboard_WinUI/Presentation/Views/TestPage.xaml.cs`, `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`
-- **Design**: ① 배치 — TestPage 헤더 Grid + 코드비하인드 필터 핸들러. ② 신규 심볼 — `SuiteFilter_SelectionChanged`(핸들러). ③ 의존 방향 — XAML→`Vm.Project.Name`·`Vm.AvailableCategories`·`Vm.SelectedSuiteFilter`(T1). ④ 비추상화 — 배지용 신규 스타일 만들지 않고 `TagBadgeStyle`+`AppMutedSoftBrush` 재사용.
+### T3 — 스위트 그룹 헤더: 진행바 두께 고정 + 우클릭 메뉴·빈 스위트 제거 `Type D`
+- [ ] 구현
+- **Files**: `DevDashboard_WinUI/Presentation/Views/TestPage.xaml`(`TestSuiteGroupTemplate`), `DevDashboard_WinUI/Presentation/Views/TestPage.xaml.cs`(`IndicatorWidth` 추가, `RenameSuite_Click`·`DeleteSuite_Click` 제거), `DevDashboard_WinUI/Presentation/ViewModels/TestPageViewModel.cs`(`Rebuild` 조건, `RenameSuite`·`DeleteSuite` 제거)
+- **Design**: ① 배치 — 진행바는 `TestSuiteGroupTemplate` 안에 인라인(스위트 그룹 전용), 폭 계산 헬퍼는 `TestPage` 코드비하인드. ② 신규 심볼 — `IndicatorWidth(double passRate)`(통과율 → 인디케이터 픽셀 폭, `ProgressBarWidth` 상수 120 기준). ③ 의존 방향 — XAML이 헬퍼를 참조, 헬퍼는 상수만 참조. VM 변경은 `Rebuild` 내부 조건 한 줄 + 메서드 2개 삭제로 외부 계약 무변경(`TestSuiteGroup` record 그대로). ④ 비추상화 — 재사용 가능한 "진행바 컨트롤/스타일"을 만들지 않는다(소비처 1곳, YAGNI).
 - **구성**:
-  - 헤더에 프로젝트명 배지(`Border` `TagBadgeStyle`+`AppMutedSoftBrush`, 텍스트 `Vm.Project.Name`) 제목 옆 추가.
-  - 우측에 스위트 필터 `ComboBox`(항목=["전체"]+`Vm.AvailableCategories`, 기본 "전체"), `SelectionChanged="SuiteFilter_SelectionChanged"` → `Vm.SelectedSuiteFilter`(전체=null). TaskPage 카테고리 필터 콤보 선례(`CategoryFilter_SelectionChanged`) 참조.
-  - 등록 버튼 문구 "+ 테스트 등록"으로(resw `TestAdd_Button` 갱신 or 신규). accent 유지.
-  - `SuiteFilter_SelectionChanged` 핸들러 추가. 기존 상태 필터 RadioButton은 T4에서 탭바로 이설.
-- **Acceptance**: 빌드 성공(신규 경고 0) + 헤더에 프로젝트명 배지 표시(`Vm.Project.Name`) + 스위트 필터 드롭다운("전체"+작업 카테고리) 선택 시 해당 스위트만 그룹 표시(T1 `SelectedSuiteFilter` 연동) + 등록 버튼 "+ 테스트 등록"(accent) 클릭 시 등록 다이얼로그 표시(회귀 없음) + resw ko/en 대칭
-- **Edge Cases**: 스위트 필터 "전체" 선택 시 `SelectedSuiteFilter=null`(전체 표시). 콤보 초기 `SelectionChanged` 발화 시 `Vm` non-null(생성자에서 먼저 설정 — TestPage 선례). 프로젝트명 긴 경우 배지 폭 — `TextTrimming` 또는 자연 확장(육안 확인).
-- **Halt Forecast**: 없음 — XAML/resw restyle 위주, 파괴적·외부·의존성 요소 없음.
+  - (D6) `ProgressBar` → `Grid Width=120 Height=4` + 트랙 `Border`(`AppBorderStrongBrush`, CornerRadius 2) + 인디케이터 `Border`(`PassBrush`, `HorizontalAlignment="Left"`, `Width={x:Bind local:TestPage.IndicatorWidth(PassRate)}`).
+  - (D7) 헤더 `Grid.ContextFlyout` 제거, `RenameSuite_Click`·`DeleteSuite_Click`·VM `RenameSuite`·`DeleteSuite` 제거.
+  - (③) `Rebuild()`의 `if (items.Count == 0 && SelectedStatus is not null) continue;` → `if (items.Count == 0) continue;` (주석도 새 동작에 맞게 갱신).
+- **Acceptance**:
+  1. 빌드 오류 0 · 신규 경고 0.
+  2. `TestPage.xaml`에 `ProgressBar` 잔존 0건, `TestSuiteGroupTemplate`에 `ContextFlyout` 잔존 0건.
+  3. `RenameSuite`·`DeleteSuite`(VM·코드비하인드 양쪽) 잔존 0건 — 레포 전체 grep(`obj/` 제외).
+  4. `TestPageViewModel.Rebuild`에 `SelectedStatus is not null`을 포함한 빈 스위트 조건이 없고 `items.Count == 0` 단독 조건이 있다.
+  5. `IndicatorWidth` 정의가 있고 XAML에서 소비된다.
+- **Edge Cases**: 통과율 0% → 인디케이터 폭 0(트랙만 보이되 두께는 동일 4px) / 100% → 폭 120 / 항목 0개 스위트 → 카드 자체 미표시라 진행바 계산에 도달하지 않음 / 모든 스위트가 필터로 비면 목록이 완전히 빈 화면(빈 상태 안내는 시안·기존 모두 없음 — 무변경) / `TestCategories`가 null(기존 `?? []` 가드 유지).
+- **Halt Forecast**: (ii-a) 사전 승인 — VM 공개 메서드 `RenameSuite`·`DeleteSuite` **제거**(호출부 전수 = 이번에 함께 제거되는 핸들러 2곳뿐, grep 확인). 그 외 없음.
 
-### T4 — TestPage.xaml 통계 카드(넓게) + 상태 필터 탭바(개수) `Type C`
-- [x] 구현
-- **Files**: `DevDashboard_WinUI/Presentation/Views/TestPage.xaml`, `DevDashboard_WinUI/Presentation/Views/TestPage.xaml.cs`, `DevDashboard_WinUI/Resources/Styles.xaml` *(구현 중 추가 — `StatCardStyle`·`FilterTabStyle` 신설, 프로젝트 관례상 페이지 전용 스타일도 Styles.xaml에 둔다: `KanbanColumnStyle`·`DashedAddButtonStyle` 선례)*, `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw` *(이번 task는 기존 상태 라벨 키를 재사용해 resw 변경 없음)*
-- **Design**: ① 배치 — TestPage 통계·필터 영역 XAML + 상태 탭 핸들러(기존 `StatusTab_Checked` 재사용). ② 신규 심볼 — 없음(레이아웃 재구성, 개수 바인딩은 기존 `PassCount` 등). ③ 의존 방향 — XAML→`Vm.PassCount/FailCount/UntestedCount/TotalCount`. ④ 비추상화 — 카드/탭 전용 스타일 신설 최소화, 기존 카드 Border 패턴 재사용.
+### T4 — 메모 입력 다이얼로그 시안 정합(신규 `TestNoteDialog`) `Type C`
+- [ ] 구현
+- **Files**: `DevDashboard_WinUI/Presentation/Views/Dialogs/TestNoteDialog.xaml`(신규), `DevDashboard_WinUI/Presentation/Views/Dialogs/TestNoteDialog.xaml.cs`(신규), `DevDashboard_WinUI/Presentation/Views/TestPage.xaml.cs`(`EditNote_Click` 교체), `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`
+- **Design**: ① 배치 — `Presentation/Views/Dialogs/`(레포 관례: 다이얼로그 = ContentDialog 서브클래스). ② 신규 심볼 — `TestNoteDialog(string testName, string currentNote)`: 메모 입력 전용 다이얼로그, `ResultNote`로 결과 노출. ③ 의존 방향 — `TestPage.EditNote_Click`이 생성·소비, 다이얼로그는 `LocalizationService`만 참조(필드 1개라 별도 VM은 과설계 — `TestEditDialogViewModel` 같은 VM을 두지 않는다). ④ 비추상화 — 공용 "단일 텍스트 입력 다이얼로그"를 만들지 않는다(소비처 1곳이며, 스위트 이름수정 다이얼로그는 T3에서 사라져 2번째 소비처가 생기지 않는다).
 - **구성**:
-  - 통계 카드 3개를 **가로 균등(넓게)** 재배치(`Grid` 3열 `*` 또는 `Stretch`), 각 카드 좌측 색점+라벨 / 우측 큰 숫자(`FontWeight Bold`, 큰 FontSize). 색점=상태 브러시(PassBrush/FailBrush/UntestedBrush).
-  - 상태 필터를 **탭바**로: 전체/통과/실패/미실행 각 탭에 개수 배지(전체=`TotalCount`, 통과=`PassCount`, 실패=`FailCount`, 미실행=`UntestedCount`). 활성 탭 강조. 기존 `StatusTab_Checked`(:90-95) 재사용, 필요 시 `SegmentedToggleStyle` 참조(함정 7: 선택/호버 상태 분리).
-  - "전체" 탭 개수 라벨 resw/포맷(개수는 바인딩).
-- **Acceptance**: 빌드 성공(신규 경고 0) + 통계 카드 3개가 가로로 넓게 배치·우측 큰 숫자 + 각 상태 탭에 개수 배지 표시(전체 `TotalCount` 등) + 탭 클릭 시 해당 상태만 항목 필터(기존 `SelectedStatus` 동작 유지) + 개수가 실제 데이터와 일치(추가/상태변경 후 갱신)
-- **Edge Cases**: 개수 0일 때 배지 "0" 표시. 탭 전환 시 스위트 필터(T3)와 직교 동작(둘 다 적용). 활성 탭 표시가 호버에 가려지지 않음(함정 7).
-- **Halt Forecast**: 없음 — XAML/resw restyle 위주, 파괴적·외부·의존성 요소 없음.
-
-### T5 — TestPage.xaml 스위트 그룹 + 테스트 행 재구성 + 조작(pill 순환·우클릭) `Type D`
-- [x] 구현
-- **Files**: `DevDashboard_WinUI/Presentation/Views/TestPage.xaml`, `DevDashboard_WinUI/Presentation/Views/TestPage.xaml.cs`, `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`
-- **Design**: ① 배치 — TestPage 스위트 그룹·항목 DataTemplate + 코드비하인드 헬퍼/핸들러. ② 신규 심볼 — `FormatPassCount(int,int)`(정적, "N/M 통과"), `StatusSoftBrush(string)`(정적, 상태 soft Brush — 함정 5), `StatusPill_Click`(순환 핸들러), 순환 다음상태 계산(인라인 or `NextStatus(string)`). ③ 의존 방향 — XAML→정적 헬퍼·`Vm.ChangeTestStatus`. ④ 비추상화 — 상태별 색을 Converter로 빼지 않고 정적 헬퍼 직접 반환(함정 5), pill/아이콘 전용 UserControl 만들지 않음(인라인 템플릿).
-- **구성**:
-  - 스위트 그룹 헤더: 폴더 `FontIcon`(예 `&#xE8B7;`) + 스위트명(굵게) + `FormatPassCount(PassCount,TotalCount)`("N/M 통과", 저강도) + 우측 인라인 `ProgressBar`(`Value=PassRate`, 폭 고정 or `*`). 기존 rename/delete 버튼은 우클릭 or 유지(스위트 조작은 이미지에 없음 → 우클릭 MenuFlyout로 이동 검토, 최소 기능 유지).
-  - 테스트 항목 행 템플릿(카드→행): 좌측 상태 아이콘(원형 `Border` soft 배경 `StatusSoftBrush` + `StatusGlyph` 글리프 `StatusBrush` 색) + 이름 / 우측 상태 pill(`Border` `TagBadgeStyle` + `StatusSoftBrush` 배경 + 상태 텍스트 `StatusBrush` 색). 방법·메모는 이미지에 없음 → 행에서 제거(편집 다이얼로그·메모 다이얼로그에서 계속 편집 — 데이터 보존).
-  - 조작: 상태 pill에 `Tapped="StatusPill_Click"`(Tag=TestItem) → 다음 상태 순환(`ChangeTestStatus`). 행 `Border.ContextFlyout` MenuFlyout: 편집(`EditTest_Click`)·삭제(`DeleteTest_Click`)·메모(`EditNote_Click`) 재사용. 기존 `StatusCombo_Loaded`/`StatusCombo_SelectionChanged` **제거**(콤보 삭제).
-  - `FormatPassCount`·`StatusSoftBrush`·`StatusPill_Click` 추가. 순환: 통과→실패→미실행→통과.
-- **Acceptance**: 빌드 성공(신규 경고 0) + 스위트 그룹 헤더가 폴더 아이콘+이름+"N/M 통과"+우측 진행바 + 테스트 항목이 **행 형태**(좌 상태 아이콘 원·이름 / 우 상태 pill) + 상태 pill 클릭 시 통과→실패→미실행 순환하며 즉시 저장·개수/진행바 갱신 + 우클릭 메뉴로 편집/삭제/메모 동작(기존 핸들러) + 행에 인라인 콤보·버튼 없음 + `StatusCombo_Loaded`/`StatusCombo_SelectionChanged` 잔존 0건(grep — 제거 확인) + resw ko/en 대칭
-- **Edge Cases**: pill 연타(순환) 시 `ChangeTestStatus`가 동일 상태 무시 안 함(항상 다음 상태라 매번 저장 — 정상). 통과→실패 전환 시 `CompletedAt` 초기화(기존 `ChangeTestStatus` 로직). 빈 스위트(항목 0) 표시(진행바 0, "0/0 통과" → 0% — 0 나눗셈 방지: `TestSuiteGroup.PassRate`가 이미 `total==0?0`). 긴 테스트 이름 줄바꿈/말줄임. 우클릭 메뉴가 pill 클릭과 충돌 안 함(Tapped vs ContextFlyout 분리).
-- **Halt Forecast**: 없음 — 단일 화면 파일 + resw, 공개 API 변경 없음(추가 심볼 전부 정적/private).
+  - (D10) 시안 구성 — 제목 `TestNote_Title`, 부제 = 대상 테스트 이름(`AppInfoBrush`, `TextWrapping="Wrap"`), 여러 줄 TextBox(`MaxLength=500`, `MinHeight=110`, `AcceptsReturn="True"`, `TextWrapping="Wrap"`), 버튼 `Dialog_Save`/`Dialog_Cancel`(공용 키 재사용 — 값 무변경) + **`DefaultButton="Primary"`**(기존 인라인 다이얼로그와 동일 — 저장 버튼이 accent로 채워지는 조건). `ShowAsync`를 `new`로 섀도잉해 `XamlRoot` 설정(기존 패턴).
+  - **placeholder 소비 방식(함정 3)**: `TestNote_Placeholder`는 접미 없는 베어네임이므로 `x:Uid`로 붙이면 **빌드는 통과하되 placeholder가 빈 문자열**이 된다 → 코드비하인드에서 `NoteBox.PlaceholderText = LocalizationService.Get("TestNote_Placeholder")`로 설정한다(제목·버튼과 동일 방식).
+  - `TestPage.EditNote_Click`: 인라인 ContentDialog 구성 코드를 지우고 `TestNoteDialog`를 띄운 뒤 Primary이면 `Vm.EditProgressNote(test, dialog.ResultNote)` 호출.
+  - (D11) resw 신규 2키 ko/en 양쪽.
+- **Acceptance**:
+  1. 빌드 오류 0 · 신규 경고 0.
+  2. `TestPage.xaml.cs`의 `EditNote_Click`에 `new ContentDialog` 잔존 0건, `TestNoteDialog` 사용 1건.
+  3. `TestNote_Title`·`TestNote_Placeholder`가 ko/en **양쪽**에 각 언어 값으로 존재하고 접미 없는 베어네임이다(함정 2·3).
+  4. placeholder 문구가 시안 원문 "메모를 입력하세요. 비워 두고 저장하면 메모가 삭제됩니다."와 **글자 그대로** 일치하고, `x:Uid`가 아니라 코드비하인드에서 `PlaceholderText`로 주입된다(함정 3).
+  6. 다이얼로그에 `DefaultButton="Primary"`가 설정돼 있다.
+  5. 저장 시 기존과 동일하게 `EditProgressNote`가 호출된다(빈 문자열 저장 = 메모 삭제, 동작 변경 0).
+- **Edge Cases**: 메모 없는 항목에서 열기 → 빈 입력칸 + placeholder / 기존 메모 편집 → 현재 값 프리필 / 전부 지우고 저장 → 메모 삭제(문구와 동작 일치) / 취소 → 변경 없음 / 500자 초과 입력 차단 / 테스트 이름이 매우 긴 경우 → 부제 줄바꿈.
+- **Halt Forecast**: (ii-a) 사전 승인 — 신규 파일 2개 생성 + resw 신규 키 2개(ko/en). 파괴적·외부 호출 없음.
 
 ## 사전 승인 항목 (일괄 승인 대상)
-- **관련 선행 수정(미커밋) 커밋**: `TaskPageViewModel.cs`(CreateLinkedTest→작업 카테고리 스위트) + `docs/prd.md`(FR-T6 노트) + `notes.md` 항목. 이 plan 구현 첫 commit(baseline)에 포함(디버깅 세션에서 code-quality 리뷰 통과).
-- **T1 signature 변경**: `TestPageViewModel` 생성자에 `AppSettings settings` 추가 — 호출부 `ProjectCardViewModel.CreateTestPageViewModel` **1곳**(grep 전수 확인). 내부 배선, 공개 계약 외.
-- **신규 resw 키**(T2·T3·T5): `TestEdit_Submit`(등록/저장), 문구 갱신(`TestEditLabel_Suite`·placeholder·`TestAdd_Button`·`TestEdit_TitleAdd`) — ko/en 양쪽. 기존 공용 `Dialog_Save`·`TestCategory_None` 등 공용 키 값 **무변경**.
-- **행 재구성에 따른 심볼 제거**: `StatusCombo_Loaded`/`StatusCombo_SelectionChanged`(콤보 전용) 제거(T5) — 소비처는 제거될 콤보 1곳.
-- 로컬 작업 브랜치(현행)에서 task별 commit.
+- **신규 파일 생성**: `Presentation/Views/Dialogs/TestNoteDialog.xaml(.cs)`(T4).
+- **신규 resw 키**: `TestNote_Title`·`TestNote_Placeholder` ko/en 양쪽(T4). 공용 키(`Dialog_Save`·`Dialog_Cancel`) 값은 무변경.
+- **심볼 제거**: `TestPageViewModel.RenameSuite`·`DeleteSuite`, `TestPage.RenameSuite_Click`·`DeleteSuite_Click`(T3) — 호출부는 함께 제거되는 헤더 메뉴 2곳뿐(grep 전수).
+- **공용 스타일 수정**: `Styles.xaml`의 `FilterTabStyle`에 Setter 1개 추가(T1) — 소비처는 TestPage 상태 탭 4곳뿐.
+- 로컬 작업 브랜치(`task/testpage-design-align`)에서 task별 commit.
 
 ## 불가피한 Halt (위임 불가)
 - master 병합·push·태그·릴리즈·PR — 이번 작업 완료 후 별도 승인.
-- 시안 대조 **최종 시각 판정** — 빌드는 마크업 존재만 보증, "시안과 같아 보이는가"는 사용자만 판정(⏳ HUMAN-VERIFY: 배지·pill 색/형태·통계 카드 레이아웃·행 정렬·진행바·프로젝트명 배지·실패색(D5 주의)).
-- **배지 실동작 확인** — 새 테스트를 작업 카테고리 스위트로 등록 후 칸반 그 카테고리 그룹에 통과율 배지가 뜨는지는 앱 실행 필요(⏳ HUMAN-VERIFY).
+- **시안 대조 최종 시각 판정** — 빌드는 마크업 존재만 보증한다. "시안과 같아 보이는가"(구분선 농도·아이콘 형태·pill 폭·메모 블록·진행바 두께·탭 굵기·hover 색·메모 다이얼로그 레이아웃)는 사용자만 판정(⏳ HUMAN-VERIFY).
+- **"전체 필터" 실동작 확인** — 원인 가설(Tag 빈 문자열)은 정적 근거이므로, 미실행 → 전체 클릭 시 전 항목이 다시 보이는지는 앱 실행 확인 필요(⏳ HUMAN-VERIFY).
 
 ## Deferred / Follow-up
-- **[NotificationPage 시안 대조]** — 대장 `:23`의 NotificationPage 몫은 이번 범위 밖. 시안 확보 후 별도 진행(대장 유지).
-- **[실패 색 시안 불일치]** — 이미지2의 실패가 붉게 보이나 PRD·코드는 호박 `#E8B45A`. 붉은 실패색 원하면 순수 값 치환(D5).
-- **[기존 자유명/"작업" 스위트 마이그레이션]** — 등록을 작업 카테고리로 제한해도 과거 자유명·"작업" 스위트 테스트는 남는다(배지 미반영). 필요 시 마이그레이션 별도 논의(D8).
-- **[스위트 조작(이름수정/삭제) 배치]** — 시안에 버튼이 없어 **헤더 우클릭 메뉴로 이동**해 기능을 보존했다(T5). 우클릭이 발견하기 어렵다는 피드백이 있으면 hover 시 노출되는 "…" 버튼 등 대안 검토.
-- **[SUGGEST] 상태 soft 브러시의 Palette 이관** — `TestPage.xaml.cs`의 상태색 3종(PRD §3 지정)과 이번에 추가한 soft 3종(0x28 알파)이 코드비하인드에 고정돼 있다. 지금은 국소 일관성이 있으나 색이 더 늘면 `Palette.xaml`(Default 딕셔너리)로 이관하는 편이 관리에 유리하다. (T5 quality 리뷰 S1, 2026-07-21)
-- **[테스트 행에서 방법·메모 미표시]** — 시안 반영으로 행에서 `Method`·`ProgressNote` 표시를 제거했다(데이터·편집 경로는 유지). 메모가 있는 항목을 목록에서 구분할 표식(작은 아이콘 등)이 필요한지 사용 후 판단. (T5, 2026-07-21)
+- **[테스트 행에서 방법(Method) 미표시]** — 이번에 메모 표시는 해소(T2). `TestItem.Method`는 시안에 없어 행 미표시 유지(편집 다이얼로그에서만 다룸).
+- **[SUGGEST] 상태 브러시의 Palette 이관** — 상태색 3종 + soft 3종에 이번 T2로 아이콘 채움/테두리/글리프 판정 헬퍼가 더해져 코드비하인드 색 로직이 늘었다. 색이 더 늘면 `Palette.xaml`(Default) 이관 검토.
+- **[스위트 정리 경로 부재]** — D7로 스위트 이름수정·삭제 UI가 사라지고, T3의 빈 스위트 숨김으로 오타·구 이름 스위트는 화면에서만 사라진 채 DB에 잔존한다(`TestCategory`는 작업 카테고리 이름의 스냅샷 복사본이라 앱 설정 변경이 전파되지 않음). 잔존 스위트 정리 수단이 필요해지면 별도 논의(위 `[기존 자유명/"작업" 스위트 마이그레이션]`과 함께 다룰 후보).
+- **[전체 필터 가설 기각 시 런타임 재조사]** — D1의 원인 가설(`Tag=""` → null 파싱)이 틀리면 T1은 동작상 no-op다. 사용자 확인에서 "미실행 → 전체" 증상이 재현되면 이 항목을 열어 `pjc:pjc-systematic-debugging`으로 런타임 재조사한다.
+- **[`AddSuite` 고아 정리]** — `TestPageViewModel.AddSuite`는 이번 변경 이전부터 소비처 0. `RenameSuite`/`DeleteSuite` 제거와 함께 정리하는 것이 자연스러우나 이번 요청 범위 밖이라 보류.
+- **[Test* 구 resw 고아 정리 합류]** — T3·T4로 `TestEditCategoryTitle`·`TestEditNoteTitle`이 고아가 된다. 대장 `[Test* 구 resw 고아 정리]` 항목에 합류시켜 일괄 정리.
+- **[기존 자유명/"작업" 스위트 마이그레이션]** — 이전 plan에서 이관. 과거 자유명·"작업" 스위트 테스트는 칸반 배지에 반영되지 않는다. 필요 시 별도 논의.
+- **[실패 색 시안 불일치]** — 호박 `#E8B45A` 유지(D12). 붉은 실패색을 원하면 순수 값 치환.
+- **[NotificationPage 시안 대조]** — 대장 유지, 이번 범위 밖.
 
 ## Out of Scope
 - `TestItem`·`TestCategory` 도메인·SQLite 스키마·직렬화 변경.
-- 테스트→작업 역방향 링크/배지(대장 `:11`).
-- 기존 스위트 데이터 마이그레이션(D8 — go-forward만).
-- NotificationPage 재구성.
+- 스위트(테스트 카테고리) 이름수정·삭제 기능 — D7로 **영구 제거**(작업 카테고리 관리로 일원화).
+- 통계 카드·헤더(프로젝트명 배지·스위트 필터·등록 버튼)·등록/편집 다이얼로그 — 이번 지적 대상 아님.
 - 픽셀 단위 수치 일치(목업 HTML 없음 — 구조·형태까지).
+- NotificationPage·TaskPage.
 
 ## Open Questions
-- [x] 헤더 "전체 ▾" 드롭다운 기능 → **스위트(작업 카테고리) 필터**(사용자, 2026-07-21)
-- [x] 테스트 항목 행 조작 방식 → **상태 pill 클릭 순환 + 우클릭 메뉴(편집/삭제/메모)**(사용자, 2026-07-21)
-- [x] 스위트 필드 형태 → **작업 카테고리 드롭다운(비편집), 자유 입력 제거**(요구 ① + D1)
+- [x] 상태 아이콘 형태(실패 포함) → **세 상태 모두 라운드 사각형**(통과·실패 채움+흰 글리프, 미실행 테두리형) — 사용자, 2026-07-21
+- [x] 스위트 헤더 우클릭 메뉴 제거 시 기능 처리 → **기능째 제거** — 사용자, 2026-07-21
 
 ## 검증 방법
 - 빌드: `"C:/Program Files/Microsoft Visual Studio/18/Professional/MSBuild/Current/Bin/MSBuild.exe" "DevDashboard_WinUI/DevDashboard.csproj" -t:Build -p:Configuration=Debug -p:Platform=x64` → 오류 0 + 기존 경고 5건(NU1903 1 + CS0612 4) 외 신규 0
-- 회귀 방지 grep:
-  - `new TestPageViewModel(` 4-인자 갱신·3-인자 잔존 0(T1)
-  - `TestPageViewModel.cs`에 `AvailableCategories`·`SelectedSuiteFilter` 정의(T1)
-  - `TestEditDialog.xaml`에 스위트 ComboBox `IsEditable="True"` 잔존 0(T2)
-  - `TestPage.xaml.cs`에 `StatusCombo_Loaded`·`StatusCombo_SelectionChanged` 잔존 0(T5)
-  - `FormatPassCount`·`StatusSoftBrush`·`StatusPill_Click`·`SuiteFilter_SelectionChanged` 정의(T3·T5)
-  - `Strings/{ko-KR,en-US}/Resources.resw` 신규·변경 키 ko/en 대칭(T2·T3·T4·T5)
+- 회귀 방지 grep(`obj/` 제외):
+  - `Tag=""` 잔존 0 / `Tag="All"` 1건(T1)
+  - `Styles.xaml` `CheckStates/Checked`에 `Content.FontWeight`(T1)
+  - `CornerRadius="11"` 잔존 0(T2)
+  - `NoteVisibility`·`StatusIconBackground`·`StatusIconBorderBrush`·`StatusGlyphForeground`·`Row_PointerEntered`·`Row_PointerExited`·`IndicatorWidth` 정의 + XAML 소비(T2·T3)
+  - `TestPage.xaml` 안에서 `ProgressBar`·스위트 헤더 `ContextFlyout` 잔존 0, 소스 전체(`*.cs`/`*.xaml`)에서 `RenameSuite`·`DeleteSuite` 잔존 0(T3) — `notes.md` 등 문서의 언급은 대상 아님
+  - `EditNote_Click`에 `new ContentDialog` 잔존 0(T4)
+  - `TestNote_Title`·`TestNote_Placeholder`가 ko/en 양쪽에 존재(T4)
 - 동작 확인(빌드로 검증 불가 → ⏳ HUMAN-VERIFY):
-  - **T2**: 다이얼로그 스위트=작업 카테고리 드롭다운(자유 입력 불가)·라벨·placeholder·이름 하단 라인·제목/버튼 문구
-  - **T3**: 프로젝트명 배지·스위트 필터 동작·등록 버튼
-  - **T4**: 통계 카드 넓게·개수 탭·탭 필터
-  - **T5**: 스위트 그룹(폴더·N/M 통과·진행바)·행 레이아웃·상태 pill 클릭 순환·우클릭 메뉴
-  - **통합**: 새 테스트를 작업 카테고리(예 UI·UX) 스위트로 등록 → 칸반 그 카테고리 그룹에 통과율 배지 표시(궁극 목표)
+  - **T1**: 미실행 → 전체 클릭 시 전 항목 재표시 / 선택 탭 글자 굵기·밑줄, 선택 탭에 마우스를 올려도 밑줄 유지(함정 7 회귀)
+  - **T2**: 행 사이 구분선 / pill 3종 폭 동일 / 아이콘 라운드 사각형(통과·실패 채움+흰 글리프, 미실행 테두리형) / 행 hover 배경 / 메모 블록(좌측 컬러 바·깃발·텍스트)
+  - **T3**: 진행바 두께가 통과율과 무관하게 일정 / 헤더 우클릭 시 메뉴 없음 / 항목 없는 스위트 카드 미표시
+  - **T4**: 메모 다이얼로그 제목·테스트명 부제·placeholder 문구·취소/저장 배치, 비우고 저장 시 메모 삭제
 
 ## F-8 인계 목록 (V-9 `⏳ 미확인` — 렌더 육안 확인 필요)
 
-> 마크업·resw 수준 대조는 각 task의 V-9/spec 리뷰에서 ✅ 완료. 아래는 **빌드로 판정 불가한 렌더 외형**이라 완료 선언 전 사용자 확인이 필요한 항목이다.
+> 마크업 수준 대조는 각 task의 V-9/spec 리뷰에서 완료. 아래는 **빌드로 판정 불가한 렌더 외형·실동작**이라 완료 선언 전 사용자 확인이 필요한 항목이다.
 
-- **T2(이미지1 다이얼로그)**: 이름칸 하단 danger 라인의 두께·모서리·입력칸 폭 일치 / 스위트 드롭다운이 작업 카테고리만 보이고 자유 입력 불가 / 라벨(InputLabelStyle) 크기·간격 / 제목 "새 테스트 등록"·버튼 "등록" 렌더 / 전체 여백이 시안과 유사한지
-- **T3(헤더)**: 프로젝트명 배지의 pill 모양·색 대비·제목과의 간격 / 스위트 필터 드롭다운 폭·위치(우측 정렬) / "+ 테스트 등록" accent 버튼 색·크기 / 헤더 한 줄 정렬이 시안과 유사한지
-- **T4(통계·탭)**: 통계 카드 3등분 폭·큰 숫자 크기(22)·색 대비(특히 미실행 회색) / 탭 선택 밑줄이 보이고 **선택된 탭에 마우스를 올려도 밑줄이 유지**되는지(함정 7 회귀 확인) / 개수 배지 크기·간격 / 카드-탭-목록 세로 간격
-- **T5(그룹·행)**: 스위트 카드 헤더의 폴더 아이콘·"N/M 통과"·우측 진행바(폭 120) 배치 / 행의 원형 상태 아이콘(22px) 크기·색 / 상태 pill 색 대비 / **pill 클릭 시 통과→실패→미실행 순환**과 개수·진행바 즉시 갱신 / **행·헤더 우클릭 메뉴**(수정·메모·삭제 / 이름수정·삭제) 동작 / 행 높이·구분감이 시안과 유사한지
-- **통합**: 새 테스트를 작업 카테고리(예 UI·UX) 스위트로 등록 → **칸반 그 카테고리 그룹에 통과율 배지 표시**(이번 작업의 궁극 목표)
+- **T1**: 선택 탭 라벨이 굵게 보이는지 / 개수 배지는 굵어지지 않았는지 / 선택 탭에 마우스를 올려도 밑줄이 유지되는지(함정 7) / **미실행 → 전체 클릭 시 전 항목 재표시**(D1 가설 검증)
 
 ## Phase Ledger
-- 전 task(T1~T5) 완료.
-- **Phase F 통과 (HEAD b920314)** — F-1 Goal 재확인, F-2 클린 리빌드(`-t:Rebuild`) 오류 0·신규 경고 0(기존 NU1903 1 + CS0612 4만), F-3 영향 회귀 0, F-4/F-5 follow-up 등재, F-6 자기정직성 통과, F-6.5 notes·deferred 대장 반영(아카이브 due 아님 — 21,778자·최신 3일 내, 인덱스↔파일 5:5 정합). F-7 `plan-completion-reviewer`: BLOCKER 0 / MAJOR 1(M1 — FR-E5 부분 커버 표기 정정, plan 측 반영 완료·PRD 측은 승인 대기) / MINOR 4(m1~m4 — Deferred 등재 및 커밋 반영).
-- **Phase G 통과 (Must 100%)** — 커버 대상 active Must FR(FR-E1·FR-E3) 전부 충족, 재루프 0회. Should FR-E5는 시안 반영으로 "에러/메모 표시" 부분 제외(사용자 판단 대상), FR-E4/FR-T8은 배선 완료·실동작 ⏳ HUMAN-VERIFY.
-- **F-8 미통과 — 시각/동작 확인 대기**: `## F-8 인계 목록`의 `⏳ 미확인` 항목이 남아 **완료 선언 보류**(사용자 육안·실행 확인 필요).
+- (implement-task가 갱신)
 
 ## Progress Log
-- T1 완료 (커밋 1f2bd6b): TestPageViewModel에 AppSettings 주입(호출부 ProjectCardViewModel 1곳), AvailableCategories(작업 카테고리)·SelectedSuiteFilter 추가, Rebuild에 스위트 필터를 상태 필터와 직교 적용(통계는 전체 기준 유지). 빌드 OK.
-  - 결정(D10): V-6 quality가 카테고리 결합식 3곳 중복(TaskEditDialogViewModel 누락 계수)을 MAJOR로 지적 → `AppSettingsDialogViewModel.ResolveTaskCategories`로 추출하고 3곳 교체. 쓰기 전용 `_settings` 필드 제거.
-- T2 완료 (커밋 a8ac10a 기반): 다이얼로그 스위트를 작업 카테고리 비편집 드롭다운으로 전환, 이름 필수 `*`+하단 danger 라인, 라벨 InputLabelStyle, 문구/제목/버튼 시안 정합(resw ko/en + 신규 `TestEdit_Submit`), 호출부를 `Vm.AvailableCategories`로, 고아 `SuiteNames()` 제거. 빌드 OK, spec·quality 리뷰 지적 0.
-  - 결정: 편집 대상의 기존 스위트가 작업 카테고리에 없으면(레거시 자유명·"작업") VM 생성자가 그 값을 옵션에 보강한다 — 넣지 않으면 ComboBox 선택이 비어 필수 검증에 막히고 기존 스위트가 소실된다.
-- T3-T4 완료 (커밋 ab9b756, T4 pre-review 0f0c9c7): 헤더에 프로젝트명 배지·스위트 필터 드롭다운·"+ 테스트 등록" 버튼 배치(T3), 통계 카드를 가로 3등분(좌 색점+라벨 / 우 큰 숫자)으로 바꾸고 상태 필터를 헤더에서 **개수 배지 포함 밑줄형 탭바**로 이설(T4). 빌드 OK, 두 task 모두 spec·quality 리뷰 지적 0.
-  - 결정: 페이지 전용 스타일도 프로젝트 관례대로 `Styles.xaml`에 둔다(`StatCardStyle` 3회·`FilterTabStyle` 4회 — 3회 문턱 충족, `KanbanColumnStyle`·`DashedAddButtonStyle` 선례). `FilterTabStyle`은 함정 7대로 선택 밑줄(CheckStates)과 호버 오버레이(CommonStates)를 별도 요소로 분리.
-- T5 완료 (커밋 4810794 기반): 테스트 항목을 카드 → **행**(좌 원형 상태 아이콘 + 이름 / 우 상태 pill)으로, 스위트 그룹을 카드형 Border + 헤더(폴더 아이콘·이름·"N/M 통과"·우측 진행바)로 재구성. 인라인 콤보·버튼을 없애고 **pill 클릭 상태 순환 + 우클릭 메뉴**(행: 수정/메모/삭제, 헤더: 이름수정/삭제)로 대체. 신규 헬퍼 `StatusSoftBrush`·`StatusText`·`FormatPassCount`·`NextStatus`. 빌드 OK, spec·quality 리뷰 지적 0(SUGGEST 1건 Deferred 등록).
-  - 결정: 행에 조작 버튼이 없어 발견성이 떨어지므로 상태 pill에 툴팁(`TestStatusPill_Tooltip`)으로 "클릭하면 상태가 바뀝니다"를 알린다.
-  - 정리: 마지막 소비처가 사라진 `StatusOptions`·`TestStatusOption`·`NoteVisibility`·`MethodVisibility`·`FormatPassRate`·`StatusCombo_*` 제거(V-7 역방향, 잔존 참조 0 — TaskPage 동명 심볼은 별개라 무영향).
+- (implement-task가 갱신)
