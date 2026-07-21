@@ -186,7 +186,7 @@
 - **Halt Forecast**: (i) 사전 해소 — `TestItemRowTemplate` 소비처가 TestPage 1곳임을 grep 전수 확인해 함정 11 리스크 제거. 그 외 파괴적·외부 의존 없음.
 
 ### T3 — 스위트 그룹 헤더: 진행바 두께 고정 + 우클릭 메뉴·빈 스위트 제거 `Type D`
-- [ ] 구현
+- [x] 구현
 - **Files**: `DevDashboard_WinUI/Presentation/Views/TestPage.xaml`(`TestSuiteGroupTemplate`), `DevDashboard_WinUI/Presentation/Views/TestPage.xaml.cs`(`IndicatorWidth` 추가, `RenameSuite_Click`·`DeleteSuite_Click` 제거), `DevDashboard_WinUI/Presentation/ViewModels/TestPageViewModel.cs`(`Rebuild` 조건, `RenameSuite`·`DeleteSuite` 제거)
 - **Design**: ① 배치 — 진행바는 `TestSuiteGroupTemplate` 안에 인라인(스위트 그룹 전용), 폭 계산 헬퍼는 `TestPage` 코드비하인드. ② 신규 심볼 — `IndicatorWidth(double passRate)`(통과율 → 인디케이터 픽셀 폭, `ProgressBarWidth` 상수 120 기준). ③ 의존 방향 — XAML이 헬퍼를 참조, 헬퍼는 상수만 참조. VM 변경은 `Rebuild` 내부 조건 한 줄 + 메서드 2개 삭제로 외부 계약 무변경(`TestSuiteGroup` record 그대로). ④ 비추상화 — 재사용 가능한 "진행바 컨트롤/스타일"을 만들지 않는다(소비처 1곳, YAGNI).
 - **구성**:
@@ -236,6 +236,7 @@
 ## Deferred / Follow-up
 - **[테스트 행에서 방법(Method) 미표시]** — 이번에 메모 표시는 해소(T2). `TestItem.Method`는 시안에 없어 행 미표시 유지(편집 다이얼로그에서만 다룸).
 - **[SUGGEST] 상태 브러시의 Palette 이관** — 상태색 3종 + soft 3종에 이번 T2로 아이콘 채움/테두리/글리프 판정 헬퍼가 더해져 코드비하인드 색 로직이 늘었다. 색이 더 늘면 `Palette.xaml`(Default) 이관 검토.
+- **[SUGGEST] 진행바 폭 상수 이중화** — `TestPage.xaml.cs`의 `ProgressBarWidth`(120)와 `TestPage.xaml`의 트랙 `Grid Width="120"`이 주석으로만 동기화된다. 한쪽만 바꾸면 인디케이터 비율이 조용히 어긋난다. 폭을 더 손보게 되면 한 곳에서만 정의하도록 정리 검토. (T3 quality 리뷰 SUGGEST, 2026-07-21)
 - **[스위트 정리 경로 부재]** — D7로 스위트 이름수정·삭제 UI가 사라지고, T3의 빈 스위트 숨김으로 오타·구 이름 스위트는 화면에서만 사라진 채 DB에 잔존한다(`TestCategory`는 작업 카테고리 이름의 스냅샷 복사본이라 앱 설정 변경이 전파되지 않음). 잔존 스위트 정리 수단이 필요해지면 별도 논의(위 `[기존 자유명/"작업" 스위트 마이그레이션]`과 함께 다룰 후보).
 - **[전체 필터 가설 기각 시 런타임 재조사]** — D1의 원인 가설(`Tag=""` → null 파싱)이 틀리면 T1은 동작상 no-op다. 사용자 확인에서 "미실행 → 전체" 증상이 재현되면 이 항목을 열어 `pjc:pjc-systematic-debugging`으로 런타임 재조사한다.
 - **[`AddSuite` 고아 정리]** — `TestPageViewModel.AddSuite`는 이번 변경 이전부터 소비처 0. `RenameSuite`/`DeleteSuite` 제거와 함께 정리하는 것이 자연스러우나 이번 요청 범위 밖이라 보류.
@@ -275,6 +276,7 @@
 
 > 마크업 수준 대조는 각 task의 V-9/spec 리뷰에서 완료. 아래는 **빌드로 판정 불가한 렌더 외형·실동작**이라 완료 선언 전 사용자 확인이 필요한 항목이다.
 
+- **T3**: 진행바 두께가 통과율 0%·중간·100% 모두 같은지 / 인디케이터 색(통과색)과 트랙 대비 / 스위트 헤더 우클릭 시 메뉴가 뜨지 않는지 / 항목 없는 스위트 카드가 보이지 않는지
 - **T2**: 행 사이 구분선 농도·간격 / 상태 아이콘 라운드 사각형(통과·실패 채움+흰 글리프, 미실행 테두리형) / 상태 pill 3종 폭 동일 / 행 마우스 오버 배경 변화 / 메모 블록(좌측 주황 바·깃발·본문) 배치와 이름 2줄일 때 아이콘·pill 세로 중앙 정렬
 - **T1**: 선택 탭 라벨이 굵게 보이는지 / 개수 배지는 굵어지지 않았는지 / 선택 탭에 마우스를 올려도 밑줄이 유지되는지(함정 7) / **미실행 → 전체 클릭 시 전 항목 재표시**(D1 가설 검증)
 
@@ -282,4 +284,6 @@
 - (implement-task가 갱신)
 
 ## Progress Log
-- (implement-task가 갱신)
+- T1~T3 완료 (커밋 da2b29a, d50a7d7, T3): 상태 필터 탭 정상화·굵기(T1), 테스트 행 재구성(구분선·pill 폭·라운드 사각형 아이콘·hover·메모 블록, T2), 스위트 헤더 진행바 커스텀·우클릭 메뉴 제거·빈 스위트 숨김(T3). 전부 빌드 OK, spec·quality 리뷰 지적 0.
+  - 결정(T3): quality 리뷰가 고아 resw(`TestEditCategoryTitle`·`TestDeleteCategoryConfirm`) 제거를 MAJOR로 지적했으나, plan D11·Deferred 대장의 계획된 이연임을 근거로 반증해 **철회**됨. 개별 삭제 대신 대장의 일괄 audit에 유지.
+  - 결정(T2): DataTemplate 안에서는 VSM `GoToState`가 안 먹으므로 hover를 `PointerEntered`/`PointerExited` 핸들러로 처리하고, Exited 복원값을 `null`이 아닌 `Transparent`로 둬 hit-test 영역이 좁아지지 않게 했다.

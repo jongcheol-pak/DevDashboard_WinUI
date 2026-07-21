@@ -127,7 +127,8 @@
 
         <!--
             스위트 그룹 — 시안 구성(폴더 아이콘 + 스위트명 + "N/M 통과" + 우측 진행바, 아래에 항목 행).
-            스위트 이름수정·삭제는 시안에 버튼이 없으므로 헤더 우클릭 메뉴로 옮겼다(기능은 유지).
+            스위트 이름수정·삭제는 두지 않는다(사용자 결정) — 스위트는 테스트 등록 시 작업 카테고리에서 만들어지고,
+            표시할 항목이 없는 스위트는 아예 렌더되지 않는다.
         -->
         <DataTemplate x:Key="TestSuiteGroupTemplate" x:DataType="vm:TestSuiteGroup">
             <Border Background="{ThemeResource AppCardBrush}"
@@ -137,24 +138,6 @@
                     Margin="0,0,0,12">
                 <StackPanel>
                     <Grid ColumnSpacing="10" Padding="12,10">
-                        <Grid.ContextFlyout>
-                            <MenuFlyout>
-                                <MenuFlyoutItem Text="{x:Bind local:TestPage.EditTooltip}"
-                                                Tag="{x:Bind Category}" Click="RenameSuite_Click">
-                                    <MenuFlyoutItem.Icon>
-                                        <FontIcon Glyph="&#xE70F;" />
-                                    </MenuFlyoutItem.Icon>
-                                </MenuFlyoutItem>
-                                <MenuFlyoutSeparator />
-                                <MenuFlyoutItem Text="{x:Bind local:TestPage.DeleteTooltip}"
-                                                Tag="{x:Bind Category}" Click="DeleteSuite_Click">
-                                    <MenuFlyoutItem.Icon>
-                                        <FontIcon Glyph="&#xE74D;" />
-                                    </MenuFlyoutItem.Icon>
-                                </MenuFlyoutItem>
-                            </MenuFlyout>
-                        </Grid.ContextFlyout>
-
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -175,11 +158,15 @@
                                    FontSize="12"
                                    VerticalAlignment="Center"
                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                        <ProgressBar Grid.Column="4"
-                                     Value="{x:Bind PassRate}"
-                                     Maximum="100"
-                                     Width="120"
-                                     VerticalAlignment="Center" />
+                        <!-- 통과율 진행바 — ProgressBar는 트랙과 인디케이터의 높이가 서로 달라
+                             통과율 0%인 스위트만 얇게 보인다. 두께를 확정하려고 직접 그린다. -->
+                        <Grid Grid.Column="4" Width="120" Height="4" VerticalAlignment="Center">
+                            <Border Background="{ThemeResource AppBorderStrongBrush}" CornerRadius="2" />
+                            <Border Background="{x:Bind local:TestPage.PassBrush}"
+                                    CornerRadius="2"
+                                    HorizontalAlignment="Left"
+                                    Width="{x:Bind local:TestPage.IndicatorWidth(PassRate)}" />
+                        </Grid>
                     </Grid>
 
                     <ItemsControl ItemsSource="{x:Bind Items}" ItemTemplate="{StaticResource TestItemRowTemplate}" />

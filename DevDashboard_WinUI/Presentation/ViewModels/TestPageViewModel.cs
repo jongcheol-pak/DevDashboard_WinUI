@@ -86,8 +86,8 @@ public partial class TestPageViewModel : ObservableObject
                 ? cat.Items.ToList()
                 : cat.Items.Where(t => t.Status == SelectedStatus).ToList();
 
-            // 필터가 걸린 상태에서 표시 항목이 없는 스위트는 숨긴다 (전체 필터에선 빈 스위트도 노출)
-            if (items.Count == 0 && SelectedStatus is not null) continue;
+            // 표시할 항목이 없는 스위트는 카드째 숨긴다 (필터 여부와 무관 — 빈 카드를 시안에 두지 않는다)
+            if (items.Count == 0) continue;
 
             var total = cat.Items.Count;
             var pass = cat.Items.Count(t => t.Status == TestItem.StatusPass);
@@ -116,26 +116,8 @@ public partial class TestPageViewModel : ObservableObject
         Persist();
     }
 
-    /// <summary>스위트 이름을 수정합니다.</summary>
-    public void RenameSuite(TestCategory category, string newName)
-    {
-        if (category is null) return;
-        var trimmed = newName?.Trim();
-        if (string.IsNullOrWhiteSpace(trimmed)) return;
-
-        category.Name = trimmed;
-        Rebuild();
-        Persist();
-    }
-
-    /// <summary>스위트를 삭제합니다 (소속 테스트도 함께 삭제, 삭제 확인은 View에서 처리).</summary>
-    public void DeleteSuite(TestCategory category)
-    {
-        if (category is null) return;
-        _project.TestCategories?.Remove(category);
-        Rebuild();
-        Persist();
-    }
+    // 스위트 이름수정·삭제는 제공하지 않는다(사용자 결정) — 스위트는 테스트 등록 시 작업 카테고리에서 만들어지고,
+    // 표시할 항목이 없는 스위트는 Rebuild에서 걸러져 화면에 나타나지 않는다.
 
     // --- 테스트 항목 편집 ---
 

@@ -126,6 +126,13 @@ public sealed partial class TestPage : UserControl
     public static string FormatPassCount(int passCount, int totalCount)
         => string.Format(LocalizationService.Get("TestSuitePassCount"), passCount, totalCount);
 
+    /// <summary>진행바 전체 폭 — XAML의 트랙 Grid Width와 같은 값이어야 인디케이터 비율이 맞는다.</summary>
+    private const double ProgressBarWidth = 120d;
+
+    /// <summary>통과율(0~100)에 해당하는 진행바 인디케이터 폭</summary>
+    public static double IndicatorWidth(double passRate)
+        => ProgressBarWidth * Math.Clamp(passRate, 0d, 100d) / 100d;
+
     // ===== 네비게이션 =====
 
     private void Back_Click(object sender, RoutedEventArgs e)
@@ -244,33 +251,4 @@ public sealed partial class TestPage : UserControl
             Vm.EditProgressNote(test, textBox.Text);
     }
 
-    // ===== 스위트 이름수정/삭제 =====
-
-    private async void RenameSuite_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not FrameworkElement { Tag: TestCategory suite }) return;
-
-        var textBox = new TextBox { Text = suite.Name, MaxLength = 100 };
-        var dialog = new ContentDialog
-        {
-            Title = LocalizationService.Get("TestEditCategoryTitle"),
-            Content = textBox,
-            PrimaryButtonText = LocalizationService.Get("Dialog_Save"),
-            CloseButtonText = LocalizationService.Get("Dialog_Cancel"),
-            DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = App.MainWindow?.Content?.XamlRoot,
-        };
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(textBox.Text))
-            Vm.RenameSuite(suite, textBox.Text);
-    }
-
-    private async void DeleteSuite_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not FrameworkElement { Tag: TestCategory suite }) return;
-        var confirmed = await DialogService.ShowConfirmAsync(
-            LocalizationService.Get("TestDeleteCategoryConfirm"),
-            LocalizationService.Get("DeleteConfirmTitle"));
-        if (confirmed)
-            Vm.DeleteSuite(suite);
-    }
 }
