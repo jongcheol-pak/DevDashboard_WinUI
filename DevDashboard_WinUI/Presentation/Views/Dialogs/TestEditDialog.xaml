@@ -9,29 +9,53 @@
 
     <StackPanel Spacing="12" MinWidth="360">
 
-        <TextBlock x:Uid="TestEditLabel_Name" Style="{StaticResource BodyStrongTextBlockStyle}" />
-        <TextBox
-            x:Uid="TestEditBox_Name"
-            Text="{x:Bind Vm.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-            MaxLength="200" />
+        <StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Uid="TestEditLabel_Name" Style="{StaticResource InputLabelStyle}" />
+                <!-- 필수 입력 표시. 기호라 번역 대상이 아니어서 resw에 두지 않는다. -->
+                <TextBlock
+                    Text=" *"
+                    Style="{StaticResource InputLabelStyle}"
+                    Foreground="{ThemeResource AppDangerBrush}" />
+            </StackPanel>
+            <!-- 필수 입력 표시: 입력칸 하단에 danger 라인을 상시 겹쳐 그린다(값 유무와 무관).
+                 IsHitTestVisible=False 라 라인이 입력 클릭을 가로채지 않는다. -->
+            <Grid>
+                <TextBox
+                    x:Uid="TestEditBox_Name"
+                    Text="{x:Bind Vm.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    MaxLength="200" />
+                <Border
+                    Height="2"
+                    VerticalAlignment="Bottom"
+                    Background="{ThemeResource AppDangerBrush}"
+                    CornerRadius="0,0,4,4"
+                    IsHitTestVisible="False" />
+            </Grid>
+        </StackPanel>
 
-        <TextBlock x:Uid="TestEditLabel_Suite" Style="{StaticResource BodyStrongTextBlockStyle}" />
-        <ComboBox
-            HorizontalAlignment="Stretch"
-            IsEditable="True"
-            ItemsSource="{x:Bind Vm.SuiteOptions}"
-            Text="{x:Bind Vm.SelectedSuite, Mode=TwoWay}"
-            IsEnabled="{x:Bind Vm.CanEditSuite}" />
+        <StackPanel>
+            <TextBlock x:Uid="TestEditLabel_Suite" Style="{StaticResource InputLabelStyle}" />
+            <!-- 스위트는 작업 카테고리에서만 고른다(자유 입력 없음) — 스위트 이름이 작업 카테고리와
+                 같아야 칸반 카테고리 그룹의 통과율 배지(FR-T8)에 반영되기 때문. -->
+            <ComboBox
+                HorizontalAlignment="Stretch"
+                ItemsSource="{x:Bind Vm.SuiteOptions}"
+                SelectedItem="{x:Bind Vm.SelectedSuite, Mode=TwoWay}"
+                IsEnabled="{x:Bind Vm.CanEditSuite}" />
+        </StackPanel>
 
-        <TextBlock x:Uid="TestEditLabel_Method" Style="{StaticResource BodyStrongTextBlockStyle}" />
-        <TextBox
-            x:Uid="TestEditBox_Method"
-            Text="{x:Bind Vm.Method, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-            AcceptsReturn="True"
-            TextWrapping="Wrap"
-            MinHeight="70"
-            MaxLength="500"
-            ScrollViewer.VerticalScrollBarVisibility="Auto" />
+        <StackPanel>
+            <TextBlock x:Uid="TestEditLabel_Method" Style="{StaticResource InputLabelStyle}" />
+            <TextBox
+                x:Uid="TestEditBox_Method"
+                Text="{x:Bind Vm.Method, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                AcceptsReturn="True"
+                TextWrapping="Wrap"
+                MinHeight="70"
+                MaxLength="500"
+                ScrollViewer.VerticalScrollBarVisibility="Auto" />
+        </StackPanel>
 
         <TextBlock
             x:Name="ErrorText"

@@ -114,9 +114,10 @@ public sealed partial class TestPage : UserControl
 
     private async void AddTest_Click(object sender, RoutedEventArgs e)
     {
-        var suiteNames = SuiteNames();
-        var presetSuite = suiteNames.Count > 0 ? suiteNames[0] : null;
-        var dialog = new Dialogs.TestEditDialog(null, suiteNames, presetSuite);
+        // 스위트는 작업 카테고리에서 고른다 — 스위트 이름이 작업 카테고리와 같아야 칸반 통과율 배지에 반영된다.
+        var categories = Vm.AvailableCategories;
+        var presetSuite = categories.Count > 0 ? categories[0] : null;
+        var dialog = new Dialogs.TestEditDialog(null, categories, presetSuite);
         if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.ResultTest is { } test)
             Vm.AddTestToSuite(dialog.ResultSuiteName, test);
     }
@@ -125,7 +126,7 @@ public sealed partial class TestPage : UserControl
     {
         if (sender is not FrameworkElement { Tag: TestItem test }) return;
         var currentSuite = Vm.Project.TestCategories?.FirstOrDefault(c => c.Id == test.CategoryId)?.Name;
-        var dialog = new Dialogs.TestEditDialog(test, SuiteNames(), currentSuite);
+        var dialog = new Dialogs.TestEditDialog(test, Vm.AvailableCategories, currentSuite);
         // 편집은 in-place 수정이므로 UpdateTest만 호출한다(신규 추가 경로 AddTestToSuite와 분리 — 기존 항목 중복 추가 방지).
         if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.ResultTest is not null)
             Vm.UpdateTest(test);
@@ -195,10 +196,6 @@ public sealed partial class TestPage : UserControl
         if (confirmed)
             Vm.DeleteSuite(suite);
     }
-
-    /// <summary>현재 프로젝트의 스위트 이름 목록 (다이얼로그 ComboBox 소스)</summary>
-    private IReadOnlyList<string> SuiteNames()
-        => Vm.Project.TestCategories?.Select(c => c.Name).ToList() ?? [];
 }
 
 /// <summary>테스트 상태 콤보박스 항목</summary>

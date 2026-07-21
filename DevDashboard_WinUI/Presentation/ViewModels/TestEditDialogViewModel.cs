@@ -11,10 +11,15 @@ public partial class TestEditDialogViewModel : ObservableObject
     private readonly TestItem? _existing;
 
     [ObservableProperty] public partial string Name { get; set; } = string.Empty;
-    [ObservableProperty] public partial string SelectedSuite { get; set; } = string.Empty;
+
+    /// <summary>선택된 스위트. 목록에 없는 값이 들어오면 ComboBox가 선택을 비울 수 있어 null을 허용한다
+    /// (빈 값은 저장 시 <see cref="TestEditDialog"/>가 차단한다).</summary>
+    [ObservableProperty] public partial string? SelectedSuite { get; set; }
+
     [ObservableProperty] public partial string Method { get; set; } = string.Empty;
 
-    /// <summary>스위트 선택 목록 (기존 스위트 이름 — ComboBox 편집 가능으로 신규 입력도 허용)</summary>
+    /// <summary>스위트 선택 목록 = 작업 카테고리. 스위트 이름이 작업 카테고리와 같아야
+    /// 칸반 카테고리 그룹의 통과율 배지(FR-T8)에 반영되므로 자유 입력을 두지 않는다.</summary>
     public IReadOnlyList<string> SuiteOptions { get; }
 
     /// <summary>편집 모드 여부 (false이면 새 테스트)</summary>
@@ -23,13 +28,23 @@ public partial class TestEditDialogViewModel : ObservableObject
     /// <summary>스위트 선택 가능 여부 — 새 테스트일 때만 (편집 시 스위트 이동 미지원)</summary>
     public bool CanEditSuite => !IsEditMode;
 
-    public TestEditDialogViewModel(TestItem? existing, IReadOnlyList<string> suiteNames, string? presetSuite)
+    /// <param name="taskCategories">스위트로 고를 수 있는 작업 카테고리 목록</param>
+    /// <param name="presetSuite">기본 선택 스위트 (편집이면 그 테스트의 현재 스위트)</param>
+    public TestEditDialogViewModel(TestItem? existing, IReadOnlyList<string> taskCategories, string? presetSuite)
     {
         _existing = existing;
-        SuiteOptions = suiteNames ?? [];
 
-        var fallbackSuite = presetSuite ?? (SuiteOptions.Count > 0 ? SuiteOptions[0] : string.Empty);
-        SelectedSuite = fallbackSuite;
+        var options = (taskCategories ?? []).ToList();
+        // 편집 대상의 현재 스위트가 작업 카테고리에 없으면(과거 자유 입력·"작업" 스위트) 목록에 넣는다.
+        // 넣지 않으면 ComboBox가 선택을 비워 저장이 필수 검증에 막히고, 기존 스위트가 소실된다.
+        if (!string.IsNullOrWhiteSpace(presetSuite)
+            && !options.Contains(presetSuite, StringComparer.OrdinalIgnoreCase))
+        {
+            options.Add(presetSuite);
+        }
+        SuiteOptions = options;
+
+        SelectedSuite = presetSuite ?? (SuiteOptions.Count > 0 ? SuiteOptions[0] : null);
 
         if (existing is not null)
         {
