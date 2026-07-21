@@ -203,7 +203,7 @@
 - **Halt Forecast**: (ii-a) 사전 승인 — VM 공개 메서드 `RenameSuite`·`DeleteSuite` **제거**(호출부 전수 = 이번에 함께 제거되는 핸들러 2곳뿐, grep 확인). 그 외 없음.
 
 ### T4 — 메모 입력 다이얼로그 시안 정합(신규 `TestNoteDialog`) `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `DevDashboard_WinUI/Presentation/Views/Dialogs/TestNoteDialog.xaml`(신규), `DevDashboard_WinUI/Presentation/Views/Dialogs/TestNoteDialog.xaml.cs`(신규), `DevDashboard_WinUI/Presentation/Views/TestPage.xaml.cs`(`EditNote_Click` 교체), `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`
 - **Design**: ① 배치 — `Presentation/Views/Dialogs/`(레포 관례: 다이얼로그 = ContentDialog 서브클래스). ② 신규 심볼 — `TestNoteDialog(string testName, string currentNote)`: 메모 입력 전용 다이얼로그, `ResultNote`로 결과 노출. ③ 의존 방향 — `TestPage.EditNote_Click`이 생성·소비, 다이얼로그는 `LocalizationService`만 참조(필드 1개라 별도 VM은 과설계 — `TestEditDialogViewModel` 같은 VM을 두지 않는다). ④ 비추상화 — 공용 "단일 텍스트 입력 다이얼로그"를 만들지 않는다(소비처 1곳이며, 스위트 이름수정 다이얼로그는 T3에서 사라져 2번째 소비처가 생기지 않는다).
 - **구성**:
@@ -276,6 +276,7 @@
 
 > 마크업 수준 대조는 각 task의 V-9/spec 리뷰에서 완료. 아래는 **빌드로 판정 불가한 렌더 외형·실동작**이라 완료 선언 전 사용자 확인이 필요한 항목이다.
 
+- **T4**: 메모 다이얼로그의 제목("메모 추가")·대상 테스트명 부제 색/위치·입력칸 높이·placeholder 문구 / 취소·저장 버튼 배치와 저장 버튼 accent / 메모를 비우고 저장하면 실제로 삭제되는지
 - **T3**: 진행바 두께가 통과율 0%·중간·100% 모두 같은지 / 인디케이터 색(통과색)과 트랙 대비 / 스위트 헤더 우클릭 시 메뉴가 뜨지 않는지 / 항목 없는 스위트 카드가 보이지 않는지
 - **T2**: 행 사이 구분선 농도·간격 / 상태 아이콘 라운드 사각형(통과·실패 채움+흰 글리프, 미실행 테두리형) / 상태 pill 3종 폭 동일 / 행 마우스 오버 배경 변화 / 메모 블록(좌측 주황 바·깃발·본문) 배치와 이름 2줄일 때 아이콘·pill 세로 중앙 정렬
 - **T1**: 선택 탭 라벨이 굵게 보이는지 / 개수 배지는 굵어지지 않았는지 / 선택 탭에 마우스를 올려도 밑줄이 유지되는지(함정 7) / **미실행 → 전체 클릭 시 전 항목 재표시**(D1 가설 검증)
