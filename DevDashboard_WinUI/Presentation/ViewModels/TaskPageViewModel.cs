@@ -202,22 +202,27 @@ public partial class TaskPageViewModel : ObservableObject
     }
 
     /// <summary>작업에 연결된 테스트를 생성합니다 (FR-T6 "테스트 추가" 토글).
-    /// 프로젝트의 "작업" 테스트 카테고리(없으면 자동 생성)에 작업 제목과 같은 테스트 항목을 추가하고 LinkedTestId를 연결합니다.</summary>
+    /// 작업의 카테고리와 같은 이름의 테스트 스위트(없으면 자동 생성)에 작업 제목과 같은 테스트 항목을 추가하고 LinkedTestId를 연결합니다.
+    /// 같은 이름 스위트에 넣어야 칸반 카테고리 그룹의 통과율 배지(FR-T8)에 반영됩니다.</summary>
     public void CreateLinkedTest(TodoItem todo)
     {
         if (todo is null || !string.IsNullOrEmpty(todo.LinkedTestId)) return; // 이미 연결됨 → 중복 생성 방지
 
         var categories = _project.TestCategories ??= [];
-        var categoryName = LocalizationService.Get("TaskLinkedTestCategory");
-        var workCategory = categories.FirstOrDefault(c => string.Equals(c.Name, categoryName, StringComparison.OrdinalIgnoreCase));
-        if (workCategory is null)
+        // 배지(FR-T8)는 작업 카테고리와 같은 이름의 테스트 스위트를 찾으므로, 링크 테스트를 작업의 카테고리 이름 스위트에 넣는다.
+        // 카테고리가 빈(미분류) 작업은 배지 대상이 아니므로 기존 "작업"(TaskLinkedTestCategory) 스위트로 모은다.
+        var categoryName = string.IsNullOrEmpty(todo.Category)
+            ? LocalizationService.Get("TaskLinkedTestCategory")
+            : todo.Category;
+        var suite = categories.FirstOrDefault(c => string.Equals(c.Name, categoryName, StringComparison.OrdinalIgnoreCase));
+        if (suite is null)
         {
-            workCategory = new TestCategory { Name = categoryName };
-            categories.Add(workCategory);
+            suite = new TestCategory { Name = categoryName };
+            categories.Add(suite);
         }
 
-        var test = new TestItem { CategoryId = workCategory.Id, Text = todo.Text };
-        workCategory.Items.Add(test);
+        var test = new TestItem { CategoryId = suite.Id, Text = todo.Text };
+        suite.Items.Add(test);
         todo.LinkedTestId = test.Id;
 
         BuildTestStatusLookup();
