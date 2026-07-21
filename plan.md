@@ -249,6 +249,7 @@
 
 - **T2(이미지1 다이얼로그)**: 이름칸 하단 danger 라인의 두께·모서리·입력칸 폭 일치 / 스위트 드롭다운이 작업 카테고리만 보이고 자유 입력 불가 / 라벨(InputLabelStyle) 크기·간격 / 제목 "새 테스트 등록"·버튼 "등록" 렌더 / 전체 여백이 시안과 유사한지
 - **T3(헤더)**: 프로젝트명 배지의 pill 모양·색 대비·제목과의 간격 / 스위트 필터 드롭다운 폭·위치(우측 정렬) / "+ 테스트 등록" accent 버튼 색·크기 / 헤더 한 줄 정렬이 시안과 유사한지
+- **T4(통계·탭)**: 통계 카드 3등분 폭·큰 숫자 크기(22)·색 대비(특히 미실행 회색) / 탭 선택 밑줄이 보이고 **선택된 탭에 마우스를 올려도 밑줄이 유지**되는지(함정 7 회귀 확인) / 개수 배지 크기·간격 / 카드-탭-목록 세로 간격
 
 ## Phase Ledger
 - (진행 중) T1·T2 완료.
@@ -258,3 +259,5 @@
   - 결정(D10): V-6 quality가 카테고리 결합식 3곳 중복(TaskEditDialogViewModel 누락 계수)을 MAJOR로 지적 → `AppSettingsDialogViewModel.ResolveTaskCategories`로 추출하고 3곳 교체. 쓰기 전용 `_settings` 필드 제거.
 - T2 완료 (커밋 a8ac10a 기반): 다이얼로그 스위트를 작업 카테고리 비편집 드롭다운으로 전환, 이름 필수 `*`+하단 danger 라인, 라벨 InputLabelStyle, 문구/제목/버튼 시안 정합(resw ko/en + 신규 `TestEdit_Submit`), 호출부를 `Vm.AvailableCategories`로, 고아 `SuiteNames()` 제거. 빌드 OK, spec·quality 리뷰 지적 0.
   - 결정: 편집 대상의 기존 스위트가 작업 카테고리에 없으면(레거시 자유명·"작업") VM 생성자가 그 값을 옵션에 보강한다 — 넣지 않으면 ComboBox 선택이 비어 필수 검증에 막히고 기존 스위트가 소실된다.
+- T3-T4 완료 (커밋 ab9b756, T4 pre-review 0f0c9c7): 헤더에 프로젝트명 배지·스위트 필터 드롭다운·"+ 테스트 등록" 버튼 배치(T3), 통계 카드를 가로 3등분(좌 색점+라벨 / 우 큰 숫자)으로 바꾸고 상태 필터를 헤더에서 **개수 배지 포함 밑줄형 탭바**로 이설(T4). 빌드 OK, 두 task 모두 spec·quality 리뷰 지적 0.
+  - 결정: 페이지 전용 스타일도 프로젝트 관례대로 `Styles.xaml`에 둔다(`StatCardStyle` 3회·`FilterTabStyle` 4회 — 3회 문턱 충족, `KanbanColumnStyle`·`DashedAddButtonStyle` 선례). `FilterTabStyle`은 함정 7대로 선택 밑줄(CheckStates)과 호버 오버레이(CommonStates)를 별도 요소로 분리.
