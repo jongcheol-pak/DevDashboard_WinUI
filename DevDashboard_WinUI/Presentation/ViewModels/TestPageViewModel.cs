@@ -11,6 +11,7 @@ public partial class TestPageViewModel : ObservableObject
 {
     private readonly ProjectItem _project;
     private readonly IProjectRepository _repository;
+    private readonly AppSettings _settings;
     private readonly Action _refreshCardState;
 
     // 저장 직렬화 체인 — SaveTestCategories는 delete+reinsert 전체 스냅샷 방식이라
@@ -33,37 +34,58 @@ public partial class TestPageViewModel : ObservableObject
     /// <summary>선택된 상태 필터 (null이면 전체, "Pass"/"Fail"/"Untested")</summary>
     [ObservableProperty] public partial string? SelectedStatus { get; set; }
 
-    public TestPageViewModel(ProjectItem project, IProjectRepository repository, Action refreshCardState)
+    /// <summary>선택된 스위트 필터 (null이면 전체). 상태 필터와 직교하게 함께 적용됩니다.</summary>
+    [ObservableProperty] public partial string? SelectedSuiteFilter { get; set; }
+
+    /// <summary>스위트로 선택 가능한 작업 카테고리 목록 (기본 + 사용자 정의).
+    /// 테스트 스위트를 작업 카테고리에 맞춰야 칸반 카테고리 그룹의 통과율 배지(FR-T8)에 반영된다.</summary>
+    public IReadOnlyList<string> AvailableCategories { get; }
+
+    public TestPageViewModel(ProjectItem project, IProjectRepository repository, AppSettings settings, Action refreshCardState)
     {
         ArgumentNullException.ThrowIfNull(project);
         ArgumentNullException.ThrowIfNull(repository);
+        ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(refreshCardState);
 
         _project = project;
         _repository = repository;
+        _settings = settings;
         _refreshCardState = refreshCardState;
+
+        AvailableCategories = AppSettingsDialogViewModel.DefaultTaskCategories
+            .Concat(settings.TaskCategories)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
         Rebuild();
     }
 
     partial void OnSelectedStatusChanged(string? value) => Rebuild();
 
-    /// <summary>상태 필터를 적용해 스위트 그룹·상태별 통계·통과율을 재구성합니다.
-    /// 통계·통과율은 스위트 전체 기준(필터 무관), 표시 항목만 필터를 적용합니다.</summary>
+    partial void OnSelectedSuiteFilterChanged(string? value) => Rebuild();
+
+    /// <summary>상태·스위트 필터를 적용해 스위트 그룹·상태별 통계·통과율을 재구성합니다.
+    /// 통계·통과율은 프로젝트/스위트 전체 기준(필터 무관), 표시 대상만 필터를 적용합니다.</summary>
     private void Rebuild()
     {
         var categories = _project.TestCategories ?? [];
 
-        // 상태별 통계 (프로젝트 전체 기준)
+        // 상태별 통계 (프로젝트 전체 기준 — 통계 카드·탭 개수 공용이라 필터를 반영하지 않는다)
         var allItems = categories.SelectMany(c => c.Items).ToList();
         PassCount = allItems.Count(t => t.Status == TestItem.StatusPass);
         FailCount = allItems.Count(t => t.Status == TestItem.StatusFail);
         UntestedCount = allItems.Count(t => t.Status == TestItem.StatusUntested);
         TotalCount = allItems.Count;
 
+        // 스위트 필터 (null이면 전체) — 상태 필터와 직교하게 함께 적용된다
+        var visibleCategories = SelectedSuiteFilter is null
+            ? categories
+            : categories.Where(c => string.Equals(c.Name, SelectedSuiteFilter, StringComparison.OrdinalIgnoreCase)).ToList();
+
         // 스위트 그룹 (표시 항목은 필터 적용, 통과율은 스위트 전체 기준)
         SuiteGroups.Clear();
-        foreach (var cat in categories)
+        foreach (var cat in visibleCategories)
         {
             var items = SelectedStatus is null
                 ? cat.Items.ToList()

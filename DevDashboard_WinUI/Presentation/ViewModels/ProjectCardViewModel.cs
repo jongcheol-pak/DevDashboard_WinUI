@@ -533,7 +533,7 @@ public partial class ProjectCardViewModel : ObservableObject
     public TestPageViewModel CreateTestPageViewModel()
     {
         EnsureTestsLoaded();
-        return new TestPageViewModel(_item, _repository, RefreshTestCardState);
+        return new TestPageViewModel(_item, _repository, _settings, RefreshTestCardState);
     }
 
     /// <summary>테스트 페이지에서 테스트가 변경된 뒤 카드의 진행 중 표시(HasInProgressTest)를 갱신합니다.</summary>
