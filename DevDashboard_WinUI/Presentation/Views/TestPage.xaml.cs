@@ -80,12 +80,12 @@ public sealed partial class TestPage : UserControl
         _ => _untestedSoftBrush,
     };
 
-    /// <summary>상태 아이콘 배경 — 통과·실패는 상태색으로 채우고, 미실행은 저투명(테두리로 표현)</summary>
+    /// <summary>상태 아이콘 배경 — 통과·실패는 상태색으로 채우고, 미실행은 속이 빈 원이라 채우지 않는다</summary>
     public static Brush StatusIconBackground(string status) => status switch
     {
         TestItem.StatusPass => _passBrush,
         TestItem.StatusFail => _failBrush,
-        _ => _untestedSoftBrush,
+        _ => _transparentBrush,
     };
 
     /// <summary>상태 아이콘 테두리 — 채워지지 않는 미실행만 회색 테두리를 그린다</summary>
@@ -114,12 +114,19 @@ public sealed partial class TestPage : UserControl
     public static Visibility NoteVisibility(string note)
         => string.IsNullOrWhiteSpace(note) ? Visibility.Collapsed : Visibility.Visible;
 
-    /// <summary>상태 아이콘 글리프 (통과 ✓ / 실패 ✕ / 미실행 ○)</summary>
+    /// <summary>상태 아이콘 글리프 (통과 ✓ / 실패 ✕ / 미실행은 빈 원이라 글리프 없음)</summary>
     public static string StatusGlyph(string status) => status switch
     {
         TestItem.StatusPass => "✓",
         TestItem.StatusFail => "✕",
-        _ => "○",
+        _ => string.Empty,
+    };
+
+    /// <summary>상태 아이콘 모서리 — 통과·실패는 라운드 사각형, 미실행은 원(시안 기준)</summary>
+    public static CornerRadius StatusIconCornerRadius(string status) => status switch
+    {
+        TestItem.StatusPass or TestItem.StatusFail => new CornerRadius(6),
+        _ => new CornerRadius(11),
     };
 
     /// <summary>상태 표시 텍스트 (통과/실패/미실행)</summary>

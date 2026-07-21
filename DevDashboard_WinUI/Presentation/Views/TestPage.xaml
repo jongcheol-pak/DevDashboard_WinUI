@@ -62,10 +62,11 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <!-- 상태 아이콘 — 통과·실패는 상태색으로 채우고 흰 글리프, 미실행은 테두리만 -->
+                    <!-- 상태 아이콘 — 통과·실패는 라운드 사각형에 상태색을 채우고 흰 글리프,
+                         미실행은 속이 빈 회색 원(글리프 없음) -->
                     <Border Grid.Column="0" Grid.RowSpan="2"
                             Width="22" Height="22"
-                            CornerRadius="6"
+                            CornerRadius="{x:Bind local:TestPage.StatusIconCornerRadius(Status), Mode=OneWay}"
                             VerticalAlignment="Center"
                             Background="{x:Bind local:TestPage.StatusIconBackground(Status), Mode=OneWay}"
                             BorderBrush="{x:Bind local:TestPage.StatusIconBorderBrush(Status), Mode=OneWay}"
