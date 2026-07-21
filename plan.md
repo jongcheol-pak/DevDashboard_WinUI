@@ -145,7 +145,7 @@
 - **Halt Forecast**: 없음 — signature 변경이지만 호출부 1곳(사전 승인 등재), 파괴적·외부 작업 없음.
 
 ### T2 — TestEditDialog: 스위트=작업 카테고리 드롭다운 + 문구/이름 필수 라인 `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `DevDashboard_WinUI/Presentation/Views/Dialogs/TestEditDialog.xaml`, `DevDashboard_WinUI/Presentation/ViewModels/TestEditDialogViewModel.cs`, `DevDashboard_WinUI/Presentation/Views/TestPage.xaml.cs`, `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`
 - **Design**: ① 배치 — 다이얼로그 XAML/VM + 호출부(TestPage.xaml.cs)에서 옵션 소스 교체. ② 신규 심볼 — 없음(기존 `SuiteOptions` 의미만 "기존 스위트명"→"작업 카테고리"로, 편집형 콤보→드롭다운). ③ 의존 방향 — 호출부가 `Vm.AvailableCategories`(T1)를 다이얼로그에 전달. ④ 비추상화 — 스위트 옵션 소스를 다이얼로그 내부에서 계산하지 않고 주입 유지(현행 구조).
 - **구성**:
@@ -243,5 +243,17 @@
   - **T5**: 스위트 그룹(폴더·N/M 통과·진행바)·행 레이아웃·상태 pill 클릭 순환·우클릭 메뉴
   - **통합**: 새 테스트를 작업 카테고리(예 UI·UX) 스위트로 등록 → 칸반 그 카테고리 그룹에 통과율 배지 표시(궁극 목표)
 
+## F-8 인계 목록 (V-9 `⏳ 미확인` — 렌더 육안 확인 필요)
+
+> 마크업·resw 수준 대조는 각 task의 V-9/spec 리뷰에서 ✅ 완료. 아래는 **빌드로 판정 불가한 렌더 외형**이라 완료 선언 전 사용자 확인이 필요한 항목이다.
+
+- **T2(이미지1 다이얼로그)**: 이름칸 하단 danger 라인의 두께·모서리·입력칸 폭 일치 / 스위트 드롭다운이 작업 카테고리만 보이고 자유 입력 불가 / 라벨(InputLabelStyle) 크기·간격 / 제목 "새 테스트 등록"·버튼 "등록" 렌더 / 전체 여백이 시안과 유사한지
+
 ## Phase Ledger
-- (미시작)
+- (진행 중) T1·T2 완료.
+
+## Progress Log
+- T1 완료 (커밋 1f2bd6b): TestPageViewModel에 AppSettings 주입(호출부 ProjectCardViewModel 1곳), AvailableCategories(작업 카테고리)·SelectedSuiteFilter 추가, Rebuild에 스위트 필터를 상태 필터와 직교 적용(통계는 전체 기준 유지). 빌드 OK.
+  - 결정(D10): V-6 quality가 카테고리 결합식 3곳 중복(TaskEditDialogViewModel 누락 계수)을 MAJOR로 지적 → `AppSettingsDialogViewModel.ResolveTaskCategories`로 추출하고 3곳 교체. 쓰기 전용 `_settings` 필드 제거.
+- T2 완료 (커밋 a8ac10a 기반): 다이얼로그 스위트를 작업 카테고리 비편집 드롭다운으로 전환, 이름 필수 `*`+하단 danger 라인, 라벨 InputLabelStyle, 문구/제목/버튼 시안 정합(resw ko/en + 신규 `TestEdit_Submit`), 호출부를 `Vm.AvailableCategories`로, 고아 `SuiteNames()` 제거. 빌드 OK, spec·quality 리뷰 지적 0.
+  - 결정: 편집 대상의 기존 스위트가 작업 카테고리에 없으면(레거시 자유명·"작업") VM 생성자가 그 값을 옵션에 보강한다 — 넣지 않으면 ComboBox 선택이 비어 필수 검증에 막히고 기존 스위트가 소실된다.
