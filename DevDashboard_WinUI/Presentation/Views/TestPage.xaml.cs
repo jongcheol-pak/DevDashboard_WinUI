@@ -3,6 +3,7 @@ using DevDashboard.Presentation.ViewModels;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 
 namespace DevDashboard.Presentation.Views;
@@ -32,6 +33,11 @@ public sealed partial class TestPage : UserControl
     private static readonly SolidColorBrush _failBrush = new(ColorHelper.FromArgb(0xFF, 0xE8, 0xB4, 0x5A));
     private static readonly SolidColorBrush _untestedBrush = new(ColorHelper.FromArgb(0xFF, 0x8A, 0x88, 0x90));
 
+    // 상태 pill·아이콘 배경용 저투명 버전 (Palette의 *SoftBrush와 같은 0x28 알파 규약)
+    private static readonly SolidColorBrush _passSoftBrush = new(ColorHelper.FromArgb(0x28, 0x5A, 0xA3, 0xE8));
+    private static readonly SolidColorBrush _failSoftBrush = new(ColorHelper.FromArgb(0x28, 0xE8, 0xB4, 0x5A));
+    private static readonly SolidColorBrush _untestedSoftBrush = new(ColorHelper.FromArgb(0x28, 0x8A, 0x88, 0x90));
+
     public static Brush PassBrush => _passBrush;
     public static Brush FailBrush => _failBrush;
     public static Brush UntestedBrush => _untestedBrush;
@@ -49,13 +55,8 @@ public sealed partial class TestPage : UserControl
     public static string DeleteTooltip { get; } = LocalizationService.Get("TaskDelete_Tooltip");
     public static string NoteTooltip { get; } = LocalizationService.Get("TestNote_Tooltip");
 
-    /// <summary>테스트 상태 콤보박스 항목 (통과/실패/미실행)</summary>
-    public static IReadOnlyList<TestStatusOption> StatusOptions { get; } =
-    [
-        new(TestItem.StatusPass, LocalizationService.Get("TestStatus_Pass")),
-        new(TestItem.StatusFail, LocalizationService.Get("TestStatus_Fail")),
-        new(TestItem.StatusUntested, LocalizationService.Get("TestStatus_Untested")),
-    ];
+    /// <summary>상태 pill 툴팁 — 행에 조작 버튼이 없으므로 클릭으로 상태가 바뀐다는 것을 알린다.</summary>
+    public static string StatusPillTooltip { get; } = LocalizationService.Get("TestStatusPill_Tooltip");
 
     // ===== x:Bind 정적 헬퍼 (Converter 미적용 — 직접 타입 반환) =====
 
@@ -67,6 +68,14 @@ public sealed partial class TestPage : UserControl
         _ => _untestedBrush,
     };
 
+    /// <summary>상태 배지·아이콘 배경용 저투명 브러시</summary>
+    public static Brush StatusSoftBrush(string status) => status switch
+    {
+        TestItem.StatusPass => _passSoftBrush,
+        TestItem.StatusFail => _failSoftBrush,
+        _ => _untestedSoftBrush,
+    };
+
     /// <summary>상태 아이콘 글리프 (통과 ✓ / 실패 ✕ / 미실행 ○)</summary>
     public static string StatusGlyph(string status) => status switch
     {
@@ -75,16 +84,17 @@ public sealed partial class TestPage : UserControl
         _ => "○",
     };
 
-    /// <summary>메모 표시 여부 (메모가 있을 때만)</summary>
-    public static Visibility NoteVisibility(string note)
-        => string.IsNullOrWhiteSpace(note) ? Visibility.Collapsed : Visibility.Visible;
+    /// <summary>상태 표시 텍스트 (통과/실패/미실행)</summary>
+    public static string StatusText(string status) => status switch
+    {
+        TestItem.StatusPass => LabelPass,
+        TestItem.StatusFail => LabelFail,
+        _ => LabelUntested,
+    };
 
-    /// <summary>방법 표시 여부 (방법이 있을 때만)</summary>
-    public static Visibility MethodVisibility(string method)
-        => string.IsNullOrWhiteSpace(method) ? Visibility.Collapsed : Visibility.Visible;
-
-    /// <summary>통과율 텍스트 ("N% (통과/전체)")</summary>
-    public static string FormatPassRate(double rate) => $"{rate:0}%";
+    /// <summary>스위트 헤더의 통과 현황 텍스트 ("통과수/전체수 통과")</summary>
+    public static string FormatPassCount(int passCount, int totalCount)
+        => string.Format(LocalizationService.Get("TestSuitePassCount"), passCount, totalCount);
 
     // ===== 네비게이션 =====
 
@@ -109,20 +119,22 @@ public sealed partial class TestPage : UserControl
         Vm.SelectedSuiteFilter = index <= 0 ? null : combo.SelectedItem as string;
     }
 
-    // ===== 항목 상태 콤보 =====
+    // ===== 항목 상태 pill (클릭하면 다음 상태로 순환) =====
 
-    private void StatusCombo_Loaded(object sender, RoutedEventArgs e)
+    /// <summary>다음 상태 (통과 → 실패 → 미실행 → 통과)</summary>
+    private static string NextStatus(string status) => status switch
     {
-        if (sender is not ComboBox { Tag: TestItem test } combo) return;
-        combo.ItemsSource = StatusOptions;
-        combo.SelectedItem = StatusOptions.FirstOrDefault(o => o.Value == test.Status);
-    }
+        TestItem.StatusPass => TestItem.StatusFail,
+        TestItem.StatusFail => TestItem.StatusUntested,
+        _ => TestItem.StatusPass,
+    };
 
-    private void StatusCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void StatusPill_Click(object sender, TappedRoutedEventArgs e)
     {
-        if (sender is not ComboBox { Tag: TestItem test, SelectedItem: TestStatusOption option }) return;
-        // ChangeTestStatus는 동일 상태면 무시하므로 Loaded 초기 선택으로 인한 불필요한 저장이 없다.
-        Vm.ChangeTestStatus(test, option.Value);
+        if (sender is not FrameworkElement { Tag: TestItem test }) return;
+        // 상위 행으로 전파되면 우클릭 메뉴·행 조작과 겹치므로 여기서 소비한다.
+        e.Handled = true;
+        Vm.ChangeTestStatus(test, NextStatus(test.Status));
     }
 
     // ===== 테스트 추가/편집/삭제/메모 =====
@@ -211,10 +223,4 @@ public sealed partial class TestPage : UserControl
         if (confirmed)
             Vm.DeleteSuite(suite);
     }
-}
-
-/// <summary>테스트 상태 콤보박스 항목</summary>
-public sealed record TestStatusOption(string Value, string DisplayName)
-{
-    public override string ToString() => DisplayName;
 }

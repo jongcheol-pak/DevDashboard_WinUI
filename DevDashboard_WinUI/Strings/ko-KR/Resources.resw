@@ -402,6 +402,8 @@
   <data name="TestPage_Back" xml:space="preserve"><value>대시보드</value></data>
   <data name="TestAdd_Button" xml:space="preserve"><value>+ 테스트 등록</value></data>
   <data name="TestSuiteFilter_All" xml:space="preserve"><value>전체</value></data>
+  <data name="TestSuitePassCount" xml:space="preserve"><value>{0}/{1} 통과</value></data>
+  <data name="TestStatusPill_Tooltip" xml:space="preserve"><value>클릭하면 상태가 바뀝니다 (통과 → 실패 → 미실행)</value></data>
   <data name="TestNote_Tooltip" xml:space="preserve"><value>메모</value></data>
   <data name="TestStatus_All" xml:space="preserve"><value>전체</value></data>
   <data name="TestStatus_Pass" xml:space="preserve"><value>통과</value></data>

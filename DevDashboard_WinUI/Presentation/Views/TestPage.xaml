@@ -11,140 +11,139 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
 
     <UserControl.Resources>
-        <!-- 테스트 항목 카드 -->
-        <DataTemplate x:Key="TestItemCardTemplate" x:DataType="models:TestItem">
-            <Border
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="6"
-                Padding="10"
-                Margin="0,0,0,8">
-                <StackPanel Spacing="6">
-                    <!-- 상태 아이콘 + 이름 -->
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock
-                            Text="{x:Bind local:TestPage.StatusGlyph(Status), Mode=OneWay}"
-                            Foreground="{x:Bind local:TestPage.StatusBrush(Status), Mode=OneWay}"
-                            FontSize="15"
-                            FontWeight="Bold"
-                            VerticalAlignment="Center" />
-                        <TextBlock
-                            Text="{x:Bind Text, Mode=OneWay}"
-                            TextWrapping="Wrap"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource BodyStrongTextBlockStyle}" />
-                    </StackPanel>
+        <!--
+            테스트 항목 행 — 시안 구성(좌측 상태 아이콘 + 이름 / 우측 상태 pill).
+            조작 버튼은 노출하지 않는다: 상태는 pill 클릭으로 순환하고, 편집·메모·삭제는 우클릭 메뉴로 한다
+            (작업 칸반 카드와 동일한 방식). 방법·메모 본문은 행에 싣지 않고 편집·메모 다이얼로그에서 다룬다.
+        -->
+        <DataTemplate x:Key="TestItemRowTemplate" x:DataType="models:TestItem">
+            <Grid ColumnSpacing="10" Padding="12,9" Background="Transparent">
+                <Grid.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="{x:Bind local:TestPage.EditTooltip}"
+                                        Tag="{x:Bind}" Click="EditTest_Click">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE70F;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutItem Text="{x:Bind local:TestPage.NoteTooltip}"
+                                        Tag="{x:Bind}" Click="EditNote_Click">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE70B;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutSeparator />
+                        <MenuFlyoutItem Text="{x:Bind local:TestPage.DeleteTooltip}"
+                                        Tag="{x:Bind}" Click="DeleteTest_Click">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE74D;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                    </MenuFlyout>
+                </Grid.ContextFlyout>
 
-                    <!-- 방법 -->
-                    <TextBlock
-                        Text="{x:Bind Method, Mode=OneWay}"
-                        FontSize="11"
-                        TextWrapping="Wrap"
-                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                        Visibility="{x:Bind local:TestPage.MethodVisibility(Method), Mode=OneWay}" />
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-                    <!-- 메모 -->
-                    <TextBlock
-                        Text="{x:Bind ProgressNote, Mode=OneWay}"
-                        FontSize="11"
-                        TextWrapping="Wrap"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Visibility="{x:Bind local:TestPage.NoteVisibility(ProgressNote), Mode=OneWay}" />
+                <!-- 상태 아이콘 (원형 저투명 배경) -->
+                <Border Grid.Column="0"
+                        Width="22" Height="22"
+                        CornerRadius="11"
+                        VerticalAlignment="Center"
+                        Background="{x:Bind local:TestPage.StatusSoftBrush(Status), Mode=OneWay}">
+                    <TextBlock Text="{x:Bind local:TestPage.StatusGlyph(Status), Mode=OneWay}"
+                               Foreground="{x:Bind local:TestPage.StatusBrush(Status), Mode=OneWay}"
+                               FontSize="12" FontWeight="Bold"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
 
-                    <!-- 상태 콤보 + 메모/수정/삭제 -->
-                    <Grid ColumnSpacing="4">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <ComboBox
-                            Grid.Column="0"
-                            HorizontalAlignment="Stretch"
-                            Padding="8,2"
-                            Tag="{x:Bind}"
-                            Loaded="StatusCombo_Loaded"
-                            SelectionChanged="StatusCombo_SelectionChanged" />
-                        <Button
-                            Grid.Column="1"
-                            Padding="8,4"
-                            Background="Transparent" BorderThickness="0"
-                            Tag="{x:Bind}"
-                            Click="EditNote_Click"
-                            ToolTipService.ToolTip="{x:Bind local:TestPage.NoteTooltip}">
-                            <FontIcon Glyph="&#xE70B;" FontSize="12" />
-                        </Button>
-                        <Button
-                            Grid.Column="2"
-                            Padding="8,4"
-                            Background="Transparent" BorderThickness="0"
-                            Tag="{x:Bind}"
-                            Click="EditTest_Click"
-                            ToolTipService.ToolTip="{x:Bind local:TestPage.EditTooltip}">
-                            <FontIcon Glyph="&#xE70F;" FontSize="12" />
-                        </Button>
-                        <Button
-                            Grid.Column="3"
-                            Padding="8,4"
-                            Background="Transparent" BorderThickness="0"
-                            Tag="{x:Bind}"
-                            Click="DeleteTest_Click"
-                            ToolTipService.ToolTip="{x:Bind local:TestPage.DeleteTooltip}">
-                            <FontIcon Glyph="&#xE74D;" FontSize="12" />
-                        </Button>
-                    </Grid>
-                </StackPanel>
-            </Border>
+                <TextBlock Grid.Column="1"
+                           Text="{x:Bind Text, Mode=OneWay}"
+                           FontSize="13"
+                           VerticalAlignment="Center"
+                           TextWrapping="Wrap"
+                           MaxLines="2"
+                           TextTrimming="CharacterEllipsis" />
+
+                <!-- 상태 pill — 클릭할 때마다 통과 → 실패 → 미실행 순으로 바뀐다 -->
+                <Border Grid.Column="2"
+                        Style="{StaticResource TagBadgeStyle}"
+                        Margin="0"
+                        VerticalAlignment="Center"
+                        Background="{x:Bind local:TestPage.StatusSoftBrush(Status), Mode=OneWay}"
+                        Tag="{x:Bind}"
+                        Tapped="StatusPill_Click"
+                        ToolTipService.ToolTip="{x:Bind local:TestPage.StatusPillTooltip}">
+                    <TextBlock Text="{x:Bind local:TestPage.StatusText(Status), Mode=OneWay}"
+                               FontSize="11"
+                               Foreground="{x:Bind local:TestPage.StatusBrush(Status), Mode=OneWay}" />
+                </Border>
+            </Grid>
         </DataTemplate>
 
-        <!-- 스위트 그룹 (헤더 + 통과율 바 + 항목 목록) -->
+        <!--
+            스위트 그룹 — 시안 구성(폴더 아이콘 + 스위트명 + "N/M 통과" + 우측 진행바, 아래에 항목 행).
+            스위트 이름수정·삭제는 시안에 버튼이 없으므로 헤더 우클릭 메뉴로 옮겼다(기능은 유지).
+        -->
         <DataTemplate x:Key="TestSuiteGroupTemplate" x:DataType="vm:TestSuiteGroup">
-            <StackPanel Margin="0,0,0,18" MaxWidth="560" HorizontalAlignment="Left">
-                <Grid ColumnSpacing="8" Margin="0,0,0,6">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock
-                        Grid.Column="0"
-                        Text="{x:Bind Category.Name, Mode=OneWay}"
-                        VerticalAlignment="Center"
-                        Style="{StaticResource BodyStrongTextBlockStyle}" />
-                    <TextBlock
-                        Grid.Column="1"
-                        Text="{x:Bind local:TestPage.FormatPassRate(PassRate)}"
-                        VerticalAlignment="Center"
-                        FontSize="12"
-                        Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                    <Button
-                        Grid.Column="2"
-                        Padding="8,4"
-                        Background="Transparent" BorderThickness="0"
-                        Tag="{x:Bind Category}"
-                        Click="RenameSuite_Click"
-                        ToolTipService.ToolTip="{x:Bind local:TestPage.EditTooltip}">
-                        <FontIcon Glyph="&#xE70F;" FontSize="12" />
-                    </Button>
-                    <Button
-                        Grid.Column="3"
-                        Padding="8,4"
-                        Background="Transparent" BorderThickness="0"
-                        Tag="{x:Bind Category}"
-                        Click="DeleteSuite_Click"
-                        ToolTipService.ToolTip="{x:Bind local:TestPage.DeleteTooltip}">
-                        <FontIcon Glyph="&#xE74D;" FontSize="12" />
-                    </Button>
-                </Grid>
-                <ProgressBar
-                    Value="{x:Bind PassRate}"
-                    Maximum="100"
-                    Margin="0,0,0,8" />
-                <ItemsControl ItemsSource="{x:Bind Items}" ItemTemplate="{StaticResource TestItemCardTemplate}" />
-            </StackPanel>
+            <Border Background="{ThemeResource AppCardBrush}"
+                    BorderBrush="{ThemeResource AppBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Margin="0,0,0,12">
+                <StackPanel>
+                    <Grid ColumnSpacing="10" Padding="12,10">
+                        <Grid.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="{x:Bind local:TestPage.EditTooltip}"
+                                                Tag="{x:Bind Category}" Click="RenameSuite_Click">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE70F;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem Text="{x:Bind local:TestPage.DeleteTooltip}"
+                                                Tag="{x:Bind Category}" Click="DeleteSuite_Click">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE74D;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                            </MenuFlyout>
+                        </Grid.ContextFlyout>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <FontIcon Grid.Column="0" Glyph="&#xE8B7;" FontSize="14"
+                                  VerticalAlignment="Center"
+                                  Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{x:Bind Category.Name, Mode=OneWay}"
+                                   VerticalAlignment="Center"
+                                   Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <TextBlock Grid.Column="2"
+                                   Text="{x:Bind local:TestPage.FormatPassCount(PassCount, TotalCount)}"
+                                   FontSize="12"
+                                   VerticalAlignment="Center"
+                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        <ProgressBar Grid.Column="4"
+                                     Value="{x:Bind PassRate}"
+                                     Maximum="100"
+                                     Width="120"
+                                     VerticalAlignment="Center" />
+                    </Grid>
+
+                    <ItemsControl ItemsSource="{x:Bind Items}" ItemTemplate="{StaticResource TestItemRowTemplate}" />
+                </StackPanel>
+            </Border>
         </DataTemplate>
     </UserControl.Resources>
 

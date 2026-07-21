@@ -402,6 +402,8 @@
   <data name="TestPage_Back" xml:space="preserve"><value>Dashboard</value></data>
   <data name="TestAdd_Button" xml:space="preserve"><value>+ Register Test</value></data>
   <data name="TestSuiteFilter_All" xml:space="preserve"><value>All</value></data>
+  <data name="TestSuitePassCount" xml:space="preserve"><value>{0}/{1} passed</value></data>
+  <data name="TestStatusPill_Tooltip" xml:space="preserve"><value>Click to change status (passed → failed → not run)</value></data>
   <data name="TestNote_Tooltip" xml:space="preserve"><value>Note</value></data>
   <data name="TestStatus_All" xml:space="preserve"><value>All</value></data>
   <data name="TestStatus_Pass" xml:space="preserve"><value>Pass</value></data>
