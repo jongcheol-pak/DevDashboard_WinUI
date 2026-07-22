@@ -30,12 +30,13 @@ public sealed partial class TaskPage : UserControl
     public static string ViewKanbanText { get; } = LocalizationService.Get("TaskView_Kanban");
     public static string ViewListText { get; } = LocalizationService.Get("TaskView_List");
 
-    // 칸반 열 헤더의 상태 dot 색 — Palette.xaml의 AppAccent/AppInfo/AppSuccess/AppWarning과 같은 값.
+    // 상태 dot 색 — 시안(colDefs)이 정본이다. Palette.xaml의 AppAccent/AppInfo/AppWarning과는 의도적으로 다르다
+    // (예정은 팔레트 강조색이 아니라 회색, 진행 중·보류는 시안 쪽이 조금 밝다) — 팔레트 값으로 되돌리지 말 것.
     // x:Bind는 ThemeResource를 받을 수 없어 우선순위 배지와 동일하게 정적 브러시로 둔다.
-    private static readonly SolidColorBrush _statusDotWaiting = new(ColorHelper.FromArgb(0xFF, 0xF0, 0x71, 0x6A));
-    private static readonly SolidColorBrush _statusDotActive = new(ColorHelper.FromArgb(0xFF, 0x5B, 0x93, 0xD8));
+    private static readonly SolidColorBrush _statusDotWaiting = new(ColorHelper.FromArgb(0xFF, 0x8A, 0x88, 0x90));
+    private static readonly SolidColorBrush _statusDotActive = new(ColorHelper.FromArgb(0xFF, 0x5A, 0xA3, 0xE8));
     private static readonly SolidColorBrush _statusDotCompleted = new(ColorHelper.FromArgb(0xFF, 0x5D, 0xB4, 0x63));
-    private static readonly SolidColorBrush _statusDotHold = new(ColorHelper.FromArgb(0xFF, 0xD9, 0x95, 0x4A));
+    private static readonly SolidColorBrush _statusDotHold = new(ColorHelper.FromArgb(0xFF, 0xE8, 0x92, 0x5A));
 
     public static Brush StatusDotWaiting => _statusDotWaiting;
     public static Brush StatusDotActive => _statusDotActive;
@@ -105,18 +106,18 @@ public sealed partial class TaskPage : UserControl
     public static Visibility DateRangeVisibility(DateTime? start, DateTime? end)
         => start.HasValue || end.HasValue ? Visibility.Visible : Visibility.Collapsed;
 
-    // 우선순위 배지 색 — x:Bind 함수 바인딩은 ThemeResource를 받을 수 없어
-    // TestPage.StatusBrush와 동일하게 정적 브러시로 둔다(Palette.xaml 값과 수동으로 맞춘다).
-    //   High   글자 AppWarningColor(#D9954A) / 배경 AppWarningSoftBrush(#28D9954A)
-    //   Normal 글자 AppInfoColor(#5B93D8)    / 배경 AppInfoSoftBrush(#285B93D8)
-    //   Low    글자는 배경 위 가독성을 위해 AppTextTertiary(#8A8890)를 쓰고(AppTextMuted #6F6D75는 너무 어둡다),
-    //          배경만 AppMutedSoftBrush(#286F6D75)와 같은 값.
-    private static readonly SolidColorBrush _priorityHighBrush = new(ColorHelper.FromArgb(0xFF, 0xD9, 0x95, 0x4A));
-    private static readonly SolidColorBrush _priorityNormalBrush = new(ColorHelper.FromArgb(0xFF, 0x5B, 0x93, 0xD8));
+    // 우선순위 배지 색 — 시안(priStyles)이 정본이다. x:Bind 함수 바인딩은 ThemeResource를 받을 수 없어
+    // TestPage.StatusBrush와 동일하게 정적 브러시로 둔다. Palette.xaml의 AppWarning/AppInfo와는 의도적으로 다르니
+    // 팔레트 값으로 되돌리지 말 것.
+    //   High   글자 #E8B45A / 배경은 같은 색의 저채도(알파 0x28 — 시안 .16 근사)
+    //   Normal 글자 #7AB5EC / 배경은 시안이 글자보다 진한 #5AA3E8 기준이라 베이스가 다르다
+    //   Low    글자 #8A8890 / 배경은 시안이 저채도가 아니라 **불투명** #2B2B31
+    private static readonly SolidColorBrush _priorityHighBrush = new(ColorHelper.FromArgb(0xFF, 0xE8, 0xB4, 0x5A));
+    private static readonly SolidColorBrush _priorityNormalBrush = new(ColorHelper.FromArgb(0xFF, 0x7A, 0xB5, 0xEC));
     private static readonly SolidColorBrush _priorityLowBrush = new(ColorHelper.FromArgb(0xFF, 0x8A, 0x88, 0x90));
-    private static readonly SolidColorBrush _priorityHighSoftBrush = new(ColorHelper.FromArgb(0x28, 0xD9, 0x95, 0x4A));
-    private static readonly SolidColorBrush _priorityNormalSoftBrush = new(ColorHelper.FromArgb(0x28, 0x5B, 0x93, 0xD8));
-    private static readonly SolidColorBrush _priorityLowSoftBrush = new(ColorHelper.FromArgb(0x28, 0x6F, 0x6D, 0x75));
+    private static readonly SolidColorBrush _priorityHighSoftBrush = new(ColorHelper.FromArgb(0x28, 0xE8, 0xB4, 0x5A));
+    private static readonly SolidColorBrush _priorityNormalSoftBrush = new(ColorHelper.FromArgb(0x28, 0x5A, 0xA3, 0xE8));
+    private static readonly SolidColorBrush _priorityLowSoftBrush = new(ColorHelper.FromArgb(0xFF, 0x2B, 0x2B, 0x31));
 
     /// <summary>우선순위 배지의 글자 색</summary>
     public static Brush PriorityBrush(TaskPriority priority) => priority switch

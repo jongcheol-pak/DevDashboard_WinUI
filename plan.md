@@ -241,7 +241,7 @@
 - **Halt Forecast**: 없음 — 신규 파일·의존성·파괴적 작업 없음, 기존 핸들러 재사용이라 계약 변경 0.
 
 ### T4 — 상태 dot·우선순위 배지 색 + dot 모양을 시안 값으로 정정 `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml.cs`(색), `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml`(칸반 dot 모양)
 - **Design**: 해당 없음 — 신규 심볼 0(기존 정적 브러시의 색 리터럴 교체 + 칸반 dot 요소 종류 교체 + 주석 갱신).
 - **구성**:
@@ -317,4 +317,6 @@
 ## Progress Log
 - T1~T2 완료: VM에 상태 그룹 데이터 추가(T1) → XAML 목록 뷰를 시안 구조(상태 그룹 → 카테고리 서브그룹 → 가로 행)로 교체하고 구 세로 카드 경로 14개 심볼 일괄 제거(T2). 빌드 OK, 리뷰 지적 해소 완료.
   - 결정(T2): 리뷰가 "목록 행에 클릭·우클릭 배선이 없는데 주석은 있다고 기술"(MAJOR)을 지적 — 배선은 plan상 T3 범위이므로 코드 대신 **주석을 현재 사실에 맞게 정정**했다(TaskPage.xaml 상단, Card_Tapped 문서주석).
+- T3~T4 완료: 목록 행에 클릭 편집·우클릭 메뉴·hover·드래그 상태 이동 배선(T3, 신규 심볼은 hover 핸들러 2개뿐 — 나머지는 칸반 핸들러 재사용) → 상태 dot·우선순위 배지 색 8종과 dot 모양(Ellipse→라운드 사각형 5곳)을 시안 값으로 정정(T4). 빌드 OK, 리뷰 지적 0.
+  - 결정(T3): 드롭 대상을 안쪽 목록이 아니라 **상태 그룹 루트**에 두고 `Background="Transparent"`를 줬다 — 그래야 항목이 없는 그룹에도 드롭할 수 있다(칸반 열과 같은 결론).
   - 반증(T2): quality 재리뷰가 `TaskEdit_Tooltip`·`TaskDelete_Tooltip` resw를 고아로 지적(MAJOR)했으나, `TestPage.xaml.cs:60-61` + `TestPage.xaml:31,44`가 실제 소비 중임을 근거로 반증 → 리뷰어가 오탐 인정·철회. T2가 제거한 것은 **동명의 `TaskPage` 프로퍼티**일 뿐이다(plan이 grep 범위를 TaskPage 3파일로 한정한 이유와 동일한 함정).

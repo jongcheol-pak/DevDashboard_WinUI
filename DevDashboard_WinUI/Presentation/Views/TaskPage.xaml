@@ -124,11 +124,12 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Ellipse
+                    <Border
                         Grid.Column="0"
                         Width="8" Height="8"
+                        CornerRadius="3"
                         VerticalAlignment="Center"
-                        Fill="{x:Bind CategoryName, Converter={StaticResource TagColor}}" />
+                        Background="{x:Bind CategoryName, Converter={StaticResource TagColor}}" />
                     <TextBlock
                         Grid.Column="1"
                         Text="{x:Bind CategoryName}"
@@ -514,7 +515,7 @@
                             DragOver="Column_DragOver" Drop="Column_Drop">
                         <StackPanel MinHeight="120">
                             <StackPanel Orientation="Horizontal" Spacing="8" Margin="2,2,2,12">
-                                <Ellipse Width="8" Height="8" VerticalAlignment="Center" Fill="{x:Bind local:TaskPage.StatusDotWaiting}" />
+                                <Border Width="9" Height="9" CornerRadius="3" VerticalAlignment="Center" Background="{x:Bind local:TaskPage.StatusDotWaiting}" />
                                 <TextBlock Text="{x:Bind local:TaskPage.LabelWaiting}" VerticalAlignment="Center" Style="{StaticResource BodyStrongTextBlockStyle}" />
                                 <TextBlock Text="{x:Bind Vm.WaitingCount, Mode=OneWay}" FontSize="12" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                             </StackPanel>
@@ -531,7 +532,7 @@
                             DragOver="Column_DragOver" Drop="Column_Drop">
                         <StackPanel MinHeight="120">
                             <StackPanel Orientation="Horizontal" Spacing="8" Margin="2,2,2,12">
-                                <Ellipse Width="8" Height="8" VerticalAlignment="Center" Fill="{x:Bind local:TaskPage.StatusDotActive}" />
+                                <Border Width="9" Height="9" CornerRadius="3" VerticalAlignment="Center" Background="{x:Bind local:TaskPage.StatusDotActive}" />
                                 <TextBlock Text="{x:Bind local:TaskPage.LabelActive}" VerticalAlignment="Center" Style="{StaticResource BodyStrongTextBlockStyle}" />
                                 <TextBlock Text="{x:Bind Vm.ActiveCount, Mode=OneWay}" FontSize="12" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                             </StackPanel>
@@ -548,7 +549,7 @@
                             DragOver="Column_DragOver" Drop="Column_Drop">
                         <StackPanel MinHeight="120">
                             <StackPanel Orientation="Horizontal" Spacing="8" Margin="2,2,2,12">
-                                <Ellipse Width="8" Height="8" VerticalAlignment="Center" Fill="{x:Bind local:TaskPage.StatusDotCompleted}" />
+                                <Border Width="9" Height="9" CornerRadius="3" VerticalAlignment="Center" Background="{x:Bind local:TaskPage.StatusDotCompleted}" />
                                 <TextBlock Text="{x:Bind local:TaskPage.LabelCompleted}" VerticalAlignment="Center" Style="{StaticResource BodyStrongTextBlockStyle}" />
                                 <TextBlock Text="{x:Bind Vm.CompletedCount, Mode=OneWay}" FontSize="12" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                             </StackPanel>
@@ -565,7 +566,7 @@
                             DragOver="Column_DragOver" Drop="Column_Drop">
                         <StackPanel MinHeight="120">
                             <StackPanel Orientation="Horizontal" Spacing="8" Margin="2,2,2,12">
-                                <Ellipse Width="8" Height="8" VerticalAlignment="Center" Fill="{x:Bind local:TaskPage.StatusDotHold}" />
+                                <Border Width="9" Height="9" CornerRadius="3" VerticalAlignment="Center" Background="{x:Bind local:TaskPage.StatusDotHold}" />
                                 <TextBlock Text="{x:Bind local:TaskPage.LabelHold}" VerticalAlignment="Center" Style="{StaticResource BodyStrongTextBlockStyle}" />
                                 <TextBlock Text="{x:Bind Vm.HoldCount, Mode=OneWay}" FontSize="12" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                             </StackPanel>
