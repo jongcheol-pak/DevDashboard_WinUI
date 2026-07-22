@@ -21,6 +21,9 @@
     <!-- ===== 개발 도구 변환기 ===== -->
     <converters:TagColorConverter x:Key="TagColor" />
 
+    <!-- ===== 색 변환기 ===== -->
+    <converters:HexToBrushConverter x:Key="HexToBrush" />
+
     <!-- ===== 이미지 변환기 ===== -->
     <converters:ImagePathToSourceConverter x:Key="ImagePathToSource" />
 

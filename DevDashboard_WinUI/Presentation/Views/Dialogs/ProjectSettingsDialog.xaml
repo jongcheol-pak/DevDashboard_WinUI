@@ -94,13 +94,18 @@
                         <DataTemplate x:DataType="vm:HeaderColorItem">
                             <!-- 선택은 코드비하인드 핸들러가 처리한다 — DataTemplate 안에서는
                                  ElementName 바인딩으로 부모 VM의 커맨드에 닿을 수 없다(별도 namescope) -->
-                            <Button Width="30" Height="30" Padding="0"
-                                    CornerRadius="9"
-                                    BorderThickness="2"
-                                    Background="{x:Bind SwatchBrush}"
-                                    BorderBrush="{x:Bind BorderBrush, Mode=OneWay}"
-                                    ToolTipService.ToolTip="{x:Bind Tooltip}"
-                                    Click="HeaderColorSwatch_Click" />
+                            <Grid Width="34" Height="34">
+                                <!-- 선택 표시 테두리 (시안 :1452 — 2px 밝은 테두리) -->
+                                <Border CornerRadius="11" BorderThickness="2"
+                                        BorderBrush="{ThemeResource TextFillColorPrimaryBrush}"
+                                        Visibility="{x:Bind IsSelected, Converter={StaticResource BoolToVisibility}, Mode=OneWay}" />
+                                <Button Width="26" Height="26" Padding="0"
+                                        CornerRadius="8"
+                                        BorderThickness="0"
+                                        Background="{x:Bind Hex, Converter={StaticResource HexToBrush}}"
+                                        ToolTipService.ToolTip="{x:Bind Tooltip}"
+                                        Click="HeaderColorSwatch_Click" />
+                            </Grid>
                         </DataTemplate>
                     </ItemsRepeater.ItemTemplate>
                 </ItemsRepeater>

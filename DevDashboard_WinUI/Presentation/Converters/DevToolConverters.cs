@@ -68,6 +68,41 @@ public class TagColorConverter : IValueConverter
     }
 }
 
+/// <summary>
+/// "#RRGGBB" 색 문자열을 브러시로 변환합니다 (프로젝트 카드 색상·설정 다이얼로그 색 견본 공용).
+/// 빈 문자열·잘못된 형식이면 회색으로 대체합니다 — 투명으로 두면 칸이 사라져 보이기 때문입니다.
+/// </summary>
+public class HexToBrushConverter : IValueConverter
+{
+    /// <summary>색을 알 수 없을 때 쓰는 회색 (Palette.xaml의 AppBorderStrongerColor와 같은 값)</summary>
+    private static readonly SolidColorBrush FallbackBrush =
+        new(Windows.UI.Color.FromArgb(0xFF, 0x35, 0x35, 0x3C));
+
+    public object Convert(object value, Type targetType, object parameter, string language)
+        => value is string hex && TryParseHex(hex, out var color)
+            ? new SolidColorBrush(color)
+            : FallbackBrush;
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+        => throw new NotImplementedException();
+
+    /// <summary>"#RRGGBB" 형식만 허용합니다 (그 외 형식은 실패로 처리해 회색으로 대체).</summary>
+    public static bool TryParseHex(string hex, out Windows.UI.Color color)
+    {
+        color = default;
+        if (hex.Length != 7 || hex[0] != '#')
+            return false;
+
+        if (!byte.TryParse(hex.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber, null, out var r) ||
+            !byte.TryParse(hex.AsSpan(3, 2), System.Globalization.NumberStyles.HexNumber, null, out var g) ||
+            !byte.TryParse(hex.AsSpan(5, 2), System.Globalization.NumberStyles.HexNumber, null, out var b))
+            return false;
+
+        color = Windows.UI.Color.FromArgb(0xFF, r, g, b);
+        return true;
+    }
+}
+
 /// <summary>개발 도구 이름(string)을 그대로 표시합니다.</summary>
 public class DevToolNameConverter : IValueConverter
 {
