@@ -144,10 +144,14 @@ public partial class ProjectCardViewModel : ObservableObject
 
     /// <summary>
     /// 빈 슬롯이 남아 있는지 여부 — 카드의 "＋" 버튼 표시 조건입니다.
-    /// 슬롯은 삭제 시 앞으로 당겨지므로(ClearCommandSlot) 마지막 슬롯이 차 있으면 꽉 찬 것입니다.
+    /// <see cref="AddCommandSlot"/>가 채울 자리를 찾는 기준과 같아야 하므로 컬렉션을 직접 본다
+    /// (슬롯이 앞으로 당겨져 있다는 가정에 기대면, 중간이 빈 옛 데이터에서 추가가 막힌다).
     /// </summary>
-    public bool CanAddCommandSlot => !IsCmd3Configured;
+    public bool CanAddCommandSlot => _item.CommandScripts.Any(s => s is null);
 
+    partial void OnIsCmd0ConfiguredChanged(bool value) => OnPropertyChanged(nameof(CanAddCommandSlot));
+    partial void OnIsCmd1ConfiguredChanged(bool value) => OnPropertyChanged(nameof(CanAddCommandSlot));
+    partial void OnIsCmd2ConfiguredChanged(bool value) => OnPropertyChanged(nameof(CanAddCommandSlot));
     partial void OnIsCmd3ConfiguredChanged(bool value) => OnPropertyChanged(nameof(CanAddCommandSlot));
 
     public string Id => _item.Id;
@@ -584,7 +588,9 @@ public partial class ProjectCardViewModel : ObservableObject
 
     // --- 커맨드 스크립트 슬롯 ---
 
-    /// <summary>커맨드 버튼 클릭 — 설정 없으면 설정 다이얼로그, 있으면 실행</summary>
+    /// <summary>커맨드 버튼 클릭 — 설정된 스크립트를 실행합니다.
+    /// 미설정 슬롯은 카드에 버튼이 표시되지 않으므로(설정된 슬롯만 노출) 아래 설정 다이얼로그 분기는
+    /// 데이터가 어긋났을 때를 위한 방어 코드입니다.</summary>
     [RelayCommand]
     private void ExecuteCommandSlot(string indexStr)
     {
