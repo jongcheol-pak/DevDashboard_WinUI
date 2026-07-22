@@ -187,9 +187,10 @@ PRD `:5`가 "요구 변경은 PRD → plan → 코드 순서로만"을 규약으
 - **Halt Forecast**: (ii-a) 사전 승인 — **DB 스키마 변경(컬럼 1개 추가)** + 도메인 공개 속성 1개 추가. 하위호환 가드 포함, 기존 데이터 파괴 없음.
 
 ### T2 — 프로젝트 설정 다이얼로그: 카드 색상 팔레트 `Type C`
-- [ ] 구현
-- **Files**: `Presentation/ViewModels/ProjectSettingsDialogViewModel.cs`, `Presentation/Views/Dialogs/ProjectSettingsDialog.xaml`, `Strings/{ko-KR,en-US}/Resources.resw`
-- **Design**: ① 배치 — 선택 상태·팔레트 목록은 VM, 마크업은 다이얼로그 XAML. ② 신규 심볼 — `ProjectSettingsDialogViewModel.HeaderColor`(선택된 색 hex) + `HeaderColorOptions`(선택 가능한 10색). ③ 의존 방향 — VM → Domain(`ToProjectItem`/역방향에 매핑 1줄씩). ④ 비추상화 — 색 선택 전용 UserControl을 만들지 않는다(소비처 1곳). 색 팔레트는 VM의 정적 배열 1개로 둔다.
+- [x] 구현
+- **Files**: `Presentation/ViewModels/ProjectSettingsDialogViewModel.cs`, `Presentation/ViewModels/HeaderColorItem.cs`(신규), `Presentation/Views/Dialogs/ProjectSettingsDialog.xaml(.cs)`, `Presentation/Converters/DevToolConverters.cs`, `Resources/Converters.xaml`, `Strings/{ko-KR,en-US}/Resources.resw`
+- **Design**: ① 배치 — 선택 상태·팔레트 목록은 VM, 마크업은 다이얼로그 XAML, 색 변환은 컨버터. ② 신규 심볼 — `ProjectSettingsDialogViewModel.HeaderColor`(선택된 색 hex) + `HeaderColorOptions`(선택 가능한 10색) + `HeaderColorItem`(견본 한 칸 — `TagBadgeItem` 패턴) + **`HexToBrushConverter`**. ③ 의존 방향 — VM → Domain(`ToProjectItem`/역방향에 매핑 1줄씩), XAML → 컨버터. ④ 비추상화 — 색 선택 전용 UserControl을 만들지 않는다(소비처 1곳).
+  - **⚠️ 실행 중 조정(2026-07-22)**: `HexToBrushConverter`는 원래 T3 몫이었으나, T2의 견본 칸이 hex를 브러시로 바꿔야 하는데 **VM에 `Brush`를 두는 것이 이 레포 컨벤션 위반**(`TaskPageViewModel.cs:312` 주석 + D4)이라 T2에서 선구현했다(quality 리뷰 MAJOR 반영). **T3는 이를 재사용만 하고 그래디언트 컨버터 1종만 추가**한다 — T3 리뷰가 중복 구현으로 오판하지 않도록 여기에 기록.
 - **구성**:
   - VM에 `[ObservableProperty] partial string HeaderColor`(기본 빈 문자열) + 정적 `HeaderColorOptions` = 시안 `:1450`의 10색(`#4A5BD0`, `#B0553A`, `#3A8A8A`, `#C04A68`, `#7A4AC0`, `#8A7A2E`, `#4A6EA0`, `#3A6A4A`, `#8B7CF7`, `#5DB463`).
   - `ToProjectItem`(:237 부근)에 `HeaderColor = HeaderColor`, 로드부(:304 부근)에 `HeaderColor = item.HeaderColor` 추가.
@@ -209,7 +210,7 @@ PRD `:5`가 "요구 변경은 PRD → plan → 코드 순서로만"을 규약으
 ### T3 — VM·컨버터: 카드 색/이니셜 표시 값 `Type C`
 - [ ] 구현
 - **Files**: `Presentation/ViewModels/ProjectCardViewModel.cs`, `Presentation/Converters/DevToolConverters.cs`, `Resources/Converters.xaml`
-- **Design**: ① 배치 — 파생 값은 `ProjectCardViewModel`, hex→Brush 변환은 기존 컨버터 파일에 2종 추가, 등록은 `Converters.xaml`. ② 신규 심볼 — `EffectiveHeaderColor`(실효 색 hex — 지정색 또는 이름 해시) / `Initial`(아바타 글자) / `HasIcon`(아이콘 유무) / `HexToHeaderGradientConverter`(→ 135° 2-stop `LinearGradientBrush`) / `HexToBrushConverter`(→ `SolidColorBrush`) / `TagColorConverter.ColorFromName`(기존 해시 로직의 public 노출). ③ 의존 방향 — VM은 `Microsoft.UI.Xaml` 타입을 참조하지 않는다(값은 `string`/`bool`). 컨버터만 Brush를 만든다. ④ 비추상화 — 색 팔레트 서비스·테마 토큰 클래스를 만들지 않는다.
+- **Design**: ① 배치 — 파생 값은 `ProjectCardViewModel`, hex→Brush 변환은 기존 컨버터 파일, 등록은 `Converters.xaml`. ② 신규 심볼 — `EffectiveHeaderColor`(실효 색 hex — 지정색 또는 이름 해시) / `Initial`(아바타 글자) / `HasIcon`(아이콘 유무) / `HexToHeaderGradientConverter`(→ 135° 2-stop `LinearGradientBrush`) / `TagColorConverter.ColorFromName`(기존 해시 로직의 public 노출). **`HexToBrushConverter`는 T2에서 선구현 완료 — 여기서는 재사용만 하고 다시 만들지 않는다**(위 T2 실행 중 조정 참조). ③ 의존 방향 — VM은 `Microsoft.UI.Xaml` 타입을 참조하지 않는다(값은 `string`/`bool`). 컨버터만 Brush를 만든다. ④ 비추상화 — 색 팔레트 서비스·테마 토큰 클래스를 만들지 않는다.
 - **구성**:
   - (D3) `TagColorConverter`의 FNV-1a+HSL을 `public static Color ColorFromName(string name)`으로 노출하고 기존 `Convert`도 그것을 호출하게 정리(동작 불변).
   - (D2·D4) `EffectiveHeaderColor` = `HeaderColor`가 `#RRGGBB`로 파싱되면 그대로, 아니면 `ColorFromName(Name)`을 hex 문자열로. `Name` 변경 시 갱신 알림.
@@ -221,7 +222,7 @@ PRD `:5`가 "요구 변경은 PRD → plan → 코드 순서로만"을 규약으
   2. `EffectiveHeaderColor`가 지정색 우선 → 없으면 이름 해시로 결정되며, 같은 이름은 항상 같은 색(결정론적).
   3. 신규 해시 구현이 **추가되지 않는다** — `TagColorConverter`의 기존 함수를 재사용한다(중복 해시 0).
   4. `ProjectCardViewModel.cs`에 **`Brush`/`SolidColorBrush`/`LinearGradientBrush` 타입이 0건**이다(브러시는 컨버터 몫). ※ 이 파일은 이미 `Microsoft.UI.Xaml.Media.Imaging`(`:7`, `BitmapImage IconSource`)을 쓰므로 "`Microsoft.UI.Xaml` 0건"은 성립하지 않는 기준이다(plan-reviewer M1).
-  5. 컨버터 2종이 `Converters.xaml`에 등록되고, 잘못된/빈 hex에 대해 예외 없이 폴백 브러시를 반환한다.
+  5. 그래디언트 컨버터가 `Converters.xaml`에 등록되고(단색 컨버터는 T2에서 이미 등록됨), 잘못된/빈 hex에 대해 예외 없이 폴백 브러시를 반환한다.
   6. 기존 `TagColorConverter`의 동작(도구 배지 색)은 변하지 않는다.
 - **Edge Cases**: `HeaderColor`가 `#RGB` 단축형·`RRGGBB`(# 없음)·`#AARRGGBB` → 파싱 규칙을 `#RRGGBB` 1종으로 한정하고 나머지는 자동 색 폴백 / 이름이 빈 문자열 → 해시 입력이 빈 문자열이어도 결정론적 색 반환, `Initial`은 `?` / 이름이 이모지·한글 → 첫 문자 그대로(대문자 변환 무영향) / 아이콘 로딩 실패 → `HasIcon` false → 이니셜 표시 / 이름 변경 시 자동 색이 바뀐다(지정색이 있으면 안 바뀜).
 - **Halt Forecast**: (i) 사전 해소 — 파싱 규칙·폴백·알파 값을 확정. 기존 `TagColorConverter` 리팩터링은 **동작 보존**이라 승인 대상 아님(호출부 계약 불변).
@@ -396,3 +397,13 @@ PRD `:5`가 "요구 변경은 PRD → plan → 코드 순서로만"을 규약으
   - 창 크기를 바꿀 때 열 수·카드 폭 변화, 핀 카드 드래그 재정렬
   - 그룹 탭 배지 숫자가 검색·추가·삭제에 따라 갱신되는지
   - **다른 PC/구버전 DB 가져오기** → 색 컬럼이 없어도 정상 동작
+
+## Phase Ledger
+- T1~T2 완료.
+
+## Progress Log
+
+- **T1~T2 완료**: 카드 색상 데이터 계층(도메인 필드 + DB 화이트리스트·마이그레이션·INSERT/UPDATE/읽기) → 설정 다이얼로그 색 팔레트(자동 + 시안 10색). 빌드 OK, spec·quality 리뷰 통과.
+  - **결정(T2)**: 견본 칸의 색 표현을 **VM의 `Brush` 프로퍼티 → 컨버터**로 바꿨다. 이 레포는 "VM에 Brush를 두지 않는다"를 명시 관례로 두며(`TaskPageViewModel.cs:312` 주석, plan D4) quality 리뷰가 이를 MAJOR로 지적했다. 그 결과 `HexToBrushConverter`를 **T3보다 먼저** 만들게 됐다(T3는 재사용만).
+  - **결정(T2)**: 선택 테두리 색을 하드코딩(`#E8E6E3`)하지 않고 `{ThemeResource TextFillColorPrimaryBrush}` + 기존 `BoolToVisibility`로 처리했다 — 팔레트 값이 바뀌어도 따라간다. XAML은 `Grid` 2겹(테두리 `Border` + 색 `Button`).
+  - **결정(T2)**: DataTemplate 안에서는 부모 VM 커맨드에 `ElementName` 바인딩이 닿지 않아(별도 namescope) 선택을 **코드비하인드 `Click` 핸들러**로 처리했다(XAML 주석에 근거 명시).
