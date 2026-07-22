@@ -82,7 +82,7 @@ msbuild DevDashboard_WinUI/DevDashboard.csproj -t:Build -p:Configuration=Release
 
 ### 1. 프로젝트 카드 등록
 
-1. 헤더 우측 **새 프로젝트** 버튼을 누릅니다.
+1. 카드 목록 맨 앞의 **새 프로젝트 추가** 카드를 누릅니다.
 2. 프로젝트 설정 다이얼로그에서 정보를 입력합니다.
    - **이름 / 설명 / 아이콘**: 카드에 표시될 정보
    - **경로**: 프로젝트 루트 디렉터리

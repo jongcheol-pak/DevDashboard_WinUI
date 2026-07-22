@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 body{margin:0;background:#131316;color:#e8e6e3;}
-a{color:#f0716a;text-decoration:none;}a:hover{color:#f5928c;}
+a{color:#8b7cf7;text-decoration:none;}a:hover{color:#a89dfa;}
 @keyframes dlgIn{from{opacity:0;transform:translateY(10px) scale(.98);}to{opacity:1;transform:none;}}
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 ::-webkit-scrollbar{width:10px;}::-webkit-scrollbar-thumb{background:#333338;border-radius:5px;border:2px solid #131316;}
@@ -21,7 +21,7 @@ a{color:#f0716a;text-decoration:none;}a:hover{color:#f5928c;}
 <div style="font-family:'Noto Sans KR',system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;background:#131316;overflow:hidden;" data-screen-label="대시보드">
   <header style="display:flex;align-items:center;gap:16px;padding:0 20px;height:64px;border-bottom:1px solid #232328;flex-shrink:0;">
     <div style="display:flex;align-items:center;gap:11px;">
-      <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#f0716a,#c94a5e);display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3px;padding:7px;box-sizing:border-box;">
+      <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#8b7cf7,#6250e3);display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3px;padding:7px;box-sizing:border-box;">
         <div style="background:#fff;border-radius:2px;opacity:.95;"></div><div style="background:#fff;border-radius:2px;opacity:.55;"></div><div style="background:#fff;border-radius:2px;opacity:.55;"></div><div style="background:#fff;border-radius:2px;opacity:.95;"></div>
       </div>
       <div style="font-size:16px;font-weight:700;letter-spacing:-.01em;">프로젝트 대시보드</div>
@@ -49,9 +49,6 @@ a{color:#f0716a;text-decoration:none;}a:hover{color:#f5928c;}
       <button onClick="{{ openSettings }}" title="앱 설정" style="width:36px;height:36px;border-radius:9px;background:transparent;border:1px solid transparent;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;" style-hover="background:#222226;border-color:#2b2b31;color:#e8e6e3;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"></path></svg>
       </button>
-      <button onClick="{{ openProject }}" style="display:flex;align-items:center;gap:7px;height:38px;padding:0 18px;border-radius:10px;background:#f0716a;border:none;color:#1d1113;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;" style-hover="background:#f5857e;">
-        <span style="font-size:16px;line-height:1;">＋</span> 새 프로젝트
-      </button>
     </div>
   </header>
   <div style="flex:1;display:flex;min-height:0;">
@@ -60,7 +57,7 @@ a{color:#f0716a;text-decoration:none;}a:hover{color:#f5928c;}
         <sc-for list="{{ launcher }}" as="app" hint-placeholder-count="8">
           <button title="{{ app.name }}" style="width:44px;height:44px;border-radius:12px;border:1px solid #2b2b31;background:#1d1d21;cursor:pointer;display:grid;place-items:center;font-family:inherit;font-size:16px;font-weight:700;color:{{ app.color }};transition:transform .12s;" style-hover="transform:scale(1.08);border-color:#3a3a41;">{{ app.label }}</button>
         </sc-for>
-        <button title="앱 추가" style="width:44px;height:44px;border-radius:12px;border:1px dashed #3a3a41;background:transparent;color:#8a8890;font-size:18px;cursor:pointer;" style-hover="color:#f0716a;border-color:#f0716a;">＋</button>
+        <button title="앱 추가" style="width:44px;height:44px;border-radius:12px;border:1px dashed #3a3a41;background:transparent;color:#8a8890;font-size:18px;cursor:pointer;" style-hover="color:#8b7cf7;border-color:#8b7cf7;">＋</button>
       </aside>
     </sc-if>
     <main style="flex:1;display:flex;flex-direction:column;min-width:0;">
@@ -73,7 +70,7 @@ a{color:#f0716a;text-decoration:none;}a:hover{color:#f5928c;}
             </button>
             <div style="font-size:17px;font-weight:700;">작업</div>
             <sc-if value="{{ taskScoped }}" hint-placeholder-val="{{ false }}">
-              <button onClick="{{ clearTaskScope }}" title="전체 보기" style="display:flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:7px;border:1px solid #f0716a;background:rgba(240,113,106,.12);color:#f0716a;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;" style-hover="background:rgba(240,113,106,.2);">
+              <button onClick="{{ clearTaskScope }}" title="전체 보기" style="display:flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:7px;border:1px solid #8b7cf7;background:rgba(139,124,247,.12);color:#8b7cf7;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;" style-hover="background:rgba(139,124,247,.2);">
                 {{ taskScope }}
                 <span style="font-size:13px;line-height:1;">✕</span>
               </button>
@@ -200,7 +197,7 @@ a{color:#f0716a;text-decoration:none;}a:hover{color:#f5928c;}
             <select value="{{ testCatFilter }}" onChange="{{ onTestCatFilter }}" title="카테고리 필터" style="height:36px;background:#1d1d21;border:1px solid #2b2b31;border-radius:9px;padding:0 12px;color:#e8e6e3;font-size:12.5px;font-family:inherit;outline:none;cursor:pointer;flex-shrink:0;">
               <sc-for list="{{ testCatFilterOptions }}" as="cf" hint-placeholder-count="3"><option value="{{ cf }}">{{ cf }}</option></sc-for>
             </select>
-            <button onClick="{{ openNewTest }}" style="display:flex;align-items:center;gap:7px;height:36px;padding:0 16px;border-radius:9px;border:none;background:#f0716a;color:#1d1113;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;" style-hover="background:#f5857e;">＋ 테스트 등록</button>
+            <button onClick="{{ openNewTest }}" style="display:flex;align-items:center;gap:7px;height:36px;padding:0 16px;border-radius:9px;border:none;background:#8b7cf7;color:#14102a;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;" style-hover="background:#f5857e;">＋ 테스트 등록</button>
           </div>
           <sc-if value="{{ testNewOpen }}" hint-placeholder-val="{{ false }}">
             <div onClick="{{ closeNewTest }}" style="position:fixed;inset:0;background:rgba(8,8,10,.62);backdrop-filter:blur(3px);display:grid;place-items:center;z-index:50;animation:fadeIn .15s;" data-screen-label="테스트 등록 다이얼로그">
@@ -346,62 +343,55 @@ a{color:#f0716a;text-decoration:none;}a:hover{color:#f5928c;}
       </div>
       <div style="flex:1;overflow-y:auto;padding:18px 24px 24px;">
         <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ true }}">
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,360px));justify-content:start;gap:14px;">
+            <button onClick="{{ openProject }}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:150px;background:#1a1a1f;border:1px solid #2a2a31;border-radius:14px;color:#8a8890;cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s;" style-hover="border-color:#8b7cf7;color:#a89dfa;">
+              <span style="font-size:26px;line-height:1;font-weight:300;">＋</span>
+              <span style="font-size:13px;">새 프로젝트 추가</span>
+            </button>
             <sc-for list="{{ cards }}" as="c" hint-placeholder-count="9">
-              <article style="background:#1c1c20;border:1px solid #26262c;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;transition:border-color .15s, transform .15s;" style-hover="border-color:#3d3d45;transform:translateY(-2px);">
-                <div style="display:flex;align-items:flex-start;gap:11px;">
+              <article style="background:#1a1a1f;border:1px solid #2a2a31;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .15s, transform .15s;" style-hover="border-color:#3d3d45;transform:translateY(-2px);">
+                <div style="display:flex;align-items:center;gap:11px;height:62px;padding:0 16px;background:{{ c.headerBg }};flex-shrink:0;">
                   <div style="width:38px;height:38px;border-radius:10px;background:{{ c.iconBg }};display:grid;place-items:center;font-weight:700;font-size:16px;color:#fff;flex-shrink:0;">{{ c.initial }}</div>
                   <div style="flex:1;min-width:0;font-size:14.5px;font-weight:700;letter-spacing:-.01em;align-self:center;">{{ c.name }}</div>
                   <div style="display:flex;gap:4px;">
-                    <button title="핀 고정" style="width:28px;height:28px;border-radius:7px;border:none;background:transparent;color:#6f6d75;cursor:pointer;display:grid;place-items:center;" style-hover="background:#26262c;color:#e8e6e3;">
+                    <button title="핀 고정" style="width:28px;height:28px;border-radius:7px;border:none;background:transparent;color:rgba(255,255,255,.72);cursor:pointer;display:grid;place-items:center;" style-hover="background:rgba(0,0,0,.3);color:#fff;">
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 17v5M7 4h10l-1.5 6 3 3H5.5l3-3z"></path></svg>
                     </button>
-                    <button title="삭제" style="width:28px;height:28px;border-radius:7px;border:none;background:transparent;color:#6f6d75;cursor:pointer;display:grid;place-items:center;" style-hover="background:rgba(240,113,106,.12);color:#f0716a;">
+                    <button title="삭제" style="width:28px;height:28px;border-radius:7px;border:none;background:transparent;color:rgba(255,255,255,.72);cursor:pointer;display:grid;place-items:center;" style-hover="background:rgba(0,0,0,.3);color:#ff9d97;">
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13"></path></svg>
                     </button>
                   </div>
                 </div>
+                <div style="padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px;">
                 <div style="font-size:12px;color:#98959d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.desc }}</div>
                 <div style="display:flex;flex-wrap:wrap;gap:6px;">
                   <sc-for list="{{ c.tags }}" as="t" hint-placeholder-count="3">
                     <span style="font-size:11px;color:#b3b0b8;background:#26262c;border-radius:6px;padding:3px 8px;">{{ t }}</span>
                   </sc-for>
                 </div>
-                <div style="display:flex;gap:8px;">
+                <div style="display:flex;align-items:center;gap:6px;">
                   <button style="{{ c.ideStyle }}" style-hover="filter:brightness(1.15);">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path d="M7 4l13 8-13 8z"></path></svg>
                     {{ c.ide }}
                   </button>
-                  <button title="실행" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="color:#e8e6e3;border-color:#3a3a41;">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 4l13 8-13 8z"></path></svg>
+                  <button onClick="{{ openTodo }}" title="작업" style="width:34px;height:34px;border-radius:9px;border:none;background:transparent;color:#8a8890;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="background:#26262c;color:#e8e6e3;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4.5V3h6v1.5"></path><path d="M9 11l2 2 4-4"></path></svg>
                   </button>
-                  <button title="폴더 열기" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="color:#e8e6e3;border-color:#3a3a41;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"></path></svg>
+                  <button onClick="{{ c.openTests }}" title="테스트" style="width:34px;height:34px;border-radius:9px;border:none;background:transparent;color:#8a8890;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="background:#26262c;color:#e8e6e3;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="13.5" rx="4.5" ry="6"></ellipse><path d="M12 7.5V4M9 4.5L8 3M15 4.5L16 3M7.5 11H4M7.5 16H4.5M16.5 11H20M16.5 16h3"></path></svg>
                   </button>
-                  <button onClick="{{ openProject }}" title="프로젝트 설정" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="color:#e8e6e3;border-color:#3a3a41;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"></path></svg>
+                  <div style="width:1px;height:18px;background:#2b2b31;flex-shrink:0;"></div>
+                  <button onClick="{{ c.onMore }}" title="더 보기" style="width:34px;height:34px;border-radius:9px;border:none;background:transparent;color:#8a8890;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="background:#26262c;color:#e8e6e3;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg>
                   </button>
-                  <button title="터미널" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;font-size:11px;font-weight:700;font-family:ui-monospace,monospace;" style-hover="color:#e8e6e3;border-color:#3a3a41;">&gt;_</button>
                 </div>
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <button title="스크립트 슬롯 1" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;font-size:11px;font-weight:700;font-family:ui-monospace,monospace;" style-hover="color:#e8e6e3;border-color:#3a3a41;">&gt;_</button>
-                  <button title="스크립트 슬롯 2" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="color:#e8e6e3;border-color:#3a3a41;">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 4l13 8-13 8z"></path></svg>
+                <div style="display:flex;align-items:center;gap:6px;padding-top:10px;border-top:1px solid #26262c;">
+                  <button title="스크립트 슬롯 1" style="width:28px;height:28px;border-radius:8px;border:1px solid #2b2b31;background:#202025;color:#a8a6ad;font-size:10px;font-weight:700;font-family:ui-monospace,monospace;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="color:#e8e6e3;border-color:#3a3a41;">&gt;_</button>
+                  <button title="스크립트 슬롯 2" style="width:28px;height:28px;border-radius:8px;border:1px solid #2b2b31;background:#202025;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="color:#e8e6e3;border-color:#3a3a41;">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"></path></svg>
                   </button>
-                  <button title="스크립트 추가" style="width:34px;height:34px;border-radius:9px;border:1px dashed #35353c;background:transparent;color:#8a8890;cursor:pointer;display:grid;place-items:center;flex-shrink:0;font-size:15px;" style-hover="color:#f0716a;border-color:#f0716a;">＋</button>
-                  <div style="flex:1;"></div>
-                  <button title="GitHub" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;font-size:10.5px;font-weight:700;font-family:ui-monospace,monospace;" style-hover="color:#e8e6e3;border-color:#3a3a41;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 20.5v-3M8 20l0-2M16 20l0-2"></path></svg>
-                  </button>
-                  <button onClick="{{ openTodo }}" title="작업" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="color:#f0716a;border-color:#f0716a;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4.5V3h6v1.5"></path><path d="M9 11l2 2 4-4"></path></svg>
-                  </button>
-                  <button onClick="{{ c.openHistory }}" title="작업 기록" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="color:#e8e6e3;border-color:#3a3a41;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg>
-                  </button>
-                  <button onClick="{{ c.openTests }}" title="테스트" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="color:#e8e6e3;border-color:#3a3a41;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="13.5" rx="4.5" ry="6"></ellipse><path d="M12 7.5V4M9 4.5L8 3M15 4.5L16 3M7.5 11H4M7.5 16H4.5M16.5 11H20M16.5 16h3"></path></svg>
-                  </button>
+                  <button title="스크립트 추가" style="width:28px;height:28px;border-radius:8px;border:1px dashed #35353c;background:transparent;color:#8a8890;font-size:13px;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="color:#8b7cf7;border-color:#8b7cf7;">＋</button>
+                </div>
                 </div>
               </article>
             </sc-for>
@@ -457,6 +447,77 @@ a{color:#f0716a;text-decoration:none;}a:hover{color:#f5928c;}
     </div>
   </sc-if>
 
+  <sc-if value="{{ cardMenuOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeCardMenu }}" onContextMenu="{{ closeCardMenu }}" style="position:fixed;inset:0;z-index:60;">
+      <div style="{{ cardMenuStyle }}">
+        <button onClick="{{ closeCardMenu }}" style="display:flex;align-items:center;gap:9px;width:100%;height:34px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#e8e6e3;font-size:12.5px;cursor:pointer;font-family:inherit;text-align:left;box-sizing:border-box;" style-hover="background:#2b2b31;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 4l13 8-13 8z"></path></svg>
+          실행
+        </button>
+        <button onClick="{{ closeCardMenu }}" style="display:flex;align-items:center;gap:9px;width:100%;height:34px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#e8e6e3;font-size:12.5px;cursor:pointer;font-family:inherit;text-align:left;box-sizing:border-box;" style-hover="background:#2b2b31;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"></path></svg>
+          폴더 열기
+        </button>
+        <button onClick="{{ closeCardMenu }}" style="display:flex;align-items:center;gap:9px;width:100%;height:34px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#e8e6e3;font-size:12.5px;cursor:pointer;font-family:inherit;text-align:left;box-sizing:border-box;" style-hover="background:#2b2b31;">
+          <span style="font-size:10px;font-weight:700;font-family:ui-monospace,monospace;">&gt;_</span>
+          터미널
+        </button>
+        <div style="height:1px;background:#2b2b31;margin:4px 8px;"></div>
+        <button onClick="{{ closeCardMenu }}" style="display:flex;align-items:center;gap:9px;width:100%;height:34px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#e8e6e3;font-size:12.5px;cursor:pointer;font-family:inherit;text-align:left;box-sizing:border-box;" style-hover="background:#2b2b31;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 20.5v-3M8 20l0-2M16 20l0-2"></path></svg>
+          GitHub
+        </button>
+        <button onClick="{{ cardMenuMemo }}" style="display:flex;align-items:center;gap:9px;width:100%;height:34px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#e8e6e3;font-size:12.5px;cursor:pointer;font-family:inherit;text-align:left;box-sizing:border-box;" style-hover="background:#2b2b31;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"></path></svg>
+          {{ cardMemoLabel }}
+        </button>
+        <button onClick="{{ cardMenuHistory }}" style="display:flex;align-items:center;gap:9px;width:100%;height:34px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#e8e6e3;font-size:12.5px;cursor:pointer;font-family:inherit;text-align:left;box-sizing:border-box;" style-hover="background:#2b2b31;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg>
+          작업 기록
+        </button>
+        <button onClick="{{ cardMenuSettings }}" style="display:flex;align-items:center;gap:9px;width:100%;height:34px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#e8e6e3;font-size:12.5px;cursor:pointer;font-family:inherit;text-align:left;box-sizing:border-box;" style-hover="background:#2b2b31;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"></path></svg>
+          프로젝트 설정
+        </button>
+        <div style="height:1px;background:#2b2b31;margin:4px 8px;"></div>
+        <button onClick="{{ cardMenuDelete }}" style="display:flex;align-items:center;gap:9px;width:100%;height:34px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#f0716a;font-size:12.5px;cursor:pointer;font-family:inherit;text-align:left;box-sizing:border-box;" style-hover="background:rgba(240,113,106,.12);">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13"></path></svg>
+          삭제
+        </button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ projDelOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeProjDel }}" style="position:fixed;inset:0;background:rgba(8,8,10,.62);backdrop-filter:blur(3px);display:grid;place-items:center;z-index:70;animation:fadeIn .15s;" data-screen-label="프로젝트 삭제 확인">
+      <div onClick="{{ stopClick }}" style="width:min(440px,92vw);background:#1c1c20;border:1px solid #2e2e34;border-radius:16px;padding:26px;animation:dlgIn .18s ease-out;box-sizing:border-box;display:flex;flex-direction:column;gap:16px;">
+        <div style="font-size:17px;font-weight:700;">프로젝트 삭제</div>
+        <div style="font-size:13.5px;color:#b3b0b8;line-height:1.6;">"{{ projDelName }}" 프로젝트를 삭제할까요? 대시보드 카드만 제거되며 실제 폴더는 삭제되지 않습니다.</div>
+        <div style="display:flex;gap:10px;">
+          <button onClick="{{ confirmProjDel }}" style="flex:1;height:42px;border-radius:10px;border:none;background:#f0716a;color:#1d1113;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;" style-hover="filter:brightness(1.1);">삭제</button>
+          <button onClick="{{ closeProjDel }}" style="flex:1;height:42px;border-radius:10px;border:1px solid #2e2e34;background:#242429;color:#e8e6e3;font-size:14px;cursor:pointer;font-family:inherit;" style-hover="background:#2b2b31;">취소</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ cardMemoOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeCardMemo }}" style="position:fixed;inset:0;background:rgba(8,8,10,.62);backdrop-filter:blur(3px);display:grid;place-items:center;z-index:70;animation:fadeIn .15s;" data-screen-label="프로젝트 메모 다이얼로그">
+      <div onClick="{{ stopClick }}" style="width:min(480px,92vw);background:#1c1c20;border:1px solid #2e2e34;border-radius:16px;padding:26px;animation:dlgIn .18s ease-out;box-sizing:border-box;display:flex;flex-direction:column;gap:16px;">
+        <div style="font-size:17px;font-weight:700;">{{ cardMemoTitle }}</div>
+        <textarea onInput="{{ onCardMemoInput }}" value="{{ cardMemoText }}" rows="6" placeholder="프로젝트 메모를 입력하세요…" style="background:#242429;border:1px solid #2e2e34;border-radius:10px;padding:12px;color:#e8e6e3;font-size:13.5px;font-family:inherit;outline:none;resize:vertical;"></textarea>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <sc-if value="{{ cardMemoHas }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ deleteCardMemo }}" style="height:42px;padding:0 18px;border-radius:10px;border:1px solid rgba(240,113,106,.4);background:rgba(240,113,106,.1);color:#f0716a;font-size:14px;cursor:pointer;font-family:inherit;" style-hover="background:rgba(240,113,106,.18);">메모 삭제</button>
+          </sc-if>
+          <div style="flex:1;"></div>
+          <button onClick="{{ closeCardMemo }}" style="height:42px;padding:0 24px;border-radius:10px;border:1px solid #2e2e34;background:#242429;color:#e8e6e3;font-size:14px;cursor:pointer;font-family:inherit;" style-hover="background:#2b2b31;">취소</button>
+          <button onClick="{{ saveCardMemo }}" style="height:42px;padding:0 24px;border-radius:10px;border:none;background:#8b7cf7;color:#14102a;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;" style-hover="filter:brightness(1.1);">저장</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ taskMenuOpen }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeTaskMenu }}" onContextMenu="{{ closeTaskMenu }}" style="position:fixed;inset:0;z-index:60;">
       <div style="{{ taskMenuStyle }}">
@@ -503,7 +564,7 @@ a{color:#f0716a;text-decoration:none;}a:hover{color:#f5928c;}
           </sc-if>
           <div style="flex:1;"></div>
           <button onClick="{{ closeTestMemo }}" style="height:42px;padding:0 24px;border-radius:10px;border:1px solid #2e2e34;background:#242429;color:#e8e6e3;font-size:14px;cursor:pointer;font-family:inherit;" style-hover="background:#2b2b31;">취소</button>
-          <button onClick="{{ saveTestMemo }}" style="height:42px;padding:0 24px;border-radius:10px;border:none;background:#f0716a;color:#1d1113;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;" style-hover="background:#f5857e;">저장</button>
+          <button onClick="{{ saveTestMemo }}" style="height:42px;padding:0 24px;border-radius:10px;border:none;background:#8b7cf7;color:#14102a;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;" style-hover="background:#f5857e;">저장</button>
         </div>
       </div>
     </div>
@@ -610,6 +671,17 @@ a{color:#f0716a;text-decoration:none;}a:hover{color:#f5928c;}
           <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">설명
             <textarea placeholder="프로젝트 설명 (선택)" rows="3" style="background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:10px 12px;color:#e8e6e3;font-size:13.5px;font-family:inherit;outline:none;resize:vertical;"></textarea>
           </label>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:#b3b0b8;">카드 헤더 색상
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <sc-for list="{{ projColors }}" as="pc" hint-placeholder-count="8">
+                <button onClick="{{ pc.onPick }}" title="{{ pc.hex }}" style="{{ pc.style }}"></button>
+              </sc-for>
+            </div>
+            <div style="{{ projColorPreview }}">
+              <div style="{{ projColorIcon }}">N</div>
+              <div style="font-size:13px;font-weight:700;color:#fff;">헤더 미리보기</div>
+            </div>
+          </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
             <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">그룹 *
               <select style="height:38px;background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:0 10px;color:#e8e6e3;font-size:13.5px;font-family:inherit;outline:none;"><option>업무</option><option>개인</option><option>실험</option></select>
@@ -630,9 +702,33 @@ a{color:#f0716a;text-decoration:none;}a:hover{color:#f5928c;}
           <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">옵션
             <input placeholder="추가 옵션 (선택)" style="height:38px;background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:0 12px;color:#e8e6e3;font-size:13.5px;font-family:inherit;outline:none;">
           </label>
+          <button onClick="{{ toggleProjAdmin }}" style="display:flex;align-items:center;gap:10px;background:none;border:none;padding:0;cursor:pointer;font-family:inherit;font-size:13px;color:#e8e6e3;text-align:left;">
+            <span style="{{ projAdminBoxStyle }}">{{ projAdminCheck }}</span>
+            관리자 권한으로 실행
+          </button>
+          <div style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">아이콘 이미지
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="width:40px;height:40px;border-radius:9px;background:#242429;border:1px solid #2e2e34;display:grid;place-items:center;color:#6f6d75;flex-shrink:0;">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"></rect><circle cx="9" cy="9" r="2"></circle><path d="M21 16l-5-5-9 9"></path></svg>
+              </div>
+              <input placeholder="아이콘 이미지 경로 (선택)" style="flex:1;min-width:0;height:38px;background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:0 12px;color:#e8e6e3;font-size:13px;font-family:inherit;outline:none;">
+              <button style="height:40px;padding:0 14px;border-radius:8px;border:1px solid #2e2e34;background:#242429;color:#e8e6e3;font-size:12.5px;cursor:pointer;font-family:inherit;flex-shrink:0;" style-hover="background:#2b2b31;">찾아보기</button>
+              <button title="아이콘 제거" style="width:40px;height:40px;border-radius:8px;border:1px solid #2e2e34;background:#242429;color:#f0716a;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="background:rgba(240,113,106,.12);border-color:rgba(240,113,106,.4);">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13"></path></svg>
+              </button>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:#b3b0b8;">기술 스택 태그
+            <div style="display:flex;flex-wrap:wrap;gap:7px;">
+              <sc-for list="{{ projStackTags }}" as="pt" hint-placeholder-count="12">
+                <button onClick="{{ pt.onToggle }}" style="{{ pt.style }}">{{ pt.name }}</button>
+              </sc-for>
+            </div>
+            <input placeholder="추가 태그 예) java,python,…" style="height:38px;background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:0 12px;color:#e8e6e3;font-size:13px;font-family:inherit;outline:none;">
+          </div>
         </div>
         <div style="display:flex;gap:10px;margin-top:26px;">
-          <button onClick="{{ closeDialog }}" style="flex:1;height:42px;border-radius:10px;border:none;background:#f0716a;color:#1d1113;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;" style-hover="background:#f5857e;">저장</button>
+          <button onClick="{{ closeDialog }}" style="flex:1;height:42px;border-radius:10px;border:none;background:#8b7cf7;color:#14102a;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;" style-hover="background:#f5857e;">저장</button>
           <button onClick="{{ closeDialog }}" style="flex:1;height:42px;border-radius:10px;border:1px solid #2e2e34;background:#242429;color:#e8e6e3;font-size:14px;cursor:pointer;font-family:inherit;" style-hover="background:#2b2b31;">취소</button>
         </div>
       </div>
@@ -653,7 +749,7 @@ a{color:#f0716a;text-decoration:none;}a:hover{color:#f5928c;}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a8890" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21"></line></svg>
             <input onInput="{{ onHistorySearch }}" placeholder="기록 검색…" style="flex:1;background:transparent;border:none;outline:none;color:#e8e6e3;font-size:13px;font-family:inherit;">
           </div>
-          <button onClick="{{ openNewHistory }}" style="display:flex;align-items:center;gap:6px;height:38px;padding:0 15px;border-radius:9px;border:none;background:#f0716a;color:#1d1113;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;" style-hover="background:#f5857e;">＋ 새 기록</button>
+          <button onClick="{{ openNewHistory }}" style="display:flex;align-items:center;gap:6px;height:38px;padding:0 15px;border-radius:9px;border:none;background:#8b7cf7;color:#14102a;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;" style-hover="background:#f5857e;">＋ 새 기록</button>
           <button title="내보내기" style="width:38px;height:38px;border-radius:9px;border:1px solid #2e2e34;background:#242429;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;" style-hover="color:#e8e6e3;background:#2b2b31;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"></path></svg>
           </button>
@@ -840,7 +936,7 @@ a{color:#f0716a;text-decoration:none;}a:hover{color:#f5928c;}
                 </div>
                 <div style="display:flex;flex-wrap:wrap;gap:8px;">
                   <sc-for list="{{ stackTags }}" as="st" hint-placeholder-count="8">
-                    <span style="{{ st.style }}">{{ st.name }}<sc-if value="{{ st.custom }}" hint-placeholder-val="{{ false }}"><button onClick="{{ st.onRemove }}" style="background:none;border:none;color:#8a8890;cursor:pointer;font-size:11px;padding:0;margin-left:2px;" style-hover="color:#f0716a;">✕</button></sc-if></span>
+                    <span style="{{ st.style }}">{{ st.name }}<sc-if value="{{ st.custom }}" hint-placeholder-val="{{ false }}"><button onClick="{{ st.onRemove }}" style="background:none;border:none;color:#8a8890;cursor:pointer;font-size:11px;padding:0;margin-left:2px;" style-hover="color:#8b7cf7;">✕</button></sc-if></span>
                   </sc-for>
                 </div>
               </div>
@@ -853,7 +949,7 @@ a{color:#f0716a;text-decoration:none;}a:hover{color:#f5928c;}
                 </div>
                 <div style="display:flex;flex-wrap:wrap;gap:8px;">
                   <sc-for list="{{ taskCatTags }}" as="tc" hint-placeholder-count="3">
-                    <span style="{{ tc.style }}"><span style="{{ tc.dotStyle }}"></span>{{ tc.name }}<sc-if value="{{ tc.custom }}" hint-placeholder-val="{{ false }}"><button onClick="{{ tc.onRemove }}" style="background:none;border:none;color:#8a8890;cursor:pointer;font-size:11px;padding:0;margin-left:2px;" style-hover="color:#f0716a;">✕</button></sc-if></span>
+                    <span style="{{ tc.style }}"><span style="{{ tc.dotStyle }}"></span>{{ tc.name }}<sc-if value="{{ tc.custom }}" hint-placeholder-val="{{ false }}"><button onClick="{{ tc.onRemove }}" style="background:none;border:none;color:#8a8890;cursor:pointer;font-size:11px;padding:0;margin-left:2px;" style-hover="color:#8b7cf7;">✕</button></sc-if></span>
                   </sc-for>
                 </div>
               </div>
@@ -866,7 +962,7 @@ a{color:#f0716a;text-decoration:none;}a:hover{color:#f5928c;}
                 </div>
                 <div style="display:flex;flex-wrap:wrap;gap:8px;">
                   <sc-for list="{{ histKindTags }}" as="hk" hint-placeholder-count="4">
-                    <span style="{{ hk.style }}">{{ hk.name }}<sc-if value="{{ hk.custom }}" hint-placeholder-val="{{ false }}"><button onClick="{{ hk.onRemove }}" style="background:none;border:none;color:#8a8890;cursor:pointer;font-size:11px;padding:0;margin-left:2px;" style-hover="color:#f0716a;">✕</button></sc-if></span>
+                    <span style="{{ hk.style }}">{{ hk.name }}<sc-if value="{{ hk.custom }}" hint-placeholder-val="{{ false }}"><button onClick="{{ hk.onRemove }}" style="background:none;border:none;color:#8a8890;cursor:pointer;font-size:11px;padding:0;margin-left:2px;" style-hover="color:#8b7cf7;">✕</button></sc-if></span>
                   </sc-for>
                 </div>
               </div>
@@ -879,14 +975,14 @@ a{color:#f0716a;text-decoration:none;}a:hover{color:#f5928c;}
                 </div>
                 <div style="display:flex;flex-wrap:wrap;gap:8px;">
                   <sc-for list="{{ catTags }}" as="ct" hint-placeholder-count="5">
-                    <span style="{{ ct.style }}">{{ ct.name }}<sc-if value="{{ ct.custom }}" hint-placeholder-val="{{ false }}"><button onClick="{{ ct.onRemove }}" style="background:none;border:none;color:#8a8890;cursor:pointer;font-size:11px;padding:0;margin-left:2px;" style-hover="color:#f0716a;">✕</button></sc-if></span>
+                    <span style="{{ ct.style }}">{{ ct.name }}<sc-if value="{{ ct.custom }}" hint-placeholder-val="{{ false }}"><button onClick="{{ ct.onRemove }}" style="background:none;border:none;color:#8a8890;cursor:pointer;font-size:11px;padding:0;margin-left:2px;" style-hover="color:#8b7cf7;">✕</button></sc-if></span>
                   </sc-for>
                 </div>
               </div>
             </sc-if>
             <sc-if value="{{ setTabInfo }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:40px 0;color:#8a8890;font-size:13px;">
-                <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#f0716a,#c94a5e);display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:4px;padding:12px;box-sizing:border-box;">
+                <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#8b7cf7,#6250e3);display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:4px;padding:12px;box-sizing:border-box;">
                   <div style="background:#fff;border-radius:2px;opacity:.95;"></div><div style="background:#fff;border-radius:2px;opacity:.55;"></div><div style="background:#fff;border-radius:2px;opacity:.55;"></div><div style="background:#fff;border-radius:2px;opacity:.95;"></div>
                 </div>
                 <div style="font-size:15px;font-weight:700;color:#e8e6e3;">프로젝트 대시보드</div>
@@ -1058,8 +1154,8 @@ class Component extends DCLogic {
       const active = n === s.testFilter;
       return {
         name: n, count: countOf(n), onClick: () => this.setState({ testFilter: n }),
-        style: `display:flex;align-items:center;gap:6px;height:34px;padding:0 14px;background:none;border:none;border-bottom:2px solid ${active ? '#f0716a' : 'transparent'};color:${active ? '#e8e6e3' : '#8a8890'};font-size:13.5px;font-weight:${active ? 700 : 500};cursor:pointer;font-family:inherit;`,
-        countStyle: `font-size:11px;padding:1px 7px;border-radius:8px;background:${active ? 'rgba(240,113,106,.16)' : '#26262c'};color:${active ? '#f0716a' : '#8a8890'};`,
+        style: `display:flex;align-items:center;gap:6px;height:34px;padding:0 14px;background:none;border:none;border-bottom:2px solid ${active ? '#8b7cf7' : 'transparent'};color:${active ? '#e8e6e3' : '#8a8890'};font-size:13.5px;font-weight:${active ? 700 : 500};cursor:pointer;font-family:inherit;`,
+        countStyle: `font-size:11px;padding:1px 7px;border-radius:8px;background:${active ? 'rgba(139,124,247,.16)' : '#26262c'};color:${active ? '#8b7cf7' : '#8a8890'};`,
       };
     });
     const testSuites = suites.map(su => {
@@ -1142,7 +1238,7 @@ class Component extends DCLogic {
       onNewTestSuite: e => this.setState({ newTestSuite: e.target.value }),
       openNewTest: () => this.setState({ testNewOpen: true, editTest: null, newTestName: '', newTestSuite: 'UI·UX', newTestMethod: '' }),
       closeNewTest: () => this.setState({ testNewOpen: false, editTest: null }),
-      saveTestStyle: `flex:1;height:42px;border-radius:10px;border:none;background:${s.newTestName.trim() ? '#f0716a' : '#3a3a41'};color:${s.newTestName.trim() ? '#1d1113' : '#8a8890'};font-size:13px;font-weight:700;cursor:${s.newTestName.trim() ? 'pointer' : 'not-allowed'};font-family:inherit;`,
+      saveTestStyle: `flex:1;height:42px;border-radius:10px;border:none;background:${s.newTestName.trim() ? '#8b7cf7' : '#3a3a41'};color:${s.newTestName.trim() ? '#14102a' : '#8a8890'};font-size:13px;font-weight:700;cursor:${s.newTestName.trim() ? 'pointer' : 'not-allowed'};font-family:inherit;`,
       saveNewTest: () => {
         const name = s.newTestName.trim(), method = s.newTestMethod.trim();
         if (!name) return;
@@ -1179,8 +1275,11 @@ class Component extends DCLogic {
     const matchQ = c => !q || c.name.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q) || c.tags.some(t => t.includes(q));
     const inGroup = c => s.group === '전체' || c.group === s.group;
     const filtered = this.cards.filter(c => inGroup(c) && matchQ(c));
+    const hexRgb = h => `${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)}`;
     const cards = filtered.map(c => ({
       ...c,
+      headerBg: `linear-gradient(135deg, rgba(${hexRgb(c.iconBg)},.55), rgba(${hexRgb(c.iconBg)},.14))`,
+      onMore: e => this.setState({ cardMenu: { x: e.clientX, y: e.clientY, name: c.name } }),
       openHistory: () => this.setState({ dialog: 'history', hMode: 'list', historyProject: c.name }),
       openTests: () => this.setState({ view: 'tests', testProject: c.name, testFilter: '전체' }),
       ideStyle: `flex:1;display:flex;align-items:center;justify-content:center;gap:7px;height:34px;border-radius:9px;border:none;background:${c.ideBg};color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;min-width:0;overflow:hidden;`,
@@ -1191,8 +1290,8 @@ class Component extends DCLogic {
       const n = g === '전체' ? this.cards.filter(matchQ).length : this.cards.filter(c => c.group === g && matchQ(c)).length;
       return {
         name: g, count: n, onClick: () => this.setState({ group: g }),
-        style: `display:flex;align-items:center;gap:6px;height:34px;padding:0 14px;background:none;border:none;border-bottom:2px solid ${active ? '#f0716a' : 'transparent'};color:${active ? '#e8e6e3' : '#8a8890'};font-size:13.5px;font-weight:${active ? 700 : 500};cursor:pointer;font-family:inherit;`,
-        countStyle: `font-size:11px;padding:1px 7px;border-radius:8px;background:${active ? 'rgba(240,113,106,.16)' : '#26262c'};color:${active ? '#f0716a' : '#8a8890'};`,
+        style: `display:flex;align-items:center;gap:6px;height:34px;padding:0 14px;background:none;border:none;border-bottom:2px solid ${active ? '#8b7cf7' : 'transparent'};color:${active ? '#e8e6e3' : '#8a8890'};font-size:13.5px;font-weight:${active ? 700 : 500};cursor:pointer;font-family:inherit;`,
+        countStyle: `font-size:11px;padding:1px 7px;border-radius:8px;background:${active ? 'rgba(139,124,247,.16)' : '#26262c'};color:${active ? '#8b7cf7' : '#8a8890'};`,
       };
     });
     const colDefs = [['예정', '#8a8890'], ['진행 중', '#5aa3e8'], ['완료', '#5db463'], ['보류', '#e8925a']];
@@ -1210,7 +1309,7 @@ class Component extends DCLogic {
       return {
         name, count: items.length, empty: items.length === 0,
         openNew: () => this.setState({ taskNewOpen: true, newTaskStatus: name, newTaskTitle: '', newTaskDesc: '', newTaskCat: 'UI·UX', newTaskPri: '보통', newTaskWho: '', newTaskStart: new Date().toISOString().slice(0, 10), newTaskEnd: '', newTaskTest: true }),
-        dropStyle: `background:${over ? '#24242c' : '#1f1f24'};border:1px solid ${over ? '#f0716a' : '#27272d'};border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:14px;transition:background .12s,border-color .12s;`,
+        dropStyle: `background:${over ? '#24242c' : '#1f1f24'};border:1px solid ${over ? '#8b7cf7' : '#27272d'};border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:14px;transition:background .12s,border-color .12s;`,
         onDragOver: e => { e.preventDefault(); if (s.dragOverStatus !== name) this.setState({ dragOverStatus: name }); },
         onDragLeave: () => { if (s.dragOverStatus === name) this.setState({ dragOverStatus: null }); },
         onDrop: e => {
@@ -1284,7 +1383,7 @@ class Component extends DCLogic {
         out.push({
           ellipsis: false, key: 'p' + n, num: n, active: n === curPage,
           onClick: () => this.setState({ histPage: n, historyOpen: null }),
-          style: `min-width:32px;height:32px;padding:0 8px;border-radius:8px;border:1px solid ${n === curPage ? '#f0716a' : '#2e2e34'};background:${n === curPage ? '#f0716a' : '#242429'};color:${n === curPage ? '#1d1113' : '#b3b0b8'};font-size:12.5px;font-weight:${n === curPage ? 700 : 500};cursor:pointer;font-family:inherit;`,
+          style: `min-width:32px;height:32px;padding:0 8px;border-radius:8px;border:1px solid ${n === curPage ? '#8b7cf7' : '#2e2e34'};background:${n === curPage ? '#8b7cf7' : '#242429'};color:${n === curPage ? '#14102a' : '#b3b0b8'};font-size:12.5px;font-weight:${n === curPage ? 700 : 500};cursor:pointer;font-family:inherit;`,
         });
         prev = n;
       }
@@ -1318,7 +1417,7 @@ class Component extends DCLogic {
       const active = s.setTab === k;
       return {
         label, onClick: () => this.setState({ setTab: k }),
-        style: `height:40px;border-radius:9px;border:none;background:${active ? '#26262c' : 'transparent'};border-left:3px solid ${active ? '#f0716a' : 'transparent'};color:${active ? '#e8e6e3' : '#8a8890'};font-size:13px;font-weight:${active ? 700 : 500};cursor:pointer;font-family:inherit;text-align:left;padding:0 14px;`,
+        style: `height:40px;border-radius:9px;border:none;background:${active ? '#26262c' : 'transparent'};border-left:3px solid ${active ? '#8b7cf7' : 'transparent'};color:${active ? '#e8e6e3' : '#8a8890'};font-size:13px;font-weight:${active ? 700 : 500};cursor:pointer;font-family:inherit;text-align:left;padding:0 14px;`,
       };
     });
     const toggleDefs = [
@@ -1332,8 +1431,8 @@ class Component extends DCLogic {
       return {
         title, desc,
         onToggle: () => this.setState({ toggles: { ...s.toggles, [k]: !on } }),
-        trackStyle: `width:42px;height:24px;border-radius:12px;border:1px solid ${on ? '#f0716a' : '#3a3a41'};background:${on ? '#f0716a' : '#2b2b31'};cursor:pointer;position:relative;transition:background .15s;flex-shrink:0;padding:0;`,
-        knobStyle: `position:absolute;top:2px;left:${on ? '20px' : '2px'};width:18px;height:18px;border-radius:50%;background:${on ? '#1d1113' : '#8a8890'};transition:left .15s;display:block;`,
+        trackStyle: `width:42px;height:24px;border-radius:12px;border:1px solid ${on ? '#8b7cf7' : '#3a3a41'};background:${on ? '#8b7cf7' : '#2b2b31'};cursor:pointer;position:relative;transition:background .15s;flex-shrink:0;padding:0;`,
+        knobStyle: `position:absolute;top:2px;left:${on ? '20px' : '2px'};width:18px;height:18px;border-radius:50%;background:${on ? '#14102a' : '#8a8890'};transition:left .15s;display:block;`,
       };
     });
     const toolRows = [
@@ -1348,6 +1447,23 @@ class Component extends DCLogic {
       onSearch: e => this.setState({ query: e.target.value }),
       clearSearch: () => this.setState({ query: '' }),
       groupsView, kanbanCols, settingsNav, settingRows, toolRows,
+      projColors: ['#4a5bd0', '#b0553a', '#3a8a8a', '#c04a68', '#7a4ac0', '#8a7a2e', '#4a6ea0', '#3a6a4a', '#8b7cf7', '#5db463'].map(hex => ({
+        hex, onPick: () => this.setState({ newProjColor: hex }),
+        style: `width:30px;height:30px;border-radius:9px;border:2px solid ${(s.newProjColor || '#4a5bd0') === hex ? '#e8e6e3' : 'transparent'};outline:1px solid #2e2e34;background:${hex};cursor:pointer;padding:0;`,
+      })),
+      projColorPreview: `display:flex;align-items:center;gap:10px;height:52px;padding:0 14px;border-radius:10px;background:linear-gradient(135deg, rgba(${hexRgb(s.newProjColor || '#4a5bd0')},.55), rgba(${hexRgb(s.newProjColor || '#4a5bd0')},.14));border:1px solid #2a2a31;`,
+      projColorIcon: `width:30px;height:30px;border-radius:8px;background:${s.newProjColor || '#4a5bd0'};display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff;`,
+      toggleProjAdmin: () => this.setState({ projAdmin: !s.projAdmin }),
+      projAdminBoxStyle: `width:18px;height:18px;border-radius:5px;border:1px solid ${s.projAdmin ? '#8b7cf7' : '#3a3a41'};background:${s.projAdmin ? '#8b7cf7' : 'transparent'};color:#14102a;display:grid;place-items:center;font-size:12px;font-weight:700;flex-shrink:0;`,
+      projAdminCheck: s.projAdmin ? '✓' : '',
+      projStackTags: ['.net', '.net framework', 'ai', 'asp.net', 'c', 'c#', 'c++', 'flutter', 'html', 'java', 'javascript', 'js', 'kotlin', 'node.js', 'objective-c', 'php', 'python', 'react', 'ruby', 'rust', 'swift', 'typescript', 'winrt', 'winui', 'wpf'].map(name => {
+        const sel = (s.projTags || []).includes(name);
+        return {
+          name,
+          onToggle: () => this.setState({ projTags: sel ? (s.projTags || []).filter(t => t !== name) : [...(s.projTags || []), name] }),
+          style: `height:28px;padding:0 12px;border-radius:14px;border:1px solid ${sel ? '#8b7cf7' : '#2e2e34'};background:${sel ? 'rgba(139,124,247,.16)' : '#242429'};color:${sel ? '#a89dfa' : '#b3b0b8'};font-size:12px;cursor:pointer;font-family:inherit;`,
+        };
+      }),
       dlgProject: s.dialog === 'project', dlgSettings: s.dialog === 'settings', dlgHistory: s.dialog === 'history',
       historyGroups, historyTotal: hFiltered.length, historyEmpty: hFiltered.length === 0,
       pageItems, hasPages: pageCount > 1, pageSize: s.pageSize,
@@ -1377,7 +1493,7 @@ class Component extends DCLogic {
       onNewKind: e => this.setState({ newKind: e.target.value }),
       onNewDetail: e => this.setState({ newDetail: e.target.value }),
       nowStamp: new Date().toISOString().slice(0, 16).replace('T', ' '),
-      saveHistStyle: `flex:1;height:42px;border-radius:10px;border:none;background:${s.newTitle.trim() ? '#f0716a' : '#3a3a41'};color:${s.newTitle.trim() ? '#1d1113' : '#8a8890'};font-size:14px;font-weight:700;cursor:${s.newTitle.trim() ? 'pointer' : 'not-allowed'};font-family:inherit;`,
+      saveHistStyle: `flex:1;height:42px;border-radius:10px;border:none;background:${s.newTitle.trim() ? '#8b7cf7' : '#3a3a41'};color:${s.newTitle.trim() ? '#14102a' : '#8a8890'};font-size:14px;font-weight:700;cursor:${s.newTitle.trim() ? 'pointer' : 'not-allowed'};font-family:inherit;`,
       saveNewHistory: () => {
         if (!s.newTitle.trim()) return;
         const entry = {
@@ -1446,14 +1562,34 @@ class Component extends DCLogic {
       onNewTaskCat: e => this.setState({ newTaskCat: e.target.value }),
       onNewTaskPri: e => this.setState({ newTaskPri: e.target.value }),
       toggleNewTaskTest: () => this.setState({ newTaskTest: !s.newTaskTest }),
-      newTaskTestTrack: `width:42px;height:24px;border-radius:12px;border:1px solid ${s.newTaskTest ? '#f0716a' : '#3a3a41'};background:${s.newTaskTest ? '#f0716a' : '#2b2b31'};cursor:pointer;position:relative;transition:background .15s;flex-shrink:0;padding:0;`,
-      newTaskTestKnob: `position:absolute;top:2px;left:${s.newTaskTest ? '20px' : '2px'};width:18px;height:18px;border-radius:50%;background:${s.newTaskTest ? '#1d1113' : '#8a8890'};transition:left .15s;display:block;`,
+      newTaskTestTrack: `width:42px;height:24px;border-radius:12px;border:1px solid ${s.newTaskTest ? '#8b7cf7' : '#3a3a41'};background:${s.newTaskTest ? '#8b7cf7' : '#2b2b31'};cursor:pointer;position:relative;transition:background .15s;flex-shrink:0;padding:0;`,
+      newTaskTestKnob: `position:absolute;top:2px;left:${s.newTaskTest ? '20px' : '2px'};width:18px;height:18px;border-radius:50%;background:${s.newTaskTest ? '#14102a' : '#8a8890'};transition:left .15s;display:block;`,
       onNewTaskStart: e => this.setState({ newTaskStart: e.target.value }),
       onNewTaskEnd: e => this.setState({ newTaskEnd: e.target.value }),
       closeNewTask: () => this.setState({ taskNewOpen: false, editTaskId: null }),
       taskDlgTitle: s.editTaskId ? '작업 수정' : '새 작업',
       taskDlgSave: s.editTaskId ? '저장' : '등록',
       taskDlgNew: !s.editTaskId,
+      cardMenuOpen: !!s.cardMenu,
+      cardMenuStyle: s.cardMenu ? `position:fixed;left:${Math.min(s.cardMenu.x, (typeof window !== 'undefined' ? window.innerWidth : 1200) - 200)}px;top:${Math.min(s.cardMenu.y, (typeof window !== 'undefined' ? window.innerHeight : 800) - 360)}px;width:186px;background:#1f1f24;border:1px solid #2e2e34;border-radius:10px;padding:5px;box-shadow:0 12px 32px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:1px;` : 'display:none;',
+      closeCardMenu: e => { e.preventDefault(); this.setState({ cardMenu: null }); },
+      cardMemoLabel: s.cardMenu && (s.projMemos || {})[s.cardMenu.name] ? '메모 보기' : '메모',
+      cardMenuMemo: () => this.setState({ cardMenu: null, cardMemo: s.cardMenu.name, cardMemoDraft: (s.projMemos || {})[s.cardMenu.name] || '' }),
+      cardMemoOpen: !!s.cardMemo,
+      cardMemoTitle: s.cardMemo ? `${s.cardMemo} — 메모` : '',
+      cardMemoText: s.cardMemoDraft || '',
+      cardMemoHas: !!(s.cardMemo && (s.projMemos || {})[s.cardMemo]),
+      onCardMemoInput: e => this.setState({ cardMemoDraft: e.target.value }),
+      closeCardMemo: () => this.setState({ cardMemo: null }),
+      saveCardMemo: () => this.setState({ projMemos: { ...(s.projMemos || {}), [s.cardMemo]: (s.cardMemoDraft || '').trim() }, cardMemo: null }),
+      deleteCardMemo: () => { const m = { ...(s.projMemos || {}) }; delete m[s.cardMemo]; this.setState({ projMemos: m, cardMemo: null }); },
+      cardMenuHistory: () => this.setState({ cardMenu: null, dialog: 'history', hMode: 'list', historyProject: s.cardMenu ? s.cardMenu.name : null }),
+      cardMenuSettings: () => this.setState({ cardMenu: null, dialog: 'project' }),
+      cardMenuDelete: () => this.setState({ cardMenu: null, projDel: s.cardMenu.name }),
+      projDelOpen: !!s.projDel,
+      projDelName: s.projDel || '',
+      closeProjDel: () => this.setState({ projDel: null }),
+      confirmProjDel: () => { this.cards = this.cards.filter(c => c.name !== s.projDel); this.setState({ projDel: null }); },
       taskMenuOpen: !!s.taskMenu,
       taskMenuStyle: s.taskMenu ? `position:fixed;left:${Math.min(s.taskMenu.x, (typeof window !== 'undefined' ? window.innerWidth : 1200) - 150)}px;top:${Math.min(s.taskMenu.y, (typeof window !== 'undefined' ? window.innerHeight : 800) - 90)}px;width:140px;background:#222227;border:1px solid #35353c;border-radius:10px;padding:5px;box-shadow:0 10px 28px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:2px;animation:fadeIn .1s;` : '',
       closeTaskMenu: e => { e.preventDefault(); this.setState({ taskMenu: null }); },
@@ -1468,8 +1604,8 @@ class Component extends DCLogic {
       delHasLinked: !!(s.delConfirm && s.delConfirm.hasLinked),
       delTestToggle: s.delTestToggle,
       toggleDelTest: () => this.setState({ delTestToggle: !s.delTestToggle }),
-      delTestTrack: `width:42px;height:24px;border-radius:12px;border:1px solid ${s.delTestToggle ? '#f0716a' : '#3a3a41'};background:${s.delTestToggle ? '#f0716a' : '#2b2b31'};cursor:pointer;position:relative;transition:background .15s;flex-shrink:0;padding:0;`,
-      delTestKnob: `position:absolute;top:2px;left:${s.delTestToggle ? '20px' : '2px'};width:18px;height:18px;border-radius:50%;background:${s.delTestToggle ? '#1d1113' : '#8a8890'};transition:left .15s;display:block;`,
+      delTestTrack: `width:42px;height:24px;border-radius:12px;border:1px solid ${s.delTestToggle ? '#8b7cf7' : '#3a3a41'};background:${s.delTestToggle ? '#8b7cf7' : '#2b2b31'};cursor:pointer;position:relative;transition:background .15s;flex-shrink:0;padding:0;`,
+      delTestKnob: `position:absolute;top:2px;left:${s.delTestToggle ? '20px' : '2px'};width:18px;height:18px;border-radius:50%;background:${s.delTestToggle ? '#14102a' : '#8a8890'};transition:left .15s;display:block;`,
       closeDelConfirm: () => this.setState({ delConfirm: null }),
       confirmDelete: () => {
         const { id, title, hasLinked } = s.delConfirm;
@@ -1486,7 +1622,7 @@ class Component extends DCLogic {
         if (!t) return this.setState({ taskMenu: null });
         this.setState({ taskMenu: null, taskNewOpen: true, editTaskId: t.id, newTaskStatus: t.status, newTaskTitle: t.title, newTaskDesc: t.desc, newTaskCat: t.cat, newTaskPri: t.pri, newTaskStart: t.start || '', newTaskEnd: t.end || '' });
       },
-      saveTaskStyle: `flex:1;height:42px;border-radius:10px;border:none;background:${s.newTaskTitle.trim() ? '#f0716a' : '#3a3a41'};color:${s.newTaskTitle.trim() ? '#1d1113' : '#8a8890'};font-size:14px;font-weight:700;cursor:${s.newTaskTitle.trim() ? 'pointer' : 'not-allowed'};font-family:inherit;`,
+      saveTaskStyle: `flex:1;height:42px;border-radius:10px;border:none;background:${s.newTaskTitle.trim() ? '#8b7cf7' : '#3a3a41'};color:${s.newTaskTitle.trim() ? '#14102a' : '#8a8890'};font-size:14px;font-weight:700;cursor:${s.newTaskTitle.trim() ? 'pointer' : 'not-allowed'};font-family:inherit;`,
       saveNewTask: () => {
         if (!s.newTaskTitle.trim()) return;
         const fmt = d => d ? d.slice(5) : '';
