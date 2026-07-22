@@ -85,13 +85,14 @@
                                MaxLines="2"
                                TextTrimming="CharacterEllipsis" />
 
-                    <!-- 연결된 작업 배지 — 시안의 링크 pill(테두리형 캡슐 + 체인 아이콘 + 작업 제목).
+                    <!-- 연결된 작업 배지 — 테두리형 라운드 사각형 + 체인 아이콘 + 작업 제목.
+                         시안은 완전 캡슐(radius 999)이나 렌더가 타원처럼 보여 사용자가 사각형+약간 둥근 모서리로 정정(2026-07-22).
                          상태와 무관한 고정색이라 미실행 배지처럼 색을 리터럴로 적는다(팔레트에 같은 값이 없다). -->
                     <Border Grid.Column="1" Grid.Row="1"
                             Visibility="{x:Bind LinkedTaskTitle, Converter={StaticResource StringNotEmptyToVisibility}, Mode=OneWay}"
                             BorderBrush="#735AA3E8"
                             BorderThickness="1"
-                            CornerRadius="999"
+                            CornerRadius="4"
                             Padding="9,2"
                             Margin="0,3,0,0"
                             HorizontalAlignment="Left">
