@@ -340,6 +340,33 @@ public sealed partial class DashboardView : UserControl
             card.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Resources["CardBorderBrush"];
     }
 
+    // "새 프로젝트 추가" 카드 hover — 시안(:347)은 액센트 테두리로 강조한다
+    private void AddCard_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (sender is Border card)
+            card.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AppAccentBrush"];
+    }
+
+    private void AddCard_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (sender is Border card)
+            card.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Resources["CardBorderBrush"];
+    }
+
+    // 삭제 버튼은 헤더 밴드 위에 있어 평소엔 흰색, hover에서만 위험색으로 바꾼다(시안 :360).
+    // 공용 CardIconButtonStyle을 여러 버튼이 공유하므로 템플릿 대신 여기서 전경만 바꾼다.
+    private void DeleteButton_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        => SetDeleteGlyphBrush(sender, "HeaderIconDangerBrush");
+
+    private void DeleteButton_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        => SetDeleteGlyphBrush(sender, "HeaderIconBrush");
+
+    private void SetDeleteGlyphBrush(object sender, string resourceKey)
+    {
+        if (sender is Button { Content: FontIcon glyph })
+            glyph.Foreground = (Microsoft.UI.Xaml.Media.Brush)Resources[resourceKey];
+    }
+
     private void Card_DropCompleted(UIElement sender, DropCompletedEventArgs e)
     {
         RemoveDropPlaceholder();

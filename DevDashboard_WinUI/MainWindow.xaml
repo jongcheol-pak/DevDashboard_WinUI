@@ -310,11 +310,11 @@
                                                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                                             </Border>
                                             <Border CornerRadius="8" Padding="7,1"
-                                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                                    Background="{ThemeResource AppAccentSoftBrush}"
                                                     Visibility="{Binding IsAllGroupSelected, Converter={StaticResource BoolToVisibility}}">
                                                 <TextBlock Text="{Binding AllGroupCount, Mode=OneWay}"
                                                            FontSize="11"
-                                                           Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                                                           Foreground="{ThemeResource AppAccentBrush}" />
                                             </Border>
                                         </Grid>
                                     </StackPanel>
@@ -346,11 +346,11 @@
                                                                        Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                                                         </Border>
                                                         <Border CornerRadius="8" Padding="7,1"
-                                                                Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                                                Background="{ThemeResource AppAccentSoftBrush}"
                                                                 Visibility="{Binding IsSelected, Converter={StaticResource BoolToVisibility}}">
                                                             <TextBlock Text="{Binding Count, Mode=OneWay}"
                                                                        FontSize="11"
-                                                                       Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                                                                       Foreground="{ThemeResource AppAccentBrush}" />
                                                         </Border>
                                                     </Grid>
                                                 </StackPanel>

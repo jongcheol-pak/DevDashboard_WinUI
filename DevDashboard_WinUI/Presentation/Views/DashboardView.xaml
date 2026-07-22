@@ -23,6 +23,10 @@
         <SolidColorBrush x:Key="CardBorderBrush" Color="{ThemeResource CardStrokeColorDefault}" />
         <SolidColorBrush x:Key="CardHoverBorderBrush" Color="{ThemeResource CardStrokeColorHover}" />
 
+        <!-- 헤더 위 아이콘 색 — 삭제 버튼은 hover에서만 위험색으로 바뀐다(시안 :360) -->
+        <SolidColorBrush x:Key="HeaderIconBrush" Color="{ThemeResource CardHeaderIconColor}" />
+        <SolidColorBrush x:Key="HeaderIconDangerBrush" Color="{ThemeResource CardHeaderIconDangerColor}" />
+
         <!-- 카드 아이콘 버튼 스타일 -->
         <Style x:Key="CardIconButtonStyle" TargetType="Button">
             <Setter Property="Width" Value="30" />
@@ -160,7 +164,7 @@
                                     Command="{Binding TogglePinCommand}">
                                 <Grid>
                                     <FontIcon Glyph="&#xE718;" FontSize="13"
-                                              Foreground="#B8FFFFFF"
+                                              Foreground="{StaticResource HeaderIconBrush}"
                                               Visibility="{Binding IsPinned, Converter={StaticResource InverseBoolToVisibility}}" />
                                     <FontIcon Glyph="&#xE77A;" FontSize="13"
                                               Foreground="White"
@@ -168,14 +172,16 @@
                                 </Grid>
                             </Button>
 
-                            <!-- 삭제 -->
+                            <!-- 삭제 — 평소엔 헤더 위 흰색, 마우스를 올렸을 때만 위험색 (시안 :360) -->
                             <Button ToolTipService.ToolTip="{StaticResource ToolTip_Delete}"
                                     Grid.Column="4"
                                     Width="28" Height="28" CornerRadius="7"
                                     Style="{StaticResource CardIconButtonStyle}"
-                                    Command="{Binding DeleteCommand}">
+                                    Command="{Binding DeleteCommand}"
+                                    PointerEntered="DeleteButton_PointerEntered"
+                                    PointerExited="DeleteButton_PointerExited">
                                 <FontIcon Glyph="&#xE74D;" FontSize="13"
-                                          Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                                          Foreground="{StaticResource HeaderIconBrush}" />
                             </Button>
                         </Grid>
                     </Border>
@@ -342,6 +348,8 @@
                                 <!-- 슬롯 0 -->
                                 <Button Style="{StaticResource CardIconButtonStyle}"
                                         Width="28" Height="28" CornerRadius="8"
+                                        Background="{ThemeResource AppInputBrush}"
+                                        BorderBrush="{ThemeResource AppHoverFillBrush}"
                                         Command="{Binding ExecuteCommandSlotCommand}"
                                         CommandParameter="0"
                                         ToolTipService.ToolTip="{Binding Cmd0Tooltip}"
@@ -382,6 +390,8 @@
                                 <!-- 슬롯 1 -->
                                 <Button Style="{StaticResource CardIconButtonStyle}"
                                         Width="28" Height="28" CornerRadius="8"
+                                        Background="{ThemeResource AppInputBrush}"
+                                        BorderBrush="{ThemeResource AppHoverFillBrush}"
                                         Command="{Binding ExecuteCommandSlotCommand}"
                                         CommandParameter="1"
                                         ToolTipService.ToolTip="{Binding Cmd1Tooltip}"
@@ -421,6 +431,8 @@
                                 <!-- 슬롯 2 -->
                                 <Button Style="{StaticResource CardIconButtonStyle}"
                                         Width="28" Height="28" CornerRadius="8"
+                                        Background="{ThemeResource AppInputBrush}"
+                                        BorderBrush="{ThemeResource AppHoverFillBrush}"
                                         Command="{Binding ExecuteCommandSlotCommand}"
                                         CommandParameter="2"
                                         ToolTipService.ToolTip="{Binding Cmd2Tooltip}"
@@ -460,6 +472,8 @@
                                 <!-- 슬롯 3 -->
                                 <Button Style="{StaticResource CardIconButtonStyle}"
                                         Width="28" Height="28" CornerRadius="8"
+                                        Background="{ThemeResource AppInputBrush}"
+                                        BorderBrush="{ThemeResource AppHoverFillBrush}"
                                         Command="{Binding ExecuteCommandSlotCommand}"
                                         CommandParameter="3"
                                         ToolTipService.ToolTip="{Binding Cmd3Tooltip}"
@@ -503,7 +517,7 @@
                                         ToolTipService.ToolTip="{StaticResource ToolTip_AddScript}"
                                         Command="{Binding AddCommandSlotCommand}"
                                         Visibility="{Binding CanAddCommandSlot, Converter={StaticResource BoolToVisibility}}">
-                                    <FontIcon Glyph="&#xE710;" FontSize="10"
+                                    <FontIcon Glyph="&#xE710;" FontSize="13"
                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                 </Button>
                             </StackPanel>
@@ -521,7 +535,9 @@
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     CornerRadius="14"
                     BorderThickness="1"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    PointerEntered="AddCard_PointerEntered"
+                    PointerExited="AddCard_PointerExited">
                 <Button HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
                         Background="Transparent"

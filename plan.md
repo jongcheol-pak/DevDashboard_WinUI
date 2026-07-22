@@ -378,7 +378,7 @@ PRD `:5`가 "요구 변경은 PRD → plan → 코드 순서로만"을 규약으
 - [x] `…` 메뉴 구성 → **현행 기능만 이동**(GitHub·메모 제외)
 - [x] 슬롯 표시 규칙 → **설정된 것만 + 끝에 점선 `＋`**
 - [x] 기존 프로젝트 기본색 → **이름 해시로 자동 배정**
-- [ ] **PRD §7 Out of Scope 정정 승인** — 위 `## PRD 충돌` 절. plan 승인 시 함께 확인.
+- [x] **PRD §7 Out of Scope 정정 승인** — 승인됨(2026-07-22). 코드 착수 전 `docs/prd.md`를 먼저 정정: §7의 해당 줄 삭제, §4에 `대시보드 카드(Phase 6)` 절 신설(FR-D1~D4), §6 로드맵에 Phase 6 행, §8에 `D-9` 기록.
 
 ## 검증 방법
 
@@ -419,6 +419,14 @@ PRD `:5`가 "요구 변경은 PRD → plan → 코드 순서로만"을 규약으
 
 ## Phase Ledger
 - 전 task(T1~T8) 완료.
+- **Phase F 통과** — F-2 클린 리빌드(`-t:Rebuild`) 오류 0·신규 경고 0(자동 생성 `CS0618` 1건만), F-3 회귀 grep 12종 기대값, F-6.5 notes 기록(29,155자 — 아카이브 기준 30,000자 미만)·README 갱신·Deferred 대장 7건 이관, F-7 `plan-completion-reviewer`: **BLOCKER 0 / MAJOR 2 / MINOR 5 → 전건 수정 완료**.
+  - **M1**(추가 카드 hover 미구현) → `AddCard_PointerEntered/Exited` 배선. 프로젝트 카드가 이미 코드비하인드 hover를 쓰므로 "DataTemplate 제약"은 사유가 못 된다는 지적이 정확했다.
+  - **M2**(삭제 버튼이 상시 위험색 — 시안은 평소 흰색·hover만 적색) → `DeleteButton_PointerEntered/Exited` + `Palette.xaml`에 `CardHeaderIconColor`/`CardHeaderIconDangerColor` 토큰. T4에서 "의도적 차이"로 판단했으나 **어디에도 기록하지 않아** 추적 불가 상태였다는 지적을 수용해 시안대로 구현.
+  - **m1**(슬롯 배경·테두리 미적용) → `AppInputBrush` 배경 + `AppHoverFillBrush` 테두리(팔레트에 브러시 키 추가).
+  - **m2**(슬롯 `＋` 글리프 10px → 시안 13px) → 13px.
+  - **m3**(배지 선택색이 불투명 액센트 → 시안은 `rgba(액센트,.16)` 배경 + 액센트 전경) → `AppAccentSoftBrush` 토큰 추가 후 적용.
+  - **m4**(대장 스크린샷 항목에 대시보드 카드 누락) → `docs/plans/deferred.md` 해당 항목 보강.
+  - **m5**(Open Questions의 PRD 정정 체크박스 미갱신) → `[x]`로 정정.
 
 ## Progress Log
 

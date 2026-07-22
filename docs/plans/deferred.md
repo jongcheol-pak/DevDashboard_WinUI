@@ -15,7 +15,7 @@
 - **[`InitKindCombo`/`KindFromCombo` 중복]** — HistoryDialog·ProjectHistoryDialog 코드비하인드 2곳 대칭 중복(3회 미만이라 현재 결함 아님). 3번째 사용처 생기면 공용 static helper로 추출. (원 plan: Phase 4 작업 기록, 2026-07-19)
 - **[알림 배지 상한·요약 개수]** — 헤더 벨 안읽음 배지에 "9+" 상한 미적용(두 자릿수 시 14px 원형 폭 확장은 되나 시각 확인 필요), 드롭다운 요약 상위 5개 고정. 시각 확인 후 수치 조정. 순수 값이라 저위험. (원 plan: Phase 5 알림, 2026-07-19)
 - **[BOM/no-BOM 인코딩 통일]** — 레거시 파일(.cs/.xaml/.resw 다수)은 BOM, 신규 파일은 no-BOM으로 혼재. check-utf8-and-lines hook은 no-BOM 권고, CLAUDE.md는 기존 인코딩 유지 권고(Phase 4에서 BOM 손실이 MAJOR였음). 전체 통일은 별도 세션. (원 plan: Phase 5 알림, 2026-07-19)
-- **[README/스크린샷 — 리디자인 5개 영역]** — Phase 0~5로 리디자인 로드맵 완료. 시각 렌더 사용자 확인 후 README·스크린샷을 5개 영역(작업/테스트/작업 기록/알림/설정) 신규 UI로 통합 갱신. (원 plan: Phase 5 알림, 2026-07-19)
+- **[README/스크린샷 — 리디자인 5개 영역 + 대시보드 카드]** — Phase 0~5로 리디자인 로드맵 완료. 시각 렌더 사용자 확인 후 README·스크린샷을 5개 영역(작업/테스트/작업 기록/알림/설정) 신규 UI로 통합 갱신. **2026-07-22 대시보드 카드 재구성(Phase 6)으로 메인 화면 스크린샷(`dashboard-overview.png`·`project-card.png`·`project-settings.png`)도 낡았다** — 함께 갱신 대상. (원 plan: Phase 5 알림, 2026-07-19)
 - **[알림 배지 실시간 갱신]** — 안읽음 배지는 초기 로드 1회 + 헤더 Flyout 열 때만 재계산(온디맨드 설계). 작업 페이지에서 작업 완료/편집 후 Flyout 재오픈 전까지 배지가 stale일 수 있음(상호작용 시점엔 Flyout Opening이 먼저 재계산해 정확). 실시간 원하면 TaskPageViewModel 변경 콜백에 RebuildNotifications 배선. (원 plan: Phase 5 알림, 2026-07-19)
 
 - **[NotificationPage 시안 대조]** — (구 `[TestPage·NotificationPage 시안 대조]`에서 **TestPage 몫은 2026-07-21 해소** — 시안 2장 확보 후 테스트 화면·등록 다이얼로그 재구현 완료). NotificationPage는 시안 미확보로 잔여. 시안 이미지 확보 후 진행. (원 plan: TaskPage 시안 정합, 2026-07-20)
