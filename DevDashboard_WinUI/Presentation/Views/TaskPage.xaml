@@ -12,9 +12,16 @@
 
     <UserControl.Resources>
         <!--
+            목록 행 테두리 색 — DataTemplate 안에서는 VisualStateManager가 동작하지 않아
+            hover를 코드비하인드 핸들러로 처리한다. 팔레트 색을 코드에서 가져오려고 별칭 키로 둔다.
+        -->
+        <SolidColorBrush x:Key="ListRowBorderBrush" Color="{ThemeResource AppBorderColor}" />
+        <SolidColorBrush x:Key="ListRowHoverBorderBrush" Color="{ThemeResource ControlStrokeColorSecondary}" />
+
+        <!--
             칸반 카드 템플릿 — 시안 구성(제목 + 우선순위 배지 / 설명 / 날짜 범위).
             조작은 카드 클릭(편집)과 우클릭 메뉴(편집·삭제·상태 변경)로 하며, 상태 변경은 드래그앤드롭도 함께 지원한다.
-            목록 뷰는 행 모양이 달라 아래 TaskListRowTemplate을 따로 둔다.
+            목록 뷰도 같은 조작 경로(클릭 편집·우클릭 메뉴·드래그)를 쓰되 행 모양이 달라 TaskListRowTemplate을 따로 둔다.
         -->
         <DataTemplate x:Key="TaskKanbanCardTemplate" x:DataType="models:TodoItem">
             <Border
@@ -173,10 +180,45 @@
         <DataTemplate x:Key="TaskListRowTemplate" x:DataType="models:TodoItem">
             <Border
                 Background="{ThemeResource AppCardBrush}"
-                BorderBrush="{ThemeResource AppBorderBrush}"
+                BorderBrush="{StaticResource ListRowBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="10"
-                Padding="14,11">
+                Padding="14,11"
+                CanDrag="True"
+                DragStarting="Card_DragStarting"
+                Tapped="Card_Tapped"
+                PointerEntered="ListRow_PointerEntered"
+                PointerExited="ListRow_PointerExited">
+                <Border.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="{x:Bind local:TaskPage.MenuEditText}"
+                                        Tag="{x:Bind}"
+                                        Click="CardMenuEdit_Click">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE70F;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutSubItem Text="{x:Bind local:TaskPage.MenuMoveToText}">
+                            <MenuFlyoutItem Text="{x:Bind local:TaskPage.LabelWaiting}"
+                                            Tag="{x:Bind}" Click="CardMenuMoveWaiting_Click" />
+                            <MenuFlyoutItem Text="{x:Bind local:TaskPage.LabelActive}"
+                                            Tag="{x:Bind}" Click="CardMenuMoveActive_Click" />
+                            <MenuFlyoutItem Text="{x:Bind local:TaskPage.LabelCompleted}"
+                                            Tag="{x:Bind}" Click="CardMenuMoveCompleted_Click" />
+                            <MenuFlyoutItem Text="{x:Bind local:TaskPage.LabelHold}"
+                                            Tag="{x:Bind}" Click="CardMenuMoveHold_Click" />
+                        </MenuFlyoutSubItem>
+                        <MenuFlyoutSeparator />
+                        <MenuFlyoutItem Text="{x:Bind local:TaskPage.MenuDeleteText}"
+                                        Tag="{x:Bind}"
+                                        Click="CardMenuDelete_Click">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE74D;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                    </MenuFlyout>
+                </Border.ContextFlyout>
+
                 <Grid ColumnSpacing="12" VerticalAlignment="Center">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -291,7 +333,16 @@
 
         <!-- 목록 뷰 상태 그룹 (상태 dot + 이름 + 개수 + 구분선 + "새 작업" / 항목이 없으면 "작업 없음") -->
         <DataTemplate x:Key="TaskListStatusGroupTemplate" x:DataType="vm:TaskListStatusGroup">
-            <StackPanel Spacing="12">
+            <!--
+                드롭은 그룹 전체가 받는다 — 안쪽 목록이 받으면 항목이 없는 그룹에는 놓을 수 없다(칸반 열과 같은 이유).
+                Background를 줘야 행 사이 빈 영역까지 hit-test 되어 그룹 어디에 놓아도 인식된다.
+            -->
+            <StackPanel Spacing="12"
+                        Background="Transparent"
+                        AllowDrop="True"
+                        Tag="{x:Bind local:TaskPage.StatusTag(Status)}"
+                        DragOver="Column_DragOver"
+                        Drop="Column_Drop">
                 <Grid ColumnSpacing="9">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />

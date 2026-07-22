@@ -224,7 +224,7 @@
 - **Halt Forecast**: (ii-a) 사전 승인 — 공개 정적 멤버 `StatusOptions`·`EditTooltip`·`DeleteTooltip`·`FormatStart`·`FormatEnd`·`DateVisibility`, 공개 record `TaskStatusOption`, VM 공개 멤버 `CategoryGroups`·`TaskCategoryGroup` 제거 + resw 신규 키 1개(ko/en). (i) 사전 해소 — 소비처 전수 grep으로 함정 11 리스크 제거, `x:Bind`/`x:Uid`의 `DataTemplate` 내 성립 여부는 기존 선례로 확인 완료. 파괴적·외부 작업 없음.
 
 ### T3 — 목록 행 조작: 클릭 편집 · 우클릭 메뉴 · hover · 드래그 상태 이동 `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml`(행·상태 그룹 배선), `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml.cs`(hover 핸들러 2개)
 - **Design**: ① 배치 — 배선은 `TaskPage.xaml`의 두 템플릿, hover 핸들러는 `TaskPage.xaml.cs`. ② 신규 심볼 — `ListRow_PointerEntered`/`ListRow_PointerExited`(행 테두리 밝기 토글) **2개뿐**. 편집·삭제·상태 변경·드래그·새 작업은 전부 기존 핸들러 재사용(4-D). ③ 의존 방향 — XAML → 코드비하인드 핸들러 → 기존 `Vm.MoveToStatus`/`EditTodoAsync`/`DeleteTodoAsync`. ④ 비추상화 — hover를 위해 스타일·VisualState 인프라를 새로 만들지 않는다(`DataTemplate` 안에서 VSM `GoToState`가 동작하지 않는다는 것이 `TestPage`에서 확인된 사실 — 핸들러 2개가 최소 해법).
 - **구성**:

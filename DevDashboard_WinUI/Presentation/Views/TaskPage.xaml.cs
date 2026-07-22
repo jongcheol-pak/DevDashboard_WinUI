@@ -249,7 +249,22 @@ public sealed partial class TaskPage : UserControl
             Vm.MoveToStatus(todo, status);
     }
 
-    // ===== 칸반 드래그앤드롭 (상태 열 간 이동, FR-T3) =====
+    // ===== 목록 행 hover =====
+    // DataTemplate 안에서는 VisualStateManager.GoToState가 동작하지 않아 포인터 이벤트로 직접 테두리를 바꾼다.
+
+    private void ListRow_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border border)
+            border.BorderBrush = (Brush)Resources["ListRowHoverBorderBrush"];
+    }
+
+    private void ListRow_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border border)
+            border.BorderBrush = (Brush)Resources["ListRowBorderBrush"];
+    }
+
+    // ===== 칸반·목록 드래그앤드롭 (상태 열/그룹 간 이동, FR-T3) =====
 
     // DragStarting에서 설정 — Drop에서 동기적으로 사용
     private string? _draggedTodoId;
