@@ -66,6 +66,8 @@ public partial class TestPageViewModel : ObservableObject
     {
         var categories = _project.TestCategories ?? [];
 
+        BuildLinkedTaskTitles(categories);
+
         // 상태별 통계 (프로젝트 전체 기준 — 통계 카드·탭 개수 공용이라 필터를 반영하지 않는다)
         var allItems = categories.SelectMany(c => c.Items).ToList();
         PassCount = allItems.Count(t => t.Status == TestItem.StatusPass);
@@ -98,6 +100,23 @@ public partial class TestPageViewModel : ObservableObject
                 new ObservableCollection<TestItem>(items.OrderByDescending(t => t.CreatedAt)),
                 pass, total, passRate));
         }
+    }
+
+    /// <summary>각 테스트에 연결된 작업의 제목을 채웁니다 (시안의 링크 배지 표시용).
+    /// 링크는 TodoItem.LinkedTestId 단방향이라 작업 쪽에서 역참조 테이블을 만들어 대입한다.
+    /// 연결이 없으면 빈 문자열을 넣어야 한다 — 작업이 삭제되거나 링크가 끊겼을 때 옛 제목이 남지 않게 한다.</summary>
+    private void BuildLinkedTaskTitles(IEnumerable<TestCategory> categories)
+    {
+        var titleByTestId = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var todo in _project.Todos ?? [])
+        {
+            if (string.IsNullOrEmpty(todo.LinkedTestId)) continue;
+            // 한 테스트에 여러 작업이 연결된 경우(도메인이 막지 않는다) 먼저 만난 작업을 쓴다 — 시안도 링크가 하나뿐이다.
+            titleByTestId.TryAdd(todo.LinkedTestId, todo.Text);
+        }
+
+        foreach (var item in categories.SelectMany(c => c.Items))
+            item.LinkedTaskTitle = titleByTestId.GetValueOrDefault(item.Id, string.Empty);
     }
 
     // --- 스위트(카테고리) 편집 ---

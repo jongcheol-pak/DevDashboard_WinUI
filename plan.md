@@ -1,337 +1,215 @@
-# plan.md — 작업 화면(TaskPage) 목록 보기 시안 정합 재구현
+# plan.md — 테스트 화면(TestPage) "연결된 작업" 배지 추가
 
-**PRD**: docs/prd.md (FR-T2 칸반/목록 뷰 전환 / FR-T4 카테고리 그룹핑·개수 / FR-T3 드래그 상태 변경 / FR-T8 카테고리 통과율 배지 / FR-E4 작업↔테스트 연결 배지)
-**기준 디자인**: `docs/DevDashboard WinUI/DevDashboard Redesign.dc.html` — `data-screen-label="작업 칸반 페이지"`의 `taskViewList` 분기(143~187줄) + 데이터 소스 `taskListGroups`(1405~1440줄)·`colDefs`(1198줄)·`catColors`(1199줄)·`priStyles`(1200~1204줄)
+**PRD**: docs/prd.md (FR-E4 테스트↔작업 연결 배지·링크)
+**기준 디자인**: `docs/DevDashboard WinUI/DevDashboard Redesign.dc.html` — 테스트 목록 페이지의 링크 배지 마크업(261~266줄) + 데이터 정의(`hasLink`/`link`, 1078줄) + 링크 값의 출처(1508줄 `link: title`)
+**사용자 제공 렌더 이미지**: 배지가 실제로 그려진 화면(파란 테두리 pill + 링크 아이콘 + 텍스트) — 2026-07-22
 
 ## 요구 이해
 
-> 원문(사용자, 2026-07-22): "디자인 파일 확인해서 작업 화면의 목록보기 화면 구현해"
+> 원문(사용자, 2026-07-22): "테스트↔작업 연결 배지 시안이 이미지처럼 되어 있는데 다시 확인해서 추가해놔" (+ 테스트 화면 스크린샷 1장)
 
 이해한 요구:
-- 작업 화면(TaskPage)의 **목록 보기(칸반/목록 토글의 "목록" 쪽)** 를 시안 원본 HTML의 `taskViewList` 분기대로 재구현한다. 칸반 뷰·헤더(뒤로가기·제목·카테고리 필터·뷰 토글)는 이번 대상이 아니다(단 목록과 **색을 공유**하는 상태 dot·우선순위 배지는 시안 정정 대상 — 사용자 결정).
-- 시안 목록 구조는 **2단 그룹**이다: 바깥이 **상태 그룹 4개**(예정/진행 중/완료/보류 — 상태 dot + 이름 + 개수 + 가로 구분선 + "＋ 새 작업" 버튼), 안쪽이 **카테고리 서브그룹**(카테고리 dot + 이름 + 개수 + 테스트 통과율 배지 — 칸반 그룹 헤더와 동일 구성). 현행은 **카테고리 1단 그룹**이라 구조부터 다르다.
-- 작업 항목은 **가로 1줄 행**이다(제목 + 설명 1줄 / 날짜 범위 / 우선순위 배지). 현행은 세로 카드에 상태 콤보·수정·삭제 버튼이 달려 있어 시안과 다르다.
-- 항목이 없는 상태 그룹은 **"작업 없음" 점선 박스**를 표시한다(그룹 자체는 항상 4개 보인다).
-- 상태 변경 수단은 우클릭 메뉴 + **행을 다른 상태 그룹으로 드래그**(사용자 결정), 행 왼클릭은 편집 다이얼로그(사용자 결정).
+- 직전 작업 보고에서 "FR-E4 연결 배지의 화면 표현이 사라졌다"고 했는데, **시안에는 테스트 화면 쪽에 연결 배지가 실재**하므로 그것을 구현하라는 지시다. 사용자가 제공한 이미지는 **테스트 화면(TestPage)**이며(폴더 아이콘 + "UI·UX" + "0/1 통과" = 스위트 헤더), 테스트 항목 이름 아래에 **링크 아이콘 + 텍스트**의 파란 테두리 pill이 붙어 있다.
+- 시안 원본에서 이 배지는 `t.hasLink`일 때만 표시되며 내용은 **연결된 작업의 제목**(`link: title`, 1508줄)이다 — 즉 **테스트 → 작업 방향**의 표시다.
+- 현행 코드는 `TodoItem.LinkedTestId`(작업 → 테스트) **단방향**이라 테스트에서 작업 제목을 얻으려면 **역참조 조회**가 필요하다. 이것이 대장의 `[테스트→작업 역방향 링크/배지]` 항목이며, 이번에 재수용한다.
+- 이번 범위는 **연결 배지 하나**다. 시안 같은 행에 있는 방법(`t.method`)·에러(`t.error`) 표시는 사용자가 지목하지 않았으므로 이번에 하지 않는다(각각 대장 유지).
 
 ## Goal
 
-`TaskPage`의 목록 뷰를 시안(`taskViewList`)과 같은 **상태 그룹 → 카테고리 서브그룹 → 가로 행** 구조로 재구현하고, 상태 콤보·수정/삭제 버튼 대신 칸반과 동일한 조작 경로(클릭 편집·우클릭 메뉴·드래그 상태 이동)를 제공한다. 두 뷰가 공유하는 상태 dot·우선순위 배지 색도 시안 값으로 맞춘다.
+테스트 항목 행에 **연결된 작업 제목**을 시안(261~266줄)과 같은 파란 테두리 pill로 표시해, 테스트에서 어느 작업과 연결됐는지 화면에서 확인할 수 있게 한다. PRD FR-E4의 "연결 배지" 몫을 테스트 쪽에서 충족한다.
 
 ## Investigation Log (근거)
 
 ### 문서·대장
 - **위키 참조**: vault 미설정 — 코드 1차 출처로 진행.
-- **AGENTS.md 신선도 점검**: 이번에 참조하는 경로(`Presentation/Views/TaskPage.xaml(.cs)`·`Presentation/ViewModels/TaskPageViewModel.cs`·`Resources/{Styles,Palette}.xaml`·`Strings/{ko-KR,en-US}/Resources.resw`·`docs/prd.md`·`docs/plans/deferred.md`) 전부 실재. 빌드 명령의 MSBuild 경로·`DevDashboard.csproj`도 실재. 어긋남 0건.
-  - 단 대장 항목 `[AGENTS.md는 git 미추적 — PC 간 미공유]`는 **stale 확인**: `git check-ignore -v AGENTS.md`가 무매치이고 2026-07-22에 정상 커밋됐다. 대장 정정은 이번 코드 범위 밖 — Deferred로 이관.
-  - 관련 함정 직결: **2**(resw ko/en 양쪽)·**3**(resw 키 형식)·**5**(x:Bind 함수 바인딩은 Brush/Visibility 직접 반환)·**6**(Border 점선 미지원 → Rectangle)·**11**(공용 DataTemplate 소비처 전수 확인) — 아래 반영.
-  - **함정 5 관련 사실 확인(리뷰 검증)**: `DataTemplate`의 `x:DataType`이 VM 타입이어도 `local:TaskPage.<정적메서드>(...)` 함수 바인딩은 성립한다 — `TaskColumnGroupTemplate`(`TaskPage.xaml:147,159,160`, `x:DataType="vm:TaskColumnGroup"`)에 이미 선례가 있다. `x:Uid`도 `DataTemplate` 안에서 동작한다(`DashboardView.xaml:231,536`의 `ProjectCardTemplate`/`AddCardTemplate` 선례).
+- **AGENTS.md 신선도 점검**: 이번에 참조하는 경로(`Domain/Entities/{TestItem,TodoItem}.cs`·`Presentation/ViewModels/TestPageViewModel.cs`·`Presentation/Views/TestPage.xaml`·`Resources/Converters.xaml`) 전부 실재. 빌드 명령·`DevDashboard.csproj`도 실재. 어긋남 0건.
+  - 관련 함정 직결: **5**(x:Bind **함수 바인딩**은 Converter를 못 받음 — 단 **일반 x:Bind는 Converter 사용 가능**하며 `TaskPage.xaml`의 `{x:Bind Description, Converter={StaticResource StringNotEmptyToVisibility}}`가 그 선례다)·**11**(공용 DataTemplate 소비처 전수 확인).
+  - **AGENTS.md 경고 baseline stale**(대장 등재분): 실측 상시 경고는 `CS0618` 1건이며 문서의 "NU1903 1 + CS0612 4"와 다르다 — 이번 plan의 "신규 경고 0" 판정은 **실측 baseline(CS0618 1건)** 기준으로 한다.
 - **Deferred 대장 확인**(`docs/plans/deferred.md`):
-  - `[목록 뷰 시안 대조]` — **이번 작업이 이 항목의 재수용**이다(시안 원본 확보로 조건 충족). 대장에서 `## 종결`로 이동 완료(2026-07-22).
-  - `[칸반/목록 "미분류" 그룹 정렬 불일치]`(F-7 리뷰 m2) — 칸반은 raw key 정렬(미분류=빈 문자열이 최상단), 목록은 표시명 정렬. 이번에 목록이 칸반과 **같은 `BuildColumnGroups`를 재사용**하므로 자동 해소된다 → 완료 시 대장 종결 대상(D2).
-  - `[TaskPageViewModel.*Items 개명 검토]`(m4) — 이번에도 이름 유지(XAML 바인딩 경로 안정). 대장 유지.
-  - `[완료 열 즉시 생성 시 작업기록 팝업 미발생]` — 목록 그룹 헤더의 "＋ 새 작업"도 같은 `ColumnAdd_Click`을 쓰므로 **같은 성질이 목록에도 확장**된다(신규 결함 아님). 대장 유지.
-  - `[Todo* resw 고아 정리]` — T2로 고아가 되는 `TaskLabel_Start`·`TaskLabel_End`를 이 항목에 합류시킨다(정리 자체는 이번 범위 밖 — D13).
-  - `[카테고리 필터에서 "미분류"를 고를 수 없음]`·`[BuildPassRateBadge 조회 테이블화]`·`[FR-T7 담당자(who) 필드]` — 무관·유지.
-  - 그 외 항목은 이번 diff와 무관.
-- **PRD 경량 확인**: 이번 변경은 **FR-T2**(목록 뷰)·**FR-T4**(카테고리 그룹핑·상태별 개수)·**FR-T3**(드래그 상태 변경 — 목록으로 확장)·**FR-T8**(카테고리 그룹 통과율 배지 — 목록 서브그룹에도 표시)에 닿고, **FR-E4**(작업↔테스트 연결 배지)의 UI 표현이 이번 구조 교체로 사라진다(D12) → PRD 연결(Phase G 활성).
+  - **`[테스트→작업 역방향 링크/배지]`(FR-E4 확장) — 이번 작업이 이 항목의 재수용이다.** 원문: "테스트 목록에서 연결된 작업 배지/링크 표시. 현재 TodoItem.LinkedTestId 단방향만. TestItem→Todo 역참조 조회 필요. 사용자 결정으로 Phase 3 제외." 요구·기술 판단이 이번 요청과 정확히 일치한다 → 완료 시 `## 종결`로 이동.
+  - `[FR-E4 작업별 연결 배지 표시 소멸]`(2026-07-22 등재) — 그건 **작업 화면(TaskPage) 쪽** 몫(`TodoItem.LinkedTestBadge`)이라 이번 작업과 **별개**다. 이번 구현은 반대 방향(테스트→작업)이므로 그 항목은 대장에 그대로 유지한다.
+  - `[PRD FR-E4 문구가 구현과 어긋남 — 사용자 승인 대기]` — 이번 구현으로 FR-E4의 "연결 배지"가 **테스트 쪽에서 충족**되므로 문구 정정의 필요성이 줄어든다(작업 쪽 배지만 미표시로 남음). 항목은 유지하되 이번 결과를 반영해 재판단 대상으로 남긴다.
+  - `[FR-T6/E4 "방법" 필드 확장 소비]`·`[FR-E5 에러 표시 미착수]` — 시안 같은 행의 방법·에러 표시는 이번 범위 밖이라 **그대로 유지**.
+  - `[Test* 구 resw 고아 정리]`·`[BOM/no-BOM 인코딩 통일]` 등 나머지는 무관.
+- **PRD 경량 확인**: 이번 변경은 **FR-E4**(Should — "테스트↔작업 연결(연결 배지·링크), 칸반 카테고리 그룹 통과율 배지 배선") 중 **연결 배지** 몫에 직접 닿는다 → PRD 연결(Phase G 활성).
 
 ### 현행 구현 (직접 Read)
 
-**`TaskPage.xaml`**(453줄)
-- `TaskKanbanCardTemplate`(:19-106): 칸반 카드. 우클릭 `MenuFlyout`(편집/상태 변경 4개/삭제, :30-58) + `Tapped="Card_Tapped"`(클릭 편집) + `CanDrag="True"`. **목록 행의 조작 경로가 그대로 참고할 선례.**
-- `TaskColumnGroupTemplate`(:109-170): 칸반 열 안의 카테고리 그룹 — dot(`TagColor` 컨버터) + 이름 + 개수 + **테스트 배지 2종**(미실행 테두리형 `IdleTestBadgeVisibility` / 실행 채움형 `RanTestBadgeVisibility`). 안쪽에서 `TaskKanbanCardTemplate`을 **하드코딩 참조**(:168) → 목록은 행 템플릿이 달라 이 템플릿을 그대로 못 쓴다(목록용 카테고리 템플릿 신규 필요).
-- `TaskCardTemplate`(:173-273): **목록 뷰 전용 세로 카드** — 카테고리 dot·이름·우선순위 텍스트·`LinkedTestBadge`(:203-215) / 제목 / 시작일·종료일 2줄(:227-236) / **상태 ComboBox + 수정·삭제 버튼**(:239-270). 시안과 구조가 전혀 다름 → **제거 대상**.
-- 목록 뷰 본문(:437-450): `ScrollViewer` → `ItemsControl ItemsSource={x:Bind Vm.CategoryGroups}`(:440) → 인라인 `DataTemplate x:DataType="vm:TaskCategoryGroup"`(:442) + `ItemTemplate={StaticResource TaskCardTemplate}`(:445). `MaxWidth="520"` 좌측 정렬. → **전면 교체 대상**. **`x:Bind`는 컴파일 타임 바인딩이라 VM 멤버를 지우면서 이 마크업을 남기면 XamlCompiler 오류가 난다** → VM 멤버 제거와 마크업 교체는 **같은 task**여야 한다(T2, 리뷰 B1).
-- 칸반 열(:367-432): 4개 `Border Style=KanbanColumnStyle` + `AllowDrop="True" Tag="Waiting|Active|Completed|Hold" DragOver="Column_DragOver" Drop="Column_Drop"` + 하단 `Button Style=DashedAddButtonStyle Tag=<상태> Click="ColumnAdd_Click"`. **드롭 대상·새 작업 버튼의 배선 방식을 목록이 그대로 재사용**할 수 있다(핸들러가 `Tag: string` → `Enum.TryParse<TodoStatus>` 방식이라 요소 종류에 의존하지 않음 — `TaskPage.xaml.cs:205-206`, `:314-315`).
-- **소비처 전수**(grep, `obj/`·`bin/` 제외): `TaskCardTemplate`·`TaskCategoryGroup`·`CategoryGroups`·`StatusCombo_Loaded`·`StatusCombo_SelectionChanged`·`EditTask_Click`·`DeleteTask_Click`·`TaskStatusOption`·`StatusOptions` 모두 **`TaskPage.xaml`·`TaskPage.xaml.cs`·`TaskPageViewModel.cs` 3파일 안에서만** 참조된다(hit 25건 전건 확인). 다른 화면 소비처 0 — 함정 11 리스크 없음.
-- **`TaskCardTemplate` 제거로 함께 고아가 되는 심볼**(리뷰 M4 지적으로 재조사, grep 전수):
-  - `FormatStart`(:228)·`FormatEnd`(:233)·`DateVisibility`(:231,:236) — **유일 소비처가 이 템플릿** → 함께 제거(목록 행은 `FormatDateRange`/`DateRangeVisibility`를 쓴다).
-  - resw `TaskLabel_Start`·`TaskLabel_End`(ko/en :444-445) — 위 두 헬퍼가 유일 소비처 → 고아화(삭제는 대장 합류, D13).
-  - `TodoItem.LinkedTestBadge`(:210,:212) — **UI 소비처가 이 템플릿뿐**. 제거하면 도메인 속성(`TodoItem.cs:52-54`, 표시 전용·비영속)과 VM의 `MapTestBadge`/`GetLinkedTestStatus`/`Rebuild`의 대입(`TaskPageViewModel.cs:91-106`)이 **화면에 닿지 않는 계산**이 된다 → 계산 경로는 유지하고 PRD 영향을 명시(D12).
+**`Domain/Entities/TestItem.cs`**(51줄)
+- `ObservableObject` 상속, `[ObservableProperty] partial` 프로퍼티 방식(`Text`·`Method`·`ProgressNote`·`Status`·`CompletedAt`). `Id`·`CategoryId`·`CreatedAt`은 일반 프로퍼티.
+- **연결 정보 필드 없음** — 테스트에서 작업을 가리키는 값이 도메인에 존재하지 않는다.
 
-**`TaskPage.xaml.cs`**(338줄)
-- 상태 dot 정적 브러시 `_statusDotWaiting`~`_statusDotHold`(:39-42)와 공개 프로퍼티 `StatusDotWaiting`~`StatusDotHold`(:44-47) — 칸반 열 헤더가 소비. **파일 내부 private static이라 다른 화면과 공유되지 않는다**(grep 전수 — TaskPage 전용). 현재 값 예정 `#F0716A`·진행 중 `#5B93D8`·완료 `#5DB463`·보류 `#D9954A`는 **시안(`colDefs` :1198)의 `#8a8890`·`#5aa3e8`·`#5db463`·`#e8925a`와 다르다**(예정은 회색 vs 코랄로 확연히 다름) → T4에서 시안 값으로 정정(사용자 결정).
-- 라벨 정적 프로퍼티 `LabelWaiting/Active/Completed/Hold`(:50-53), `ColumnAddText`(:31) 존재 — 목록 그룹 헤더는 그룹마다 다른 라벨이 필요하므로 **그룹 데이터에 라벨을 담는다**(D3).
-- 우선순위 브러시 `_priorityHigh/Normal/Low(+Soft)`(:126-131) — 칸반 카드와 목록 행이 공유(TaskPage 전용). 현재 값이 시안 `priStyles`(:1200-1204)와 다름(높음 `#D9954A` vs `#e8b45a`, 보통 `#5B93D8` vs `#7ab5ec`, 낮음 배경 반투명 `#286F6D75` vs 불투명 `#2b2b31`) → T4에서 정정(사용자 결정).
-- `PriorityText`(:90)·`FormatDateRange`/`DateRangeVisibility`(:107-118)·`IdleTestBadgeVisibility`/`RanTestBadgeVisibility`/`TestBadgeBackground`/`TestBadgeForeground`(:158-171) — 목록에서 **그대로 재사용**.
-- `StatusCombo_Loaded`/`StatusCombo_SelectionChanged`(:186-198), `EditTask_Click`/`DeleteTask_Click`(:238-248), `StatusOptions`(:56-62), `TaskStatusOption` record(:335-338), `EditTooltip`/`DeleteTooltip`(:22-23) — **전부 `TaskCardTemplate` 전용** → 함께 제거(T2).
-  - ⚠️ `EditTooltip`/`DeleteTooltip`은 **동명의 별개 심볼이 레포 곳곳에 있다**(`TestPage.xaml.cs:60-61`, `HistoryDialogViewModel.cs:68,71`, `ToolItemViewModel.cs:133` 등) → 회귀 grep은 **`TaskPage` 두 파일로 범위를 한정**한다(리뷰 M3).
-- `EditTodoAsync`/`DeleteTodoAsync`(:221-236), `CardMenuEdit_Click`·`CardMenuDelete_Click`·`CardMenuMove*_Click`(:260-282) — 칸반 우클릭 메뉴 공용 경로. **목록 행 메뉴도 같은 핸들러를 그대로 재사용**(Tag에 `TodoItem`을 넣는 계약 동일).
-- `Card_DragStarting`/`Column_DragOver`/`Column_Drop`(:289-320) — 드래그 소스는 `DataContext: TodoItem`, 드롭 대상은 `Tag: string` 상태. **목록 행·상태 그룹에 그대로 배선 가능**(요소 종류 무관).
+**`Domain/Entities/TodoItem.cs`**
+- `LinkedTestId`(:50, 일반 string, **영속**) — 작업 → 테스트 단방향 링크.
+- `LinkedTestBadge`(:52-54, `[ObservableProperty]`, 주석에 "**표시 전용 — 영속화하지 않으며 TaskPageViewModel이 설정**") — **이번에 만들 속성의 정확한 선례**다(도메인에 표시 전용 비영속 속성을 두고 VM이 채우는 패턴).
 
-**`TaskPageViewModel.cs`**(304줄)
-- `BuildColumnGroups(column, source, status)`(:127-146): 한 상태의 작업을 카테고리로 묶어 `TaskColumnGroup`(이름·배지 텍스트·`HasTestResult`·`IsFullPass`·항목)을 만든다. `OrderBy(g.Key, CurrentCulture)` raw key 정렬(빈 카테고리=미분류가 최상단), 항목은 `CreatedAt` 내림차순. **목록 카테고리 서브그룹이 필요로 하는 데이터와 정확히 일치** → 재사용.
-- `Rebuild()`(:102-124): 필터 적용 → 칸반 4열 구성 → 개수 합산 → `RebuildCategoryGroups(filtered)`. 목록 몫만 교체하면 된다.
-- `RebuildCategoryGroups`(:175-184) + `CategoryGroups`(:39) + `TaskCategoryGroup` record(:297) — **목록 1단 그룹 전용** → 제거 대상(T2 — XAML 소비처와 동시에).
-- `WaitingItems`/`ActiveItems`/`CompletedItems`/`HoldItems`(:33-36)는 실제로는 `TaskColumnGroup` 컬렉션(이름과 내용 불일치 — 대장 m4). 이번엔 이름 유지.
-- `MoveToStatus`(:187-199)가 상태 변경·저장·작업기록 훅을 모두 담당 — 목록 드래그도 이 경로를 그대로 탄다(신규 로직 0).
+**`Presentation/ViewModels/TaskPageViewModel.cs`**(대칭 선례)
+- `BuildTestStatusLookup`(:75-81)이 `testId → status` 딕셔너리를 만들고, `Rebuild()`(:105-106)가 `t.LinkedTestBadge = MapTestBadge(GetLinkedTestStatus(t))`로 **매 재구성마다 표시 값을 채운다**. 이번 구현은 이 패턴의 **반대 방향** 대칭이다.
 
-**`Resources/Styles.xaml`**
-- `TagBadgeStyle`(:189-193, CornerRadius 4·Padding 8,3) — 우선순위 배지가 이미 사용 중, 목록 행도 동일 사용(시안 radius 6·padding 9,3은 소비 지점에서 덮어쓴다 — 공용 스타일 무변경).
-- `KanbanColumnStyle`(:217-224) — 칸반 열 전용(목록 그룹은 카드 배경이 없어 미사용).
-- `DashedAddButtonStyle`(:232-283) — **점선 테두리 구현 선례**(함정 6: Border는 점선 불가 → 템플릿 안 `Rectangle` + `StrokeDashArray="3,3"`). "작업 없음" 점선 박스가 이 방식을 따른다(스타일 자체는 미재사용 — 4-D 참조).
-- `SeparatorStyle`(:196-199, `DividerStrokeColorDefaultBrush` #26262C, Height 1) — 시안의 그룹 헤더 가로 구분선(#26262c)과 **색·두께가 정확히 일치** → 재사용.
+**⚠️ `ProjectItem.Todos`는 지연 로딩이다 (plan-reviewer B1으로 발견 — 이 plan의 성립 조건)**
+- `SqliteProjectRepository.cs:35` 주석대로 `Todos`·`TestCategories`·`Histories`는 **진입 시점에 필요한 것만** DB에서 채운다. 채우는 주체는 `ProjectCardViewModel`의 `EnsureTodosLoaded()`(:295-300)·`EnsureTestsLoaded()`(:311-316)이며, 각각 `_todosLoaded`/`_testsLoaded` 플래그로 1회만 로드한다.
+- **작업 화면 진입** `CreateTaskPageViewModel()`(:517-523)은 `EnsureTodosLoaded()` + `EnsureHistoriesLoaded()` + `EnsureTestsLoaded()`를 **모두** 호출한다.
+- **테스트 화면 진입** `CreateTestPageViewModel()`(:533-537)은 **`EnsureTestsLoaded()`만** 호출한다 — 즉 테스트 화면을 열면 `_item.Todos`는 로드되지 않은 초기 상태다.
+- **결과**: 이 사실을 모르고 구현하면 `BuildLinkedTaskTitles()`의 딕셔너리가 항상 비어 **모든 배지가 `Collapsed`가 된다**. 빌드·grep은 전부 통과하므로 정적 검증으로는 잡히지 않는다(리뷰어 지적 그대로). → **T1에서 `CreateTestPageViewModel()`에 `EnsureTodosLoaded()`를 추가**해 해소한다(작업 화면이 이미 `EnsureTestsLoaded()`를 부르는 것과 대칭).
+- 유일 진입 경로 확인: `DashboardView.xaml.cs:237`이 `CreateTestPageViewModel()`을 호출하는 단일 지점(grep 전수).
 
-**`Resources/Palette.xaml`**(다크 `Default` 단일 — 함정 4)
-- 시안 색 ↔ 팔레트 대응: 행 배경 `#1f1f24` ↔ `AppCardBrush` **#1C1C20**(근사) / 행 테두리 `#27272d` ↔ `AppBorderBrush` **#26262C**(근사) / hover 테두리 `#3d3d45` ↔ `ControlStrokeColorSecondaryBrush` **#35353C**(근사) / 점선 박스 테두리 `#35353c` ↔ **`ControlStrokeColorSecondaryBrush`**(정확 일치) / 빈 상태 글자 `#5f5d66` ↔ `TextFillColorDisabledBrush`(정확) / 구분선 `#26262c` ↔ `DividerStrokeColorDefaultBrush`(정확) / 버튼 배경 `#1d1d21` ↔ `AppInputBrush`(정확) / 버튼 테두리 `#2b2b31` ↔ `ControlStrokeColorDefaultBrush`(정확) / 버튼 hover 배경 `#222226` ↔ `ControlFillColorSecondaryBrush`(정확) / 보조 글자 `#8a8890` ↔ `TextFillColorTertiaryBrush`(정확) / 카테고리명 `#c9c6ce` ↔ `TextFillColorSecondaryBrush` **#B3B0B8**(근사) / 설명 `#98959d` ↔ `TextFillColorTertiaryBrush` **#8A8890**(근사).
-- ⚠️ **`#35353C`는 `AppBorderStrongerColor`라는 `Color`로만 존재하고 대응 `SolidColorBrush`가 없다**(리뷰 M1) — 브러시가 필요한 자리(`Rectangle.Stroke`)에는 같은 값의 **`ControlStrokeColorSecondaryBrush`**(:128)를 쓴다. 브러시 키를 새로 만들지 않는다.
-- **팔레트 신규 색은 추가하지 않는다**(D5).
+**`Presentation/ViewModels/TestPageViewModel.cs`**(현재 확인 범위 1~105줄)
+- `_project`(`ProjectItem`) 보유 — `_project.Todos` 필드 자체는 접근 가능하나, **로드 여부는 위 지연 로딩 규약에 달려 있다**(T1이 해소).
+- `Rebuild()`(:66-101): 통계 → 스위트 필터 → `SuiteGroups` 재구성. **표시 값을 채울 지점이 이 메서드 하나로 모여 있다**(`OnSelectedStatusChanged`·`OnSelectedSuiteFilterChanged`·생성자가 전부 여기로 수렴).
+- 항목 표시는 `TestSuiteGroup`에 `ObservableCollection<TestItem>`을 담는 방식이라, **`TestItem` 자체에 표시 값이 있으면 XAML이 그대로 바인딩**할 수 있다(별도 wrapper 불필요).
 
-**resw 현황**(ko/en 대칭 확인): `TaskStatus_Waiting/Active/Completed/Hold`·`TaskCategory_None`·`TaskColumnAdd`("+ 새 작업")·`TaskPassRateBadge`·`TaskNoTestBadge`·`TaskPriority_*`·`TaskDateRange`·`TaskMenu_*` 존재. **신규 필요: 빈 상태 문구 1개**(`TaskList_Empty.Text`).
+**`Presentation/Views/TestPage.xaml`**
+- `TestItemRowTemplate`(:22-115): `Border`(구분선·hover·`ContextFlyout`) 안 `Grid` — **열 3개**(아이콘 `Auto` / 본문 `*` / pill `Auto`), **행 2개**(0=이름, 1=메모). 아이콘·pill은 `Grid.RowSpan="2"`로 세로 중앙.
+  - 이름 `TextBlock`(:76-83): 13px, 최대 2줄 말줄임.
+  - 메모 `Border`(:86-105): `Grid.Row="1"`, `NoteVisibility(ProgressNote)` 조건, 좌측 warning 바 + 깃발 아이콘.
+  - **배지를 이름과 메모 사이에 넣으려면 행이 하나 더 필요**하다(시안 순서: 이름 → 링크 배지 → 메모).
+- **색 리터럴 직접 사용 선례**: 미실행 테스트 배지가 상태에 따라 변하지 않는 색을 XAML에 `#8A8890`/`#35353C` 리터럴로 직접 적었다(notes 2026-07-21 기록). 링크 배지도 상태 무관 고정색이라 **같은 방식이 적절**하다 — 정적 브러시 헬퍼 불필요.
+- **소비처 전수**(grep): `TestItemRowTemplate`은 `TestPage.xaml` 안에서만 참조(정의 1 + 소비 1) — 함정 11 리스크 없음.
+
+**`Resources/Converters.xaml`**
+- `StringNotEmptyToVisibility`(:16) 등록됨 — `TaskPage.xaml`이 `{x:Bind Description, Converter={StaticResource StringNotEmptyToVisibility}}`로 사용 중. **일반 x:Bind + Converter 조합이 이 레포에서 동작함이 확인된 선례**이므로 신규 Visibility 헬퍼를 만들 필요가 없다.
+
+**아이콘**: 시안은 체인 2개가 겹친 SVG(`:263`). Segoe Fluent Icons의 대응 글리프는 **`E71B`(Link)**. 이 레포의 기존 `FontIcon` 사용 글리프를 전수 확인한 결과 `E71B`는 **미사용**이라 충돌 없음.
 
 ### 4-D. 재사용 확인
 
 | 신규 심볼 | 유사 기존 구현 검색 결과 | 재사용/신규 사유 |
 |---|---|---|
-| `TaskListStatusGroup`(record) | `TaskColumnGroup`(카테고리 단위)·`TaskCategoryGroup`(제거 대상) — **상태 단위 그룹 타입은 없음** | **신규** — 상태 라벨·개수·빈 여부·카테고리 서브그룹 목록을 한 항목으로 묶어야 `ItemsControl` 하나로 4개 그룹을 돌릴 수 있다(칸반은 XAML에 4열을 하드코딩했지만 목록은 세로 반복이라 데이터 주도가 맞다) |
-| `TaskPage.StatusDotBrush(TodoStatus)` | `StatusDotWaiting/Active/Completed/Hold` 정적 프로퍼티 4개(`TaskPage.xaml.cs:44-47`) | **재사용 + 얇은 신규** — 기존 브러시 4개를 그대로 반환하는 switch 헬퍼만 추가(색 정의 중복 없음) |
-| `TaskPage.StatusTag(TodoStatus)` | 칸반 열의 `Tag="Waiting"` 등 XAML 리터럴 | **신규(얇음)** — 데이터 주도 그룹은 리터럴을 쓸 수 없어 enum → 문자열 변환이 필요. 기존 `ColumnAdd_Click`/`Column_Drop`의 `Tag: string` 계약을 그대로 만족시킨다 |
-| `TaskPage.EmptyGroupVisibility(bool)`·`CategoriesVisibility(bool)` | `DateRangeVisibility`·`IdleTestBadgeVisibility` 등 다수 선례 | **신규(선례 재현)** — 함정 5로 `Visibility` 직접 반환 |
-| 목록 행 hover(테두리 밝아짐) | `TestPage.Row_PointerEntered/Exited` 선례(배경 토글), `FilterTabStyle`·`DashedAddButtonStyle`의 VSM 방식 | **신규(선례 재현)** — `DataTemplate` 안에서는 VSM `GoToState`가 동작하지 않아 `PointerEntered`/`PointerExited` 핸들러로 처리 |
-| "작업 없음" 점선 박스 | `DashedAddButtonStyle`(Button 템플릿 안 `Rectangle` + `StrokeDashArray`) | **패턴 재사용, 스타일 미재사용** — 클릭 대상이 아니라 표시 전용이므로 Button 스타일을 쓰면 불필요한 상호작용(포커스·hover·클릭)이 붙는다. 같은 방식을 인라인으로 그린다 |
-| 행 클릭·우클릭·드래그 배선 | `Card_Tapped`·`CardMenu*_Click`·`Card_DragStarting`·`Column_DragOver`·`Column_Drop`(전부 기존) | **전부 재사용(신규 0)** — 핸들러가 `DataContext: TodoItem` / `Tag: TodoItem` / `Tag: string` 계약만 보므로 목록 요소에 그대로 배선된다 |
-| 상태 그룹 "＋ 새 작업" | `ColumnAdd_Click`(기존, `Tag: string` → `TodoStatus`) | **재사용(신규 0)** |
-| 우선순위·날짜·테스트 배지 표시 | `PriorityText`/`PriorityBrush`/`PriorityBadgeBrush`/`FormatDateRange`/`DateRangeVisibility`/`IdleTestBadgeVisibility`/`RanTestBadgeVisibility`/`TestBadgeBackground`/`TestBadgeForeground`(전부 기존) | **전부 재사용(신규 0)** |
+| `TestItem.LinkedTaskTitle` | `TodoItem.LinkedTestBadge`(`TodoItem.cs:52-54`) — **표시 전용·비영속·VM이 채움**의 동일 패턴 | **신규(선례 대칭 재현)** — 반대 방향(테스트→작업)이라 기존 속성을 재사용할 수 없다. 같은 주석 규약("표시 전용 — 영속화하지 않으며 TestPageViewModel이 설정")을 따른다 |
+| `TestPageViewModel`의 역참조 채우기 | `TaskPageViewModel.BuildTestStatusLookup`/`MapTestBadge`/`GetLinkedTestStatus`(:75-97) — 반대 방향의 같은 구조 | **신규(선례 대칭 재현)** — 방향이 반대라 그 메서드들을 호출할 수 없다. 단 **딕셔너리 없이** 단순 조회로 둔다(아래 D3) |
+| 배지 표시 조건 | `StringNotEmptyToVisibility` 컨버터(`Converters.xaml:16`), `TestPage.NoteVisibility`(정적 헬퍼) | **컨버터 재사용(신규 0)** — 일반 x:Bind는 Converter를 받으므로 헬퍼를 새로 만들지 않는다 |
+| 배지 색 | `AppInfoBrush`(#5B93D8 — 시안 #7AB5EC와 다름), TestPage의 색 리터럴 직접 사용 선례 | **XAML 리터럴(신규 심볼 0)** — 상태와 무관한 고정색이라 헬퍼·팔레트 추가가 불필요 |
+| 배지 컨테이너 스타일 | `TagBadgeStyle`(`Styles.xaml:189`, CornerRadius **4**) | **미사용** — 시안은 `border-radius:999px` 완전 캡슐이라 값이 다르고, 재사용해도 CornerRadius를 덮어써야 해 이득이 없다. 인라인 `Border`로 그린다 |
 
 ## 시각 요소 분해
 
-> 기준: 시안 원본 HTML(`taskViewList` 143~187줄 + `taskListGroups` 1405~1440줄 + `colDefs`/`priStyles`)의 **인라인 스타일 값**. `sc-if`/`{{ }}` 템플릿 문법이라 브라우저 렌더 캡처는 확보하지 못했다 — **모든 항목이 HTML 소스 판독이며 렌더 미확인**이다. 최종 판정은 빌드 후 사용자 육안 대조(⏳ HUMAN-VERIFY). px는 WinUI 논리 단위로 그대로 옮긴다.
+> 기준: 시안 원본 HTML `:261-266`의 인라인 스타일 + 사용자 제공 렌더 이미지(2026-07-22). px는 WinUI 논리 단위로 그대로 옮긴다. 최종 판정은 빌드 후 사용자 육안 대조(⏳ HUMAN-VERIFY).
 
 | 요소 | 속성 | 디자인 값 | XAML 대응 수단 | 확인 방법 |
 |---|---|---|---|---|
-| 목록 컨테이너 | padding | `18px 24px 24px` | `Padding="24,18,24,24"` | HTML 소스 :144 |
-| 목록 컨테이너 | 그룹 간격 | `gap:22px` (세로) | `ItemsPanel StackPanel Spacing="22"` | HTML 소스 :144 |
-| 상태 그룹 | 내부 간격 | `gap:12px` (세로) | `StackPanel Spacing="12"` | HTML 소스 :146 |
-| 그룹 헤더 | 배치·간격 | 가로, `gap:9px`, 세로 중앙 | `Grid ColumnSpacing="9"` + `VerticalAlignment="Center"` | HTML 소스 :147 |
-| 그룹 헤더 dot | 크기·모양 | `9×9`, `border-radius:3px` (**라운드 사각형**) | `Border Width=9 Height=9 CornerRadius=3` | HTML 소스 :1419 |
-| 그룹 헤더 dot | 색 | 예정 `#8a8890` / 진행 중 `#5aa3e8` / 완료 `#5db463` / 보류 `#e8925a` | **T4에서 기존 정적 브러시 4종을 이 값으로 정정**(현재 `#F0716A`·`#5B93D8`·`#5DB463`·`#D9954A` — D11) | HTML 소스 :1198 |
-| 그룹 헤더 이름 | 폰트 | `14.5px`, `weight 700` | `FontSize="14.5" FontWeight="Bold"` | HTML 소스 :149 |
-| 그룹 헤더 개수 | 폰트·색 | `12px`, `#8a8890`, 등폭 | `FontSize="12" Foreground=TextFillColorTertiaryBrush FontFamily="Consolas"` | HTML 소스 :150 |
-| 그룹 헤더 구분선 | 형태 | 남는 폭을 채우는 `height:1px` `#26262c` | `Rectangle Style=SeparatorStyle` in `Width="*"` 열 | HTML 소스 :151 |
-| 그룹 헤더 버튼 | 크기·색 | `height:28px`, `padding:0 11px`, `radius:7px`, 테두리 `#2b2b31`, 배경 `#1d1d21`, 글자 `#8a8890` `12px` | `Button Height=28 Padding="11,0" CornerRadius=7` + `AppInputBrush`/`ControlStrokeColorDefaultBrush`/`TextFillColorTertiaryBrush` | HTML 소스 :152 |
-| 그룹 헤더 버튼 | hover | 글자 `#e8e6e3`, 배경 `#222226` | 기본 `Button` 스타일의 `PointerOver`(팔레트 `ButtonBackgroundPointerOver`=`#2B2B31`) — **근사, 별도 템플릿 미작성** | HTML 소스 :152 `style-hover` |
-| 그룹 헤더 버튼 | 문구 | `＋ 새 작업` | 기존 resw `TaskColumnAdd`("+ 새 작업") | HTML 소스 :152 |
-| 빈 그룹 박스 | 형태 | `1px dashed #35353c`, `radius:10px`, `padding:18px 0`, 가운데 정렬 | `Rectangle StrokeDashArray="3,3" RadiusX/Y=10 Stroke=ControlStrokeColorSecondaryBrush` + 겹친 TextBlock (함정 6) | HTML 소스 :155 |
-| 빈 그룹 박스 | 문구·색 | "작업 없음", `12.5px`, `#5f5d66` | 신규 resw `TaskList_Empty.Text` + `TextFillColorDisabledBrush` | HTML 소스 :155 |
-| 카테고리 그룹 | 들여쓰기·간격 | `padding-left:4px`, `gap:7px` (세로) | `StackPanel Margin="4,0,0,0" Spacing="7"` | HTML 소스 :158 |
-| 카테고리 헤더 | 배치·간격·줄바꿈 | 가로, `gap:7px`, **`flex-wrap:wrap`** | `StackPanel Orientation=Horizontal Spacing=7` (**줄바꿈 미지원 — 시안과 차이, D14**) | HTML 소스 :159 |
-| 카테고리 dot | 크기·모양 | `8×8`, `radius:3px` (**라운드 사각형**) | `Border Width=8 Height=8 CornerRadius=3` + `TagColor` 컨버터 | HTML 소스 :1430 |
-| 카테고리 이름 | 폰트·색 | `12.5px`, `weight 700`, `#c9c6ce` | `FontSize=12.5 FontWeight=Bold Foreground=TextFillColorSecondaryBrush` | HTML 소스 :161 |
-| 카테고리 개수 | 폰트·색 | `11.5px`, `#8a8890`, 등폭 | `FontSize=11.5 Foreground=TextFillColorTertiaryBrush` | HTML 소스 :162 |
-| 카테고리 순서 | 정렬 | 카테고리 **선언 순서**(`catOrder`) | **이름순 유지**(칸반과 동일 — 사용자 결정, D2) | HTML 소스 :1406 |
-| 테스트 배지(미실행) | 형태 | `11px` `#8a8890`, 테두리 `1px #35353c`, `radius:6px`, `padding:2px 7px`, 보통 굵기 | 칸반 `TaskColumnGroupTemplate`의 테두리형 배지와 **동일 마크업** | HTML 소스 :164, :1434 |
-| 테스트 배지(실행) | 형태 | `11px` `weight 700`, `radius:6px`, `padding:2px 7px`, 100%면 초록(`#5db463`/16%) 아니면 호박(`#e8b45a`/16%) | 칸반의 채움형 배지와 **동일 마크업**(기존 헬퍼 재사용) | HTML 소스 :1435 |
-| 작업 행 | 배치 | 가로 1줄, `gap:12px`, 세로 중앙 | `Grid ColumnSpacing="12"` (열: `*` / Auto / Auto) | HTML 소스 :171, :1411 |
-| 작업 행 | 배경·테두리 | 배경 `#1f1f24`, 테두리 `1px #27272d`, `radius:10px` | `Border Background=AppCardBrush BorderBrush=AppBorderBrush CornerRadius=10` | HTML 소스 :1411 |
-| 작업 행 | padding | `11px 14px` | `Padding="14,11"` | HTML 소스 :1411 |
-| 작업 행 | 행 간격 | `gap:7px` (카테고리 그룹 내부) | `ItemsPanel StackPanel Spacing="7"` | HTML 소스 :158 |
-| 작업 행 | hover | 테두리 `#3d3d45`로 밝아짐 | `PointerEntered/Exited` 핸들러로 `BorderBrush` 토글 | HTML 소스 :171 `style-hover` |
-| 작업 행 | 드래그 중 | `opacity:0.45` | **미구현**(D6 — WinUI 기본 드래그 비주얼 사용) | HTML 소스 :1411 |
-| 행 제목 | 폰트·말줄임 | `13.5px` `weight 700`, 1줄 말줄임 | `FontSize=13.5 FontWeight=Bold TextTrimming=CharacterEllipsis TextWrapping=NoWrap` | HTML 소스 :173 |
-| 행 설명 | 폰트·색·조건 | `12px` `#98959d`, 1줄 말줄임, **설명이 있을 때만** | `Foreground=TextFillColorTertiaryBrush` + `StringNotEmptyToVisibility` | HTML 소스 :174-176 |
-| 행 제목/설명 | 간격 | `gap:3px` (세로) | `StackPanel Spacing="3"` | HTML 소스 :172 |
-| 행 날짜 | 폰트·색 | `11px` `#8a8890`, 등폭, 축소 안 됨 | 기존 `FormatDateRange`(`MM-dd – MM-dd`) + `FontFamily="Consolas"` | HTML 소스 :178 |
-| 행 우선순위 배지 | 형태 | `11px` `weight 700`, `radius:6px`, `padding:3px 9px` | `Border Style=TagBadgeStyle` + `CornerRadius="6"`·`Padding="9,3"` 덮어쓰기 | HTML 소스 :179, :1412 |
-| 행 우선순위 배지 | 색 | 높음 글자 `#e8b45a`/배경 16% · 보통 글자 `#7ab5ec`/배경 `rgba(90,163,232,.16)` · 낮음 글자 `#8a8890`/배경 **불투명 `#2b2b31`** | **T4에서 기존 브러시를 이 값으로 정정**(현재 `#D9954A`·`#5B93D8`·반투명 `#286F6D75` — D7) | HTML 소스 :1200-1204 |
+| 링크 배지 | 표시 조건 | `hasLink` = 연결된 작업이 있을 때만 | `Visibility` + `StringNotEmptyToVisibility` 컨버터 | HTML 소스 :261, :1078 |
+| 링크 배지 | 위치 | 테스트 이름 **아래**, 메모 **위** | `Grid.Row="1"`(메모를 행 2로 밀어냄) | HTML 소스 :259-275 (순서: 이름 → 링크 → 방법 → 메모) |
+| 링크 배지 | 가로 정렬 | `align-self:flex-start` (내용 폭만큼만, 좌측) | `HorizontalAlignment="Left"` | HTML 소스 :262 |
+| 링크 배지 | 배치·간격 | `inline-flex`, `align-items:center`, `gap:5px` | `StackPanel Orientation="Horizontal" Spacing="5"` + 세로 중앙 | HTML 소스 :262 |
+| 링크 배지 | 모서리 | `border-radius:999px` (**완전 캡슐**) | `CornerRadius="999"` — ⚠️ **레포 내 선례 0(미검증)**. 캡슐로 렌더되지 않으면 배지 높이(글자 11 + padding 4 ≈ 19)의 절반인 `CornerRadius="10"`으로 대체한다(자율 루프가 이 대안으로 진행, 최종 판정은 육안) | HTML 소스 :262 |
+| 링크 배지 | 테두리 | `1px solid rgba(90,163,232,.45)` | `BorderThickness="1" BorderBrush="#735AA3E8"`(0.45×255≈0x73) | HTML 소스 :262 |
+| 링크 배지 | 배경 | 없음(투명 — 테두리형) | `Background` 미지정 | HTML 소스 :262 |
+| 링크 배지 | padding | `2px 9px` | `Padding="9,2"` | HTML 소스 :262 |
+| 링크 배지 | 글자 | `11px`, `#7ab5ec` | `FontSize="11" Foreground="#7AB5EC"` | HTML 소스 :262 |
+| 링크 배지 | 최대 폭 | `max-width:100%` (넘치면 말줄임) | 본문 열이 `*`라 자동 제한 + `TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"` | HTML 소스 :262, :264 |
+| 링크 아이콘 | 모양 | 체인 2개가 겹친 링크 아이콘 | `FontIcon Glyph="&#xE71B;"`(Segoe Fluent "Link") | HTML 소스 :263 |
+| 링크 아이콘 | 크기·색 | `10×10`, `stroke:currentColor`(= 글자색 `#7ab5ec`) | `FontSize="10" Foreground="#7AB5EC"` | HTML 소스 :263 |
+| 링크 아이콘 | 축소 | `flex-shrink:0` (텍스트가 길어도 아이콘은 안 줄어듦) | `Grid`가 아니라 `StackPanel` + 텍스트만 말줄임 → 자동 충족 | HTML 소스 :263 |
+| 배지 텍스트 | 내용 | 연결된 **작업 제목**(`link: title`) | `{x:Bind LinkedTaskTitle}` | HTML 소스 :264, :1508 |
+| 행 간격 | 이름↔배지 | `gap:3px` (본문 세로 스택) | 배지 `Margin="0,3,0,0"` | HTML 소스 :259 |
 
 ## Decisions
 
-- **D1 (목록 데이터 구조 = 상태 그룹의 컬렉션)**: 목록 뷰를 `ObservableCollection<TaskListStatusGroup>` 하나로 표현하고 `ItemsControl` 하나가 4개 상태 그룹을 돌린다. 칸반처럼 XAML에 4개를 하드코딩하지 않는다 — 칸반은 가로 4열 고정이라 열마다 `Grid.Column`·`MinWidth`가 달랐지만, 목록은 **세로로 같은 모양이 4번 반복**되므로 하드코딩하면 그룹 헤더 마크업이 4벌 중복된다. *Source*: `TaskPage.xaml:367-432`, 시안 :145 `sc-for taskListGroups`.
-- **D2 (카테고리 서브그룹은 `TaskColumnGroup` 재사용 · 정렬은 이름순 유지)**: 목록의 카테고리 서브그룹 데이터는 칸반과 완전히 동일하므로 `BuildColumnGroups`가 만든 `TaskColumnGroup`을 그대로 담는다(새 record 없음). **정렬은 시안(`catOrder` — 카테고리 선언 순서)과 다른 이름순(`CurrentCulture`)을 유지**한다 — 사용자 결정(2026-07-22): 칸반과 같은 순서로 보이는 것이 우선이며, 대장 `[칸반/목록 "미분류" 그룹 정렬 불일치]`도 이로써 해소된다. *Source*: `TaskPageViewModel.cs:127-146`, 시안 :157·:1406, 사용자 결정.
-- **D3 (상태 라벨·dot 색의 전달 경로)**: 그룹 라벨(`예정`…)은 **VM이 그룹 데이터에 담아** 넘기고(`LocalizationService.Get($"TaskStatus_{status}")` — VM은 이미 같은 방식으로 `TaskCategory_None`을 쓴다), dot 색은 **View의 `StatusDotBrush(TodoStatus)` 헬퍼**가 상태 enum으로부터 정한다(함정 5 — VM이 `Brush`를 들면 Presentation 타입이 VM에 샌다). *Source*: `TaskPageViewModel.cs:137`, `TaskPage.xaml.cs:39-47`.
-- **D4 (상태 콤보·수정/삭제 버튼 제거 + 조작 경로 통일)**: 목록 행의 상태 ComboBox·수정·삭제 버튼을 제거하고 **칸반과 동일한 3경로**(왼클릭=편집 / 우클릭 메뉴=편집·상태 변경·삭제 / 드래그=상태 이동)로 통일한다. 상태 그룹을 드롭 대상으로 만들어 드래그가 실제로 동작하게 한다. *Source*: 사용자 결정(2026-07-22) — 시안은 행에 `draggable="true"`를 주면서도 드롭 대상을 두지 않아 드래그가 무의미했는데, 대상을 넣으면 외형은 시안 그대로면서 기능이 성립한다.
-- **D5 (팔레트 신규 색·브러시 없음)**: 시안 값 `#1f1f24`·`#27272d`·`#3d3d45`·`#c9c6ce`·`#98959d`는 기존 팔레트 브러시로 근사한다. 브러시가 없는 `#35353C`는 같은 값의 `ControlStrokeColorSecondaryBrush`로 대체한다(리뷰 M1 — `AppBorderStrongerColor`는 Color만 존재). 칸반 카드도 시안 `#25252b`를 `AppCardBrush`로 근사한 선례가 있어 화면 간 일관성이 유지된다.
-- **D6 (드래그 중 반투명 미구현)**: 시안의 `opacity:0.45`(드래그 중인 행)는 구현하지 않는다. WinUI `CanDrag`는 기본 드래그 비주얼을 제공하며, 원본 요소 투명도를 낮추려면 `DragStarting`/`DropCompleted`에서 해당 행을 찾아 되돌리는 배선이 필요하다(칸반 카드도 미구현이라 두 뷰가 일관된다). Deferred 등재.
-- **D7 (우선순위 배지 색 시안 정정)**: 높음 `#D9954A`→`#E8B45A`, 보통 `#5B93D8`→`#7AB5EC`, 낮음 배경 반투명 `#286F6D75`→**불투명 `#2B2B31`**(글자 `#8A8890` 유지). 소프트 배경은 기존 관례대로 알파 `0x28`을 유지한다(시안 `.16`≈`0x29`). **칸반 카드와 공유하는 색이라 칸반도 함께 바뀐다** — 사용자 결정(2026-07-22). *Source*: 시안 :1200-1204, `TaskPage.xaml.cs:126-131`.
-- **D8 (빈 상태 그룹 표시)**: 항목이 0건인 상태 그룹도 헤더와 "작업 없음" 점선 박스를 표시한다(그룹 4개 항상 노출). *Source*: 사용자 결정(2026-07-22) + 시안 :154-156.
-- **D9 (신규 resw 키)**: `TaskList_Empty.Text`("작업 없음" / "No tasks") ko/en 양쪽(함정 2). **XAML `x:Uid` 소비**이므로 `.Text` 접미를 붙인다(함정 3 — 접미 없이 등록하고 `x:Uid`로 쓰면 빌드 오류 없이 빈 라벨이 된다).
-- **D10 (목록 폭)**: 현행 `MaxWidth="520" HorizontalAlignment="Left"` 제한을 제거하고 폭 전체를 쓴다. 시안 목록은 컨테이너 폭을 그대로 채우며(`flex:1`), 가로 1줄 행은 제목·날짜·배지가 양끝으로 벌어져야 읽힌다. *Source*: 시안 :144, `TaskPage.xaml:443`.
-- **D11 (상태 dot 색 시안 정정)**: 예정 `#F0716A`→`#8A8890`, 진행 중 `#5B93D8`→`#5AA3E8`, 완료 `#5DB463`(무변경), 보류 `#D9954A`→`#E8925A`. 특히 예정은 코랄→회색으로 확연히 달라진다. **칸반 열 헤더와 공유하는 색이라 칸반도 함께 바뀐다** — 사용자 결정(2026-07-22). 이 브러시들은 `TaskPage.xaml.cs` 내부 private static이라 다른 화면에는 영향이 없다(grep 전수). *Source*: 시안 :1198, `TaskPage.xaml.cs:39-42`.
-- **D12 (`LinkedTestBadge` 표시 소멸 — 계산 경로는 유지)**: 시안 목록 행에는 작업별 테스트 연결 배지가 없다(테스트 정보는 카테고리 헤더의 통과율 배지가 담당). `TaskCardTemplate` 제거로 `TodoItem.LinkedTestBadge`의 **UI 소비처가 0**이 되지만, 도메인 속성과 VM 계산(`MapTestBadge`/`GetLinkedTestStatus`/`Rebuild`의 대입)은 **유지**한다 — 도메인 변경은 Out of Scope이고, PRD **FR-E4**(Should, active)의 "연결 배지"가 이로써 화면에서 사라지므로 되돌릴 여지를 남긴다. PRD Coverage에 영향으로 명시하고 Deferred 등재. *Source*: `TodoItem.cs:52-54`(표시 전용·비영속), `TaskPageViewModel.cs:91-106`, `TaskPage.xaml:210-212`, 리뷰 M4.
-- **D13 (고아 resw는 대장 합류)**: T2로 고아가 되는 `TaskLabel_Start`·`TaskLabel_End`(ko/en)는 이번에 삭제하지 않고 대장 `[Todo* resw 고아 정리]`에 합류시킨다(고아 resw 일괄 audit이 이미 대기 중이라 개별 삭제는 중복 작업).
-- **D15 (dot 모양도 시안으로 통일 — 칸반 포함)**: 시안의 상태 dot(:1419)·카테고리 dot(:1430)은 모두 `border-radius:3px` **라운드 사각형**인데 현행 칸반은 `Ellipse`(원)다. 목록만 시안을 따르면 한 화면 안에서 두 뷰의 dot 모양이 갈리므로, **칸반의 `Ellipse` 5곳도 함께 라운드 사각형으로 바꾼다**(T4). 색 정정(D7·D11)이 이미 칸반에 파급되는 것과 같은 성격의 확장이며, 요소 종류만 바뀌고 레이아웃·동작은 그대로다. *Source*: 시안 :1419·:1430, `TaskPage.xaml:120-124,372,389,406,423`, 리뷰 m2.
-- **D14 (카테고리 헤더 줄바꿈 미지원)**: 시안 카테고리 헤더는 `flex-wrap:wrap`이라 항목이 넘치면 줄바꿈되지만, WinUI `StackPanel`은 줄바꿈이 없다. 칸반의 같은 헤더도 `Grid`/`StackPanel`로 구현돼 동일 성질이므로 **두 뷰 일관성을 우선해 줄바꿈을 구현하지 않는다**(넘치면 잘린다). 긴 카테고리명이 실제 문제가 되면 Deferred에서 다룬다. *Source*: 시안 :159, `TaskPage.xaml:111-119`, 리뷰 m1.
+- **D1 (표시 값을 도메인 표시 전용 속성으로)**: `TestItem`에 `LinkedTaskTitle`(`[ObservableProperty]`, **비영속**)을 추가하고 `TestPageViewModel`이 채운다. *Source*: `TodoItem.LinkedTestBadge`(`TodoItem.cs:52-54`)가 정확히 같은 규약("표시 전용 — 영속화하지 않으며 TaskPageViewModel이 설정")으로 이미 존재하며, 그 값을 `TaskPage.xaml`이 직접 바인딩해 왔다. 같은 패턴을 반대 방향으로 재현하면 `TestSuiteGroup` wrapper를 바꾸지 않고 XAML이 `TestItem`을 그대로 바인딩할 수 있다.
+  - **대안 기각**: VM에 `testId → 작업제목` 딕셔너리를 두고 XAML이 함수 바인딩으로 조회 — 함정 5로 함수 바인딩은 Converter를 못 받고, `TestItem`이 자기 표시 값을 모르면 행 템플릿이 VM 참조를 별도로 들어야 해 복잡해진다.
+- **D2 (영속화하지 않음)**: `LinkedTaskTitle`은 매 `Rebuild()`마다 재계산하며 DB에 저장하지 않는다. *Source*: 값의 출처가 `TodoItem.Text`(이미 영속)라 **중복 저장은 동기화 실패 지점**만 만든다 — 작업 제목이 바뀌면 저장된 사본이 낡는다. `SaveTestCategories`의 INSERT 컬럼을 건드리지 않으므로 NFR-3(스키마 하위호환)에도 무영향(AGENTS.md의 "INSERT 컬럼 추가 시 파라미터 갱신" 함정도 비해당).
+- **D3 (딕셔너리 없이 단순 조회)**: 역참조는 `_project.Todos`에서 `LinkedTestId == test.Id`인 항목을 찾는 방식으로 하되, **매 테스트마다 전체 Todos를 훑지 않도록** `Rebuild()` 시작에서 `LinkedTestId → 작업제목` 딕셔너리를 **한 번** 만들어 쓴다. *Source*: `TaskPageViewModel.BuildTestStatusLookup`(:75-81)이 같은 이유로 `_testStatusById` 딕셔너리를 쓰는 선례. 개인 대시보드 규모라 성능 자체는 문제가 아니지만, 이중 루프보다 **의도가 명확**하고 선례와 일관된다.
+- **D4 (한 테스트에 여러 작업이 연결된 경우 첫 항목만)**: `LinkedTestId`는 작업당 1개지만 **여러 작업이 같은 테스트 Id를 가질 수 있다**(도메인이 막지 않음 — `CreateLinkedTest`는 항상 새 테스트를 만들어 1:1이지만 데이터상 보장은 없다). 딕셔너리 구성 시 **먼저 만난 항목을 유지**한다(`TryAdd`). 시안도 링크가 문자열 하나라 복수 표현이 없다.
+- **D5 (배지는 표시 전용 — 클릭 동작 없음)**: 시안 마크업(`:262-265`)에 `onClick`이 없다. 작업으로 이동하는 링크 동작은 넣지 않는다(넣으려면 페이지 전환·스크롤·하이라이트 설계가 필요해 별도 논의 대상).
+- **D6 (색은 XAML 리터럴)**: 글자 `#7AB5EC`·테두리 `#735AA3E8`을 XAML에 직접 적는다. *Source*: 상태에 따라 변하지 않는 고정색이며, TestPage의 미실행 배지가 같은 이유로 `#8A8890`/`#35353C`를 리터럴로 쓴 선례가 있다(notes 2026-07-21). 팔레트 신규 색은 추가하지 않는다(함정 4 — 다크 단일 딕셔너리 정책 유지).
+- **D8 (테스트 화면 진입 시 `Todos`도 로드한다)**: `ProjectCardViewModel.CreateTestPageViewModel()`에 `EnsureTodosLoaded()`를 추가한다. *Source*: `SqliteProjectRepository.cs:35`(지연 로딩 규약) + `ProjectCardViewModel.cs:517-523`(작업 화면은 `EnsureTestsLoaded()`까지 부른다) vs `:533-537`(테스트 화면은 `EnsureTestsLoaded()`만) — 이 비대칭 때문에 역참조 대상인 `Todos`가 비어 **배지가 전멸**한다(plan-reviewer B1). 로드는 `_todosLoaded` 플래그로 1회만 일어나므로 비용은 최초 진입 1회의 DB 조회뿐이고, 작업 화면이 이미 반대 방향(테스트 로드)을 하고 있어 **대칭을 맞추는 것이 자연스럽다**.
+  - **대안 기각**: `TestPageViewModel` 생성자에서 리포지토리로 직접 `GetTodos`를 부르는 방식 — 로드 책임이 `ProjectCardViewModel`에 모여 있는 기존 구조(플래그 기반 1회 로드)를 깨고 중복 조회를 만든다.
+- **D7 (작업이 삭제되면 배지도 자동으로 사라진다)**: 역참조를 **매번 계산**하므로 작업이 삭제되면 딕셔너리에 없어져 배지가 자동 소멸한다 — 별도 정리 로직이 필요 없다. 반대로 **테스트가 삭제되면** `TodoItem.LinkedTestId`가 고아 값으로 남지만(기존 동작), 그것은 작업 쪽 배지 경로의 문제라 이번 범위 밖이다(기존과 동일하게 `GetLinkedTestStatus`가 null을 반환해 배지 미표시).
 
 ## PRD Coverage
 
 | PRD ID | 우선순위 | 대응 task | 상태 |
 |---|---|---|---|
-| FR-T2 (작업 전체 페이지 + 칸반/목록 뷰 전환) | Must | T1, T2 | ✅ 커버(목록 뷰 재구현 몫 — 전환 토글 자체는 기구현·무변경) |
-| FR-T4 (카테고리 필터·카테고리별 그룹핑·상태별 개수) | Must | T1, T2 | ✅ 커버(목록의 상태별 개수·카테고리 그룹핑 몫 — 필터 콤보는 기구현·무변경) |
-| FR-T3 (칸반 드래그앤드롭 상태 변경) | Must | T3 | ✅ 커버(목록 뷰로 확장 — 칸반 경로는 무변경) |
-| FR-T8 (카테고리 그룹 헤더 테스트 통과율 배지) | Should | T2 | ✅ 커버(목록 서브그룹에도 동일 배지 표시) |
-| FR-E4 (테스트↔작업 연결 배지·링크 + FR-T8 배선) | Should | T2 | ⚠️ **부분 커버(축소)** — FR-T8 배선 몫은 유지되나, **작업별 "연결 배지"의 화면 표현이 이번 구조 교체로 사라진다**(시안 목록·칸반 어디에도 없음 — D12). 데이터·계산 경로는 유지해 되돌릴 여지를 남기고 Deferred 등재 |
-| FR-T1 (TodoItem 상태·카테고리·우선순위·날짜 필드) | Must | — | 이번 범위 외 (기구현 — 도메인·스키마 무변경) |
-| FR-T5 (새 작업/편집·삭제 확인 다이얼로그) | Must | — | 이번 범위 외 (기구현 — 목록에서 같은 다이얼로그를 호출만 함) |
-| FR-T6 (테스트 추가 토글) | Should | — | 이번 범위 외 (기구현 — `ColumnAdd_Click` 경로 무변경) |
-| FR-T7 (담당자 필드) | Could | — | 이번 범위 외 (사용자 제외 결정 — 대장 등재. 시안 목록 행에도 담당자가 없어 시안과 일치) |
-| FR-E*(E4 제외)·FR-C*·FR-S*·FR-H*·FR-N* 등 그 외 active Must | Must/Should | — | 이번 범위 외 (기구현, 이번 diff 무관) |
-| NFR-1 (빌드 오류 0·신규 경고 0) | — | 전 task | 검증 대상(기존 경고 5건 제외) |
-| NFR-2 (계층 위반 0) | — | T1 | 검증 대상(VM은 `Brush`·`Visibility` 등 View 타입을 참조하지 않는다 — D3) |
-| NFR-3 (DB 스키마 하위호환) | — | — | ✅ 무영향(도메인·스키마·직렬화 무변경) |
-| NFR-4 (다국어 ko/en 대칭) | — | T2 | 신규 resw 키 ko/en 양쪽(함정 2·3) |
+| FR-E4 (테스트↔작업 연결 배지·링크 + FR-T8 배선) | Should | T1, T2 | ✅ **커버 확대** — "연결 배지"의 **테스트 쪽 표현**을 이번에 구현(시안에 실재하는 유일한 연결 배지). FR-T8 배선 몫은 기구현·무변경. **작업 쪽 배지**(`TodoItem.LinkedTestBadge`)는 시안에 없어 여전히 미표시(대장 `[FR-E4 작업별 연결 배지 표시 소멸]` 유지) |
+| FR-E1·E2·E3·E5 (테스트 페이지·상태 모델·다이얼로그·목록 restyle) | Must/Should | — | 이번 범위 외 (기구현 — 행 템플릿에 요소 1개를 추가할 뿐 기존 구성 무변경) |
+| FR-T1~T8 (작업 도메인·칸반·목록·다이얼로그) | Must/Should | — | 이번 범위 외 (기구현 — `TodoItem`은 **읽기만** 하고 수정하지 않는다) |
+| FR-C*·FR-S*·FR-H*·FR-N* 등 그 외 active Must | Must/Should | — | 이번 범위 외 (기구현, 이번 diff 무관) |
+| NFR-1 (빌드 오류 0·신규 경고 0) | — | 전 task | 검증 대상(실측 baseline `CS0618` 1건 제외) |
+| NFR-2 (계층 위반 0) | — | T1 | 검증 대상(VM은 View 타입을 참조하지 않는다 — 표시 값은 `string`) |
+| NFR-3 (DB 스키마 하위호환) | — | — | ✅ 무영향(D2 — 비영속 표시 전용 속성, INSERT 컬럼 무변경) |
+| NFR-4 (다국어 ko/en 대칭) | — | — | 해당 없음(신규 문구 0 — 배지 내용은 사용자 데이터인 작업 제목) |
 | NFR-5 (테스트) | — | — | 조건 미발동(테스트 프로젝트 부재 — AGENTS.md) |
 
 ## 작업 단계
 
-> **T1과 T2의 경계(리뷰 B1 반영)**: `x:Bind`는 컴파일 타임 바인딩이라 VM 멤버를 지우면서 XAML 소비처를 남기면 **그 task에서 반드시 빌드가 깨진다**. 따라서 T1은 **추가만** 하고(기존 `CategoryGroups` 경로는 그대로 살려 둔다), 제거는 XAML 교체와 **같은 task**(T2)에서 한다.
-
-### T1 — VM: 목록 뷰용 상태 그룹 데이터 추가 `Type C`
+### T1 — 데이터: `TestItem`에 연결 작업 제목 + VM 역참조 채우기 `Type C`
 - [x] 구현
-- **Files**: `DevDashboard_WinUI/Presentation/ViewModels/TaskPageViewModel.cs`
-- **Design**: ① 배치 — 전부 `TaskPageViewModel.cs`(기존 파일). ② 신규 심볼 — `TaskListStatusGroup(TodoStatus Status, string StatusLabel, int Count, bool IsEmpty, IReadOnlyList<TaskColumnGroup> Categories)` record: 목록 뷰의 한 상태 그룹(헤더 표시값 + 카테고리 서브그룹) / `ListStatusGroups` 컬렉션 프로퍼티 / `BuildListStatusGroups(filtered)` 비공개 메서드. ③ 의존 방향 — `Rebuild()`가 `BuildListStatusGroups`를 호출하고, 그것이 기존 `BuildColumnGroups`의 산출(`TaskColumnGroup`)을 재사용한다. VM은 `Brush`·`Visibility` 등 View 타입을 참조하지 않는다(D3). ④ 비추상화 — 상태 4개를 순회하는 범용 "상태 메타데이터 테이블"이나 칸반/목록 공용 그룹 빌더를 만들지 않는다(칸반은 4열이 XAML 하드코딩이라 공용화 대상이 없다 — 배열 순회 6줄이면 충분).
+- **Files**: `DevDashboard_WinUI/Domain/Entities/TestItem.cs`, `DevDashboard_WinUI/Presentation/ViewModels/TestPageViewModel.cs`, `DevDashboard_WinUI/Presentation/ViewModels/ProjectCardViewModel.cs`(지연 로딩 — D8)
+- **Design**: ① 배치 — 표시 값 속성은 `Domain/Entities/TestItem.cs`(선례 `TodoItem.LinkedTestBadge`와 같은 자리), 채우는 로직은 `TestPageViewModel`, 데이터 로드 보장은 `ProjectCardViewModel.CreateTestPageViewModel()`. ② 신규 심볼 — `TestItem.LinkedTaskTitle`(표시 전용 비영속 string, 연결된 작업 제목 / 빈 문자열이면 미연결) / `TestPageViewModel.BuildLinkedTaskTitles()`(`Rebuild()` 앞부분에서 `LinkedTestId → 작업 제목` 딕셔너리를 만들어 각 `TestItem`에 대입). ③ 의존 방향 — VM이 `_project.Todos`(도메인)를 읽어 `TestItem`(도메인)에 쓴다. View 타입 참조 없음(값이 `string`). ④ 비추상화 — 양방향 링크를 관리하는 서비스/인덱스 클래스를 만들지 않는다(조회 지점이 이 한 곳뿐 — 3회 문턱 미달). `TodoItem`·`TestItem`에 상호 참조 필드를 추가하지도 않는다(D2 — 영속 중복 금지).
 - **구성**:
-  - (D1) `ListStatusGroups`(`ObservableCollection<TaskListStatusGroup>`) 추가.
-  - (D2·D3) `BuildListStatusGroups(IEnumerable<TodoItem> filtered)`: 상태 4개(`Waiting`→`Active`→`Completed`→`Hold` 순)를 돌며, 각 상태에 대해 임시 `ObservableCollection<TaskColumnGroup>`에 기존 `BuildColumnGroups`를 채워 서브그룹 목록을 얻고, 라벨(`LocalizationService.Get($"TaskStatus_{status}")`)·항목 합계(`CountItems`)·빈 여부와 함께 `TaskListStatusGroup`을 만들어 담는다.
-  - `Rebuild()` 끝에서 `BuildListStatusGroups(filtered)`를 호출한다. **기존 `RebuildCategoryGroups(filtered)` 호출과 `CategoryGroups`·`TaskCategoryGroup`은 이 task에서 건드리지 않는다**(T2에서 XAML과 함께 제거 — 위 경계 주석).
+  - (D1·D2) `TestItem`에 `[ObservableProperty] public partial string LinkedTaskTitle { get; set; } = string.Empty;` 추가 + 주석에 **"표시 전용 — 영속화하지 않으며 TestPageViewModel이 설정"** 명시(`TodoItem.LinkedTestBadge` 규약 그대로).
+  - (D3·D4) `BuildLinkedTaskTitles()`: `_project.Todos`를 훑어 `LinkedTestId`가 비어 있지 않은 항목으로 `Dictionary<string, string>`(테스트 Id → 작업 제목)을 만들되 **`TryAdd`로 첫 항목 유지**. 그 뒤 `_project.TestCategories`의 전 항목을 돌며 `t.LinkedTaskTitle = map.GetValueOrDefault(t.Id, string.Empty)`로 대입(연결이 없으면 빈 문자열 — 이전 값이 남지 않게 **항상 대입**).
+  - `Rebuild()` 시작(통계 계산 전)에서 `BuildLinkedTaskTitles()` 호출 — 필터 변경·재구성 때마다 최신 값이 반영된다.
+  - **(D8) `ProjectCardViewModel.CreateTestPageViewModel()`(:533-537)에 `EnsureTodosLoaded();`를 추가**한다(`EnsureTestsLoaded()` 앞·뒤 무관, 작업 화면의 `CreateTaskPageViewModel()`과 대칭). **이 한 줄이 없으면 배지가 하나도 뜨지 않으며 빌드·grep으로는 검출되지 않는다.** 같은 메서드의 XML 주석(`:532` "TestCategories를 로드해 전달합니다")도 사실과 어긋나게 되므로 **"TestCategories와 Todos(연결 배지 역참조용)를 로드해 전달합니다"로 함께 갱신**한다.
 - **Acceptance**:
-  1. 빌드 오류 0 · 신규 경고 0(기존 5건 제외).
-  2. `TaskListStatusGroup` record가 정의되고 `ListStatusGroups`가 `Rebuild()` 경로에서 채워진다.
-  3. 상태 4개가 **항상** 그룹으로 만들어진다(항목 0건이어도 `IsEmpty=true` 그룹 생성 — D8).
-  4. 각 상태 그룹의 `Count`가 그 상태의 작업 수(카테고리 서브그룹 항목 합계)와 같고, 같은 상태의 칸반 열 개수(`WaitingCount` 등)와 일치한다.
-  5. `TaskPageViewModel.cs`에 `Microsoft.UI.Xaml` 계열 using·타입이 추가되지 않는다(NFR-2).
-  6. `CategoryGroups`·`RebuildCategoryGroups`·`TaskCategoryGroup`이 **그대로 남아 있다**(제거는 T2 — 이 task 단독 빌드 성립 조건).
-- **Edge Cases**: 카테고리 필터로 모든 상태가 비는 경우 → 그룹 4개 전부 `IsEmpty` / `_project.Todos`가 null(기존 `?? []` 가드 유지) / 카테고리가 빈 작업 → 기존대로 "미분류" 서브그룹 / 같은 이름 카테고리의 대소문자 차이(`BuildColumnGroups`의 `OrdinalIgnoreCase` 그룹핑 유지) / `Rebuild()`는 드래그·편집마다 호출되므로 목록 그룹 재생성이 매번 일어난다(기존 `RebuildCategoryGroups`도 동일 — 성능 성질 무변경, 이 task 동안은 두 경로가 함께 도는 일시적 중복이 있으나 T2에서 해소).
-- **Halt Forecast**: 없음 — 추가만 하므로 제거·계약 변경·파괴적 작업이 없다.
+  1. 빌드 오류 0 · 신규 경고 0(실측 baseline `CS0618` 1건 제외).
+  2. `TestItem.LinkedTaskTitle`이 `[ObservableProperty] partial` 방식으로 정의되고, 주석에 "표시 전용"·"영속화하지 않"음이 명시된다.
+  3. `TestPageViewModel.Rebuild()`가 `BuildLinkedTaskTitles()`를 호출하고, 그 메서드가 `_project.Todos`의 `LinkedTestId`로 딕셔너리를 만든다.
+  4. 연결이 없는 테스트에는 **빈 문자열이 대입**된다(이전 값 잔존 없음 — 작업 삭제·링크 해제 시 배지가 사라져야 함, D7).
+  5. `TestItem`이 **DB 저장 경로에 추가되지 않는다** — `SqliteProjectRepository`의 테스트 INSERT/SELECT 컬럼 목록에 `LinkedTaskTitle`이 없다(NFR-3, AGENTS.md의 "INSERT 컬럼 추가 시 파라미터 갱신" 함정 비해당 확인).
+  6. `TestPageViewModel.cs`에 `Microsoft.UI.Xaml` 계열 using·타입이 추가되지 않는다(NFR-2).
+  7. **`CreateTestPageViewModel()`이 `EnsureTodosLoaded()`를 호출한다**(D8) — 이 acceptance가 없으면 기능이 무동작인 채로 전 검증을 통과한다.
+- **Edge Cases**: **`Todos`가 로드되지 않은 상태 → 배지 전멸(정상 아님, D8이 해소)** — `?? []` 가드는 예외만 막을 뿐 이 실패를 고치지 못한다 / `_project.Todos`가 null(`?? []` 가드) / `LinkedTestId`가 빈 문자열인 작업 → 딕셔너리 제외 / `LinkedTestId`가 이미 삭제된 테스트를 가리킴 → 그 키는 어떤 테스트와도 매칭되지 않아 무해 / 같은 테스트에 여러 작업이 연결 → 첫 항목만(D4) / 작업 제목이 빈 문자열 → 배지가 `StringNotEmptyToVisibility`로 미표시(빈 pill이 그려지지 않음) / 작업 제목이 매우 김 → T2에서 말줄임 / `TestCategories`가 null(`?? []` 가드 유지) / `EnsureTodosLoaded()`는 `_todosLoaded` 플래그로 1회만 로드하므로 작업 화면을 먼저 열었다 와도 **중복 DB 조회가 없다**.
+- **Halt Forecast**: (ii-a) 사전 승인 — **도메인 엔티티(`TestItem`)에 공개 속성 1개 추가**(비영속·표시 전용, 기존 선례와 동일 규약) + `CreateTestPageViewModel()`에 로드 호출 1줄 추가(기존 공개 메서드 `EnsureTodosLoaded` 재사용, 시그니처 변경 0). 파괴적·스키마 변경·외부 작업 없음.
 
-### T2 — XAML: 목록 뷰를 시안 구조로 재구성 + 구 카드 경로 일괄 제거 `Type D`
-- [x] 구현
-- **Files**: `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml`, `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml.cs`, `DevDashboard_WinUI/Presentation/ViewModels/TaskPageViewModel.cs`, `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`
-- **Design**: ① 배치 — 템플릿 3종은 `TaskPage.xaml`의 `UserControl.Resources`(뷰 국소), 헬퍼는 `TaskPage.xaml.cs` 정적 메서드. ② 신규 심볼 — `TaskListRowTemplate`(가로 1줄 작업 행) / `TaskListCategoryTemplate`(카테고리 서브그룹) / `TaskListStatusGroupTemplate`(상태 그룹 헤더 + 빈 상태 + 서브그룹 목록) / `TaskPage.StatusDotBrush(TodoStatus)`(상태 → dot 브러시) / `TaskPage.StatusTag(TodoStatus)`(상태 → `Tag` 문자열, 기존 `ColumnAdd_Click`·`Column_Drop`의 `Tag: string` 계약 충족) / `TaskPage.EmptyGroupVisibility(bool)`·`TaskPage.CategoriesVisibility(bool)`(빈 그룹 ↔ 목록 배타 표시, 함정 5로 `Visibility` 직접 반환). ③ 의존 방향 — XAML이 코드비하인드 정적 헬퍼를 `x:Bind` 함수 바인딩으로 참조하고, 헬퍼는 기존 정적 브러시만 참조한다. ④ 비추상화 — 칸반과 목록이 공유하는 "카테고리 헤더" 부분을 공용 템플릿/UserControl으로 뽑지 않는다(칸반은 안쪽 카드 템플릿이 하드코딩돼 있어 공용화하려면 템플릿 주입 기구가 필요하고, 그 간접화는 마크업 20줄 중복보다 추적이 어렵다 — 함정 11의 교훈과 정합).
+### T2 — XAML: 테스트 항목 행에 링크 배지 추가 `Type C`
+- [ ] 구현
+- **Files**: `DevDashboard_WinUI/Presentation/Views/TestPage.xaml`
+- **Design**: ① 배치 — `TestItemRowTemplate`(`TestPage.xaml`) 안, 이름 행과 메모 행 사이. ② 신규 심볼 — **없음**(마크업만 추가. 표시 조건은 기존 `StringNotEmptyToVisibility` 컨버터, 색은 리터럴 — 4-D). ③ 의존 방향 — XAML이 `TestItem.LinkedTaskTitle`(T1)을 바인딩. 코드비하인드 변경 없음. ④ 비추상화 — 배지용 공용 스타일(`LinkBadgeStyle` 등)을 `Styles.xaml`에 만들지 않는다(소비처 1곳 — 3회 문턱 미달, 인라인이 추적에 낫다).
 - **구성**:
-  - (D10) 목록 `ScrollViewer` 내부를 `ItemsControl ItemsSource={x:Bind Vm.ListStatusGroups, Mode=OneWay}` + `ItemsPanel`(`StackPanel Spacing="22"`)로 교체, `MaxWidth`·`HorizontalAlignment="Left"` 제거, 컨테이너 `Padding="24,18,24,24"`.
-  - `TaskListStatusGroupTemplate`(`x:DataType="vm:TaskListStatusGroup"`): 루트 `StackPanel Spacing="12"` — 헤더 `Grid`(열 Auto·Auto·Auto·`*`·Auto, ColumnSpacing 9) = dot(`Border` 9×9 CornerRadius 3, `{x:Bind local:TaskPage.StatusDotBrush(Status)}`) + 라벨(`StatusLabel`, 14.5 Bold) + 개수(`Count`, 12, Tertiary, Consolas) + `Rectangle Style="{StaticResource SeparatorStyle}"` + "＋ 새 작업" `Button`(Height 28, Padding 11,0, CornerRadius 7, `Tag="{x:Bind local:TaskPage.StatusTag(Status)}"`, `Click="ColumnAdd_Click"`, Content `{x:Bind local:TaskPage.ColumnAddText}`) / 빈 상태 `Grid`(`Visibility={x:Bind local:TaskPage.EmptyGroupVisibility(IsEmpty)}`) 안 `Rectangle StrokeDashArray="3,3" RadiusX=10 RadiusY=10 Stroke={ThemeResource ControlStrokeColorSecondaryBrush}` + 가운데 `TextBlock x:Uid="TaskList_Empty"` / 서브그룹 `ItemsControl ItemsSource={x:Bind Categories}`(`ItemsPanel Spacing="12"`, `Visibility={x:Bind local:TaskPage.CategoriesVisibility(IsEmpty)}`).
-  - `TaskListCategoryTemplate`(`x:DataType="vm:TaskColumnGroup"`): `StackPanel Margin="4,0,0,0" Spacing="7"` — 헤더 `StackPanel Orientation=Horizontal Spacing=7`(dot 8×8 CornerRadius 3 `TagColor` 컨버터 + 이름 12.5 Bold Secondary + 개수 11.5 Tertiary + **테스트 배지 2종은 `TaskColumnGroupTemplate`(:139-166)의 마크업을 그대로 옮긴다**) + 행 `ItemsControl ItemsSource={x:Bind Items}`(`ItemsPanel Spacing="7"`, `ItemTemplate=TaskListRowTemplate`).
-  - `TaskListRowTemplate`(`x:DataType="models:TodoItem"`): `Border`(AppCardBrush / AppBorderBrush 1 / CornerRadius 10 / Padding 14,11) 안 `Grid`(열 `*`·Auto·Auto, ColumnSpacing 12, 세로 중앙) = 좌측 `StackPanel Spacing=3`(제목 13.5 Bold `TextWrapping=NoWrap TextTrimming=CharacterEllipsis` + 설명 12 Tertiary 동일 말줄임 + `StringNotEmptyToVisibility`) / 날짜 `{x:Bind local:TaskPage.FormatDateRange(StartDate, EndDate)}`(11, Tertiary, Consolas, `DateRangeVisibility`) / 우선순위 배지(`Border Style=TagBadgeStyle CornerRadius=6 Padding=9,3 Background={x:Bind local:TaskPage.PriorityBadgeBrush(Priority)}` + `TextBlock` 11 Bold `PriorityText`/`PriorityBrush`).
-  - **제거 (동시 수행 — 소비처와 정의를 같은 task에서 지운다)**:
-    - XAML: `TaskCardTemplate`(:173-273), 구 목록 뷰 마크업(:440-448의 `CategoryGroups`·`TaskCategoryGroup` 바인딩).
-    - 코드비하인드: `StatusCombo_Loaded`·`StatusCombo_SelectionChanged`·`EditTask_Click`·`DeleteTask_Click`·`StatusOptions`·`TaskStatusOption` record·`EditTooltip`·`DeleteTooltip`·**`FormatStart`·`FormatEnd`·`DateVisibility`**(리뷰 M4 — 유일 소비처가 `TaskCardTemplate`).
-    - VM: `CategoryGroups`·`RebuildCategoryGroups`·`TaskCategoryGroup` record + `Rebuild()`의 호출 1줄.
-    - 파일 상단 주석(:14-18) "목록 뷰는 드롭 대상이 없어…"를 새 동작에 맞게 갱신(D4로 드롭 대상이 생긴다). **함께 stale해지는 주석 2곳도 갱신**: `TaskPageViewModel.cs:300`("목록 뷰의 TaskCategoryGroup과 달리…" — 비교 대상이 사라진다), `TaskPage.xaml.cs:49`("StatusOptions와 동일 리소스 키 재사용" — `StatusOptions`가 사라진다). 두 주석은 acceptance 2의 grep에도 걸리므로 함께 처리해야 검증이 통과한다(리뷰 m4).
-    - **제거하지 않는 것**: `TodoItem.LinkedTestBadge`와 VM의 `MapTestBadge`/`GetLinkedTestStatus`/`Rebuild`의 대입(D12), resw `TaskLabel_Start`·`TaskLabel_End`(D13).
-  - (D9) resw `TaskList_Empty.Text` ko("작업 없음")/en("No tasks") 양쪽.
+  - `TestItemRowTemplate`의 `Grid.RowDefinitions`를 2행 → **3행**으로 늘리고, 기존 **메모 `Border`를 `Grid.Row="1"` → `Grid.Row="2"`로 이동**. 상태 아이콘·상태 pill의 `Grid.RowSpan="2"`를 **`"3"`으로** 갱신(세로 중앙 유지).
+  - 링크 배지를 `Grid.Column="1" Grid.Row="1"`에 추가 — `Border`(`CornerRadius="999"`, `BorderThickness="1"`, `BorderBrush="#735AA3E8"`, `Padding="9,2"`, `HorizontalAlignment="Left"`, `Margin="0,3,0,0"`, `Visibility="{x:Bind LinkedTaskTitle, Converter={StaticResource StringNotEmptyToVisibility}, Mode=OneWay}"`) 안에 `StackPanel Orientation="Horizontal" Spacing="5"`(세로 중앙) = `FontIcon Glyph="&#xE71B;" FontSize="10" Foreground="#7AB5EC"` + `TextBlock Text="{x:Bind LinkedTaskTitle, Mode=OneWay}" FontSize="11" Foreground="#7AB5EC" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"`.
+  - 배지 위에 시안 근거 주석 1줄(어느 시안 요소인지 — 후속 수정자가 색 리터럴을 팔레트로 바꾸지 않도록 D6 근거 포함).
 - **Acceptance**:
   1. 빌드 오류 0 · 신규 경고 0.
-  2. **`TaskPage.xaml`·`TaskPage.xaml.cs`·`TaskPageViewModel.cs` 세 파일 안에서** `TaskCardTemplate`·`StatusCombo_`·`EditTask_Click`·`DeleteTask_Click`·`StatusOptions`·`TaskStatusOption`·`EditTooltip`·`DeleteTooltip`·`FormatStart`·`FormatEnd`·`DateVisibility`·`CategoryGroups`·`RebuildCategoryGroups`·`TaskCategoryGroup` 잔존 0건(**레포 전체 grep 금지** — 동명의 별개 심볼이 `TestPage`·`HistoryDialog*`·`ToolItemViewModel`에 있다, 리뷰 M3).
-  3. `TaskListStatusGroupTemplate`·`TaskListCategoryTemplate`·`TaskListRowTemplate`이 정의되고 각각 정확히 1곳에서 소비된다.
-  4. `StatusDotBrush`·`StatusTag`·`EmptyGroupVisibility`·`CategoriesVisibility`가 정의되고 전부 XAML에서 소비된다(고아 0).
-  5. `TaskList_Empty.Text`가 ko/en **양쪽**에 각 언어 값으로 존재하고 **`.Text` 접미**가 붙어 있다(함정 2·3).
-  6. `TaskListRowTemplate` 안에 `ComboBox`가 0건이고 수정·삭제 `Button`이 없다(시안 정합).
-  7. 우선순위 배지·날짜·테스트 배지가 **기존 헬퍼를 재사용**한다(`PriorityBadgeBrush`·`FormatDateRange`·`IdleTestBadgeVisibility`·`RanTestBadgeVisibility`가 목록에서도 소비).
-  8. `TodoItem.LinkedTestBadge`와 VM의 `MapTestBadge`/`GetLinkedTestStatus`가 **남아 있다**(D12 — 계산 경로 유지).
-- **Edge Cases**: 제목이 매우 김 → 1줄 말줄임(행 높이 불변) / 설명 없음 → 설명 줄 미표시로 행이 얇아짐(시안과 동일) / 시작·종료일 모두 없음 → 날짜 열 `Collapsed`(Auto 열이라 폭 0) / 카테고리가 빈 작업 → "미분류" 서브그룹(배지 없음 — `BuildPassRateBadge`가 빈 문자열 반환) / **카테고리명이 길거나 배지가 많으면 헤더가 넘쳐 잘린다**(D14 — 시안은 `flex-wrap`으로 줄바꿈하지만 WinUI `StackPanel`은 미지원, 칸반과 동일 성질) / 창을 좁히면 제목 열(`*`)이 먼저 줄고 날짜·배지는 유지 / 빈 그룹은 서브그룹 `ItemsControl`이 `Collapsed`라 점선 박스만 보인다.
-- **Halt Forecast**: (ii-a) 사전 승인 — 공개 정적 멤버 `StatusOptions`·`EditTooltip`·`DeleteTooltip`·`FormatStart`·`FormatEnd`·`DateVisibility`, 공개 record `TaskStatusOption`, VM 공개 멤버 `CategoryGroups`·`TaskCategoryGroup` 제거 + resw 신규 키 1개(ko/en). (i) 사전 해소 — 소비처 전수 grep으로 함정 11 리스크 제거, `x:Bind`/`x:Uid`의 `DataTemplate` 내 성립 여부는 기존 선례로 확인 완료. 파괴적·외부 작업 없음.
-
-### T3 — 목록 행 조작: 클릭 편집 · 우클릭 메뉴 · hover · 드래그 상태 이동 `Type C`
-- [x] 구현
-- **Files**: `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml`(행·상태 그룹 배선), `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml.cs`(hover 핸들러 2개)
-- **Design**: ① 배치 — 배선은 `TaskPage.xaml`의 두 템플릿, hover 핸들러는 `TaskPage.xaml.cs`. ② 신규 심볼 — `ListRow_PointerEntered`/`ListRow_PointerExited`(행 테두리 밝기 토글) **2개뿐**. 편집·삭제·상태 변경·드래그·새 작업은 전부 기존 핸들러 재사용(4-D). ③ 의존 방향 — XAML → 코드비하인드 핸들러 → 기존 `Vm.MoveToStatus`/`EditTodoAsync`/`DeleteTodoAsync`. ④ 비추상화 — hover를 위해 스타일·VisualState 인프라를 새로 만들지 않는다(`DataTemplate` 안에서 VSM `GoToState`가 동작하지 않는다는 것이 `TestPage`에서 확인된 사실 — 핸들러 2개가 최소 해법).
-- **구성**:
-  - (D4) `TaskListRowTemplate`의 루트 `Border`에 `Tapped="Card_Tapped"`(클릭 편집 — 칸반과 동일 핸들러, `DataContext: TodoItem` 계약 충족) + `CanDrag="True" DragStarting="Card_DragStarting"` + `Border.ContextFlyout`(칸반 카드 :30-58과 **동일 구성**: 편집 / 상태 변경 서브메뉴 4개 / 구분선 / 삭제, 각 `Tag="{x:Bind}"`) 배선.
-  - (D4) `TaskListStatusGroupTemplate`의 루트에 `AllowDrop="True" Background="Transparent" Tag="{x:Bind local:TaskPage.StatusTag(Status)}" DragOver="Column_DragOver" Drop="Column_Drop"` 배선(그룹 루트가 드롭을 받아야 **빈 그룹에도 놓을 수 있다** — 칸반 열과 동일 결론. `Background="Transparent"`가 없으면 빈 영역이 hit-test되지 않는다).
-  - hover: 행 루트 `Border`에 `PointerEntered`/`PointerExited` → `BorderBrush`를 `ControlStrokeColorSecondaryBrush`(hover) ↔ `AppBorderBrush`(기본)로 토글. 두 브러시는 `UserControl.Resources`에 별칭 키로 두고 코드에서 `Resources[...]`로 가져온다(`Application.Current.Resources` 경유 ThemeDictionaries 조회의 불확실성 회피 — `TestPage` 선례).
-- **Acceptance**:
-  1. 빌드 오류 0 · 신규 경고 0.
-  2. `TaskListRowTemplate`에 `Tapped="Card_Tapped"`·`CanDrag="True"`·`DragStarting="Card_DragStarting"`·`ContextFlyout`이 있고, 메뉴가 칸반 카드와 동일하게 **편집 1 + 상태 변경 서브메뉴 4 + 삭제 1 = 항목 6개**를 건다.
-  3. `TaskListStatusGroupTemplate` 루트에 `AllowDrop="True"`·`DragOver="Column_DragOver"`·`Drop="Column_Drop"`·`Tag` 바인딩·`Background="Transparent"`가 있다.
-  4. `ListRow_PointerEntered`/`ListRow_PointerExited`가 정의되고 XAML에서 소비된다(고아 0).
-  5. **신규 상태 변경 로직 0** — 목록 드래그가 기존 `Column_Drop` → `Vm.MoveToStatus`를 그대로 탄다(`TaskPage.xaml.cs`에 새 드롭 핸들러가 추가되지 않는다).
-- **Edge Cases**: 같은 상태 그룹에 드롭 → `MoveToStatus`가 동일 상태를 무시(저장·작업기록 훅 미발생, 기존 동작) / 드래그 성립 시 Tapped 미발생(칸반에서 확인된 성질) / 우클릭 메뉴를 연 뒤 포인터가 벗어나면 `PointerExited`가 오지 않아 **hover 테두리가 잔존할 수 있다**(칸반에는 hover가 없어 처음 나타나는 성질 — ⏳ HUMAN-VERIFY, 잔존하면 Flyout `Closed`에서 복원 필요) / 완료 그룹에 드롭 → 작업기록 팝업(`WorkLogRequested`)이 기존대로 발생 / 드롭 후 `Rebuild()`로 행이 다른 그룹으로 이동해 hover 대상 요소가 사라짐(핸들러가 sender 기준이라 예외 없음) / 행 드래그가 안쪽 `ScrollViewer` 스크롤과 경합할 수 있음(칸반과 동일 성질).
-- **Halt Forecast**: 없음 — 신규 파일·의존성·파괴적 작업 없음, 기존 핸들러 재사용이라 계약 변경 0.
-
-### T4 — 상태 dot·우선순위 배지 색 + dot 모양을 시안 값으로 정정 `Type C`
-- [x] 구현
-- **Files**: `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml.cs`(색), `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml`(칸반 dot 모양)
-- **Design**: 해당 없음 — 신규 심볼 0(기존 정적 브러시의 색 리터럴 교체 + 칸반 dot 요소 종류 교체 + 주석 갱신).
-- **구성**:
-  - (D11) 상태 dot: `_statusDotWaiting` `0xF0,0x71,0x6A`→`0x8A,0x88,0x90` / `_statusDotActive` `0x5B,0x93,0xD8`→`0x5A,0xA3,0xE8` / `_statusDotCompleted` `0x5D,0xB4,0x63`(무변경) / `_statusDotHold` `0xD9,0x95,0x4A`→`0xE8,0x92,0x5A`.
-  - (D7) 우선순위: `_priorityHighBrush` `0xD9,0x95,0x4A`→`0xE8,0xB4,0x5A` / `_priorityHighSoftBrush` `0x28,0xD9,0x95,0x4A`→`0x28,0xE8,0xB4,0x5A` / `_priorityNormalBrush` `0x5B,0x93,0xD8`→`0x7A,0xB5,0xEC` / `_priorityNormalSoftBrush` `0x28,0x5B,0x93,0xD8`→`0x28,0x5A,0xA3,0xE8` / `_priorityLowBrush` `0x8A,0x88,0x90`(무변경) / `_priorityLowSoftBrush` `0x28,0x6F,0x6D,0x75`→**불투명 `0xFF,0x2B,0x2B,0x31`**.
-  - (D15) **dot 모양 통일**: 칸반의 상태 dot(`TaskPage.xaml:372,389,406,423`)과 카테고리 dot(`:120-124`)이 `Ellipse`(원)인데, 시안(:1419·:1430)은 양쪽 다 `border-radius:3px` **라운드 사각형**이다. 목록만 시안을 따르면 같은 화면에서 두 뷰의 dot 모양이 갈리므로(리뷰 m2), 칸반의 `Ellipse` 5곳도 `Border Width/Height + CornerRadius="3"`으로 바꾼다.
-  - 주석 갱신: 이 브러시들이 "Palette.xaml 값과 수동으로 맞춘다"고 적혀 있으나 이제 **시안(`colDefs`/`priStyles`) 값이 정본**임을 명시한다(팔레트 `AppWarning`/`AppInfo`와 의도적으로 갈린다는 사실을 남겨 후속 수정이 되돌리지 않게 한다).
-- **Acceptance**:
-  1. 빌드 오류 0 · 신규 경고 0.
-  2. `TaskPage.xaml.cs`에 `0xF0, 0x71, 0x6A`(구 예정 dot)·`0x28, 0x6F, 0x6D, 0x75`(구 낮음 배경) 잔존 0건.
-  3. **변경 대상 8개**(상태 dot 3: Waiting·Active·Hold / 우선순위 5: High·HighSoft·Normal·NormalSoft·LowSoft)가 위 구성 값과 정확히 일치하고, **무변경 2개**(`_statusDotCompleted`·`_priorityLowBrush`)는 그대로다(리뷰 m3).
-  4. 주석이 "시안 값이 정본"으로 갱신돼 있다(팔레트 동기화 문구 잔존 0).
-  5. `TaskPage.xaml`에 `Ellipse` 잔존 0건이고, 대체된 dot 5곳이 `CornerRadius="3"`을 갖는다(D15).
-  6. `Palette.xaml` 등 이 두 파일 밖의 색 정의는 변경되지 않는다.
-- **Edge Cases**: `_priorityLowSoftBrush`가 반투명→불투명으로 바뀌어 **행·카드 배경 위에서 더 또렷해진다**(의도된 변화) / 예정 dot이 코랄→회색이라 칸반 "예정" 열 헤더의 인상이 크게 달라진다(사용자 결정) / 완료 dot·낮음 글자색은 이미 시안과 같아 변경 없음 / `Ellipse`→`Border` 교체 시 `Fill`→`Background` 속성명이 바뀐다(빌드가 잡는다) / 목록 템플릿(T2에서 이미 `Border`로 작성)은 이 task의 대상이 아니다.
-- **Halt Forecast**: (ii-a) 사전 승인 — 칸반 마크업 변경(dot 요소 종류 5곳, D15). 그 외 순수 값 치환이라 파괴적·외부 작업 없음.
+  2. `TestItemRowTemplate`의 `Grid`가 **3행**이고, 메모 `Border`가 `Grid.Row="2"`, 링크 배지가 `Grid.Row="1"`이다.
+  3. 상태 아이콘·상태 pill의 `Grid.RowSpan`이 **`"3"`**이다(2 잔존 0 — 갱신 누락 시 세로 중앙이 깨진다).
+  4. 배지가 `LinkedTaskTitle`에 `Mode=OneWay`로 바인딩되고, `Visibility`가 `StringNotEmptyToVisibility` 컨버터를 쓴다(신규 Visibility 헬퍼 추가 0).
+  5. 배지 마크업이 시각 요소 분해 표의 값과 일치한다 — `CornerRadius="999"`·`BorderBrush="#735AA3E8"`·`Padding="9,2"`·`Spacing="5"`·`HorizontalAlignment="Left"`·`FontSize` 11(글자)/10(아이콘)·`Foreground="#7AB5EC"`·`Glyph="&#xE71B;"`.
+  6. `TestPage.xaml.cs`·`Styles.xaml`·`Palette.xaml`이 **변경되지 않는다**(신규 심볼·공용 스타일·팔레트 색 0).
+- **Edge Cases**: 연결 없음 → 배지 `Collapsed`(행 높이 0, 이름과 메모가 붙는다) / 작업 제목이 매우 김 → 본문 열(`*`) 폭에서 말줄임(아이콘은 축소되지 않음) / 이름이 2줄 + 배지 + 메모 동시 → 행이 세로로 길어지고 아이콘·pill은 `RowSpan=3`으로 세로 중앙 / 메모는 없고 배지만 있음 → 배지가 마지막 요소 / 배지 pill 위에서 우클릭 → 행의 `ContextFlyout`이 그대로 뜬다(배지가 입력을 가로채지 않음 — `Border`에 핸들러 없음).
+- **Halt Forecast**: (i) 사전 해소 — `TestItemRowTemplate` 소비처가 `TestPage.xaml` 1곳임을 grep 전수 확인(함정 11). 파괴적·외부·신규 의존성 없음.
 
 ## 사전 승인 항목 (일괄 승인 대상)
-- **VM 공개 멤버 제거**: `TaskPageViewModel.CategoryGroups`, `TaskCategoryGroup` record, `RebuildCategoryGroups`(T2) — 소비처는 같은 task에서 교체되는 목록 뷰 마크업 1곳뿐(grep 전수).
-- **View 공개 멤버 제거**: `TaskPage.StatusOptions`·`EditTooltip`·`DeleteTooltip`·`FormatStart`·`FormatEnd`·`DateVisibility`, `TaskStatusOption` record, 핸들러 `StatusCombo_Loaded`·`StatusCombo_SelectionChanged`·`EditTask_Click`·`DeleteTask_Click`(T2) — 소비처는 함께 제거되는 `TaskCardTemplate` 뿐.
-- **칸반 뷰에 파급되는 변경**(T4): ① 상태 dot·우선순위 배지 **색 8종** — 목록과 공유하는 브러시라 칸반 화면도 함께 바뀐다(사용자 결정 2026-07-22). ② 칸반 dot **모양** `Ellipse`→라운드 사각형 5곳(D15 — 두 뷰의 dot 모양이 갈리지 않게).
-- **신규 resw 키**: `TaskList_Empty.Text` ko/en 양쪽(T2). 기존 키 값은 무변경.
-- 로컬 작업 브랜치(`task/taskpage-list-view`)에서 task별 commit.
+- **도메인 엔티티 공개 속성 추가**: `TestItem.LinkedTaskTitle`(T1) — 비영속·표시 전용, `TodoItem.LinkedTestBadge`와 동일 규약. DB 스키마·직렬화 무영향.
+- 로컬 작업 브랜치에서 task별 commit(현재 브랜치 `task/taskpage-list-view`에 이어서 진행 — 같은 세션의 연속 작업이라 새 브랜치를 파지 않는다).
 
 ## 불가피한 Halt (위임 불가)
-- master 병합·push·태그·릴리즈·PR — 이번 작업 완료 후 별도 승인.
-- **시안 대조 최종 시각 판정** — 빌드는 마크업 존재만 보증한다. "시안과 같아 보이는가"(그룹 간격·행 높이·구분선·점선 박스·배지 크기·hover 밝기·정정된 dot/배지 색)는 사용자만 판정(⏳ HUMAN-VERIFY).
-- **목록 드래그 실동작 확인** — 행을 다른 상태 그룹으로 끌어 옮기는 동작, 빈 그룹에 드롭, 완료 그룹 드롭 시 작업기록 팝업은 앱 실행 확인 필요(⏳ HUMAN-VERIFY).
+- master 병합·push·태그·릴리즈·PR — 별도 승인.
+- **시안 대조 최종 시각 판정** — 배지의 캡슐 모양·테두리 농도·아이콘 모양(`E71B`가 시안의 체인 아이콘과 비슷해 보이는지)·이름/메모와의 간격은 사용자만 판정(⏳ HUMAN-VERIFY).
+- **연결 데이터 실동작 확인** — "테스트 추가" 토글로 만든 작업↔테스트 쌍에서 실제로 배지에 작업 제목이 뜨는지는 앱 실행 확인 필요(⏳ HUMAN-VERIFY).
+- **표시 중복이 의도한 표현인지 판정** — `CreateLinkedTest`는 테스트 제목을 **작업 제목 그대로 복사**하므로(`TaskPageViewModel.cs:239` `Text = todo.Text`), "테스트 추가"로 만든 연결에서는 **행 이름과 배지 텍스트가 같은 문자열로 두 줄 겹쳐 보인다**(작업 제목을 나중에 바꿔야 갈라진다). 시안 예시는 둘이 다른 데이터라 이 중복이 드러나지 않는다. 그대로 둘지, 배지를 다르게(예: 접두어·아이콘만) 표현할지는 사용자 판정 대상(⏳ HUMAN-VERIFY, plan-reviewer m3).
 
 ## Deferred / Follow-up
-- **[FR-E4 작업별 연결 배지 표시 소멸]** — `TaskCardTemplate` 제거로 `TodoItem.LinkedTestBadge`의 화면 표현이 없어진다(시안 목록·칸반 어디에도 없음, D12). 데이터·계산 경로는 유지했으므로, 작업 단위 테스트 상태를 다시 보고 싶다는 요구가 생기면 표시 위치(행 우측 배지 등)부터 논의. 요구가 없으면 `MapTestBadge`/`GetLinkedTestStatus`/`TodoItem.LinkedTestBadge`를 고아 정리 대상으로 묶어 일괄 제거.
-- **[드래그 중 행 반투명 미구현]** — 시안은 드래그 중인 행을 `opacity:0.45`로 흐리게 하나 이번엔 구현하지 않는다(D6). 칸반 카드도 동일하게 미구현이라 두 뷰가 일관된다.
-- **[카테고리 헤더 줄바꿈 미지원]** — 시안은 `flex-wrap:wrap`으로 카테고리명·배지가 넘치면 줄바꿈되지만 WinUI `StackPanel`은 미지원이라 잘린다(D14, 칸반도 동일). 긴 카테고리명이 실제로 문제가 되면 `WrapPanel` 대체 컨트롤 검토(AGENTS.md 메모: `muxc:WrapLayout`은 빌드 오류).
-- **[카테고리 서브그룹 정렬이 시안과 다름]** — 시안은 카테고리 선언 순서(`catOrder`), 구현은 이름순(칸반과 통일 — 사용자 결정 D2). 등록 순서로 보고 싶다는 요구가 생기면 칸반·목록을 함께 바꾼다.
-- **[`TaskLabel_Start`·`TaskLabel_End` resw 고아]** — T2로 유일 소비처(`FormatStart`/`FormatEnd`)가 사라진다. 대장 `[Todo* resw 고아 정리]`에 합류시켜 일괄 audit(D13).
-- **[AGENTS.md 미추적 항목 stale]** — 대장 `[AGENTS.md는 git 미추적 — PC 간 미공유]`는 더 이상 사실이 아니다(2026-07-22 커밋 완료). 대장 항목 정정 필요 — 이번 코드 범위 밖이라 이연.
-- **[칸반/목록 "미분류" 정렬 불일치 — 해소 확인 후 대장 종결]** — T1의 `BuildColumnGroups` 재사용으로 자동 해소된다(D2). Phase F에서 대장 항목을 `## 종결`로 옮긴다.
-- **[테스트 화면 F-8 육안 확인 미완]** — 이전 plan의 잔여 확인 항목(대장에 이관 완료). 이번 작업과 별개로 사용자 확인 필요.
+- **[테스트 행에 방법(Method)·에러 미표시]** — 시안 같은 행에 `t.method`(`:267-269`)·`t.error`(`:277-279`)도 있으나 이번 요청은 연결 배지 한정. 대장의 `[FR-T6/E4 "방법" 필드 확장 소비]`·`[FR-E5 에러 표시 미착수]` 그대로 유지.
+- **[배지 클릭으로 작업 이동 미구현]** — 시안에 클릭 동작이 없어 표시 전용으로 뒀다(D5). 연결된 작업으로 이동하고 싶다는 요구가 생기면 페이지 전환·하이라이트 설계부터 논의.
+- **[작업 쪽 연결 배지는 여전히 미표시]** — 대장 `[FR-E4 작업별 연결 배지 표시 소멸]`은 이번 작업(테스트 쪽)과 별개로 유지된다. 다만 이번 구현으로 FR-E4의 "연결 배지"가 한쪽에서 충족되므로, 대장 `[PRD FR-E4 문구가 구현과 어긋남]`의 정정 필요성은 재판단 대상이 된다.
+- **[테스트 삭제 시 `TodoItem.LinkedTestId` 고아]** — 테스트를 지워도 작업의 `LinkedTestId`가 남는다(기존 동작, 이번 변경과 무관). 표시상으로는 배지가 안 떠 무해하나 데이터 위생 관점의 후속.
 
 ## Out of Scope
-- 칸반 뷰의 **구조·레이아웃·카드 템플릿·드래그** 변경 — 이번 요청은 목록 보기 한정(단 공유 브러시 색은 T4로 함께 바뀐다).
-- 헤더 영역(뒤로가기·제목·프로젝트 스코프 배지·카테고리 필터 콤보·칸반/목록 토글) 변경.
-- `TodoItem`·`TodoStatus` 도메인·SQLite 스키마·직렬화 변경(`LinkedTestBadge` 속성 제거 포함 — D12).
-- 새 작업/편집 다이얼로그(`TaskEditDialog`)·삭제 확인·작업기록 팝업의 내용 변경.
-- `Palette.xaml`에 신규 색·브러시 추가(D5).
-- 고아 resw 키 삭제(D13 — 대장의 일괄 audit 몫).
-- 픽셀 단위 수치 일치(브라우저 렌더 캡처를 확보하지 못했고 CSS↔XAML 렌더 모델이 달라 구조·형태까지가 기준).
+- `TodoItem`·`LinkedTestId` 변경 — 이번 작업은 **읽기 전용**으로만 참조한다.
+- DB 스키마·직렬화·마이그레이션 변경(D2 — 비영속).
+- 시안 같은 행의 방법·에러 표시(위 Deferred).
+- 배지 클릭 시 작업으로 이동하는 네비게이션(D5).
+- `Palette.xaml` 신규 색·`Styles.xaml` 신규 공용 스타일(D6·Design ④).
+- 작업 화면(TaskPage) 쪽 연결 배지 복원 — 시안에 없으며 별개 항목.
 
 ## Open Questions
-- [x] 목록 뷰의 상태 변경 수단 → **우클릭 메뉴 + 드래그 이동**(상태 그룹을 드롭 대상으로) — 사용자, 2026-07-22
-- [x] 행 왼클릭 동작 → **편집 다이얼로그 열기**(칸반 카드와 동일) — 사용자, 2026-07-22
-- [x] 항목 0건 상태 그룹 처리 → **시안대로 "작업 없음" 점선 박스 표시**(그룹 4개 항상 노출) — 사용자, 2026-07-22
-- [x] 상태 dot 색이 시안과 다름(예정=회색 vs 코랄) → **시안 값으로 정정**(칸반 열 헤더도 함께 변경) — 사용자, 2026-07-22
-- [x] 우선순위 배지 색이 시안과 다름 → **시안 값으로 정정**(칸반 카드도 함께 변경) — 사용자, 2026-07-22
-- [x] 카테고리 서브그룹 정렬 → **현재대로 이름순 유지**(칸반과 통일, 시안의 선언 순서와는 차이) — 사용자, 2026-07-22
+- 없음 — 시안 원본(`:261-266`·`:1078`·`:1508`)과 사용자 제공 렌더 이미지로 형태·데이터 출처가 모두 확정됐고, 구현 방식은 기존 선례(`TodoItem.LinkedTestBadge` 대칭)로 결정 가능하다.
 
 ## 검증 방법
-- 빌드: `"C:/Program Files/Microsoft Visual Studio/18/Professional/MSBuild/Current/Bin/MSBuild.exe" "DevDashboard_WinUI/DevDashboard.csproj" -t:Build -p:Configuration=Debug -p:Platform=x64` → 오류 0 + 기존 경고 5건(NU1903 1 + CS0612 4) 외 신규 0
-- 회귀 방지 grep:
-  - **T1**: `TaskListStatusGroup` 정의 1 + `ListStatusGroups`가 `Rebuild()`에서 채워짐 / `CategoryGroups`는 **아직 남아 있다**(T1 단독 빌드 성립 조건)
-  - **T2**(검사 범위 = `TaskPage.xaml`·`TaskPage.xaml.cs`·`TaskPageViewModel.cs` **세 파일 한정** — 동명 별개 심볼 오탐 방지): `TaskCardTemplate`·`StatusCombo_`·`EditTask_Click`·`DeleteTask_Click`·`StatusOptions`·`TaskStatusOption`·`EditTooltip`·`DeleteTooltip`·`FormatStart`·`FormatEnd`·`DateVisibility`·`CategoryGroups`·`RebuildCategoryGroups`·`TaskCategoryGroup` 잔존 0 / `TaskListStatusGroupTemplate`·`TaskListCategoryTemplate`·`TaskListRowTemplate` 각 정의 1 + 소비 1 / `StatusDotBrush`·`StatusTag`·`EmptyGroupVisibility`·`CategoriesVisibility` 정의 + 소비 / `TaskListRowTemplate` 안 `ComboBox` 0 / `MapTestBadge`·`GetLinkedTestStatus`·`LinkedTestBadge`(VM·도메인) **잔존 확인**(D12)
-  - **T2 resw**: `TaskList_Empty.Text`가 ko/en 양쪽에 존재
-  - **T3**: `ListRow_PointerEntered`·`ListRow_PointerExited` 정의 + XAML 소비 / `TaskListStatusGroupTemplate`에 `AllowDrop`·`Drop`·`DragOver` 존재
-  - **T4**: `TaskPage.xaml.cs`에 `0xF0, 0x71, 0x6A`·`0x28, 0x6F, 0x6D, 0x75` 잔존 0 / `TaskPage.xaml`에 `Ellipse` 잔존 0
+- 빌드: `"C:/Program Files/Microsoft Visual Studio/18/Professional/MSBuild/Current/Bin/MSBuild.exe" "DevDashboard_WinUI/DevDashboard.csproj" -t:Build -p:Configuration=Debug -p:Platform=x64` → 오류 0 + 실측 baseline(`CS0618` 1건) 외 신규 0
+- 회귀 방지 grep(소스 `*.cs`/`*.xaml`, `obj/`·`bin/` 제외):
+  - **T1**: `TestItem.cs`에 `LinkedTaskTitle` 정의 1 + "표시 전용"·"영속화하지 않" 주석 / `TestPageViewModel.cs`에 `BuildLinkedTaskTitles` 정의 1 + `Rebuild()` 호출 1 / `SqliteProjectRepository.cs`에 `LinkedTaskTitle` 잔존 **0**(비영속 확인) / `TestPageViewModel.cs`에 `Microsoft.UI.Xaml` 0 / **`ProjectCardViewModel.cs` 파일 전체 `EnsureTodosLoaded` 3건**(정의 :295 + `CreateTaskPageViewModel` 1 + **`CreateTestPageViewModel` 신규 1**) — 판정 기준은 그중 **`CreateTestPageViewModel` 본문 1건의 존재**다(D8 — 이 grep이 B1 재발을 막는 유일한 정적 방어) / 같은 메서드 XML 주석에 `Todos` 언급 1건
+  - **T2**: `TestItemRowTemplate` 안 `RowDefinition` 3개 / `Grid.RowSpan="2"` 잔존 0·`Grid.RowSpan="3"` 2건 / `Glyph="&#xE71B;"` 1건 / `#7AB5EC` 2건(아이콘·텍스트)·`#735AA3E8` 1건 / `StringNotEmptyToVisibility`가 `LinkedTaskTitle`에 적용 / `TestPage.xaml.cs`·`Styles.xaml`·`Palette.xaml` diff 없음
 - 동작 확인(빌드로 검증 불가 → ⏳ HUMAN-VERIFY):
-  - **T1·T2**: 목록 전환 시 상태 그룹 4개(예정/진행 중/완료/보류)가 세로로 보이고, 각 그룹 안에 카테고리 서브그룹 + 가로 1줄 행이 표시된다 / 개수·테스트 배지가 칸반과 같은 값 / 빈 그룹에 "작업 없음" 점선 박스 / 그룹 헤더 구분선이 남는 폭을 채움
-  - **T3**: 행 클릭 → 편집 다이얼로그 / 행 우클릭 → 편집·상태 변경·삭제 메뉴 / 행 hover 시 테두리가 밝아짐(메뉴를 닫은 뒤 잔존하지 않는지 포함) / 행을 다른 상태 그룹으로 드래그 → 상태 변경·저장 / 빈 그룹에도 드롭 가능 / 완료 그룹에 드롭 → 작업기록 팝업 / 그룹 헤더 "＋ 새 작업" → 그 상태로 작업 생성
-  - **T4**: 예정 dot이 회색, 보류 dot이 주황빛으로 보이는지(칸반 열 헤더 포함) / 우선순위 배지 3종의 색이 시안과 같은지 / "낮음" 배지 배경이 불투명 회색으로 또렷한지 / **칸반·목록의 dot이 모두 라운드 사각형으로 같아 보이는지**(D15)
-
-## F-8 인계 목록 (렌더 육안 확인 필요 — 완료 선언 보류 사유)
-
-> 마크업 수준 대조는 각 task의 spec 리뷰와 F-7에서 완료(시각 요소 분해 34행 중 31행 마크업 반영 확인, 3행은 의도적 미구현으로 Deferred 등재). 아래는 **빌드로 판정 불가한 렌더 외형·실동작**이다.
-
-1. 그룹 헤더 구분선이 남는 폭을 정확히 채우는지 / 세로 중앙 정렬
-2. "작업 없음" 점선 박스의 dash 간격·상하 18px 여백
-3. 행 hover 테두리 밝기, **우클릭 메뉴를 닫은 뒤 hover가 잔존하지 않는지**(포인터가 벗어나도 `PointerExited`가 안 올 수 있음 — 잔존 시 Flyout `Closed`에서 복원 필요)
-4. "＋ 새 작업" 버튼 hover 색 — 시안 `#e8e6e3`/`#222226` vs 기본 Button `PointerOver` **근사**(의도적 차이)
-5. 정정된 상태 dot 색(예정 회색·보류 주황)·우선순위 배지 3색·"낮음" 배지 불투명 배경
-6. 칸반·목록의 dot이 모두 라운드 사각형으로 통일돼 보이는지(D15)
-7. **목록 드래그 실동작 3종**: 행을 다른 상태 그룹으로 이동 / 빈 그룹에 드롭 / 완료 그룹 드롭 시 작업기록 팝업 / 같은 그룹 드롭은 무시
+  - 작업 화면에서 "테스트 추가"를 켜고 새 작업을 만든 뒤 → 테스트 화면의 그 테스트 행에 **파란 캡슐 배지 + 링크 아이콘 + 작업 제목**이 뜨는지
+  - 배지가 이름 아래·메모 위에 좌측 정렬로 붙는지, 제목이 길면 말줄임되는지
+  - 연결이 없는 테스트에는 배지가 없는지 / **연결된 작업을 삭제하면 배지가 사라지는지**(D7)
+  - 상태 아이콘·상태 pill이 배지가 생겨도 세로 중앙에 유지되는지
 
 ## Phase Ledger
-- 전 task(T1~T4) 완료.
-- **Phase F 통과 (HEAD 4c6298d)** — F-2 클린 리빌드(`-t:Rebuild`) 오류 0·신규 경고 0(자동 생성 `CS0618` 1건만), F-3 회귀 grep 10종 전부 기대값, F-6.5 notes 기록(19,958자 — 아카이브 기준 30,000자 미만이라 이동 없음)·Deferred 대장 반영, F-7 `plan-completion-reviewer`: BLOCKER 0 / MAJOR 0 / MINOR 3(m1 hover 트랜지션 → Deferred 등재, m2 PRD FR-E4 문구 정정 → **사용자 승인 대기**, m3 리뷰 요청서 SHA 오기 → 검토는 실제 SHA로 수행돼 무영향).
-- **Phase G 통과 (Must 100%)** — active FR 26개 + NFR 5개 전수 대조, 커버 대상 Must FR(FR-T2·T3·T4) 전부 충족, 재루프 0회. Should FR-T8 충족, **FR-E4는 부분 커버(축소)** — 작업별 연결 배지의 화면 표현이 사라졌고 데이터·계산 경로만 유지(D12), 정직성은 F-7이 실측 확인.
-- **F-8 미통과 — 시각/실동작 확인 대기**: 위 `## F-8 인계 목록` 7건이 남아 **완료 선언 보류**.
+- (구현 시작 전)
 
 ## Progress Log
-- T1~T2 완료: VM에 상태 그룹 데이터 추가(T1) → XAML 목록 뷰를 시안 구조(상태 그룹 → 카테고리 서브그룹 → 가로 행)로 교체하고 구 세로 카드 경로 14개 심볼 일괄 제거(T2). 빌드 OK, 리뷰 지적 해소 완료.
-  - 결정(T2): 리뷰가 "목록 행에 클릭·우클릭 배선이 없는데 주석은 있다고 기술"(MAJOR)을 지적 — 배선은 plan상 T3 범위이므로 코드 대신 **주석을 현재 사실에 맞게 정정**했다(TaskPage.xaml 상단, Card_Tapped 문서주석).
-- T3~T4 완료: 목록 행에 클릭 편집·우클릭 메뉴·hover·드래그 상태 이동 배선(T3, 신규 심볼은 hover 핸들러 2개뿐 — 나머지는 칸반 핸들러 재사용) → 상태 dot·우선순위 배지 색 8종과 dot 모양(Ellipse→라운드 사각형 5곳)을 시안 값으로 정정(T4). 빌드 OK, 리뷰 지적 0.
-  - 결정(T3): 드롭 대상을 안쪽 목록이 아니라 **상태 그룹 루트**에 두고 `Background="Transparent"`를 줬다 — 그래야 항목이 없는 그룹에도 드롭할 수 있다(칸반 열과 같은 결론).
-  - 반증(T2): quality 재리뷰가 `TaskEdit_Tooltip`·`TaskDelete_Tooltip` resw를 고아로 지적(MAJOR)했으나, `TestPage.xaml.cs:60-61` + `TestPage.xaml:31,44`가 실제 소비 중임을 근거로 반증 → 리뷰어가 오탐 인정·철회. T2가 제거한 것은 **동명의 `TaskPage` 프로퍼티**일 뿐이다(plan이 grep 범위를 TaskPage 3파일로 한정한 이유와 동일한 함정).
+- (없음)
