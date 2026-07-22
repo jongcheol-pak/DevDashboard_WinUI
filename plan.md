@@ -431,6 +431,10 @@ PRD `:5`가 "요구 변경은 PRD → plan → 코드 순서로만"을 규약으
 - **F-7 2회차** — BLOCKER 1 / MINOR 2 + 지적 1.
   - **B1(재발)**: M1을 고치면서 `Application.Current.Resources["AppAccentBrush"]`를 써 **T4에서 이미 BLOCKER로 잡힌 패턴을 그대로 재도입**했다(`Palette.xaml`은 전체가 `ThemeDictionaries` 안이라 인덱서로 조회되지 않아 hover 시 예외). 같은 파일 주석과 notes에 경고가 있었는데도 반복한 실수다 → 로컬 flat 별칭 `AddCardHoverBorderBrush`로 수정하고, **회귀 grep에 `Application.Current.Resources[` 0건을 상시 항목으로 추가**해 재발선을 만들었다.
   - m1(삭제 hover 배경)·m2(hover 버블링)·미사용 팔레트 Brush 키 3종 → Deferred 등재(구조 판단이 필요하거나 무해한 잔여).
+- **F-7 3회차 통과** — BLOCKER 0 / MAJOR 0 / MINOR 0. 클린 리빌드 오류 0·baseline 경고 1건, 회귀 스윕(고정폭·드롭 상수·구 파생 프로퍼티·`MaxLines`) 전부 0, 공용 자산(`Styles.xaml`·`TaskPage.xaml`·`TestPage.xaml`·`ProjectGroup.cs`) 무변경, 커맨드 17종 도달성 유지.
+- **Phase F 통과 (HEAD f4ad1f1)**
+- **Phase G 통과 (Must 100%)** — 이번 plan이 커버 대상으로 선언한 **FR-D1·D2·D3(Must)** 전건 충족, **FR-D4(Should)** 충족. NFR-1~4 충족, NFR-5 미발동(테스트 프로젝트 부재). 기존 5개 영역 FR(C/S/T/E/H/N)은 `이번 범위 외 (기구현)`이며 공유 자산 무변경 + `TagColorConverter` 동작 보존 리팩터 + `Palette.xaml` 키 추가만으로 **회귀 0** 확인 → 미충족 Must 0건, 재루프 0회.
+- **F-8 미통과 — 렌더·실동작 확인 대기**: 위 `## F-8 인계 목록` 13건이 남아 **완료 선언 보류**.
 
 ## Progress Log
 
