@@ -604,10 +604,13 @@
                            Margin="24,18,24,24">
                 <!-- 시안 :346 — 최소 310px로 열을 채우고 남는 폭은 카드가 나눠 갖는다(최대 360).
                      ⚠️ MinItemHeight를 반드시 지정한다: 비우면 UniformGridLayout이 **첫 항목**(목록 맨 앞의
-                     "새 프로젝트 추가" 카드)의 높이로 모든 셀을 고정해 나머지 카드 내용이 잘린다. -->
+                     "새 프로젝트 추가" 카드)의 높이로 모든 셀을 고정해 나머지 카드 내용이 잘린다.
+                     값 256 = 헤더 62 + 본문 여백 30 + 설명 2줄 32 + 태그 26 + 액션 34 + 슬롯 38 + 간격 36 근사.
+                     이 레이아웃은 셀 크기가 균일해 행별 가변 높이가 안 되므로, 내용이 가장 많은 카드
+                     (설명 2줄) 기준으로 잡는다 — 더 줄이면 그런 카드가 잘린다. -->
                 <ItemsRepeater.Layout>
                     <muxc:UniformGridLayout MinItemWidth="310"
-                                            MinItemHeight="278"
+                                            MinItemHeight="256"
                                             MinColumnSpacing="14"
                                             MinRowSpacing="14"
                                             ItemsStretch="Fill"
