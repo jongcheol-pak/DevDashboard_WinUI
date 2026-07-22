@@ -273,7 +273,7 @@ PRD `:5`가 "요구 변경은 PRD → plan → 코드 순서로만"을 규약으
 - **Halt Forecast**: (ii-a) 사전 승인 — **UX 동작 변경**(카드 버튼 8개 → 4개, 나머지는 2클릭). 사용자가 명시 결정한 항목이며 기능 제거는 없다.
 
 ### T6 — 카드 하단: 스크립트 슬롯 시안화 `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `Presentation/Views/DashboardView.xaml`, `Presentation/ViewModels/ProjectCardViewModel.cs`
 - **Design**: ① 배치 — 카드 본문 하단(구분선 아래). 표시 규칙은 VM. ② 신규 심볼 — `ProjectCardViewModel.CanAddCommandSlot`(빈 슬롯이 남았는가) + `AddCommandSlotCommand`(다음 빈 슬롯 설정 다이얼로그 열기 — 기존 `ConfigureCommandSlotCommand`에 위임). ③ 의존 방향 — XAML → VM. ④ 비추상화 — 슬롯을 컬렉션(`ObservableCollection<SlotViewModel>`)으로 바꾸지 않는다. 4칸 고정 + 개별 프로퍼티가 현행 구조이고, 컬렉션화는 이번 요구(표시 규칙 변경)에 필요 없다.
 - **구성**:
