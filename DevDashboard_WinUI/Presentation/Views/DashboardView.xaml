@@ -318,10 +318,13 @@
                                             </MenuFlyoutItem.Icon>
                                         </MenuFlyoutItem>
                                         <MenuFlyoutSeparator />
+                                        <!-- 삭제는 되돌릴 수 없으므로 위험색으로 구분한다(시안 :483) -->
                                         <MenuFlyoutItem x:Uid="CardMenu_Delete"
-                                                        Command="{Binding DeleteCommand}">
+                                                        Command="{Binding DeleteCommand}"
+                                                        Foreground="{ThemeResource SystemFillColorCriticalBrush}">
                                             <MenuFlyoutItem.Icon>
-                                                <FontIcon Glyph="&#xE74D;" />
+                                                <FontIcon Glyph="&#xE74D;"
+                                                          Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
                                             </MenuFlyoutItem.Icon>
                                         </MenuFlyoutItem>
                                     </MenuFlyout>
