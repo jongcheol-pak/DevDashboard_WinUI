@@ -295,7 +295,7 @@ PRD `:5`가 "요구 변경은 PRD → plan → 코드 순서로만"을 규약으
 - **Halt Forecast**: (ii-a) 사전 승인 — 공개 파생 프로퍼티 3개 제거(`IsCmdNSlotVisible`) + 신규 2개. 소비처는 `DashboardView.xaml` 1곳으로 같은 task에서 함께 교체하므로 빌드가 성립한다.
 
 ### T7 — 그리드·추가 카드: 가변 폭 + 시안 스타일 `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `Presentation/Views/DashboardView.xaml`, `Presentation/Views/DashboardView.xaml.cs`(드롭 위치 판정 — B4)
 - **Design**: ① 배치 — `UniformGridLayout`(:588) + 3개 DataTemplate의 크기 지정 + 드롭 판정(`ShowDropPlaceholder`). ② 신규 심볼 — 없음. ③ 의존 방향 — 마크업 + 코드비하인드 내부 계산. ④ 비추상화 — 커스텀 `Layout` 클래스를 만들지 않는다.
 - **구성**:

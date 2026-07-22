@@ -85,7 +85,7 @@
 
         <!-- ───── 프로젝트 카드 DataTemplate ───── -->
         <DataTemplate x:Key="ProjectCardTemplate" x:DataType="vm:ProjectCardViewModel">
-            <Border Width="330" Margin="8"
+            <Border MaxWidth="360"
                     MinHeight="204"
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     CornerRadius="14"
@@ -516,10 +516,10 @@
 
         <!-- ───── + 추가 카드 DataTemplate ───── -->
         <DataTemplate x:Key="AddCardTemplate">
-            <Border Width="330" Margin="8"
-                    MinHeight="120"
-                    Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
-                    CornerRadius="12"
+            <Border MaxWidth="360"
+                    MinHeight="150"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    CornerRadius="14"
                     BorderThickness="1"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
                 <Button HorizontalAlignment="Stretch"
@@ -527,11 +527,13 @@
                         Background="Transparent"
                         BorderThickness="0"
                         Click="AddCard_Click">
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
-                        <FontIcon Glyph="&#xE710;" FontSize="28"
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                        <FontIcon Glyph="&#xE710;" FontSize="26"
+                                  HorizontalAlignment="Center"
                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                         <TextBlock x:Uid="AddNewProjectText"
                                    FontSize="13"
+                                   HorizontalAlignment="Center"
                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                     </StackPanel>
                 </Button>
@@ -540,9 +542,9 @@
 
         <!-- ───── 드롭 플레이스홀더 DataTemplate ───── -->
         <DataTemplate x:Key="DropPlaceholderTemplate">
-            <Border Width="330" Margin="8"
+            <Border MaxWidth="360"
                     MinHeight="204"
-                    CornerRadius="12"
+                    CornerRadius="14"
                     BorderThickness="2"
                     BorderBrush="{ThemeResource AccentTextFillColorPrimaryBrush}"
                     Background="{ThemeResource SubtleFillColorSecondaryBrush}"
@@ -580,9 +582,14 @@
             <ItemsRepeater x:Name="CardRepeater"
                            ItemsSource="{Binding DisplayCards}"
                            ItemTemplate="{StaticResource CardTemplateSelector}"
-                           Margin="8,8,8,8">
+                           Margin="24,18,24,24">
+                <!-- 시안 :346 — 최소 310px로 열을 채우고 남는 폭은 카드가 나눠 갖는다(최대 360) -->
                 <ItemsRepeater.Layout>
-                    <muxc:UniformGridLayout  ItemsJustification="Start" />
+                    <muxc:UniformGridLayout MinItemWidth="310"
+                                            MinColumnSpacing="14"
+                                            MinRowSpacing="14"
+                                            ItemsStretch="Fill"
+                                            ItemsJustification="Start" />
                 </ItemsRepeater.Layout>
             </ItemsRepeater>
         </ScrollViewer>

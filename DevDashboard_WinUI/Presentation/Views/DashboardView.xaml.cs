@@ -354,7 +354,7 @@ public sealed partial class DashboardView : UserControl
         if (_draggedCardId == target.Id) return;
 
         e.AcceptedOperation = DataPackageOperation.Move;
-        ShowDropPlaceholder(target, e.GetPosition(element));
+        ShowDropPlaceholder(target, e.GetPosition(element), element.ActualWidth);
     }
 
     private void Card_Drop(object sender, DragEventArgs e)
@@ -405,11 +405,13 @@ public sealed partial class DashboardView : UserControl
     // ─── 드롭 플레이스홀더 관리 ────────────────────────────────────────
 
     /// <summary>대상 카드의 좌/우에 빈 카드 플레이스홀더를 삽입합니다.</summary>
-    private void ShowDropPlaceholder(ProjectCardViewModel target, Windows.Foundation.Point posInTarget)
+    /// <param name="targetWidth">대상 카드의 실제 폭 — 카드 폭이 창 크기에 따라 변하므로 상수로 둘 수 없다.</param>
+    private void ShowDropPlaceholder(ProjectCardViewModel target, Windows.Foundation.Point posInTarget, double targetWidth)
     {
         if (Vm is null) return;
 
-        var isLeft = posInTarget.X < 165; // 카드 폭(330)의 절반
+        // 폭을 아직 못 재는 시점(레이아웃 전)이면 좌측으로 본다
+        var isLeft = targetWidth <= 0 || posInTarget.X < targetWidth / 2;
 
         // 같은 대상, 같은 방향이면 재삽입 불필요
         if (_dropTargetId == target.Id && _dropIsLeft == isLeft && _dropPlaceholderIndex >= 0)
