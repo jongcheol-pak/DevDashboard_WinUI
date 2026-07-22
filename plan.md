@@ -228,9 +228,10 @@ PRD `:5`가 "요구 변경은 PRD → plan → 코드 순서로만"을 규약으
 - **Halt Forecast**: (i) 사전 해소 — 파싱 규칙·폴백·알파 값을 확정. 기존 `TagColorConverter` 리팩터링은 **동작 보존**이라 승인 대상 아님(호출부 계약 불변).
 
 ### T4 — 카드 상부 재구성: 헤더 밴드 + 아바타 + 이름 + 핀/삭제 + 설명 `Type C`
-- [ ] 구현
-- **Files**: `Presentation/Views/DashboardView.xaml`
-- **Design**: ① 배치 — `ProjectCardTemplate` 상부(현행 :79-174 구간). ② 신규 심볼 — 없음(마크업 + T3 바인딩). ③ 의존 방향 — XAML → VM(T3 값)·컨버터. 코드비하인드 변경 없음. ④ 비추상화 — 카드 헤더용 UserControl·공용 스타일을 만들지 않는다(소비처 1곳).
+- [x] 구현
+- **Files**: `Presentation/Views/DashboardView.xaml(.cs)`, `Resources/Palette.xaml`
+  - **⚠️ 실행 중 조정(2026-07-22)**: 시각 요소 분해의 **카드 hover 테두리** 행이 어느 task에도 귀속돼 있지 않아(spec 리뷰 M1) 카드 루트를 다루는 이 task에서 구현했다. DataTemplate 안에서는 VSM이 동작하지 않아 **코드비하인드 포인터 핸들러**가 필요하고(`DashboardView.xaml.cs`), 그 색은 이 레포 관례상 **`Palette.xaml`에 토큰으로** 둔다(quality 리뷰 B1·M1 — `ThemeDictionaries` 키는 `Resources` 인덱서로 조회되지 않아 로컬 flat 브러시 별칭이 필요하고, 원시 hex는 `Palette.xaml`에만 두는 것이 이 레포의 예외 없는 관례).
+- **Design**: ① 배치 — `ProjectCardTemplate` 상부(현행 :79-174 구간) + hover 처리는 코드비하인드·팔레트. ② 신규 심볼 — `Card_PointerEntered`/`Card_PointerExited`(hover 핸들러) + 팔레트 토큰 `CardStrokeColorHover`. 그 외는 마크업 + T3 바인딩. ③ 의존 방향 — XAML → VM(T3 값)·컨버터. 코드비하인드 변경 없음. ④ 비추상화 — 카드 헤더용 UserControl·공용 스타일을 만들지 않는다(소비처 1곳).
 - **구성**:
   - 카드 `Border`를 `CornerRadius="14"`로 하고 **드래그 6속성(`CanDrag`/`AllowDrop`/`DragStarting`/`DropCompleted`/`DragOver`/`Drop`)을 그대로 승계**(누락 시 핀 카드 재정렬이 죽는다).
   - 카드 안을 2행(헤더 62px / 본문 `*`)으로 재구성. 헤더 `Border`는 `CornerRadius="13,13,0,0"` + 그라데이션 배경(`EffectiveHeaderColor` + `HexToHeaderGradient`).
@@ -245,6 +246,7 @@ PRD `:5`가 "요구 변경은 PRD → plan → 코드 순서로만"을 규약으
   4. 아바타가 아이콘/이니셜 2분기로 그려지고, 둘 중 하나만 동시에 보인다.
   5. 설명이 1줄 말줄임이다(`MaxLines="2"` 잔존 0).
   6. 경로 오류 경고 아이콘·핀·삭제 기능이 유지된다(커맨드 바인딩 3건 존재).
+  7. 카드 hover 시 테두리색이 시안 값(`#3D3D45`)으로 바뀌고 벗어나면 되돌아온다 — 색은 `Palette.xaml` 토큰(`CardStrokeColorHover`), 조회는 **로컬 flat 리소스 별칭**을 거친다(`Application.Current.Resources` 직접 접근 0건 — 런타임 예외 방지).
 - **Edge Cases**: 이름이 매우 김 → `*` 열에서 말줄임(아바타·버튼은 축소 안 됨) / 설명 없음 → 기존 `StringNotEmptyToVisibility`로 숨김(빈 줄 없음) / 태그 0개 → 마키 컨트롤이 빈 높이 / 아이콘이 정사각형이 아님 → `Stretch="Uniform"` 유지 / 밝은 헤더 색에서 흰 이니셜 대비 부족 → 시안도 흰 글자 고정(육안 확인 대상) / 드래그 중 헤더 밴드가 드래그 비주얼에 포함 → 기존 동작과 동일.
 - **Halt Forecast**: (i) 사전 해소 — 소비처가 `DashboardView.xaml` 1곳임을 grep 전수 확인(함정 11). 파괴적·외부 작업 없음.
 
