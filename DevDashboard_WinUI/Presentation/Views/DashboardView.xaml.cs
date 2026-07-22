@@ -63,15 +63,10 @@ public sealed partial class DashboardView : UserControl
     {
         this.Resources["ToolTip_ProjectPathNotFound"] = LocalizationService.Get("ToolTip_ProjectPathNotFound");
         this.Resources["ToolTip_PinUnpin"]            = LocalizationService.Get("ToolTip_PinUnpin");
-        this.Resources["ToolTip_Run"]                 = LocalizationService.Get("ToolTip_Run");
-        this.Resources["ToolTip_OpenFolder"]          = LocalizationService.Get("ToolTip_OpenFolder");
-        this.Resources["ToolTip_CardSettings"]        = LocalizationService.Get("ToolTip_CardSettings");
         this.Resources["ToolTip_Delete"]              = LocalizationService.Get("ToolTip_Delete");
-        this.Resources["ToolTip_GitStatus"]           = LocalizationService.Get("ToolTip_GitStatus");
         this.Resources["ToolTip_ToDo"]                = LocalizationService.Get("ToolTip_ToDo");
-        this.Resources["ToolTip_WorkHistory"]         = LocalizationService.Get("ToolTip_WorkHistory");
-        this.Resources["ToolTip_TestList"]             = LocalizationService.Get("ToolTip_TestList");
-        this.Resources["ToolTip_Terminal"]            = LocalizationService.Get("ToolTip_Terminal");
+        this.Resources["ToolTip_TestList"]            = LocalizationService.Get("ToolTip_TestList");
+        this.Resources["ToolTip_More"]                = LocalizationService.Get("ToolTip_More");
     }
 
     // ─── DataContext 변경 시 카드 이벤트 구독 관리 ──────────────────────

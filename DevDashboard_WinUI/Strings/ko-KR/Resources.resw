@@ -145,6 +145,17 @@
   <data name="HistoryButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>작업 기록</value></data>
   <data name="TerminalButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>터미널 열기</value></data>
   <data name="TerminalPowerShellMenuItem.Text" xml:space="preserve"><value>PowerShell 실행</value></data>
+  <!-- 카드 '더 보기' 메뉴 -->
+  <data name="CardMenu_Run.Text" xml:space="preserve"><value>실행</value></data>
+  <data name="CardMenu_OpenFolder.Text" xml:space="preserve"><value>폴더 열기</value></data>
+  <data name="CardMenu_Terminal.Text" xml:space="preserve"><value>터미널</value></data>
+  <data name="CardMenu_TerminalDefault.Text" xml:space="preserve"><value>기본 터미널</value></data>
+  <data name="CardMenu_TerminalPowerShell.Text" xml:space="preserve"><value>PowerShell</value></data>
+  <data name="CardMenu_GitStatus.Text" xml:space="preserve"><value>Git 상태</value></data>
+  <data name="CardMenu_History.Text" xml:space="preserve"><value>작업 기록</value></data>
+  <data name="CardMenu_Settings.Text" xml:space="preserve"><value>프로젝트 설정</value></data>
+  <data name="CardMenu_Delete.Text" xml:space="preserve"><value>삭제</value></data>
+  <data name="ToolTip_More" xml:space="preserve"><value>더 보기</value></data>
   <data name="AddNewProjectText.Text" xml:space="preserve"><value>새 프로젝트 추가</value></data>
   <data name="LoadingText.Text" xml:space="preserve"><value>로딩 중...</value></data>
 

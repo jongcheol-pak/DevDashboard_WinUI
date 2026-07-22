@@ -200,92 +200,135 @@
                     <!-- 카드 하단 -->
                     <StackPanel Spacing="8">
 
-                        <!-- 개발도구 + 아이콘 버튼 -->
-                        <Grid>
+                        <!-- 액션 행 (시안 :372~387) — 큰 실행 버튼 + 작업/테스트 + 더 보기 메뉴.
+                             폴더·터미널·Git·작업 기록·설정은 '더 보기' 메뉴로 옮겼다 -->
+                        <Grid ColumnSpacing="6">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <!-- 개발도구 배지 -->
-                            <Border Grid.Column="0"
+                            <!-- 개발 도구 실행 버튼 (누르면 실행, 우클릭하면 관리자 권한) -->
+                            <Button Grid.Column="0"
+                                    Height="34" CornerRadius="9" Padding="10,0"
+                                    BorderThickness="0"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
                                     Background="{Binding DevToolName, Converter={StaticResource TagColor}}"
-                                    CornerRadius="6" Padding="10,0" Height="34"
-                                    HorizontalAlignment="Stretch" Margin="0,0,8,0">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="5">
-                                    <Grid VerticalAlignment="Center"
-                                          Visibility="{Binding IsDevToolValid, Converter={StaticResource BoolToVisibility}}">
-                                        <FontIcon Glyph="&#xEC7A;" FontSize="14"
-                                                  VerticalAlignment="Center"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-
-                                        <FontIcon Glyph="&#xEB59;" FontSize="16"
-                                                VerticalAlignment="Center"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Visibility="{Binding RunAsAdmin, Converter={StaticResource BoolToVisibility}}" />
-                                    </Grid>
-                                 
+                                    Command="{Binding OpenInDevToolCommand}">
+                                <Button.ContextFlyout>
+                                    <MenuFlyout>
+                                        <MenuFlyoutItem x:Uid="RunAsAdminMenuItem"
+                                                        Command="{Binding OpenInDevToolAsAdminCommand}" />
+                                    </MenuFlyout>
+                                </Button.ContextFlyout>
+                                <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE768;" FontSize="12" Foreground="White"
+                                              VerticalAlignment="Center"
+                                              Visibility="{Binding IsDevToolValid, Converter={StaticResource BoolToVisibility}}" />
+                                    <!-- 도구 경로가 잘못됐을 때 -->
                                     <FontIcon Glyph="&#xE7BA;" FontSize="14"
                                               VerticalAlignment="Center"
                                               Foreground="{ThemeResource SystemFillColorCriticalBrush}"
                                               Visibility="{Binding IsDevToolValid, Converter={StaticResource InverseBoolToVisibility}}" />
+                                    <!-- 관리자 권한으로 실행되는 프로젝트 -->
+                                    <FontIcon Glyph="&#xEB59;" FontSize="14" Foreground="White"
+                                              VerticalAlignment="Center"
+                                              Visibility="{Binding RunAsAdmin, Converter={StaticResource BoolToVisibility}}" />
                                     <TextBlock Text="{Binding DevToolName}"
-                                               FontSize="12" FontWeight="SemiBold"
+                                               FontSize="12.5" FontWeight="Bold"
                                                VerticalAlignment="Center"
-                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                               Foreground="White"
+                                               TextTrimming="CharacterEllipsis" />
                                 </StackPanel>
-                            </Border>
+                            </Button>
 
-                            <!-- 아이콘 버튼 그룹 -->
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2" >
-                                <!-- 실행 버튼 -->
-                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_Run}"
-                                       Margin="0,0,4,0"
-                                        Style="{StaticResource CardIconButtonStyle}"
-                                        Command="{Binding OpenInDevToolCommand}">
-                                    <Button.ContextFlyout>
-                                        <MenuFlyout>
-                                            <MenuFlyoutItem x:Uid="RunAsAdminMenuItem"
-                                                           Command="{Binding OpenInDevToolAsAdminCommand}" />
-                                        </MenuFlyout>
-                                    </Button.ContextFlyout>
-                                    <FontIcon Glyph="&#xE768;" FontSize="14"
-                                              Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                                </Button>
+                            <!-- 작업 -->
+                            <Button Grid.Column="1"
+                                    ToolTipService.ToolTip="{StaticResource ToolTip_ToDo}"
+                                    Width="34" Height="34" CornerRadius="9"
+                                    Style="{StaticResource CardIconButtonStyle}"
+                                    Command="{Binding OpenTodoCommand}">
+                                <FontIcon Glyph="&#xEE92;" FontSize="15"
+                                          Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </Button>
 
-                                <!-- 폴더 열기 -->
-                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_OpenFolder}"
-                                        Margin="0,0,4,0"
-                                      
-                                        Style="{StaticResource CardIconButtonStyle}"
-                                        Command="{Binding OpenFolderCommand}">
-                                    <FontIcon Glyph="&#xE838;" FontSize="14"
-                                              Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                                </Button>
+                            <!-- 테스트 -->
+                            <Button Grid.Column="2"
+                                    ToolTipService.ToolTip="{StaticResource ToolTip_TestList}"
+                                    Width="34" Height="34" CornerRadius="9"
+                                    Style="{StaticResource CardIconButtonStyle}"
+                                    Command="{Binding OpenTestListCommand}">
+                                <FontIcon Glyph="&#xEBE8;" FontSize="15"
+                                          Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </Button>
 
-                                <!-- 편집 -->
-                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_CardSettings}"
-                                        Margin="0,0,4,0"
-                                        Style="{StaticResource CardIconButtonStyle}"
-                                        Command="{Binding EditCommand}">
-                                    <FontIcon Glyph="&#xE713;" FontSize="14"
-                                              Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                                </Button>
+                            <!-- 구분선 (시안 :383) -->
+                            <Rectangle Grid.Column="3"
+                                       Width="1" Height="18"
+                                       VerticalAlignment="Center"
+                                       Fill="{ThemeResource CardStrokeColorDefaultBrush}" />
 
-                                <!-- 터미널 열기 -->
-                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_Terminal}"
-         Style="{StaticResource CardIconButtonStyle}"
-         Command="{Binding OpenTerminalCommand}">
-                                    <Button.ContextFlyout>
-                                        <MenuFlyout>
-                                            <MenuFlyoutItem x:Uid="TerminalPowerShellMenuItem"
-                            Command="{Binding OpenTerminalWithPowerShellCommand}" />
-                                        </MenuFlyout>
-                                    </Button.ContextFlyout>
-                                    <FontIcon Glyph="&#xE756;" FontSize="14"
-               Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                                </Button>
-                            </StackPanel>
+                            <!-- 더 보기 -->
+                            <Button Grid.Column="4"
+                                    ToolTipService.ToolTip="{StaticResource ToolTip_More}"
+                                    Width="34" Height="34" CornerRadius="9"
+                                    Style="{StaticResource CardIconButtonStyle}">
+                                <Button.Flyout>
+                                    <MenuFlyout>
+                                        <MenuFlyoutItem x:Uid="CardMenu_Run"
+                                                        Command="{Binding OpenInDevToolCommand}">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xE768;" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutItem x:Uid="CardMenu_OpenFolder"
+                                                        Command="{Binding OpenFolderCommand}">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xE838;" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <!-- 터미널은 기본/PowerShell 두 갈래 — 축약 전에는 터미널 버튼 우클릭이 유일한 진입점이었다 -->
+                                        <MenuFlyoutSubItem x:Uid="CardMenu_Terminal">
+                                            <MenuFlyoutSubItem.Icon>
+                                                <FontIcon Glyph="&#xE756;" />
+                                            </MenuFlyoutSubItem.Icon>
+                                            <MenuFlyoutItem x:Uid="CardMenu_TerminalDefault"
+                                                            Command="{Binding OpenTerminalCommand}" />
+                                            <MenuFlyoutItem x:Uid="CardMenu_TerminalPowerShell"
+                                                            Command="{Binding OpenTerminalWithPowerShellCommand}" />
+                                        </MenuFlyoutSubItem>
+                                        <MenuFlyoutSeparator />
+                                        <MenuFlyoutItem x:Uid="CardMenu_GitStatus"
+                                                        Command="{Binding ShowGitStatusCommand}"
+                                                        Visibility="{Binding IsGitRepo, Converter={StaticResource BoolToVisibility}}" />
+                                        <MenuFlyoutItem x:Uid="CardMenu_History"
+                                                        Command="{Binding OpenHistoryCommand}">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xE81C;" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutItem x:Uid="CardMenu_Settings"
+                                                        Command="{Binding EditCommand}">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xE713;" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutSeparator />
+                                        <MenuFlyoutItem x:Uid="CardMenu_Delete"
+                                                        Command="{Binding DeleteCommand}">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xE74D;" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                    </MenuFlyout>
+                                </Button.Flyout>
+                                <FontIcon Glyph="&#xE10C;" FontSize="15"
+                                          Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </Button>
                         </Grid>
 
                         <!-- 커맨드 슬롯 + Git/Todo/History 버튼 -->
@@ -485,49 +528,6 @@ Visibility="{Binding IsCmd3RunAsAdmin, Converter={StaticResource BoolToVisibilit
                                 </Button>
                             </StackPanel>
 
-                            <!-- Git / Todo / History 버튼 -->
-                            <StackPanel Grid.Column="1" Orientation="Horizontal"
-                                        HorizontalAlignment="Right" Spacing="2">
-                                <!-- Git 상태 (레포인 경우만) -->
-                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_GitStatus}"
-                                         Margin="0,0,4,0"
-                                        Style="{StaticResource CardIconButtonStyle}"
-                                        Command="{Binding ShowGitStatusCommand}"
-                                        Visibility="{Binding IsGitRepo, Converter={StaticResource BoolToVisibility}}">
-                                    <Path Data="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z"
-                                          Width="14" Height="14"
-                                          Stretch="Uniform"
-                                          Fill="{ThemeResource TextFillColorPrimaryBrush}" />
-                                </Button>
-
-                                <!-- To-Do -->
-                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_ToDo}"
-                                         Margin="0,0,4,0"
-                                        Style="{StaticResource CardIconButtonStyle}"
-                                        Command="{Binding OpenTodoCommand}">
-                                    <FontIcon Glyph="&#xEE92;" FontSize="14"
-                                              Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                                </Button>
-
-                                <!-- 작업 기록 -->
-                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_WorkHistory}"
-                                         Margin="0,0,0,0"
-                                        Style="{StaticResource CardIconButtonStyle}"
-                                        Command="{Binding OpenHistoryCommand}">
-                                    <FontIcon Glyph="&#xE81C;" FontSize="14"
-                                              Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                                </Button>
-
-                                <!-- 테스트 목록 -->
-                                <Button ToolTipService.ToolTip="{StaticResource ToolTip_TestList}"
-         Margin="4,0,0,0"
-        Style="{StaticResource CardIconButtonStyle}"
-         Command="{Binding OpenTestListCommand}">
-
-                                    <FontIcon Glyph="&#xEBE8;" FontSize="14"
-              Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                                </Button>
-                            </StackPanel>
                         </Grid>
                     </StackPanel>
                     </StackPanel>

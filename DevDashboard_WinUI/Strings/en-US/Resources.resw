@@ -145,6 +145,17 @@
   <data name="HistoryButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>Work History</value></data>
   <data name="TerminalButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>Open Terminal</value></data>
   <data name="TerminalPowerShellMenuItem.Text" xml:space="preserve"><value>Run PowerShell</value></data>
+  <!-- Card "more" menu -->
+  <data name="CardMenu_Run.Text" xml:space="preserve"><value>Run</value></data>
+  <data name="CardMenu_OpenFolder.Text" xml:space="preserve"><value>Open folder</value></data>
+  <data name="CardMenu_Terminal.Text" xml:space="preserve"><value>Terminal</value></data>
+  <data name="CardMenu_TerminalDefault.Text" xml:space="preserve"><value>Default terminal</value></data>
+  <data name="CardMenu_TerminalPowerShell.Text" xml:space="preserve"><value>PowerShell</value></data>
+  <data name="CardMenu_GitStatus.Text" xml:space="preserve"><value>Git status</value></data>
+  <data name="CardMenu_History.Text" xml:space="preserve"><value>Work history</value></data>
+  <data name="CardMenu_Settings.Text" xml:space="preserve"><value>Project settings</value></data>
+  <data name="CardMenu_Delete.Text" xml:space="preserve"><value>Delete</value></data>
+  <data name="ToolTip_More" xml:space="preserve"><value>More</value></data>
   <data name="AddNewProjectText.Text" xml:space="preserve"><value>Add New Project</value></data>
   <data name="LoadingText.Text" xml:space="preserve"><value>Loading...</value></data>
 
