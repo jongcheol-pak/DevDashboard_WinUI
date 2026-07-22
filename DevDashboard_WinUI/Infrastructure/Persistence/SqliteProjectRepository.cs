@@ -317,6 +317,9 @@ public sealed class SqliteProjectRepository : IProjectRepository
         cmd.CommandText = "SELECT * FROM Projects ORDER BY IsPinned DESC, PinOrder, CreatedAt";
         using var reader = cmd.ExecuteReader();
 
+        // 구버전 DB에는 HeaderColor 컬럼이 없다 (가져오기로 읽는 외부 .db 포함)
+        var hasHeaderColor = HasColumn(reader, "HeaderColor");
+
         var list = new List<ProjectItem>();
         while (reader.Read())
         {
@@ -336,6 +339,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
                 RunAsAdmin = reader.GetInt64(reader.GetOrdinal("RunAsAdmin")) != 0,
                 GroupId = reader.GetString(reader.GetOrdinal("GroupId")),
                 Category = reader.GetString(reader.GetOrdinal("Category")),
+                HeaderColor = hasHeaderColor ? reader.GetString(reader.GetOrdinal("HeaderColor")) : string.Empty,
                 CreatedAt = ParseDateTime(reader.GetString(reader.GetOrdinal("CreatedAt"))),
                 UseWorkingDirectory = reader.GetInt64(reader.GetOrdinal("UseWorkingDirectory")) != 0,
                 ShellWorkingDirectory = reader.GetString(reader.GetOrdinal("ShellWorkingDirectory"))
@@ -416,11 +420,11 @@ public sealed class SqliteProjectRepository : IProjectRepository
         cmd.CommandText = """
             INSERT OR REPLACE INTO Projects
                 (Id, Name, Description, IconPath, Path, DevToolName, Options, Command,
-                 GitStatus, IsPinned, PinOrder, RunAsAdmin, GroupId, Category, CreatedAt,
+                 GitStatus, IsPinned, PinOrder, RunAsAdmin, GroupId, Category, HeaderColor, CreatedAt,
                  UseWorkingDirectory, ShellWorkingDirectory)
             VALUES
                 (@id, @name, @desc, @icon, @path, @devTool, @opts, @cmd,
-                 @git, @pinned, @pinOrder, @admin, @groupId, @cat, @created,
+                 @git, @pinned, @pinOrder, @admin, @groupId, @cat, @headerColor, @created,
                  @useWd, @shellWd)
             """;
         cmd.Parameters.AddWithValue("@id", p.Id);
@@ -437,6 +441,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
         cmd.Parameters.AddWithValue("@admin", p.RunAsAdmin ? 1 : 0);
         cmd.Parameters.AddWithValue("@groupId", p.GroupId);
         cmd.Parameters.AddWithValue("@cat", p.Category);
+        cmd.Parameters.AddWithValue("@headerColor", p.HeaderColor);
         cmd.Parameters.AddWithValue("@created", p.CreatedAt.ToString(DateTimeFormat));
         cmd.Parameters.AddWithValue("@useWd", p.UseWorkingDirectory ? 1 : 0);
         cmd.Parameters.AddWithValue("@shellWd", p.ShellWorkingDirectory);
@@ -451,7 +456,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
                 Name = @name, Description = @desc, IconPath = @icon, Path = @path,
                 DevToolName = @devTool, Options = @opts, Command = @cmd,
                 GitStatus = @git, IsPinned = @pinned, PinOrder = @pinOrder,
-                RunAsAdmin = @admin, GroupId = @groupId, Category = @cat,
+                RunAsAdmin = @admin, GroupId = @groupId, Category = @cat, HeaderColor = @headerColor,
                 UseWorkingDirectory = @useWd, ShellWorkingDirectory = @shellWd
             WHERE Id = @id
             """;
@@ -469,6 +474,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
         cmd.Parameters.AddWithValue("@admin", p.RunAsAdmin ? 1 : 0);
         cmd.Parameters.AddWithValue("@groupId", p.GroupId);
         cmd.Parameters.AddWithValue("@cat", p.Category);
+        cmd.Parameters.AddWithValue("@headerColor", p.HeaderColor);
         cmd.Parameters.AddWithValue("@useWd", p.UseWorkingDirectory ? 1 : 0);
         cmd.Parameters.AddWithValue("@shellWd", p.ShellWorkingDirectory);
         cmd.ExecuteNonQuery();

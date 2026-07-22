@@ -166,7 +166,7 @@ PRD `:5`가 "요구 변경은 PRD → plan → 코드 순서로만"을 규약으
 ## 작업 단계
 
 ### T1 — 도메인·DB: 프로젝트 카드 색상 필드 `Type D`
-- [ ] 구현
+- [x] 구현
 - **Files**: `Domain/Entities/ProjectItem.cs`, `Infrastructure/Persistence/DatabaseContext.cs`, `Infrastructure/Persistence/SqliteProjectRepository.cs`
 - **Design**: ① 배치 — 값은 `ProjectItem`(도메인), 스키마는 `DatabaseContext`의 **화이트리스트 + `MigrateSchema`**, 입출력은 `SqliteProjectRepository`의 INSERT/UPDATE + **읽기 1경로(`ReadProjects` — 가져오기가 재사용)**. ② 신규 심볼 — `ProjectItem.HeaderColor`(카드 헤더·아바타 색, `#RRGGBB` / 빈 문자열이면 이름 해시 자동). ③ 의존 방향 — Infrastructure → Domain(기존 그대로), 신규 의존 0. ④ 비추상화 — 색을 다루는 값 객체(`CardColor` 등)를 만들지 않는다. 문자열 1개이며 검증은 다이얼로그의 팔레트 선택으로 제한된다(자유 입력 없음).
 - **구성**:

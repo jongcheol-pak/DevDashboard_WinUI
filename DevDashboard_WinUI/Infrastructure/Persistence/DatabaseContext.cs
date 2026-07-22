@@ -131,6 +131,8 @@ public sealed class DatabaseContext
         AddColumnIfNotExists(connection, "Todos", "LinkedTestId", "TEXT NOT NULL DEFAULT ''");
         // 작업 기록 유형(kind) 필드
         AddColumnIfNotExists(connection, "Histories", "Kind", "TEXT NOT NULL DEFAULT ''");
+        // 대시보드 카드 헤더·아바타 색 (빈 문자열이면 프로젝트 이름 해시로 자동 배정)
+        AddColumnIfNotExists(connection, "Projects", "HeaderColor", "TEXT NOT NULL DEFAULT ''");
     }
 
     /// <summary>기존 IsCompleted 값을 Status 컬럼으로 마이그레이션합니다.</summary>
@@ -170,7 +172,7 @@ public sealed class DatabaseContext
         "Projects", "ProjectTags", "CommandScripts", "Todos", "Histories", "Groups", "LauncherItems", "TestItems", "TestCategories",
         "Id", "Name", "Description", "IconPath", "Path", "DevToolName", "Options",
         "Command", "GitStatus", "IsPinned", "PinOrder", "RunAsAdmin", "GroupId",
-        "Category", "CreatedAt", "UseWorkingDirectory", "ShellWorkingDirectory",
+        "Category", "HeaderColor", "CreatedAt", "UseWorkingDirectory", "ShellWorkingDirectory",
         "ProjectId", "Tag", "SlotIndex", "ShellType", "Script", "WorkingDirectory",
         "IconSymbol", "Text", "IsCompleted", "CompletedAt", "Title", "IsDefault",
         "DisplayName", "ExecutablePath", "IconCachePath", "SortOrder", "ProgressNote", "CategoryId", "Status",
@@ -215,6 +217,7 @@ public sealed class DatabaseContext
                 RunAsAdmin  INTEGER NOT NULL DEFAULT 0,
                 GroupId     TEXT NOT NULL DEFAULT '',
                 Category    TEXT NOT NULL DEFAULT '',
+                HeaderColor TEXT NOT NULL DEFAULT '',
                 CreatedAt   TEXT NOT NULL DEFAULT '',
                 UseWorkingDirectory INTEGER NOT NULL DEFAULT 0,
                 ShellWorkingDirectory TEXT NOT NULL DEFAULT ''

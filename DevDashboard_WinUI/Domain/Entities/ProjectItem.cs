@@ -57,6 +57,9 @@ public class ProjectItem
     /// <summary>카테고리 분류</summary>
     public string Category { get; set; } = string.Empty;
 
+    /// <summary>카드 헤더·아바타 색 (#RRGGBB). 빈 문자열이면 프로젝트 이름 해시로 자동 배정합니다.</summary>
+    public string HeaderColor { get; set; } = string.Empty;
+
     /// <summary>커맨드 실행 버튼 스크립트 설정 (최대 4슬롯, null이면 미설정)</summary>
     public List<CommandScript?> CommandScripts { get; set; } = [null, null, null, null];
 
