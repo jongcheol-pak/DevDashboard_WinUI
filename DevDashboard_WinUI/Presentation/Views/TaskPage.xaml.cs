@@ -18,11 +18,7 @@ public sealed partial class TaskPage : UserControl
     /// <summary>페이지 뷰모델 (x:Bind 대상)</summary>
     public TaskPageViewModel Vm { get; }
 
-    // 카드 액션 버튼 툴팁 (x:Bind 정적 참조)
-    public static string EditTooltip { get; } = LocalizationService.Get("TaskEdit_Tooltip");
-    public static string DeleteTooltip { get; } = LocalizationService.Get("TaskDelete_Tooltip");
-
-    // 칸반 카드 우클릭 메뉴 라벨 (x:Bind 정적 참조)
+    // 카드 우클릭 메뉴 라벨 (x:Bind 정적 참조)
     public static string MenuEditText { get; } = LocalizationService.Get("TaskMenu_Edit");
     public static string MenuDeleteText { get; } = LocalizationService.Get("TaskMenu_Delete");
     public static string MenuMoveToText { get; } = LocalizationService.Get("TaskMenu_MoveTo");
@@ -46,20 +42,24 @@ public sealed partial class TaskPage : UserControl
     public static Brush StatusDotCompleted => _statusDotCompleted;
     public static Brush StatusDotHold => _statusDotHold;
 
-    // 칸반 열 헤더 라벨 (x:Bind 정적 참조 — StatusOptions와 동일 리소스 키 재사용)
+    /// <summary>상태 dot 색 — 목록 뷰는 상태 그룹을 데이터로 돌리므로 열마다 고정인 칸반과 달리 상태로부터 골라야 한다.</summary>
+    public static Brush StatusDotBrush(TodoStatus status) => status switch
+    {
+        TodoStatus.Active => _statusDotActive,
+        TodoStatus.Completed => _statusDotCompleted,
+        TodoStatus.Hold => _statusDotHold,
+        _ => _statusDotWaiting,
+    };
+
+    /// <summary>상태를 Tag 문자열로 변환합니다 (ColumnAdd_Click·Column_Drop이 Tag: string → Enum.TryParse로 받는다).
+    /// 칸반은 열마다 Tag를 리터럴로 적지만 목록은 데이터 주도라 변환이 필요하다.</summary>
+    public static string StatusTag(TodoStatus status) => status.ToString();
+
+    // 칸반 열 헤더 라벨 (x:Bind 정적 참조 — 목록 그룹 라벨은 VM이 그룹 데이터에 담아 넘긴다)
     public static string LabelWaiting { get; } = LocalizationService.Get("TaskStatus_Waiting");
     public static string LabelActive { get; } = LocalizationService.Get("TaskStatus_Active");
     public static string LabelCompleted { get; } = LocalizationService.Get("TaskStatus_Completed");
     public static string LabelHold { get; } = LocalizationService.Get("TaskStatus_Hold");
-
-    /// <summary>상태 콤보박스 항목 (예정/진행 중/완료/보류)</summary>
-    public static IReadOnlyList<TaskStatusOption> StatusOptions { get; } =
-    [
-        new(TodoStatus.Waiting, LocalizationService.Get("TaskStatus_Waiting")),
-        new(TodoStatus.Active, LocalizationService.Get("TaskStatus_Active")),
-        new(TodoStatus.Completed, LocalizationService.Get("TaskStatus_Completed")),
-        new(TodoStatus.Hold, LocalizationService.Get("TaskStatus_Hold")),
-    ];
 
     public TaskPage(TaskPageViewModel vm, AppSettings settings)
     {
@@ -90,19 +90,7 @@ public sealed partial class TaskPage : UserControl
     public static string PriorityText(TaskPriority priority)
         => LocalizationService.Get($"TaskPriority_{priority}");
 
-    /// <summary>시작일 표시 ("시작 : yyyy-MM-dd", 미지정이면 빈 문자열)</summary>
-    public static string FormatStart(DateTime? date)
-        => date.HasValue ? $"{LocalizationService.Get("TaskLabel_Start")} {date.Value:yyyy-MM-dd}" : string.Empty;
-
-    /// <summary>종료일 표시 ("종료 : yyyy-MM-dd", 미지정이면 빈 문자열)</summary>
-    public static string FormatEnd(DateTime? date)
-        => date.HasValue ? $"{LocalizationService.Get("TaskLabel_End")} {date.Value:yyyy-MM-dd}" : string.Empty;
-
-    /// <summary>날짜 표시 여부 (지정된 날짜가 있을 때만 표시). x:Bind 함수 바인딩은 Converter를 적용하지 않아 직접 Visibility를 반환한다.</summary>
-    public static Visibility DateVisibility(DateTime? date)
-        => date.HasValue ? Visibility.Visible : Visibility.Collapsed;
-
-    /// <summary>칸반 카드의 날짜 범위 표시 ("MM-dd – MM-dd").
+    /// <summary>카드·행의 날짜 범위 표시 ("MM-dd – MM-dd").
     /// 한쪽만 지정된 경우 그쪽만 표시해 "07-24 – " 같은 반쪽 표기를 만들지 않는다.</summary>
     public static string FormatDateRange(DateTime? start, DateTime? end)
     {
@@ -170,6 +158,14 @@ public sealed partial class TaskPage : UserControl
     public static Visibility RanTestBadgeVisibility(string badge, bool hasTestResult)
         => !string.IsNullOrEmpty(badge) && hasTestResult ? Visibility.Visible : Visibility.Collapsed;
 
+    /// <summary>목록 상태 그룹의 "작업 없음" 안내 표시 여부</summary>
+    public static Visibility EmptyGroupVisibility(bool isEmpty)
+        => isEmpty ? Visibility.Visible : Visibility.Collapsed;
+
+    /// <summary>목록 상태 그룹의 카테고리 서브그룹 표시 여부 ("작업 없음" 안내와 배타)</summary>
+    public static Visibility CategoriesVisibility(bool isEmpty)
+        => isEmpty ? Visibility.Collapsed : Visibility.Visible;
+
     // ===== 네비게이션·뷰 =====
 
     private void Back_Click(object sender, RoutedEventArgs e)
@@ -179,22 +175,6 @@ public sealed partial class TaskPage : UserControl
     {
         if (sender is not ComboBox { SelectedIndex: var index } combo) return;
         Vm.SelectedCategoryFilter = index <= 0 ? null : combo.SelectedItem as string;
-    }
-
-    // ===== 상태 콤보 =====
-
-    private void StatusCombo_Loaded(object sender, RoutedEventArgs e)
-    {
-        if (sender is not ComboBox { Tag: TodoItem todo } combo) return;
-        combo.ItemsSource = StatusOptions;
-        combo.SelectedItem = StatusOptions.FirstOrDefault(o => o.Value == todo.Status);
-    }
-
-    private void StatusCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (sender is not ComboBox { Tag: TodoItem todo, SelectedItem: TaskStatusOption option }) return;
-        // MoveToStatus는 동일 상태면 무시하므로 Loaded 초기 선택으로 인한 불필요한 저장이 없다.
-        Vm.MoveToStatus(todo, option.Value);
     }
 
     // ===== 작업 추가/편집/삭제 =====
@@ -235,21 +215,9 @@ public sealed partial class TaskPage : UserControl
             Vm.DeleteTodo(todo);
     }
 
-    private async void EditTask_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement { Tag: TodoItem todo })
-            await EditTodoAsync(todo);
-    }
+    // ===== 카드·행 조작 (클릭 = 편집, 우클릭 메뉴 = 편집·삭제·상태 변경) =====
 
-    private async void DeleteTask_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement { Tag: TodoItem todo })
-            await DeleteTodoAsync(todo);
-    }
-
-    // ===== 칸반 카드 조작 (클릭 = 편집, 우클릭 메뉴 = 편집·삭제·상태 변경) =====
-
-    /// <summary>칸반 카드를 클릭하면 편집 다이얼로그를 연다.
+    /// <summary>칸반 카드·목록 행을 클릭하면 편집 다이얼로그를 연다.
     /// 드래그가 성립한 경우에는 Tapped가 발생하지 않으므로 드래그앤드롭과 충돌하지 않는다.</summary>
     private async void Card_Tapped(object sender, TappedRoutedEventArgs e)
     {
@@ -329,10 +297,4 @@ public sealed partial class TaskPage : UserControl
         await dialog.ShowAsync();
         Vm.CommitWorkLog(historyVm.NewEntries);
     }
-}
-
-/// <summary>상태 콤보박스 항목</summary>
-public sealed record TaskStatusOption(TodoStatus Value, string DisplayName)
-{
-    public override string ToString() => DisplayName;
 }

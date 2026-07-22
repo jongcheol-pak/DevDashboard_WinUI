@@ -35,9 +35,6 @@ public partial class TaskPageViewModel : ObservableObject
     public ObservableCollection<TaskColumnGroup> CompletedItems { get; } = [];
     public ObservableCollection<TaskColumnGroup> HoldItems { get; } = [];
 
-    /// <summary>목록 뷰 — 카테고리별 그룹</summary>
-    public ObservableCollection<TaskCategoryGroup> CategoryGroups { get; } = [];
-
     /// <summary>목록 뷰 — 상태별 그룹 (각 그룹 안에 카테고리 서브그룹). 항목이 없는 상태도 항상 포함한다.</summary>
     public ObservableCollection<TaskListStatusGroup> ListStatusGroups { get; } = [];
 
@@ -123,7 +120,6 @@ public partial class TaskPageViewModel : ObservableObject
         CompletedCount = CountItems(CompletedItems);
         HoldCount = CountItems(HoldItems);
 
-        RebuildCategoryGroups(filtered);
         BuildListStatusGroups(filtered);
     }
 
@@ -194,18 +190,6 @@ public partial class TaskPageViewModel : ObservableObject
         var rate = (double)pass / executed * 100d;
         var roundedRate = Math.Round(rate, MidpointRounding.AwayFromZero);
         return (string.Format(LocalizationService.Get("TaskPassRateBadge"), $"{roundedRate:0}", total), true, roundedRate >= 100);
-    }
-
-    /// <summary>목록 뷰용 카테고리 그룹을 구성합니다 (빈 카테고리는 "미분류").</summary>
-    private void RebuildCategoryGroups(IEnumerable<TodoItem> filtered)
-    {
-        CategoryGroups.Clear();
-        var groups = filtered
-            .GroupBy(t => string.IsNullOrEmpty(t.Category) ? LocalizationService.Get("TaskCategory_None") : t.Category)
-            .OrderBy(g => g.Key, StringComparer.CurrentCulture);
-
-        foreach (var g in groups)
-            CategoryGroups.Add(new TaskCategoryGroup(g.Key, g.OrderByDescending(t => t.CreatedAt).ToList()));
     }
 
     /// <summary>작업의 상태를 변경합니다 (칸반 드래그·상태 콤보에서 호출). 저장·카드 갱신·완료 훅을 처리합니다.</summary>
@@ -318,11 +302,8 @@ public partial class TaskPageViewModel : ObservableObject
     }
 }
 
-/// <summary>목록 뷰에서 카테고리별로 묶은 작업 그룹</summary>
-public sealed record TaskCategoryGroup(string CategoryName, IReadOnlyList<TodoItem> Items);
-
-/// <summary>칸반 열 안에서 카테고리별로 묶은 작업 그룹.
-/// 목록 뷰의 TaskCategoryGroup과 달리 그룹 헤더에 표시할 테스트 배지를 함께 갖는다
+/// <summary>카테고리별로 묶은 작업 그룹 — 칸반 열과 목록 상태 그룹이 함께 쓴다.
+/// 그룹 헤더에 표시할 테스트 배지를 함께 갖는다
 /// (`PassRateBadge`가 빈 문자열이면 배지 미표시, `HasTestResult`가 false면 "테스트 미실행" 배지라 색이 다르다,
 /// `IsFullPass`는 `HasTestResult`가 true일 때만 의미 있으며 100% 통과 여부로 초록/호박 색을 가른다).</summary>
 public sealed record TaskColumnGroup(string CategoryName, string PassRateBadge, bool HasTestResult, bool IsFullPass, IReadOnlyList<TodoItem> Items);

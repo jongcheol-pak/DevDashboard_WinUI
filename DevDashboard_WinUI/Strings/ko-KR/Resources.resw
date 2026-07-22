@@ -451,6 +451,7 @@
   <data name="TaskPassRateBadge" xml:space="preserve"><value>✓ 통과율 {0}% · {1}건</value></data>
   <data name="TaskNoTestBadge" xml:space="preserve"><value>✓ 테스트 미실행</value></data>
   <data name="TaskColumnAdd" xml:space="preserve"><value>+ 새 작업</value></data>
+  <data name="TaskList_Empty.Text" xml:space="preserve"><value>작업 없음</value></data>
   <data name="TaskMenu_Edit" xml:space="preserve"><value>편집</value></data>
   <data name="TaskMenu_Delete" xml:space="preserve"><value>삭제</value></data>
   <data name="TaskMenu_MoveTo" xml:space="preserve"><value>상태 변경</value></data>
