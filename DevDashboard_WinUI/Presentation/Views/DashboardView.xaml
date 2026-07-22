@@ -80,108 +80,115 @@
             <Border Width="330" Margin="8"
                     MinHeight="204"
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    CornerRadius="12"
+                    CornerRadius="14"
                     BorderThickness="1"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                     CanDrag="{Binding IsPinned}"
                     AllowDrop="True"
                     DragStarting="Card_DragStarting"
                     DropCompleted="Card_DropCompleted"
-                    DragOver="Card_DragOver"                  
+                    DragOver="Card_DragOver"
                     Drop="Card_Drop">
-                <Grid Margin="16,14">
+                <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="38" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="62" />
+                        <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <!-- 카드 상단: 경고 + 아이콘 + 이름 + 핀 -->
-                    <Grid Grid.Row="0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                    <!-- 카드 헤더 밴드 (시안 :353 — 프로젝트 색 그라데이션 위에 아바타·이름·핀·삭제)
+                         WinUI Border는 자식을 클립하지 않으므로 상단 모서리만 직접 둥글린다 -->
+                    <Border Grid.Row="0"
+                            CornerRadius="13,13,0,0"
+                            Padding="16,0"
+                            Background="{Binding EffectiveHeaderColor, Converter={StaticResource HexToHeaderGradient}}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
 
-                        <!-- 경로 오류 경고 -->
-                        <FontIcon ToolTipService.ToolTip="{StaticResource ToolTip_ProjectPathNotFound}"
-                                  Grid.Column="0" Glyph="&#xE7BA;" FontSize="16"
-                                  Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                                  VerticalAlignment="Center" Margin="0,0,4,0"
-                                  Visibility="{Binding IsProjectPathValid, Converter={StaticResource InverseBoolToVisibility}}" />
+                            <!-- 경로 오류 경고 (시안에는 없지만 기능이라 유지) -->
+                            <FontIcon ToolTipService.ToolTip="{StaticResource ToolTip_ProjectPathNotFound}"
+                                      Grid.Column="0" Glyph="&#xE7BA;" FontSize="16"
+                                      Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                      VerticalAlignment="Center" Margin="0,0,6,0"
+                                      Visibility="{Binding IsProjectPathValid, Converter={StaticResource InverseBoolToVisibility}}" />
 
-                        <!-- 아이콘 이미지 -->
-                        <Border Grid.Column="1"
-                                Width="28" Height="28" CornerRadius="4" Margin="0,0,6,0"
-                                VerticalAlignment="Center"
-                                Visibility="{Binding IconPath, Converter={StaticResource StringNotEmptyToVisibility}}">
-                            <Image Source="{Binding IconSource}" Stretch="Uniform" />
-                        </Border>
+                            <!-- 아바타 — 아이콘이 있으면 아이콘, 없으면 이니셜 (시안 :354) -->
+                            <Border Grid.Column="1"
+                                    Width="38" Height="38" CornerRadius="10" Margin="0,0,11,0"
+                                    VerticalAlignment="Center"
+                                    Background="{Binding EffectiveHeaderColor, Converter={StaticResource HexToBrush}}">
+                                <Grid>
+                                    <Image Source="{Binding IconSource}" Stretch="Uniform" Margin="5"
+                                           Visibility="{Binding HasIcon, Converter={StaticResource BoolToVisibility}}" />
+                                    <TextBlock Text="{Binding Initial}"
+                                               FontSize="16" FontWeight="Bold" Foreground="White"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Visibility="{Binding HasIcon, Converter={StaticResource InverseBoolToVisibility}}" />
+                                </Grid>
+                            </Border>
 
-                        <!-- 프로젝트 이름 -->
-                        <TextBlock Grid.Column="2"
-                                   Text="{Binding Name}"
-                                   FontSize="15" FontWeight="SemiBold"
-                                   VerticalAlignment="Center"
-                                   TextTrimming="CharacterEllipsis"
-                                   HorizontalAlignment="Stretch"
-                                   Margin="0,0,8,0" />
+                            <!-- 프로젝트 이름 -->
+                            <TextBlock Grid.Column="2"
+                                       Text="{Binding Name}"
+                                       FontSize="14.5" FontWeight="Bold"
+                                       VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis"
+                                       HorizontalAlignment="Stretch"
+                                       Margin="0,0,8,0" />
 
-                       
-                            <!-- 핀 버튼 -->
+                            <!-- 핀 버튼 (헤더 밴드 위 — 크기·모서리는 로컬 지정, 공용 스타일은 수정하지 않는다) -->
                             <Button ToolTipService.ToolTip="{StaticResource ToolTip_PinUnpin}"
-         Grid.Column="3"
+                                    Grid.Column="3"
+                                    Width="28" Height="28" CornerRadius="7"
                                     Margin="0,0,4,0"
-          Style="{StaticResource CardIconButtonStyle}"
-          Command="{Binding TogglePinCommand}">
+                                    Style="{StaticResource CardIconButtonStyle}"
+                                    Command="{Binding TogglePinCommand}">
                                 <Grid>
                                     <FontIcon Glyph="&#xE718;" FontSize="13"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Visibility="{Binding IsPinned, Converter={StaticResource InverseBoolToVisibility}}" />
+                                              Foreground="#B8FFFFFF"
+                                              Visibility="{Binding IsPinned, Converter={StaticResource InverseBoolToVisibility}}" />
                                     <FontIcon Glyph="&#xE77A;" FontSize="13"
-                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                    Visibility="{Binding IsPinned, Converter={StaticResource BoolToVisibility}}" />
+                                              Foreground="White"
+                                              Visibility="{Binding IsPinned, Converter={StaticResource BoolToVisibility}}" />
                                 </Grid>
                             </Button>
-
 
                             <!-- 삭제 -->
                             <Button ToolTipService.ToolTip="{StaticResource ToolTip_Delete}"
                                     Grid.Column="4"
-          Style="{StaticResource CardIconButtonStyle}"
-          Command="{Binding DeleteCommand}">
-                                <FontIcon Glyph="&#xE74D;" FontSize="14" 
-                Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                                    Width="28" Height="28" CornerRadius="7"
+                                    Style="{StaticResource CardIconButtonStyle}"
+                                    Command="{Binding DeleteCommand}">
+                                <FontIcon Glyph="&#xE74D;" FontSize="13"
+                                          Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
                             </Button>
-                       
-                      
-                    </Grid>
+                        </Grid>
+                    </Border>
 
-                    <!-- 설명 -->
-                    <TextBlock Grid.Row="1"
-                               Text="{Binding Description}"
-                               FontSize="12"
-                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                               TextWrapping="Wrap"
-                               VerticalAlignment="Stretch"
-                               MaxLines="2"
-                               Margin="0,4,0,0"
-                               TextTrimming="CharacterEllipsis"
-                               Visibility="{Binding Description, Converter={StaticResource StringNotEmptyToVisibility}}" />
+                    <!-- 카드 본문 (시안 :365 — padding 14/16/16, 세로 간격 12) -->
+                    <StackPanel Grid.Row="1" Margin="16,14,16,16" Spacing="12">
 
-                    <!-- 태그 영역 (마키 애니메이션 컨트롤) -->
-                    <ctrl:MarqueeTagsControl Grid.Row="2"
-                        Tags="{Binding Tags}"
-                        IsAnimationEnabled="{Binding EnableTagAnimation}"
-                        MaxTagLength="20"
-                        Margin="0,4,0,4" />
+                        <!-- 설명 — 시안은 한 줄 말줄임 -->
+                        <TextBlock Text="{Binding Description}"
+                                   FontSize="12"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   TextWrapping="NoWrap"
+                                   TextTrimming="CharacterEllipsis"
+                                   Visibility="{Binding Description, Converter={StaticResource StringNotEmptyToVisibility}}" />
+
+                        <!-- 태그 영역 (마키 애니메이션 컨트롤) -->
+                        <ctrl:MarqueeTagsControl
+                            Tags="{Binding Tags}"
+                            IsAnimationEnabled="{Binding EnableTagAnimation}"
+                            MaxTagLength="20" />
 
                     <!-- 카드 하단 -->
-                    <StackPanel Grid.Row="3" Spacing="8">
+                    <StackPanel Spacing="8">
 
                         <!-- 개발도구 + 아이콘 버튼 -->
                         <Grid>
@@ -512,6 +519,7 @@ Visibility="{Binding IsCmd3RunAsAdmin, Converter={StaticResource BoolToVisibilit
                                 </Button>
                             </StackPanel>
                         </Grid>
+                    </StackPanel>
                     </StackPanel>
                 </Grid>
             </Border>
