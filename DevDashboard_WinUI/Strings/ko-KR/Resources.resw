@@ -214,6 +214,8 @@
   <data name="ProjGroupCombo.PlaceholderText" xml:space="preserve"><value>그룹 선택</value></data>
   <data name="ProjCategoryLabel.Text" xml:space="preserve"><value>카테고리 *</value></data>
   <data name="ProjCategoryCombo.PlaceholderText" xml:space="preserve"><value>카테고리 선택</value></data>
+  <data name="ProjHeaderColorLabel.Text" xml:space="preserve"><value>카드 헤더 색상</value></data>
+  <data name="ProjHeaderColorAuto" xml:space="preserve"><value>자동 (프로젝트 이름에 따라 배정)</value></data>
   <data name="ProjDevToolLabel.Text" xml:space="preserve"><value>개발 도구 *</value></data>
   <data name="ProjDevToolCombo.PlaceholderText" xml:space="preserve"><value>개발 도구 선택</value></data>
   <data name="ProjCommandLabel.Text" xml:space="preserve"><value>명령어 *</value></data>

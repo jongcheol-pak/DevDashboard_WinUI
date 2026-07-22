@@ -59,6 +59,33 @@ public partial class ProjectSettingsDialogViewModel : ObservableObject
     [ObservableProperty]
     public partial string SelectedGroupId { get; set; } = string.Empty;
 
+    /// <summary>카드 헤더 색상 (#RRGGBB). 빈 문자열이면 이름 해시로 자동 배정합니다.</summary>
+    [ObservableProperty]
+    public partial string HeaderColor { get; set; } = string.Empty;
+
+    /// <summary>선택 가능한 카드 헤더 색상 — 첫 칸은 "자동"(빈 문자열), 나머지는 디자인 시안 팔레트</summary>
+    public ObservableCollection<HeaderColorItem> HeaderColorOptions { get; } =
+    [
+        new(string.Empty) { IsSelected = true },   // 신규 등록의 기본값 = 자동
+        new("#4A5BD0"), new("#B0553A"), new("#3A8A8A"), new("#C04A68"), new("#7A4AC0"),
+        new("#8A7A2E"), new("#4A6EA0"), new("#3A6A4A"), new("#8B7CF7"), new("#5DB463"),
+    ];
+
+    /// <summary>색 견본 칸을 눌러 카드 헤더 색상을 선택합니다.</summary>
+    [RelayCommand]
+    private void SelectHeaderColor(HeaderColorItem item)
+    {
+        HeaderColor = item.Hex;
+        SyncHeaderColorSelection();
+    }
+
+    /// <summary>현재 <see cref="HeaderColor"/> 값에 맞춰 견본 칸의 선택 표시를 갱신합니다.</summary>
+    private void SyncHeaderColorSelection()
+    {
+        foreach (var option in HeaderColorOptions)
+            option.IsSelected = option.Hex.Equals(HeaderColor, StringComparison.OrdinalIgnoreCase);
+    }
+
     private DateTime _originalCreatedAt = DateTime.Now;
 
     /// <summary>편집 중인 프로젝트 Id (null이면 신규 추가)</summary>
@@ -235,6 +262,7 @@ public partial class ProjectSettingsDialogViewModel : ObservableObject
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList(),
             Category = Category,
+            HeaderColor = HeaderColor,
             GroupId = SelectedGroupId,
             RunAsAdmin = RunAsAdmin,
             CreatedAt = _originalCreatedAt
@@ -302,6 +330,8 @@ public partial class ProjectSettingsDialogViewModel : ObservableObject
         Tags = string.Join(", ", remainingTags);
         RefreshAvailableTags(badgeTags);
         Category = item.Category;
+        HeaderColor = item.HeaderColor;
+        SyncHeaderColorSelection();
         SelectedGroupId = item.GroupId;
         LoadGroups(groups);
         LoadTools(tools);

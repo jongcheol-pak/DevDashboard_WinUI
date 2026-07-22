@@ -214,6 +214,8 @@
   <data name="ProjGroupCombo.PlaceholderText" xml:space="preserve"><value>Select group</value></data>
   <data name="ProjCategoryLabel.Text" xml:space="preserve"><value>Category *</value></data>
   <data name="ProjCategoryCombo.PlaceholderText" xml:space="preserve"><value>Select category</value></data>
+  <data name="ProjHeaderColorLabel.Text" xml:space="preserve"><value>Card header color</value></data>
+  <data name="ProjHeaderColorAuto" xml:space="preserve"><value>Automatic (based on project name)</value></data>
   <data name="ProjDevToolLabel.Text" xml:space="preserve"><value>Dev Tool *</value></data>
   <data name="ProjDevToolCombo.PlaceholderText" xml:space="preserve"><value>Select dev tool</value></data>
   <data name="ProjCommandLabel.Text" xml:space="preserve"><value>Command *</value></data>

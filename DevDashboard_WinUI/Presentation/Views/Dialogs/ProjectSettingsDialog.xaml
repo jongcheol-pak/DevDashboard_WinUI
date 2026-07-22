@@ -83,6 +83,29 @@
                 </StackPanel>
             </Grid>
 
+            <!-- 카드 헤더 색상 (시안 "카드 헤더 색상" 팔레트 — 첫 칸은 자동) -->
+            <StackPanel Spacing="8">
+                <TextBlock x:Uid="ProjHeaderColorLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <ItemsRepeater ItemsSource="{x:Bind Vm.HeaderColorOptions}">
+                    <ItemsRepeater.Layout>
+                        <StackLayout Orientation="Horizontal" Spacing="8" />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="vm:HeaderColorItem">
+                            <!-- 선택은 코드비하인드 핸들러가 처리한다 — DataTemplate 안에서는
+                                 ElementName 바인딩으로 부모 VM의 커맨드에 닿을 수 없다(별도 namescope) -->
+                            <Button Width="30" Height="30" Padding="0"
+                                    CornerRadius="9"
+                                    BorderThickness="2"
+                                    Background="{x:Bind SwatchBrush}"
+                                    BorderBrush="{x:Bind BorderBrush, Mode=OneWay}"
+                                    ToolTipService.ToolTip="{x:Bind Tooltip}"
+                                    Click="HeaderColorSwatch_Click" />
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </StackPanel>
+
             <!-- 개발 도구 -->
             <StackPanel Spacing="4">
                 <TextBlock x:Uid="ProjDevToolLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
