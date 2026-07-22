@@ -156,6 +156,7 @@
   <data name="CardMenu_Settings.Text" xml:space="preserve"><value>프로젝트 설정</value></data>
   <data name="CardMenu_Delete.Text" xml:space="preserve"><value>삭제</value></data>
   <data name="ToolTip_More" xml:space="preserve"><value>더 보기</value></data>
+  <data name="ToolTip_AddScript" xml:space="preserve"><value>실행 스크립트 추가</value></data>
   <data name="AddNewProjectText.Text" xml:space="preserve"><value>새 프로젝트 추가</value></data>
   <data name="LoadingText.Text" xml:space="preserve"><value>로딩 중...</value></data>
 

@@ -67,6 +67,7 @@ public sealed partial class DashboardView : UserControl
         this.Resources["ToolTip_ToDo"]                = LocalizationService.Get("ToolTip_ToDo");
         this.Resources["ToolTip_TestList"]            = LocalizationService.Get("ToolTip_TestList");
         this.Resources["ToolTip_More"]                = LocalizationService.Get("ToolTip_More");
+        this.Resources["ToolTip_AddScript"]           = LocalizationService.Get("ToolTip_AddScript");
     }
 
     // ─── DataContext 변경 시 카드 이벤트 구독 관리 ──────────────────────

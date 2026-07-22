@@ -140,24 +140,15 @@ public partial class ProjectCardViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsCmd3RunAsAdmin { get; set; }
 
-    // --- 슬롯 표시 여부 ---
+    // --- 슬롯 추가 버튼 ---
 
-    public bool IsCmd1SlotVisible => IsCmd0Configured || IsCmd1Configured;
-    public bool IsCmd2SlotVisible => IsCmd1Configured || IsCmd2Configured;
-    public bool IsCmd3SlotVisible => IsCmd2Configured || IsCmd3Configured;
+    /// <summary>
+    /// 빈 슬롯이 남아 있는지 여부 — 카드의 "＋" 버튼 표시 조건입니다.
+    /// 슬롯은 삭제 시 앞으로 당겨지므로(ClearCommandSlot) 마지막 슬롯이 차 있으면 꽉 찬 것입니다.
+    /// </summary>
+    public bool CanAddCommandSlot => !IsCmd3Configured;
 
-    partial void OnIsCmd0ConfiguredChanged(bool value) => OnPropertyChanged(nameof(IsCmd1SlotVisible));
-    partial void OnIsCmd1ConfiguredChanged(bool value)
-    {
-        OnPropertyChanged(nameof(IsCmd1SlotVisible));
-        OnPropertyChanged(nameof(IsCmd2SlotVisible));
-    }
-    partial void OnIsCmd2ConfiguredChanged(bool value)
-    {
-        OnPropertyChanged(nameof(IsCmd2SlotVisible));
-        OnPropertyChanged(nameof(IsCmd3SlotVisible));
-    }
-    partial void OnIsCmd3ConfiguredChanged(bool value) => OnPropertyChanged(nameof(IsCmd3SlotVisible));
+    partial void OnIsCmd3ConfiguredChanged(bool value) => OnPropertyChanged(nameof(CanAddCommandSlot));
 
     public string Id => _item.Id;
     public string Name => _item.Name;
@@ -614,6 +605,16 @@ public partial class ProjectCardViewModel : ObservableObject
     private void ConfigureCommandSlot(string indexStr)
     {
         if (!TryParseSlotIndex(indexStr, out var index)) return;
+        ConfigureCommandSlotRequested?.Invoke(this, index);
+    }
+
+    /// <summary>카드의 "＋" 버튼 — 비어 있는 첫 슬롯의 설정 다이얼로그를 엽니다.</summary>
+    [RelayCommand]
+    private void AddCommandSlot()
+    {
+        var index = _item.CommandScripts.FindIndex(s => s is null);
+        if (index < 0) return;
+
         ConfigureCommandSlotRequested?.Invoke(this, index);
     }
 

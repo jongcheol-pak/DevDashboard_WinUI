@@ -334,21 +334,18 @@
                             </Button>
                         </Grid>
 
-                        <!-- 커맨드 슬롯 + Git/Todo/History 버튼 -->
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-
-                            <!-- 커맨드 슬롯 버튼 (0~3) -->
-                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="2">
+                        <!-- 스크립트 슬롯 (시안 :388~393) — 구분선 아래, 설정된 것만 표시하고 끝에 추가 버튼 -->
+                        <Border BorderThickness="0,1,0,0"
+                                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                Padding="0,10,0,0">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
                                 <!-- 슬롯 0 -->
                                 <Button Style="{StaticResource CardIconButtonStyle}"
-                                         Margin="0,0,4,0"
+                                        Width="28" Height="28" CornerRadius="8"
                                         Command="{Binding ExecuteCommandSlotCommand}"
                                         CommandParameter="0"
                                         ToolTipService.ToolTip="{Binding Cmd0Tooltip}"
+                                        Visibility="{Binding IsCmd0Configured, Converter={StaticResource BoolToVisibility}}"
                                         ContextRequested="CmdSlot_ContextRequested">
                                     <Button.ContextFlyout>
                                         <MenuFlyout Opening="CmdFlyout_Opening">
@@ -366,40 +363,29 @@
                                                            Visibility="{Binding IsCmd0Configured, Converter={StaticResource BoolToVisibility}}" />
                                         </MenuFlyout>
                                     </Button.ContextFlyout>
+                                    <!-- 버튼 자체가 설정된 슬롯에만 보이므로 미설정 분기는 두지 않는다 -->
                                     <Grid>
-                                        <!-- 미설정: + 아이콘 -->
-                                        <FontIcon Glyph="&#xE710;" FontSize="14"
+                                        <FontIcon Glyph="&#xE756;" FontSize="10"
                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                  Visibility="{Binding IsCmd0Configured, Converter={StaticResource InverseBoolToVisibility}}" />
-                                        <!-- 설정됨: 아이콘 유무에 따라 분기 -->
-                                        <Grid Visibility="{Binding IsCmd0Configured, Converter={StaticResource BoolToVisibility}}">
-
-                                            <FontIcon Glyph="&#xE756;" FontSize="14"           
-            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
- Visibility="{Binding HasCmd0Icon, Converter={StaticResource InverseBoolToVisibility}}" />
-
-
-                                            <FontIcon Glyph="{Binding Cmd0Icon}" FontSize="14"
-                                                      FontFamily="Segoe MDL2 Assets"
-                                                      Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                                                      Visibility="{Binding HasCmd0Icon, Converter={StaticResource BoolToVisibility}}" />
-
-
-                                            <FontIcon Glyph="&#xEB59;" FontSize="14"
-           VerticalAlignment="Center"
-           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-           Visibility="{Binding IsCmd0RunAsAdmin, Converter={StaticResource BoolToVisibility}}"/>
-                                        </Grid>
+                                                  Visibility="{Binding HasCmd0Icon, Converter={StaticResource InverseBoolToVisibility}}" />
+                                        <FontIcon Glyph="{Binding Cmd0Icon}" FontSize="10"
+                                                  FontFamily="Segoe MDL2 Assets"
+                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                  Visibility="{Binding HasCmd0Icon, Converter={StaticResource BoolToVisibility}}" />
+                                        <FontIcon Glyph="&#xEB59;" FontSize="10"
+                                                  VerticalAlignment="Center"
+                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                  Visibility="{Binding IsCmd0RunAsAdmin, Converter={StaticResource BoolToVisibility}}" />
                                     </Grid>
                                 </Button>
 
                                 <!-- 슬롯 1 -->
                                 <Button Style="{StaticResource CardIconButtonStyle}"
-                                         Margin="0,0,4,0"
+                                        Width="28" Height="28" CornerRadius="8"
                                         Command="{Binding ExecuteCommandSlotCommand}"
                                         CommandParameter="1"
                                         ToolTipService.ToolTip="{Binding Cmd1Tooltip}"
-                                        Visibility="{Binding IsCmd1SlotVisible, Converter={StaticResource BoolToVisibility}}"
+                                        Visibility="{Binding IsCmd1Configured, Converter={StaticResource BoolToVisibility}}"
                                         ContextRequested="CmdSlot_ContextRequested">
                                     <Button.ContextFlyout>
                                         <MenuFlyout Opening="CmdFlyout_Opening">
@@ -418,34 +404,27 @@
                                         </MenuFlyout>
                                     </Button.ContextFlyout>
                                     <Grid>
-                                        <FontIcon Glyph="&#xE710;" FontSize="14"
+                                        <FontIcon Glyph="&#xE756;" FontSize="10"
                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                  Visibility="{Binding IsCmd1Configured, Converter={StaticResource InverseBoolToVisibility}}" />
-                                        <Grid Visibility="{Binding IsCmd1Configured, Converter={StaticResource BoolToVisibility}}">
-                                            <FontIcon Glyph="&#xE756;" FontSize="14"           
-           Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-Visibility="{Binding HasCmd1Icon, Converter={StaticResource InverseBoolToVisibility}}" />
-
-                                            <FontIcon Glyph="{Binding Cmd1Icon}" FontSize="14"
-                                                      FontFamily="Segoe MDL2 Assets"
-                                                      Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                                                      Visibility="{Binding HasCmd1Icon, Converter={StaticResource BoolToVisibility}}" />
-
-                                            <FontIcon Glyph="&#xEB59;" FontSize="14"
-VerticalAlignment="Center"
-Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-Visibility="{Binding IsCmd1RunAsAdmin, Converter={StaticResource BoolToVisibility}}" />
-                                        </Grid>
+                                                  Visibility="{Binding HasCmd1Icon, Converter={StaticResource InverseBoolToVisibility}}" />
+                                        <FontIcon Glyph="{Binding Cmd1Icon}" FontSize="10"
+                                                  FontFamily="Segoe MDL2 Assets"
+                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                  Visibility="{Binding HasCmd1Icon, Converter={StaticResource BoolToVisibility}}" />
+                                        <FontIcon Glyph="&#xEB59;" FontSize="10"
+                                                  VerticalAlignment="Center"
+                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                  Visibility="{Binding IsCmd1RunAsAdmin, Converter={StaticResource BoolToVisibility}}" />
                                     </Grid>
                                 </Button>
 
                                 <!-- 슬롯 2 -->
                                 <Button Style="{StaticResource CardIconButtonStyle}"
-                                         Margin="0,0,4,0"
+                                        Width="28" Height="28" CornerRadius="8"
                                         Command="{Binding ExecuteCommandSlotCommand}"
                                         CommandParameter="2"
                                         ToolTipService.ToolTip="{Binding Cmd2Tooltip}"
-                                        Visibility="{Binding IsCmd2SlotVisible, Converter={StaticResource BoolToVisibility}}"
+                                        Visibility="{Binding IsCmd2Configured, Converter={StaticResource BoolToVisibility}}"
                                         ContextRequested="CmdSlot_ContextRequested">
                                     <Button.ContextFlyout>
                                         <MenuFlyout Opening="CmdFlyout_Opening">
@@ -464,33 +443,27 @@ Visibility="{Binding IsCmd1RunAsAdmin, Converter={StaticResource BoolToVisibilit
                                         </MenuFlyout>
                                     </Button.ContextFlyout>
                                     <Grid>
-                                        <FontIcon Glyph="&#xE710;" FontSize="14"
+                                        <FontIcon Glyph="&#xE756;" FontSize="10"
                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                  Visibility="{Binding IsCmd2Configured, Converter={StaticResource InverseBoolToVisibility}}" />
-                                        <Grid Visibility="{Binding IsCmd2Configured, Converter={StaticResource BoolToVisibility}}">
-                                            <FontIcon Glyph="&#xE756;" FontSize="14"           
-           Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-Visibility="{Binding HasCmd2Icon, Converter={StaticResource InverseBoolToVisibility}}" />
-
-                                            <FontIcon Glyph="{Binding Cmd2Icon}" FontSize="14"
-                                                      FontFamily="Segoe MDL2 Assets"
-                                                      Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                                                      Visibility="{Binding HasCmd2Icon, Converter={StaticResource BoolToVisibility}}" />
-
-                                            <FontIcon Glyph="&#xEB59;" FontSize="14"
-VerticalAlignment="Center"
-Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-Visibility="{Binding IsCmd2RunAsAdmin, Converter={StaticResource BoolToVisibility}}" />
-                                        </Grid>
+                                                  Visibility="{Binding HasCmd2Icon, Converter={StaticResource InverseBoolToVisibility}}" />
+                                        <FontIcon Glyph="{Binding Cmd2Icon}" FontSize="10"
+                                                  FontFamily="Segoe MDL2 Assets"
+                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                  Visibility="{Binding HasCmd2Icon, Converter={StaticResource BoolToVisibility}}" />
+                                        <FontIcon Glyph="&#xEB59;" FontSize="10"
+                                                  VerticalAlignment="Center"
+                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                  Visibility="{Binding IsCmd2RunAsAdmin, Converter={StaticResource BoolToVisibility}}" />
                                     </Grid>
                                 </Button>
 
                                 <!-- 슬롯 3 -->
                                 <Button Style="{StaticResource CardIconButtonStyle}"
+                                        Width="28" Height="28" CornerRadius="8"
                                         Command="{Binding ExecuteCommandSlotCommand}"
                                         CommandParameter="3"
                                         ToolTipService.ToolTip="{Binding Cmd3Tooltip}"
-                                        Visibility="{Binding IsCmd3SlotVisible, Converter={StaticResource BoolToVisibility}}"
+                                        Visibility="{Binding IsCmd3Configured, Converter={StaticResource BoolToVisibility}}"
                                         ContextRequested="CmdSlot_ContextRequested">
                                     <Button.ContextFlyout>
                                         <MenuFlyout Opening="CmdFlyout_Opening">
@@ -509,29 +482,32 @@ Visibility="{Binding IsCmd2RunAsAdmin, Converter={StaticResource BoolToVisibilit
                                         </MenuFlyout>
                                     </Button.ContextFlyout>
                                     <Grid>
-                                        <FontIcon Glyph="&#xE710;" FontSize="14"
+                                        <FontIcon Glyph="&#xE756;" FontSize="10"
                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                  Visibility="{Binding IsCmd3Configured, Converter={StaticResource InverseBoolToVisibility}}" />
-                                        <Grid Visibility="{Binding IsCmd3Configured, Converter={StaticResource BoolToVisibility}}">
-                                            <FontIcon Glyph="&#xE756;" FontSize="14"           
-           Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-Visibility="{Binding HasCmd3Icon, Converter={StaticResource InverseBoolToVisibility}}" />
-
-                                            <FontIcon Glyph="{Binding Cmd3Icon}" FontSize="14"
-                                                      FontFamily="Segoe MDL2 Assets"
-                                                      Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                                                      Visibility="{Binding HasCmd3Icon, Converter={StaticResource BoolToVisibility}}" />
-
-                                            <FontIcon Glyph="&#xEB59;" FontSize="14"
-VerticalAlignment="Center"
-Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-Visibility="{Binding IsCmd3RunAsAdmin, Converter={StaticResource BoolToVisibility}}" />
-                                        </Grid>
+                                                  Visibility="{Binding HasCmd3Icon, Converter={StaticResource InverseBoolToVisibility}}" />
+                                        <FontIcon Glyph="{Binding Cmd3Icon}" FontSize="10"
+                                                  FontFamily="Segoe MDL2 Assets"
+                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                  Visibility="{Binding HasCmd3Icon, Converter={StaticResource BoolToVisibility}}" />
+                                        <FontIcon Glyph="&#xEB59;" FontSize="10"
+                                                  VerticalAlignment="Center"
+                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                  Visibility="{Binding IsCmd3RunAsAdmin, Converter={StaticResource BoolToVisibility}}" />
                                     </Grid>
                                 </Button>
-                            </StackPanel>
 
-                        </Grid>
+                                <!-- 슬롯 추가 (시안 :393 — 점선 테두리. WinUI Border는 점선을 못 그려
+                                     Rectangle StrokeDashArray를 쓰는 공용 스타일을 재사용한다) -->
+                                <Button Style="{StaticResource DashedAddButtonStyle}"
+                                        Width="28" Height="28" Padding="0"
+                                        ToolTipService.ToolTip="{StaticResource ToolTip_AddScript}"
+                                        Command="{Binding AddCommandSlotCommand}"
+                                        Visibility="{Binding CanAddCommandSlot, Converter={StaticResource BoolToVisibility}}">
+                                    <FontIcon Glyph="&#xE710;" FontSize="10"
+                                              Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Button>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                     </StackPanel>
                 </Grid>

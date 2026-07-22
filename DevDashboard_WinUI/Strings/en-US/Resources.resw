@@ -156,6 +156,7 @@
   <data name="CardMenu_Settings.Text" xml:space="preserve"><value>Project settings</value></data>
   <data name="CardMenu_Delete.Text" xml:space="preserve"><value>Delete</value></data>
   <data name="ToolTip_More" xml:space="preserve"><value>More</value></data>
+  <data name="ToolTip_AddScript" xml:space="preserve"><value>Add script</value></data>
   <data name="AddNewProjectText.Text" xml:space="preserve"><value>Add New Project</value></data>
   <data name="LoadingText.Text" xml:space="preserve"><value>Loading...</value></data>
 
