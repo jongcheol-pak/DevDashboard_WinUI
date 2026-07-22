@@ -299,11 +299,24 @@
                                              Checked="AllGroupTab_Checked">
                                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                         <TextBlock x:Uid="AllGroupTabLabel" VerticalAlignment="Center" />
-                                        <Border Style="{StaticResource GroupTabCountBadgeStyle}">
-                                            <TextBlock Text="{Binding AllGroupCount, Mode=OneWay}"
-                                                       FontSize="11"
-                                                       Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                                        </Border>
+                                        <!-- 개수 배지 (시안 :1294) — 선택 시 액센트, 비선택은 회색.
+                                             선택 여부로 두 벌을 토글한다(DataTemplate 밖이지만 아래 그룹 탭과 형태를 맞춘다) -->
+                                        <Grid VerticalAlignment="Center">
+                                            <Border CornerRadius="8" Padding="7,1"
+                                                    Background="{ThemeResource AppCardAltBrush}"
+                                                    Visibility="{Binding IsAllGroupSelected, Converter={StaticResource InverseBoolToVisibility}}">
+                                                <TextBlock Text="{Binding AllGroupCount, Mode=OneWay}"
+                                                           FontSize="11"
+                                                           Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                            </Border>
+                                            <Border CornerRadius="8" Padding="7,1"
+                                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                                    Visibility="{Binding IsAllGroupSelected, Converter={StaticResource BoolToVisibility}}">
+                                                <TextBlock Text="{Binding AllGroupCount, Mode=OneWay}"
+                                                           FontSize="11"
+                                                           Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                                            </Border>
+                                        </Grid>
                                     </StackPanel>
                                 </RadioButton>
 
@@ -318,15 +331,28 @@
                                             <RadioButton GroupName="GroupTabs"
                                                          Style="{StaticResource GroupTabRadioButtonStyle}"
                                                          Tag="{Binding Group.Id}"
+                                                         IsChecked="{Binding IsSelected, Mode=TwoWay}"
                                                          Checked="GroupTab_Checked"
                                                          DoubleTapped="GroupTab_DoubleTapped">
                                                 <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding Group.Name}" VerticalAlignment="Center" />
-                                                    <Border Style="{StaticResource GroupTabCountBadgeStyle}">
-                                                        <TextBlock Text="{Binding Count, Mode=OneWay}"
-                                                                   FontSize="11"
-                                                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                                                    </Border>
+                                                    <!-- 개수 배지 — 선택 시 액센트, 비선택은 회색 (시안 :1294) -->
+                                                    <Grid VerticalAlignment="Center">
+                                                        <Border CornerRadius="8" Padding="7,1"
+                                                                Background="{ThemeResource AppCardAltBrush}"
+                                                                Visibility="{Binding IsSelected, Converter={StaticResource InverseBoolToVisibility}}">
+                                                            <TextBlock Text="{Binding Count, Mode=OneWay}"
+                                                                       FontSize="11"
+                                                                       Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                                        </Border>
+                                                        <Border CornerRadius="8" Padding="7,1"
+                                                                Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                                                Visibility="{Binding IsSelected, Converter={StaticResource BoolToVisibility}}">
+                                                            <TextBlock Text="{Binding Count, Mode=OneWay}"
+                                                                       FontSize="11"
+                                                                       Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                                                        </Border>
+                                                    </Grid>
                                                 </StackPanel>
                                                 <RadioButton.ContextFlyout>
                                                     <MenuFlyout>

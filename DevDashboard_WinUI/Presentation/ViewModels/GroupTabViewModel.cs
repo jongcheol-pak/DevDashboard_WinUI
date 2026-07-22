@@ -16,5 +16,13 @@ public partial class GroupTabViewModel : ObservableObject
     [ObservableProperty]
     public partial int Count { get; set; }
 
+    /// <summary>
+    /// 현재 선택된 탭인지 여부.
+    /// 탭 목록이 다시 만들어져도 선택 표시가 유지되도록 값으로 들고 있습니다
+    /// (RadioButton.IsChecked에 바인딩 — 컨테이너가 재생성돼도 복원됩니다).
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsSelected { get; set; }
+
     public GroupTabViewModel(ProjectGroup group) => Group = group;
 }
