@@ -80,3 +80,11 @@
 - [2026-07-18 → 2026-07-19] FR-H2 선행 PageSize 실제 소비(작업 기록 페이지네이션) — 반영(Phase 4 plan T3 로직·T5 UI 완료)
 
 - **[테스트 삭제 시 `TodoItem.LinkedTestId` 고아]** — 테스트를 지워도 작업의 `LinkedTestId`가 남는다(기존 동작). 표시상 배지가 안 떠 무해하나 데이터 위생 관점의 후속. (원 plan: 테스트 연결 배지, 2026-07-22)
+
+- **[태그 pill 시안화 미적용]** — 시안 카드 태그는 `#26262c` 배경 pill의 줄바꿈 배치이나, 현행 `MarqueeTagsControl`(흐르는 애니메이션 + 설정 토글)을 유지했다(사용자 미선택, 2026-07-22). 애니메이션 기능을 접고 시안대로 갈지는 사용 후 판단. (원 plan: 대시보드 카드 시안 정합, 2026-07-22)
+- **[카드 hover 이동 애니메이션 미구현]** — 시안 카드는 hover 시 `translateY(-2px)`로 살짝 떠오르나 테두리색 변화만 구현했다(WinUI는 `Storyboard` 배선 필요). 작업·테스트 화면의 동일 항목과 함께 다룬다. (원 plan: 대시보드 카드 시안 정합 D8, 2026-07-22)
+- **[시안 보라 액센트 미채택]** — 시안 대시보드의 강조색은 `#8b7cf7`(보라)이나 이 앱의 확정 액센트는 `#F0716A`다. 카드만 보라를 쓰면 앱 안에서 강조색이 둘로 갈려 앱 액센트를 유지했다. 전역 액센트 변경은 별개 논의. (원 plan: 대시보드 카드 시안 정합 D7, 2026-07-22)
+- **[GitHub 연결·프로젝트 메모 미구현]** — 시안 카드 메뉴(`:466-473`)의 두 항목은 현행에 대응 기능이 없어 제외했다(사용자 결정). 필요해지면 도메인 필드부터 논의. (원 plan: 대시보드 카드 시안 정합, 2026-07-22)
+- **[구 `ToolTip_*` resw 고아]** — 카드 액션 축약으로 소비처가 사라진 툴팁 키 6개(`ToolTip_Run`·`ToolTip_OpenFolder`·`ToolTip_CardSettings`·`ToolTip_GitStatus`·`ToolTip_WorkHistory`·`ToolTip_Terminal`)가 resw에 남았다(빌드·런타임 무해). 위 resw 고아 audit 항목과 함께 처리. ※ `AllGroupTab.Content`는 `AllGroupTabLabel.Text`로 **치환**돼 고아가 아니다. (원 plan: 대시보드 카드 시안 정합 T5, 2026-07-22)
+- **[SUGGEST] `RestoreGroupTabSelection()` 정리 검토** — 그룹 탭 선택 복원이 `GroupTabViewModel.IsSelected` 값 바인딩으로 옮겨가면서, 컨테이너를 직접 찾아 `IsChecked`를 세팅하는 `MainWindow.xaml.cs`의 기존 메서드와 기능이 겹친다. 현재는 같은 결과로 수렴해 무해. (T8 quality 리뷰 S1, 2026-07-22)
+- **[대시보드 카드 F-8 육안 확인 미완]** — 2026-07-22 카드 재구성은 Phase F·G를 통과했으나 렌더·실동작 확인이 미완이다(WinUI 데스크톱이라 자동 캡처 수단 없음). 확인 대기 목록은 `plan.md`의 `## F-8 인계 목록` 참조. (원 plan: 대시보드 카드 시안 정합 F-8, 2026-07-22)
