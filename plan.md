@@ -251,7 +251,7 @@ PRD `:5`가 "요구 변경은 PRD → plan → 코드 순서로만"을 규약으
 - **Halt Forecast**: (i) 사전 해소 — 소비처가 `DashboardView.xaml` 1곳임을 grep 전수 확인(함정 11). 파괴적·외부 작업 없음.
 
 ### T5 — 카드 액션 행: 큰 실행 버튼 + 작업/테스트 + `…` 메뉴 `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `Presentation/Views/DashboardView.xaml`, `Presentation/Views/DashboardView.xaml.cs`, `Strings/{ko-KR,en-US}/Resources.resw`
 - **Design**: ① 배치 — `ProjectCardTemplate` 본문의 액션 행(현행 :187-272 + :471-513 통합). ② 신규 심볼 — 없음(기존 커맨드 재바인딩 + resw 키). ③ 의존 방향 — XAML → 기존 커맨드. ④ 비추상화 — 메뉴 항목을 데이터로 생성하는 구조(`MenuItemViewModel` 등)를 만들지 않는다. 항목 7개(+ 터미널 하위 2) 고정이라 마크업이 더 명확하다.
 - **구성**:
