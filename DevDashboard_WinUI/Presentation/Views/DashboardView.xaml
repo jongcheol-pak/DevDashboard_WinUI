@@ -21,8 +21,7 @@
             (ThemeDictionaries 안의 키는 Resources 인덱서로 조회되지 않으므로 flat 리소스가 필요하다).
         -->
         <SolidColorBrush x:Key="CardBorderBrush" Color="{ThemeResource CardStrokeColorDefault}" />
-        <!-- hover 테두리는 시안(:352) 값 — 팔레트에 같은 색이 없어 그대로 적는다 -->
-        <SolidColorBrush x:Key="CardHoverBorderBrush" Color="#FF3D3D45" />
+        <SolidColorBrush x:Key="CardHoverBorderBrush" Color="{ThemeResource CardStrokeColorHover}" />
 
         <!-- 카드 아이콘 버튼 스타일 -->
         <Style x:Key="CardIconButtonStyle" TargetType="Button">

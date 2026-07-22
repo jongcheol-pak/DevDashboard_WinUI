@@ -92,6 +92,9 @@
             <Color x:Key="CardStrokeColorDefault">#FF2E2E34</Color>
             <SolidColorBrush x:Key="CardStrokeColorDefaultBrush" Color="{StaticResource CardStrokeColorDefault}" />
             <SolidColorBrush x:Key="CardStrokeColorDefaultSolidBrush" Color="{StaticResource CardStrokeColorDefault}" />
+            <!-- 카드 마우스 오버 테두리 (시안 대시보드 카드 :352) -->
+            <Color x:Key="CardStrokeColorHover">#FF3D3D45</Color>
+            <SolidColorBrush x:Key="CardStrokeColorHoverBrush" Color="{StaticResource CardStrokeColorHover}" />
 
             <!-- 구분선 -->
             <Color x:Key="DividerStrokeColorDefault">#FF26262C</Color>
