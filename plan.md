@@ -196,7 +196,7 @@
 - **Halt Forecast**: 없음 — 추가만 하므로 제거·계약 변경·파괴적 작업이 없다.
 
 ### T2 — XAML: 목록 뷰를 시안 구조로 재구성 + 구 카드 경로 일괄 제거 `Type D`
-- [ ] 구현
+- [x] 구현
 - **Files**: `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml`, `DevDashboard_WinUI/Presentation/Views/TaskPage.xaml.cs`, `DevDashboard_WinUI/Presentation/ViewModels/TaskPageViewModel.cs`, `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`
 - **Design**: ① 배치 — 템플릿 3종은 `TaskPage.xaml`의 `UserControl.Resources`(뷰 국소), 헬퍼는 `TaskPage.xaml.cs` 정적 메서드. ② 신규 심볼 — `TaskListRowTemplate`(가로 1줄 작업 행) / `TaskListCategoryTemplate`(카테고리 서브그룹) / `TaskListStatusGroupTemplate`(상태 그룹 헤더 + 빈 상태 + 서브그룹 목록) / `TaskPage.StatusDotBrush(TodoStatus)`(상태 → dot 브러시) / `TaskPage.StatusTag(TodoStatus)`(상태 → `Tag` 문자열, 기존 `ColumnAdd_Click`·`Column_Drop`의 `Tag: string` 계약 충족) / `TaskPage.EmptyGroupVisibility(bool)`·`TaskPage.CategoriesVisibility(bool)`(빈 그룹 ↔ 목록 배타 표시, 함정 5로 `Visibility` 직접 반환). ③ 의존 방향 — XAML이 코드비하인드 정적 헬퍼를 `x:Bind` 함수 바인딩으로 참조하고, 헬퍼는 기존 정적 브러시만 참조한다. ④ 비추상화 — 칸반과 목록이 공유하는 "카테고리 헤더" 부분을 공용 템플릿/UserControl으로 뽑지 않는다(칸반은 안쪽 카드 템플릿이 하드코딩돼 있어 공용화하려면 템플릿 주입 기구가 필요하고, 그 간접화는 마크업 20줄 중복보다 추적이 어렵다 — 함정 11의 교훈과 정합).
 - **구성**:
@@ -315,4 +315,6 @@
 - (구현 시작 전)
 
 ## Progress Log
-- (없음)
+- T1~T2 완료: VM에 상태 그룹 데이터 추가(T1) → XAML 목록 뷰를 시안 구조(상태 그룹 → 카테고리 서브그룹 → 가로 행)로 교체하고 구 세로 카드 경로 14개 심볼 일괄 제거(T2). 빌드 OK, 리뷰 지적 해소 완료.
+  - 결정(T2): 리뷰가 "목록 행에 클릭·우클릭 배선이 없는데 주석은 있다고 기술"(MAJOR)을 지적 — 배선은 plan상 T3 범위이므로 코드 대신 **주석을 현재 사실에 맞게 정정**했다(TaskPage.xaml 상단, Card_Tapped 문서주석).
+  - 반증(T2): quality 재리뷰가 `TaskEdit_Tooltip`·`TaskDelete_Tooltip` resw를 고아로 지적(MAJOR)했으나, `TestPage.xaml.cs:60-61` + `TestPage.xaml:31,44`가 실제 소비 중임을 근거로 반증 → 리뷰어가 오탐 인정·철회. T2가 제거한 것은 **동명의 `TaskPage` 프로퍼티**일 뿐이다(plan이 grep 범위를 TaskPage 3파일로 한정한 이유와 동일한 함정).
