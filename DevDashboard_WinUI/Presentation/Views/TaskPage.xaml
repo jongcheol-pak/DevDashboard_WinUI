@@ -14,7 +14,7 @@
         <!--
             칸반 카드 템플릿 — 시안 구성(제목 + 우선순위 배지 / 설명 / 날짜 범위).
             조작은 카드 클릭(편집)과 우클릭 메뉴(편집·삭제·상태 변경)로 하며, 상태 변경은 드래그앤드롭도 함께 지원한다.
-            목록 뷰도 같은 조작 경로를 쓰되 행 모양이 달라 아래 TaskListRowTemplate을 따로 둔다.
+            목록 뷰는 행 모양이 달라 아래 TaskListRowTemplate을 따로 둔다.
         -->
         <DataTemplate x:Key="TaskKanbanCardTemplate" x:DataType="models:TodoItem">
             <Border
@@ -233,6 +233,7 @@
         <!-- 목록 뷰 카테고리 서브그룹 (칸반 그룹 헤더와 같은 구성: 색 dot + 카테고리명 + 개수 + 테스트 통과율 배지) -->
         <DataTemplate x:Key="TaskListCategoryTemplate" x:DataType="vm:TaskColumnGroup">
             <StackPanel Margin="4,0,0,0" Spacing="7">
+                <!-- 시안은 헤더가 넘치면 줄바꿈되나(flex-wrap) StackPanel은 미지원 — 칸반 헤더와 같은 성질을 유지한다 -->
                 <StackPanel Orientation="Horizontal" Spacing="7">
                     <Border
                         Width="8" Height="8"

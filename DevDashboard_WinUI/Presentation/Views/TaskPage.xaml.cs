@@ -217,7 +217,7 @@ public sealed partial class TaskPage : UserControl
 
     // ===== 카드·행 조작 (클릭 = 편집, 우클릭 메뉴 = 편집·삭제·상태 변경) =====
 
-    /// <summary>칸반 카드·목록 행을 클릭하면 편집 다이얼로그를 연다.
+    /// <summary>칸반 카드를 클릭하면 편집 다이얼로그를 연다.
     /// 드래그가 성립한 경우에는 Tapped가 발생하지 않으므로 드래그앤드롭과 충돌하지 않는다.</summary>
     private async void Card_Tapped(object sender, TappedRoutedEventArgs e)
     {
