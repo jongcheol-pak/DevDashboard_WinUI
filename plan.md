@@ -153,7 +153,7 @@
 - **Halt Forecast**: (ii-a) 사전 승인 — **도메인 엔티티(`TestItem`)에 공개 속성 1개 추가**(비영속·표시 전용, 기존 선례와 동일 규약) + `CreateTestPageViewModel()`에 로드 호출 1줄 추가(기존 공개 메서드 `EnsureTodosLoaded` 재사용, 시그니처 변경 0). 파괴적·스키마 변경·외부 작업 없음.
 
 ### T2 — XAML: 테스트 항목 행에 링크 배지 추가 `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `DevDashboard_WinUI/Presentation/Views/TestPage.xaml`
 - **Design**: ① 배치 — `TestItemRowTemplate`(`TestPage.xaml`) 안, 이름 행과 메모 행 사이. ② 신규 심볼 — **없음**(마크업만 추가. 표시 조건은 기존 `StringNotEmptyToVisibility` 컨버터, 색은 리터럴 — 4-D). ③ 의존 방향 — XAML이 `TestItem.LinkedTaskTitle`(T1)을 바인딩. 코드비하인드 변경 없음. ④ 비추상화 — 배지용 공용 스타일(`LinkBadgeStyle` 등)을 `Styles.xaml`에 만들지 않는다(소비처 1곳 — 3회 문턱 미달, 인라인이 추적에 낫다).
 - **구성**:
@@ -184,6 +184,7 @@
 - **[테스트 행에 방법(Method)·에러 미표시]** — 시안 같은 행에 `t.method`(`:267-269`)·`t.error`(`:277-279`)도 있으나 이번 요청은 연결 배지 한정. 대장의 `[FR-T6/E4 "방법" 필드 확장 소비]`·`[FR-E5 에러 표시 미착수]` 그대로 유지.
 - **[배지 클릭으로 작업 이동 미구현]** — 시안에 클릭 동작이 없어 표시 전용으로 뒀다(D5). 연결된 작업으로 이동하고 싶다는 요구가 생기면 페이지 전환·하이라이트 설계부터 논의.
 - **[작업 쪽 연결 배지는 여전히 미표시]** — 대장 `[FR-E4 작업별 연결 배지 표시 소멸]`은 이번 작업(테스트 쪽)과 별개로 유지된다. 다만 이번 구현으로 FR-E4의 "연결 배지"가 한쪽에서 충족되므로, 대장 `[PRD FR-E4 문구가 구현과 어긋남]`의 정정 필요성은 재판단 대상이 된다.
+- **[SUGGEST] 링크 배지 색을 팔레트 근접색으로 통일 검토** — 시안 값 `#7AB5EC`/테두리 `rgba(90,163,232,.45)`가 팔레트에 없어 XAML 리터럴로 적었다(D6). 팔레트의 `AppInfoBrush`(#5B93D8)가 "정보/링크성" 의미에 부합하는 근접색이라 재사용하면 임의색 도입을 피할 수 있으나, 시안과 색이 달라져 이번엔 시안 정합을 우선했다. 색 리터럴이 더 늘면 팔레트 이관을 함께 검토. (T2 quality 리뷰 S1, 2026-07-22)
 - **[테스트 삭제 시 `TodoItem.LinkedTestId` 고아]** — 테스트를 지워도 작업의 `LinkedTestId`가 남는다(기존 동작, 이번 변경과 무관). 표시상으로는 배지가 안 떠 무해하나 데이터 위생 관점의 후속.
 
 ## Out of Scope
@@ -212,4 +213,6 @@
 - (구현 시작 전)
 
 ## Progress Log
-- (없음)
+- T1~T2 완료: `TestItem.LinkedTaskTitle`(표시 전용·비영속) + VM 역참조 채우기 + `EnsureTodosLoaded()` 추가(T1) → `TestItemRowTemplate`에 링크 배지 마크업 추가, 행 2→3단으로 확장하고 메모를 행 2로 이동(T2). 빌드 OK, 리뷰 지적 0.
+  - 결정(T1): plan-reviewer가 BLOCKER로 잡은 **지연 로딩**이 핵심이었다 — `CreateTestPageViewModel()`이 `EnsureTestsLoaded()`만 부르고 `Todos`를 로드하지 않아, 그대로 뒀으면 빌드·grep을 전부 통과하면서 **배지가 조용히 전멸**했을 것이다. 한 줄 추가로 해소하고 acceptance·grep으로 재발을 막았다.
+  - 결정(T2): 배지 색(`#7AB5EC`·`#735AA3E8`)은 시안 값이 팔레트에 없어 XAML 리터럴로 적었다(같은 파일 미실행 배지의 선례). quality 리뷰가 근접색 `AppInfoBrush`(#5B93D8) 재사용을 SUGGEST했으나 **시안 정합 우선**으로 유지하고 Deferred에 등재.

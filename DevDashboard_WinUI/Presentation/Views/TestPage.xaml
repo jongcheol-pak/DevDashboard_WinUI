@@ -57,14 +57,16 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
+                    <!-- 행 3단: 0=이름, 1=연결된 작업 배지, 2=메모 (시안 순서) -->
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <!-- 상태 아이콘 — 시안 기준: 세 상태 모두 동일한 라운드 사각형, 통과·실패는 소프트 틴트 배경 + 색 글리프,
                          미실행은 불투명 회색 배경 + "○" 글리프 -->
-                    <Border Grid.Column="0" Grid.RowSpan="2"
+                    <Border Grid.Column="0" Grid.RowSpan="3"
                             Width="20" Height="20"
                             CornerRadius="6"
                             VerticalAlignment="Center"
@@ -83,8 +85,31 @@
                                MaxLines="2"
                                TextTrimming="CharacterEllipsis" />
 
-                    <!-- 메모 — 있을 때만 이름 아래에 인용 블록으로 붙는다 -->
+                    <!-- 연결된 작업 배지 — 시안의 링크 pill(테두리형 캡슐 + 체인 아이콘 + 작업 제목).
+                         상태와 무관한 고정색이라 미실행 배지처럼 색을 리터럴로 적는다(팔레트에 같은 값이 없다). -->
                     <Border Grid.Column="1" Grid.Row="1"
+                            Visibility="{x:Bind LinkedTaskTitle, Converter={StaticResource StringNotEmptyToVisibility}, Mode=OneWay}"
+                            BorderBrush="#735AA3E8"
+                            BorderThickness="1"
+                            CornerRadius="999"
+                            Padding="9,2"
+                            Margin="0,3,0,0"
+                            HorizontalAlignment="Left">
+                        <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE71B;" FontSize="10"
+                                      Foreground="#7AB5EC"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Text="{x:Bind LinkedTaskTitle, Mode=OneWay}"
+                                       FontSize="11"
+                                       Foreground="#7AB5EC"
+                                       TextWrapping="NoWrap"
+                                       TextTrimming="CharacterEllipsis"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 메모 — 있을 때만 이름 아래에 인용 블록으로 붙는다 -->
+                    <Border Grid.Column="1" Grid.Row="2"
                             Visibility="{x:Bind local:TestPage.NoteVisibility(ProgressNote), Mode=OneWay}"
                             Background="{ThemeResource AppInputBrush}"
                             BorderBrush="{ThemeResource AppWarningBrush}"
@@ -105,7 +130,7 @@
 
                     <!-- 상태 pill — 클릭할 때마다 통과 → 실패 → 미실행 순으로 바뀐다.
                          MinWidth로 세 상태의 폭을 맞춘다("미실행" 3자가 최대 폭) -->
-                    <Border Grid.Column="2" Grid.RowSpan="2"
+                    <Border Grid.Column="2" Grid.RowSpan="3"
                             Style="{StaticResource TagBadgeStyle}"
                             Margin="0"
                             MinWidth="52"
