@@ -384,6 +384,7 @@ PRD `:5`가 "요구 변경은 PRD → plan → 코드 순서로만"을 규약으
 
 - 빌드: `"C:/Program Files/Microsoft Visual Studio/18/Professional/MSBuild/Current/Bin/MSBuild.exe" "DevDashboard_WinUI/DevDashboard.csproj" -t:Build -p:Configuration=Debug -p:Platform=x64` → 오류 0 + 실측 baseline(`CS0618` 1건) 외 신규 0
 - 회귀 방지 grep(소스 `*.cs`/`*.xaml`/`*.resw`, `obj/`·`bin/` 제외):
+  - **전역**: `Application.Current.Resources[` **0건** — `Palette.xaml`은 전체가 `ThemeDictionaries` 안이라 이 인덱서로는 키를 못 찾아 **런타임 예외**가 난다. 브러시가 필요하면 View의 `UserControl.Resources`에 flat 별칭을 두고 `Resources["..."]`로 읽는다(`HeaderIconBrush`·`CardBorderBrush` 관용구). ⚠️ T4에서 BLOCKER로 잡힌 뒤 F-7 수정 중 **같은 실수가 재발**해 이 항목을 추가했다.
   - **T1**: `ProjectItem.cs`에 `HeaderColor` 1 / **`DatabaseContext.cs`에 `HeaderColor` 2건**(`AllowedIdentifiers` + `AddColumnIfNotExists` — 화이트리스트 누락이 곧 기동 실패, B1) / `SqliteProjectRepository.cs`에 `HeaderColor` **5건 이상**(INSERT 컬럼·파라미터, UPDATE 컬럼·파라미터 4건 + `ReadProjects` 읽기 블록 — `HasColumn`+`GetOrdinal`+대입으로 3건까지 나올 수 있어 총 7건 전후가 정상) + `ReadAllFromDb` 본문에 `HeaderColor` **0건**(재사용 확인, B2)
   - **T2**: VM에 `HeaderColor` 3건(속성·`ToProjectItem`·로드) / resw ko·en 대칭
   - **T3**: `ProjectCardViewModel.cs`에 `EffectiveHeaderColor`·`Initial`·`HasIcon` 정의 각 1 + **`Brush` 계열 타입 0건**(M1) / `Converters.xaml`에 신규 키 2 / 해시 함수 정의 **1개뿐**(중복 0)
@@ -412,7 +413,7 @@ PRD `:5`가 "요구 변경은 PRD → plan → 코드 순서로만"을 규약으
 7. 스크립트 슬롯: 설정된 것만 보이는지, `＋`로 추가되는지, 4개가 차면 `＋`가 사라지는지, **28px 아이콘이 흐리지 않은지**(색·크기를 함께 낮춤)
 8. **창 크기를 바꿀 때 카드 폭이 310~360 사이에서 늘어나는지**(`ItemsStretch="Fill"` 실동작 — 안 되면 고정폭 폴백 후 Deferred 등재)
 9. **핀 카드 드래그 재정렬** — 특히 카드가 넓어진 상태에서 좌/우 삽입 위치가 맞는지(하드코딩 상수를 실제 폭 기준으로 바꾼 부분)
-10. 카드 hover 시 테두리색이 바뀌고 **마우스를 뗄 때 예외 없이 되돌아오는지**(리소스 조회 방식 수정분)
+10. 카드 hover 시 테두리색이 바뀌고 **마우스를 뗄 때 예외 없이 되돌아오는지**(리소스 조회 방식 수정분). **"새 프로젝트 추가" 카드 hover(액센트 테두리)도 같은 방식이라 함께 확인** — 이 두 곳이 앱에서 유일하게 예외를 낼 수 있었던 경로다. 참고: 카드 안 버튼에서 여백으로 마우스를 옮기면 테두리가 먼저 풀리는 현상은 알려진 잔여(Deferred 등재)
 11. 그룹 탭 개수 배지 — **앱 시작 직후 탭이 보이는지**(초기화 회귀 수정분), 검색·추가·삭제에 따라 숫자가 갱신되는지, 선택 탭 배지가 액센트색인지
 12. **그룹 이름을 바꾼 뒤에도 선택 표시가 유지되는지**(탭 재생성 시 선택 손실 수정분)
 13. 다른 PC·구버전 `.db` **가져오기** 시 색 컬럼이 없어도 정상 동작하는지
@@ -427,6 +428,9 @@ PRD `:5`가 "요구 변경은 PRD → plan → 코드 순서로만"을 규약으
   - **m3**(배지 선택색이 불투명 액센트 → 시안은 `rgba(액센트,.16)` 배경 + 액센트 전경) → `AppAccentSoftBrush` 토큰 추가 후 적용.
   - **m4**(대장 스크린샷 항목에 대시보드 카드 누락) → `docs/plans/deferred.md` 해당 항목 보강.
   - **m5**(Open Questions의 PRD 정정 체크박스 미갱신) → `[x]`로 정정.
+- **F-7 2회차** — BLOCKER 1 / MINOR 2 + 지적 1.
+  - **B1(재발)**: M1을 고치면서 `Application.Current.Resources["AppAccentBrush"]`를 써 **T4에서 이미 BLOCKER로 잡힌 패턴을 그대로 재도입**했다(`Palette.xaml`은 전체가 `ThemeDictionaries` 안이라 인덱서로 조회되지 않아 hover 시 예외). 같은 파일 주석과 notes에 경고가 있었는데도 반복한 실수다 → 로컬 flat 별칭 `AddCardHoverBorderBrush`로 수정하고, **회귀 grep에 `Application.Current.Resources[` 0건을 상시 항목으로 추가**해 재발선을 만들었다.
+  - m1(삭제 hover 배경)·m2(hover 버블링)·미사용 팔레트 Brush 키 3종 → Deferred 등재(구조 판단이 필요하거나 무해한 잔여).
 
 ## Progress Log
 

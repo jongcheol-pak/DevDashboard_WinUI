@@ -340,11 +340,13 @@ public sealed partial class DashboardView : UserControl
             card.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Resources["CardBorderBrush"];
     }
 
-    // "새 프로젝트 추가" 카드 hover — 시안(:347)은 액센트 테두리로 강조한다
+    // "새 프로젝트 추가" 카드 hover — 시안(:347)은 액센트 테두리로 강조한다.
+    // 팔레트 키는 ThemeDictionaries 안이라 Resources 인덱서로 조회되지 않으므로
+    // 위 카드 hover와 마찬가지로 로컬 flat 별칭을 거친다.
     private void AddCard_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
         if (sender is Border card)
-            card.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AppAccentBrush"];
+            card.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Resources["AddCardHoverBorderBrush"];
     }
 
     private void AddCard_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
