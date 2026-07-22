@@ -3,6 +3,7 @@ using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevDashboard.Infrastructure.Services;
+using DevDashboard.Presentation.Converters;
 using DevDashboard.Presentation.Models;
 using Microsoft.UI.Xaml.Media.Imaging;
 
@@ -55,7 +56,11 @@ public partial class ProjectCardViewModel : ObservableObject
     public partial bool IsPinned { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasIcon))]
     public partial BitmapImage? IconSource { get; set; }
+
+    /// <summary>등록된 아이콘이 실제로 로드됐는지 여부 — 아니면 아바타에 이니셜을 표시합니다.</summary>
+    public bool HasIcon => IconSource is not null;
 
     // --- Git 상태 ---
 
@@ -168,6 +173,33 @@ public partial class ProjectCardViewModel : ObservableObject
     public string Category => _item.Category;
     public DateTime CreatedAt => _item.CreatedAt;
     public bool RunAsAdmin => _item.RunAsAdmin;
+
+    /// <summary>
+    /// 카드 헤더·아바타에 실제로 쓰는 색 (#RRGGBB).
+    /// 사용자가 고른 색이 있으면 그대로, 없으면 프로젝트 이름에서 자동으로 배정합니다
+    /// (같은 이름은 항상 같은 색 — 개발 도구 배지와 같은 해시를 씁니다).
+    /// </summary>
+    public string EffectiveHeaderColor
+    {
+        get
+        {
+            if (HexToBrushConverter.TryParseHex(_item.HeaderColor, out _))
+                return _item.HeaderColor;
+
+            var color = TagColorConverter.ColorFromName(_item.Name);
+            return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+        }
+    }
+
+    /// <summary>아이콘이 없는 카드의 아바타에 표시할 이니셜 (이름 첫 글자)</summary>
+    public string Initial
+    {
+        get
+        {
+            var name = _item.Name.AsSpan().Trim();
+            return name.IsEmpty ? "?" : char.ToUpperInvariant(name[0]).ToString();
+        }
+    }
 
     /// <summary>완료되지 않은 활성 To-Do 항목이 있는지 여부</summary>
     public bool HasInProgressTodo => _item.HasActiveTodo;

@@ -23,6 +23,7 @@
 
     <!-- ===== 색 변환기 ===== -->
     <converters:HexToBrushConverter x:Key="HexToBrush" />
+    <converters:HexToHeaderGradientConverter x:Key="HexToHeaderGradient" />
 
     <!-- ===== 이미지 변환기 ===== -->
     <converters:ImagePathToSourceConverter x:Key="ImagePathToSource" />

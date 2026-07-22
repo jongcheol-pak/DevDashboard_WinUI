@@ -208,7 +208,7 @@ PRD `:5`가 "요구 변경은 PRD → plan → 코드 순서로만"을 규약으
 - **Halt Forecast**: (i) 사전 해소 — 팔레트 색 값·"자동" 항목·라벨 문구를 위에서 확정. 신규 의존성·파괴적 작업 없음.
 
 ### T3 — VM·컨버터: 카드 색/이니셜 표시 값 `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `Presentation/ViewModels/ProjectCardViewModel.cs`, `Presentation/Converters/DevToolConverters.cs`, `Resources/Converters.xaml`
 - **Design**: ① 배치 — 파생 값은 `ProjectCardViewModel`, hex→Brush 변환은 기존 컨버터 파일, 등록은 `Converters.xaml`. ② 신규 심볼 — `EffectiveHeaderColor`(실효 색 hex — 지정색 또는 이름 해시) / `Initial`(아바타 글자) / `HasIcon`(아이콘 유무) / `HexToHeaderGradientConverter`(→ 135° 2-stop `LinearGradientBrush`) / `TagColorConverter.ColorFromName`(기존 해시 로직의 public 노출). **`HexToBrushConverter`는 T2에서 선구현 완료 — 여기서는 재사용만 하고 다시 만들지 않는다**(위 T2 실행 중 조정 참조). ③ 의존 방향 — VM은 `Microsoft.UI.Xaml` 타입을 참조하지 않는다(값은 `string`/`bool`). 컨버터만 Brush를 만든다. ④ 비추상화 — 색 팔레트 서비스·테마 토큰 클래스를 만들지 않는다.
 - **구성**:

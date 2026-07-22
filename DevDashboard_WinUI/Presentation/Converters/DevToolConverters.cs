@@ -20,14 +20,18 @@ public class TagColorConverter : IValueConverter
         if (value is not string name || string.IsNullOrWhiteSpace(name))
             return new SolidColorBrush(Colors.Gray);
 
-        var hash = GetFnv1aHash(name);
-        var hue = hash % 360;
-        var color = HslToRgb(hue, 0.45, 0.36);
-        return new SolidColorBrush(color);
+        return new SolidColorBrush(ColorFromName(name));
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, string language)
         => throw new NotImplementedException();
+
+    /// <summary>
+    /// 이름에서 결정론적 색을 만듭니다 — 같은 이름은 항상 같은 색이 됩니다.
+    /// 개발 도구 배지와 카드 헤더 색(색 미지정 시 자동 배정)이 함께 씁니다.
+    /// </summary>
+    public static Windows.UI.Color ColorFromName(string name)
+        => HslToRgb(GetFnv1aHash(name) % 360, 0.45, 0.36);
 
     /// <summary>도구 이름을 대소문자 무시하여 FNV-1a 결정론적 해시로 변환합니다.</summary>
     private static uint GetFnv1aHash(string name)
@@ -101,6 +105,35 @@ public class HexToBrushConverter : IValueConverter
         color = Windows.UI.Color.FromArgb(0xFF, r, g, b);
         return true;
     }
+}
+
+/// <summary>
+/// "#RRGGBB" 색 문자열을 카드 헤더 밴드의 그라데이션으로 변환합니다.
+/// 시안(:353·:1281)의 `linear-gradient(135deg, rgba(색,.55), rgba(색,.14))`에 대응합니다.
+/// </summary>
+public class HexToHeaderGradientConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        // 색을 알 수 없으면 단색 컨버터와 같은 회색으로 대체한다(밴드가 사라져 보이지 않게).
+        if (value is not string hex || !HexToBrushConverter.TryParseHex(hex, out var color))
+            color = Windows.UI.Color.FromArgb(0xFF, 0x35, 0x35, 0x3C);
+
+        // 135deg = 좌상단 → 우하단
+        return new LinearGradientBrush(
+            [
+                new GradientStop { Offset = 0, Color = Windows.UI.Color.FromArgb(0x8C, color.R, color.G, color.B) },
+                new GradientStop { Offset = 1, Color = Windows.UI.Color.FromArgb(0x24, color.R, color.G, color.B) },
+            ],
+            0)
+        {
+            StartPoint = new Windows.Foundation.Point(0, 0),
+            EndPoint = new Windows.Foundation.Point(1, 1),
+        };
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+        => throw new NotImplementedException();
 }
 
 /// <summary>개발 도구 이름(string)을 그대로 표시합니다.</summary>
