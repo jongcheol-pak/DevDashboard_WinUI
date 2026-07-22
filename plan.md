@@ -1,265 +1,231 @@
-# plan.md — 새 작업 다이얼로그 후속 수정 + 대시보드 복귀 네비게이션 버그
+# plan.md — 테스트 화면(TestPage) "연결된 작업" 배지 추가
 
-**PRD**: docs/prd.md (FR-T5 다이얼로그 후속 정정 + **FR-C3 회귀 수정**)
-**이전 plan**: TaskEditDialog 시안 정합 재구성 — Phase G 통과(Must 100%). F-8 시각 확인 7항목 중 **6항목은 사용자 확인 완료(이상 없음), 1항목(필수 입력 테두리)이 이번 T1로 이어짐** → 이전 plan 종결(사용자 결정 2026-07-20).
-**다음 plan**: 없음.
+**PRD**: docs/prd.md (FR-E4 테스트↔작업 연결 배지·링크)
+**기준 디자인**: `docs/DevDashboard WinUI/DevDashboard Redesign.dc.html` — 테스트 목록 페이지의 링크 배지 마크업(261~266줄) + 데이터 정의(`hasLink`/`link`, 1078줄) + 링크 값의 출처(1508줄 `link: title`)
+**사용자 제공 렌더 이미지**: 배지가 실제로 그려진 화면(파란 테두리 pill + 링크 아이콘 + 텍스트) — 2026-07-22
 
 ## 요구 이해
 
-> 원문(사용자, 2026-07-20): "[이미지] - 새 작업 화면에서 필수 입력 ui에만 이미지처럼 빠간 라인을 항상 표시, 카테고리 '미분류' 삭제, 기존 카테고리가 없는 항목은 목록에서만 '미분류'로 표시 / - 작업 화면에서 대시보드 버튼을 클릭해서 대시보드로 이동후 다시 작업버튼을 클릭하면 작업 화면으로 이동하지 않는 문제가 있음"
+> 원문(사용자, 2026-07-22): "테스트↔작업 연결 배지 시안이 이미지처럼 되어 있는데 다시 확인해서 추가해놔" (+ 테스트 화면 스크린샷 1장)
 
 이해한 요구:
-- **① 필수 입력 표시 방식 변경**: 지금은 제목이 비어 있을 때만 입력칸 **테두리 전체**가 빨개진다. 시안은 **입력칸 하단에만 빨간 라인**이고, 이를 **값이 채워져도 항상** 유지한다. 대상은 **필수 입력칸(제목)뿐** — 설명·카테고리·날짜 등 선택 입력에는 붙이지 않는다.
-- **② 카테고리 선택지에서 "미분류" 제거**: 새 작업/편집 다이얼로그의 카테고리 콤보에서 "미분류" 항목 자체를 없앤다.
-- **③ "미분류"는 표시 전용으로 남긴다**: 카테고리가 비어 있는 **기존** 작업은 칸반·목록의 그룹 헤더에서 계속 "미분류"로 보여야 한다. 즉 "미분류"는 **고를 수 있는 값이 아니라 빈 값의 표시명**이 된다.
-- **④ 네비게이션 버그**: 작업 페이지 → "대시보드" 복귀 → 다시 "작업" 클릭 시 아무 반응이 없다. 증상은 작업 버튼이지만 **원인은 카드 이벤트 구독이 복귀 시 되살아나지 않는 것**이라, 실제로는 카드의 다른 버튼(테스트·Git 상태·작업 기록·명령 슬롯)도 함께 죽는다.
+- 직전 작업 보고에서 "FR-E4 연결 배지의 화면 표현이 사라졌다"고 했는데, **시안에는 테스트 화면 쪽에 연결 배지가 실재**하므로 그것을 구현하라는 지시다. 사용자가 제공한 이미지는 **테스트 화면(TestPage)**이며(폴더 아이콘 + "UI·UX" + "0/1 통과" = 스위트 헤더), 테스트 항목 이름 아래에 **링크 아이콘 + 텍스트**의 파란 테두리 pill이 붙어 있다.
+- 시안 원본에서 이 배지는 `t.hasLink`일 때만 표시되며 내용은 **연결된 작업의 제목**(`link: title`, 1508줄)이다 — 즉 **테스트 → 작업 방향**의 표시다.
+- 현행 코드는 `TodoItem.LinkedTestId`(작업 → 테스트) **단방향**이라 테스트에서 작업 제목을 얻으려면 **역참조 조회**가 필요하다. 이것이 대장의 `[테스트→작업 역방향 링크/배지]` 항목이며, 이번에 재수용한다.
+- 이번 범위는 **연결 배지 하나**다. 시안 같은 행에 있는 방법(`t.method`)·에러(`t.error`) 표시는 사용자가 지목하지 않았으므로 이번에 하지 않는다(각각 대장 유지).
 
 ## Goal
 
-① `TaskEditDialog` 제목 입력칸의 필수 표시를 **조건부 전체 테두리 → 상시 하단 빨간 라인**으로 바꾸고, ② 카테고리 콤보에서 "미분류" 선택지를 제거하되 **빈 카테고리 데이터는 보존**하고, ③ 칸반·목록의 "미분류" 표시는 그대로 유지하며, ④ `DashboardView`가 대시보드로 복귀할 때 카드 이벤트를 **재구독**하도록 고쳐 페이지 진입 버튼이 다시 동작하게 한다.
+테스트 항목 행에 **연결된 작업 제목**을 시안(261~266줄)과 같은 파란 테두리 pill로 표시해, 테스트에서 어느 작업과 연결됐는지 화면에서 확인할 수 있게 한다. PRD FR-E4의 "연결 배지" 몫을 테스트 쪽에서 충족한다.
 
 ## Investigation Log (근거)
 
-### 위키·문서
-- 위키 참조: vault 미설정 — 코드 1차 출처로 진행.
-- AGENTS.md 존재. 신선도 점검: 이번 계획이 참조하는 경로(`Presentation/Views/DashboardView.xaml.cs`·`Views/Dialogs/TaskEditDialog.*`·`ViewModels/TaskEditDialogViewModel.cs`·`ViewModels/TaskPageViewModel.cs`·`Resources/Palette.xaml`) 전부 실재 확인. **함정 5(x:Bind 함수 바인딩은 ThemeResource 불가)·함정 11(공용 DataTemplate)** 이번 작업과 직결 — 아래 반영. 어긋남 0건.
-- PRD 경량 확인: 이번 변경이 **FR-T5**(편집 다이얼로그, `prd.md:62`)와 **FR-C3**(페이지 네비게이션 컨테이너 — "대시보드 ↔ 페이지 전환", `prd.md:47`)에 닿는다 → PRD 연결(Phase G 활성).
+### 문서·대장
+- **위키 참조**: vault 미설정 — 코드 1차 출처로 진행.
+- **AGENTS.md 신선도 점검**: 이번에 참조하는 경로(`Domain/Entities/{TestItem,TodoItem}.cs`·`Presentation/ViewModels/TestPageViewModel.cs`·`Presentation/Views/TestPage.xaml`·`Resources/Converters.xaml`) 전부 실재. 빌드 명령·`DevDashboard.csproj`도 실재. 어긋남 0건.
+  - 관련 함정 직결: **5**(x:Bind **함수 바인딩**은 Converter를 못 받음 — 단 **일반 x:Bind는 Converter 사용 가능**하며 `TaskPage.xaml`의 `{x:Bind Description, Converter={StaticResource StringNotEmptyToVisibility}}`가 그 선례다)·**11**(공용 DataTemplate 소비처 전수 확인).
+  - **AGENTS.md 경고 baseline stale**(대장 등재분): 실측 상시 경고는 `CS0618` 1건이며 문서의 "NU1903 1 + CS0612 4"와 다르다 — 이번 plan의 "신규 경고 0" 판정은 **실측 baseline(CS0618 1건)** 기준으로 한다.
+- **Deferred 대장 확인**(`docs/plans/deferred.md`):
+  - **`[테스트→작업 역방향 링크/배지]`(FR-E4 확장) — 이번 작업이 이 항목의 재수용이다.** 원문: "테스트 목록에서 연결된 작업 배지/링크 표시. 현재 TodoItem.LinkedTestId 단방향만. TestItem→Todo 역참조 조회 필요. 사용자 결정으로 Phase 3 제외." 요구·기술 판단이 이번 요청과 정확히 일치한다 → 완료 시 `## 종결`로 이동.
+  - `[FR-E4 작업별 연결 배지 표시 소멸]`(2026-07-22 등재) — 그건 **작업 화면(TaskPage) 쪽** 몫(`TodoItem.LinkedTestBadge`)이라 이번 작업과 **별개**다. 이번 구현은 반대 방향(테스트→작업)이므로 그 항목은 대장에 그대로 유지한다.
+  - `[PRD FR-E4 문구가 구현과 어긋남 — 사용자 승인 대기]` — 이번 구현으로 FR-E4의 "연결 배지"가 **테스트 쪽에서 충족**되므로 문구 정정의 필요성이 줄어든다(작업 쪽 배지만 미표시로 남음). 항목은 유지하되 이번 결과를 반영해 재판단 대상으로 남긴다.
+  - `[FR-T6/E4 "방법" 필드 확장 소비]`·`[FR-E5 에러 표시 미착수]` — 시안 같은 행의 방법·에러 표시는 이번 범위 밖이라 **그대로 유지**.
+  - `[Test* 구 resw 고아 정리]`·`[BOM/no-BOM 인코딩 통일]` 등 나머지는 무관.
+- **PRD 경량 확인**: 이번 변경은 **FR-E4**(Should — "테스트↔작업 연결(연결 배지·링크), 칸반 카테고리 그룹 통과율 배지 배선") 중 **연결 배지** 몫에 직접 닿는다 → PRD 연결(Phase G 활성).
 
-### Deferred 대장 확인 (docs/plans/deferred.md)
-- **이번과 인접하나 재수용하지 않음**: `[칸반/목록 "미분류" 그룹 정렬 불일치]`(`:27`) — 칸반은 raw key(빈 문자열)로, 목록은 표시명("미분류")으로 정렬해 미분류 그룹의 위치가 서로 다르다. **이번 요청은 "표시" 유지이지 정렬 통일이 아니므로 범위 밖**이며, T2·T3 어느 diff도 이 코드에 닿지 않는다. 대장에 그대로 유지.
-- **이번에도 유지(무관)**: `[FR-S5 restyle]`·`[Todo*/Test* resw 고아]`·`[BOM 통일]`·`[NU1903]`·`[README/스크린샷]`·`[시작일 지울 수단 부재]`·`[다른 다이얼로그 라벨 스타일 불일치]`·`[빈 제목 오류 문구 제거에 따른 접근성 약화]`·`[SUGGEST status 선택적 파라미터]` 등.
-- **신규 등재 예정**: 아래 Deferred 절 참조(카테고리 필터에서 미분류 선택 불가 / 편집 시 카테고리 미선택 표현).
+### 현행 구현 (직접 Read)
 
-### ① 필수 입력 표시 — 현행 구현 (직접 Read)
-- `TaskEditDialog.xaml:44`가 `BorderBrush="{x:Bind local:TaskEditDialog.TitleBorderBrush(Vm.Title), Mode=OneWay}"`로 **입력칸 테두리 4면 전체**를 danger로 칠한다. 시안의 "하단 라인"과 형태가 다르고, 값이 채워지면 사라져 "항상 표시"와도 다르다.
-- `TaskEditDialog.xaml.cs:17-26`의 `_titleRequiredBrush`·`_titleNormalBrush`·`TitleBorderBrush()`는 **이 바인딩 1곳에서만 소비**된다. `TitleBorderBrush` **문자열 참조는 전수 3건**이다 — 정의(`.xaml.cs:25`), XAML 바인딩(`.xaml:44`), 그리고 **`OnSave` 위 주석(`.xaml.cs:57`)**. 주석은 "빈 값일 때 danger 테두리가 이미 표시돼 있어 오류 문구를 두지 않는다"는 **이번에 사라질 동작**을 설명하므로 심볼 제거와 함께 갱신 대상이다(plan-reviewer M1 — 갱신하지 않으면 "잔존 0건" acceptance가 실패하거나 틀린 주석이 남는다).
-- 이 브러시 제거로 `using Microsoft.UI;`(`ColorHelper`)와 `using Microsoft.UI.Xaml.Media;`(`SolidColorBrush`/`Brush`)도 고아가 된다 — 파일 내 다른 소비처 0건 확인(Read 전문).
-- `ControlCornerRadius` 오버라이드는 `Resources/`에 **없다**(grep) → WinUI 기본 4px. 하단 라인의 아래 모서리를 입력칸과 맞추려면 `CornerRadius="0,0,4,4"`가 필요하다.
-- `TextControlBorderBrush`(`Palette.xaml:149`)=`AppBorderStrongColor`, `PointerOver`(`:150`)=`AppBorderStrongerColor`로 오버라이드돼 있다. **라인을 TextBox 위에 겹쳐 그리면 hover가 라인을 덮지 못하므로**, 이전 plan의 D3-a(hover 시 빨간 테두리가 회색으로 바뀌던 문제)가 **부수적으로 해소**된다.
-- `AppDangerColor`(`Palette.xaml:31`) == `AppAccentColor`(`:39`) == `#FFF0716A` — 포커스 시 TextBox 자체 하단 accent 강조선과 **동색**이라 겹쳐도 색이 어긋나지 않는다.
-- 필수 입력은 **제목 하나뿐**이다: `OnSave`(`TaskEditDialog.xaml.cs:54-62`)가 검증하는 필드는 `Vm.Title`뿐이고, 라벨에 `*`가 붙은 것도 제목뿐(`:34-39`).
+**`Domain/Entities/TestItem.cs`**(51줄)
+- `ObservableObject` 상속, `[ObservableProperty] partial` 프로퍼티 방식(`Text`·`Method`·`ProgressNote`·`Status`·`CompletedAt`). `Id`·`CategoryId`·`CreatedAt`은 일반 프로퍼티.
+- **연결 정보 필드 없음** — 테스트에서 작업을 가리키는 값이 도메인에 존재하지 않는다.
 
-### ②③ 카테고리 "미분류" — 현행 구현 (직접 Read)
-- `TaskEditDialogViewModel.cs:59-63`: `CategoryOptions`가 `_noneCategoryLabel`("미분류")을 **첫 항목으로 붙여** 만들어진다. 이 항목이 요청 ②의 제거 대상.
-- 저장 시 역변환: `BuildResult()`(`:105`)가 `SelectedCategoryOption == _noneCategoryLabel ? string.Empty : ...` — 즉 **"미분류" 선택 = 빈 문자열 저장**. 선택지를 없애면 이 매핑도 함께 정리해야 한다.
-- 편집 로드: `:76`이 기존 항목의 빈 카테고리를 `_noneCategoryLabel`로 **되돌려 표시**한다. 선택지가 사라지면 이 대입은 목록에 없는 값을 넣는 꼴이라 콤보가 빈 상태가 된다 → 명시적으로 처리해야 한다(D3).
-- **요청 ③은 이미 충족돼 있다**(신규 구현 불필요, 회귀만 막으면 된다):
-  - 칸반: `TaskPageViewModel.BuildColumnGroups:140` — `string.IsNullOrEmpty(g.Key) ? Get("TaskCategory_None") : g.Key`
-  - 목록: `TaskPageViewModel.RebuildCategoryGroups:173` — 동일 매핑
-  - 두 곳 모두 **빈 카테고리를 표시 시점에만** "미분류"로 바꾸며 저장값은 빈 문자열 그대로다. 이번 diff는 이 파일에 닿지 않는다.
-- `TaskCategory_None` resw 키(ko `미분류` / en `Uncategorized`, `Resources.resw:410`)는 **위 표시 2곳이 계속 소비**하므로 **제거하지 않는다**. (VM에서의 소비만 사라진다.)
-- ⚠️ **`Category`에 null이 새면 DB가 깨진다**(plan-reviewer B1 — 직접 확인): 스키마가 `Todos.Category TEXT NOT NULL DEFAULT ''`(`DatabaseContext.cs:254`, 마이그레이션 `:127`도 동일)이고, 쓰기는 `cmd.Parameters["@category"].Value = t.Category`(`SqliteProjectRepository.cs:571`)로 **값을 그대로 바인딩**하며, 읽기는 `reader.GetString(...)`(`:114`, `:860`)이다. 즉 null이 저장 경로에 들어가면 **NOT NULL 제약 위반**, 어떻게든 저장되면 **읽기에서 캐스트 예외**가 난다.
-  - 관련 위험: `SelectedCategoryOption`은 **비-nullable `string`**(`TaskEditDialogViewModel.cs:18`)인데 XAML 바인딩은 `SelectedItem="{x:Bind ... Mode=TwoWay}"`(`TaskEditDialog.xaml:70`)이고 `SelectedItem`은 `object`다. **ItemsSource에 없는 값을 넣으면 ComboBox가 선택을 거부하고 null을 TwoWay로 되써넣을 수 있다** — 이 프레임워크 동작은 이번 계획에서 **확인하지 않았다.**
-  - 현행 코드는 항상 목록 내 값(`_noneCategoryLabel` 포함)이 선택돼 이 경로가 잠재돼 있었고, **T2의 D6(미선택 표현)이 이 경로를 처음 활성화**한다. 따라서 D6은 ComboBox 동작에 대한 추측 위에 세우지 않고 **VM 쪽 null 방어로 성립을 보장**한다(D6 참조).
-- `AppSettingsDialogViewModel.DefaultTaskCategories`(`:218-221`) = `["UI·UX", "프론트엔드", "백엔드"]` — 항상 3개 이상이라 "미분류" 제거 후에도 `CategoryOptions`가 비지 않는다(D2의 성립 근거).
-- `settings.TaskCategories`(사용자 정의)는 앞의 기본 3개 뒤에 붙는다 → 제거 후 **첫 항목은 항상 "UI·UX"**.
+**`Domain/Entities/TodoItem.cs`**
+- `LinkedTestId`(:50, 일반 string, **영속**) — 작업 → 테스트 단방향 링크.
+- `LinkedTestBadge`(:52-54, `[ObservableProperty]`, 주석에 "**표시 전용 — 영속화하지 않으며 TaskPageViewModel이 설정**") — **이번에 만들 속성의 정확한 선례**다(도메인에 표시 전용 비영속 속성을 두고 VM이 채우는 패턴).
 
-### ④ 네비게이션 버그 — 근본 원인 확정 (직접 Read)
-`DashboardView`는 **재사용되는 단일 인스턴스**인데(`MainWindow.xaml.cs:24` 필드, `:126` 생성, `:524` 복귀 시 같은 인스턴스 재부착), 그 인스턴스가 시각 트리에서 떨어질 때 **모든 구독을 끊고 되살릴 경로를 스스로 없앤다**:
+**`Presentation/ViewModels/TaskPageViewModel.cs`**(대칭 선례)
+- `BuildTestStatusLookup`(:75-81)이 `testId → status` 딕셔너리를 만들고, `Rebuild()`(:105-106)가 `t.LinkedTestBadge = MapTestBadge(GetLinkedTestStatus(t))`로 **매 재구성마다 표시 값을 채운다**. 이번 구현은 이 패턴의 **반대 방향** 대칭이다.
 
-```
-DashboardView.OnUnloaded (DashboardView.xaml.cs:38-52)
-  :40  Unloaded -= OnUnloaded;                    ← 자기 자신을 해제
-  :41  DataContextChanged -= OnDataContextChanged; ← 재구독 트리거를 해제  ★
-  :46  DisplayCards.CollectionChanged -= ...
-  :47-48 foreach(card) UnsubscribeCardEvents(card) ← 카드 이벤트 전부 해제  ★
-  :50  _subscribedVm = null;
-```
+**⚠️ `ProjectItem.Todos`는 지연 로딩이다 (plan-reviewer B1으로 발견 — 이 plan의 성립 조건)**
+- `SqliteProjectRepository.cs:35` 주석대로 `Todos`·`TestCategories`·`Histories`는 **진입 시점에 필요한 것만** DB에서 채운다. 채우는 주체는 `ProjectCardViewModel`의 `EnsureTodosLoaded()`(:295-300)·`EnsureTestsLoaded()`(:311-316)이며, 각각 `_todosLoaded`/`_testsLoaded` 플래그로 1회만 로드한다.
+- **작업 화면 진입** `CreateTaskPageViewModel()`(:517-523)은 `EnsureTodosLoaded()` + `EnsureHistoriesLoaded()` + `EnsureTestsLoaded()`를 **모두** 호출한다.
+- **테스트 화면 진입** `CreateTestPageViewModel()`(:533-537)은 **`EnsureTestsLoaded()`만** 호출한다 — 즉 테스트 화면을 열면 `_item.Todos`는 로드되지 않은 초기 상태다.
+- **결과**: 이 사실을 모르고 구현하면 `BuildLinkedTaskTitles()`의 딕셔너리가 항상 비어 **모든 배지가 `Collapsed`가 된다**. 빌드·grep은 전부 통과하므로 정적 검증으로는 잡히지 않는다(리뷰어 지적 그대로). → **T1에서 `CreateTestPageViewModel()`에 `EnsureTodosLoaded()`를 추가**해 해소한다(작업 화면이 이미 `EnsureTestsLoaded()`를 부르는 것과 대칭).
+- 유일 진입 경로 확인: `DashboardView.xaml.cs:237`이 `CreateTestPageViewModel()`을 호출하는 단일 지점(grep 전수).
 
-재현 경로(코드로 확정):
-1. 대시보드 최초 표시 → `OnDataContextChanged`(`:74-98`)가 카드별 `OpenTodoRequested` 등을 구독 → 작업 버튼 동작.
-2. 작업 버튼 클릭 → `MainWindow.ShowPage`(`:515-519`)가 `DashboardContent.Content`를 `TaskPage`로 교체 → **DashboardView가 트리에서 분리돼 `Unloaded` 발생** → 위 해제 실행.
-3. "대시보드" 클릭 → `TaskPage.Back_Click`(`:151-152`) → `MainWindow.ShowDashboard`(`:522-527`)가 **같은 `_dashboardView` 인스턴스**를 다시 붙인다. **`DataContext`는 처음부터 끝까지 동일한 `MainViewModel`이라 `DataContextChanged`가 발생하지 않는다.**
-4. → 재구독이 일어나지 않고, 3단계에서 `DataContextChanged` 핸들러마저 이미 떨어져 있어 **영구적으로 죽는다.** 카드의 작업 버튼을 눌러도 `OpenTodoRequested` 구독자가 0이라 아무 일도 일어나지 않는다. **증상과 정확히 일치.**
+**`Presentation/ViewModels/TestPageViewModel.cs`**(현재 확인 범위 1~105줄)
+- `_project`(`ProjectItem`) 보유 — `_project.Todos` 필드 자체는 접근 가능하나, **로드 여부는 위 지연 로딩 규약에 달려 있다**(T1이 해소).
+- `Rebuild()`(:66-101): 통계 → 스위트 필터 → `SuiteGroups` 재구성. **표시 값을 채울 지점이 이 메서드 하나로 모여 있다**(`OnSelectedStatusChanged`·`OnSelectedSuiteFilterChanged`·생성자가 전부 여기로 수렴).
+- 항목 표시는 `TestSuiteGroup`에 `ObservableCollection<TestItem>`을 담는 방식이라, **`TestItem` 자체에 표시 값이 있으면 XAML이 그대로 바인딩**할 수 있다(별도 wrapper 불필요).
 
-영향 범위(같은 원인, 전수):
-- `SubscribeCardEvents`(`:136-144`)가 묶는 **6개 이벤트 전부**가 함께 죽는다 — `ShowGitStatusRequested`·`OpenTodoRequested`·`OpenHistoryRequested`·`OpenTestListRequested`·`ConfigureCommandSlotRequested`·`ChangeCommandIconRequested`.
-- `DisplayCards.CollectionChanged` 구독도 끊겨, 복귀 후 **프로젝트 추가/삭제 시 카드 이벤트 구독이 갱신되지 않는다**(신규 카드의 버튼도 무반응).
-- 진입 경로 무관하게 동일: `TaskPage`·`TestPage`·`NotificationPage`의 `Back_Click`이 모두 `ShowDashboard()`를 호출한다(grep 3건: `TaskPage.xaml.cs:152`·`TestPage.xaml.cs:86`·`NotificationPage.xaml.cs:66`).
-- 반대로 `TaskPage`/`TestPage`/`NotificationPage`는 **진입할 때마다 새로 생성**되므로(`DashboardView.xaml.cs:184,217`·`MainWindow.xaml.cs:590,598`) 같은 문제가 없다 — 수정 대상은 `DashboardView` 한 곳뿐이다.
-- `ReloadLanguageUI`(`MainWindow.xaml.cs:510`)는 `DashboardView`를 **새로 만들어** 붙이므로 새 인스턴스의 `DataContextChanged`가 정상 발동한다 — 이 경로는 버그 없음(수정 후에도 유지돼야 함).
+**`Presentation/Views/TestPage.xaml`**
+- `TestItemRowTemplate`(:22-115): `Border`(구분선·hover·`ContextFlyout`) 안 `Grid` — **열 3개**(아이콘 `Auto` / 본문 `*` / pill `Auto`), **행 2개**(0=이름, 1=메모). 아이콘·pill은 `Grid.RowSpan="2"`로 세로 중앙.
+  - 이름 `TextBlock`(:76-83): 13px, 최대 2줄 말줄임.
+  - 메모 `Border`(:86-105): `Grid.Row="1"`, `NoteVisibility(ProgressNote)` 조건, 좌측 warning 바 + 깃발 아이콘.
+  - **배지를 이름과 메모 사이에 넣으려면 행이 하나 더 필요**하다(시안 순서: 이름 → 링크 배지 → 메모).
+- **색 리터럴 직접 사용 선례**: 미실행 테스트 배지가 상태에 따라 변하지 않는 색을 XAML에 `#8A8890`/`#35353C` 리터럴로 직접 적었다(notes 2026-07-21 기록). 링크 배지도 상태 무관 고정색이라 **같은 방식이 적절**하다 — 정적 브러시 헬퍼 불필요.
+- **소비처 전수**(grep): `TestItemRowTemplate`은 `TestPage.xaml` 안에서만 참조(정의 1 + 소비 1) — 함정 11 리스크 없음.
+
+**`Resources/Converters.xaml`**
+- `StringNotEmptyToVisibility`(:16) 등록됨 — `TaskPage.xaml`이 `{x:Bind Description, Converter={StaticResource StringNotEmptyToVisibility}}`로 사용 중. **일반 x:Bind + Converter 조합이 이 레포에서 동작함이 확인된 선례**이므로 신규 Visibility 헬퍼를 만들 필요가 없다.
+
+**아이콘**: 시안은 체인 2개가 겹친 SVG(`:263`). Segoe Fluent Icons의 대응 글리프는 **`E71B`(Link)**. 이 레포의 기존 `FontIcon` 사용 글리프를 전수 확인한 결과 `E71B`는 **미사용**이라 충돌 없음.
 
 ### 4-D. 재사용 확인
 
 | 신규 심볼 | 유사 기존 구현 검색 결과 | 재사용/신규 사유 |
 |---|---|---|
-| 제목 입력칸 하단 빨간 라인 | `Border`/`Rectangle`로 라인을 그리는 공용 스타일 없음(grep: `Height="2"`·`VerticalAlignment="Bottom"` 0건). `DashedAddButtonStyle`은 점선 테두리용이라 용도 불일치 | **신규(인라인, 스타일 미신설)** — 소비처 1곳뿐이라 `Styles.xaml`에 스타일을 만들면 소비처 0인 자산이 또 생긴다(`InputLabelStyle`이 그렇게 방치됐던 전례). 색은 기존 `AppDangerBrush` ThemeResource 재사용 |
-| `DashboardView.OnLoaded` 핸들러 | 같은 파일의 `OnUnloaded`(`:38`)·`OnDataContextChanged`(`:74`)와 대칭. `MainWindow.OnRootGridLoaded`(`:85`)가 `Loaded`로 초기화하는 선례 | **신규(패턴 재사용)** — 기존 `Loaded` 핸들러가 이 클래스에 없다 |
-| 구독/해제 본문 | 기존 `SubscribeCardEvents`/`UnsubscribeCardEvents`(`:136-154`) 및 `OnDataContextChanged`의 구독 루프 | **재사용 + 추출** — 구독 루프가 `OnDataContextChanged`·`OnDisplayCardsChanged`·(신규)`OnLoaded` **3곳**에서 반복되므로 공통화 기준(2회 이상)을 넘는다 → **카드 수준 2개 + VM 수준 2개, 총 4개 메서드로 추출**(D10 — 한 쌍으로 합치면 Reset 분기 동작이 바뀐다) |
-| 카테고리 표시명 매핑 | `TaskPageViewModel:140,173`에 이미 존재 | **재사용(무변경)** — 요청 ③은 기존 코드가 이미 충족. 신규 작성 0 |
+| `TestItem.LinkedTaskTitle` | `TodoItem.LinkedTestBadge`(`TodoItem.cs:52-54`) — **표시 전용·비영속·VM이 채움**의 동일 패턴 | **신규(선례 대칭 재현)** — 반대 방향(테스트→작업)이라 기존 속성을 재사용할 수 없다. 같은 주석 규약("표시 전용 — 영속화하지 않으며 TestPageViewModel이 설정")을 따른다 |
+| `TestPageViewModel`의 역참조 채우기 | `TaskPageViewModel.BuildTestStatusLookup`/`MapTestBadge`/`GetLinkedTestStatus`(:75-97) — 반대 방향의 같은 구조 | **신규(선례 대칭 재현)** — 방향이 반대라 그 메서드들을 호출할 수 없다. 단 **딕셔너리 없이** 단순 조회로 둔다(아래 D3) |
+| 배지 표시 조건 | `StringNotEmptyToVisibility` 컨버터(`Converters.xaml:16`), `TestPage.NoteVisibility`(정적 헬퍼) | **컨버터 재사용(신규 0)** — 일반 x:Bind는 Converter를 받으므로 헬퍼를 새로 만들지 않는다 |
+| 배지 색 | `AppInfoBrush`(#5B93D8 — 시안 #7AB5EC와 다름), TestPage의 색 리터럴 직접 사용 선례 | **XAML 리터럴(신규 심볼 0)** — 상태와 무관한 고정색이라 헬퍼·팔레트 추가가 불필요 |
+| 배지 컨테이너 스타일 | `TagBadgeStyle`(`Styles.xaml:189`, CornerRadius **4**) | **미사용** — 시안은 `border-radius:999px` 완전 캡슐이라 값이 다르고, 재사용해도 CornerRadius를 덮어써야 해 이득이 없다. 인라인 `Border`로 그린다 |
 
 ## 시각 요소 분해
 
-> 출처: 사용자 제공 시안 이미지(새 작업 다이얼로그). 목업 HTML이 없어 **px 값은 확정 불가** — 구조·상대 관계를 명세하고 수치는 기존 관례(WinUI 기본 `CornerRadius` 4, 포커스 강조선 2px)를 따른다. 최종 판정은 빌드 후 사용자 육안 대조(⏳ HUMAN-VERIFY).
->
-> 이번 범위는 **제목 입력칸 1요소**다. 나머지 요소(헤더 pill·라벨·카드·버튼·여백)는 이전 plan에서 정합을 마쳤고 **사용자가 이상 없음으로 확인**했으므로 이 표에 다시 넣지 않는다.
+> 기준: 시안 원본 HTML `:261-266`의 인라인 스타일 + 사용자 제공 렌더 이미지(2026-07-22). px는 WinUI 논리 단위로 그대로 옮긴다. 최종 판정은 빌드 후 사용자 육안 대조(⏳ HUMAN-VERIFY).
 
-| 요소 | 속성 | 디자인 값 | 확인 방법 |
-|---|---|---|---|
-| 제목 입력칸 | 필수 강조 형태 | **하단 가로 라인만** (4면 테두리 아님) | 시안 — 좌·우·상단은 다른 입력칸과 같은 저강도 테두리 |
-| 제목 입력칸 | 라인 색 | danger 살몬 `AppDangerBrush`(#F0716A) | 시안 + `Palette.xaml:31` |
-| 제목 입력칸 | 라인 두께 | 2px (입력칸 기본 테두리 1px보다 굵게) | 시안에서 하단만 뚜렷 |
-| 제목 입력칸 | 라인 표시 조건 | **항상** — 값이 채워져도, 포커스·hover 여부와 무관하게 유지 | 사용자 요청 "항상 표시" |
-| 제목 입력칸 | 라인 폭·모서리 | 입력칸 가로폭과 일치. 아래 모서리는 입력칸 라운드와 **육안상 이질감이 없는 수준**(정확한 4px 재현은 불가 — `Height="2"` 요소의 `CornerRadius`는 높이 절반인 1px로 클램프된다, plan-reviewer m1). 삐져나오면 좌우 `Margin` 1px로 보정 | 시안 + ⏳ HUMAN-VERIFY |
-| 설명·카테고리·우선순위·날짜 | 필수 강조 | **없음** (선택 입력) | 사용자 요청 "필수 입력 ui에만" |
-| 제목 라벨 빨간 `*` | 존재 | 유지(현행) | 시안 |
+| 요소 | 속성 | 디자인 값 | XAML 대응 수단 | 확인 방법 |
+|---|---|---|---|---|
+| 링크 배지 | 표시 조건 | `hasLink` = 연결된 작업이 있을 때만 | `Visibility` + `StringNotEmptyToVisibility` 컨버터 | HTML 소스 :261, :1078 |
+| 링크 배지 | 위치 | 테스트 이름 **아래**, 메모 **위** | `Grid.Row="1"`(메모를 행 2로 밀어냄) | HTML 소스 :259-275 (순서: 이름 → 링크 → 방법 → 메모) |
+| 링크 배지 | 가로 정렬 | `align-self:flex-start` (내용 폭만큼만, 좌측) | `HorizontalAlignment="Left"` | HTML 소스 :262 |
+| 링크 배지 | 배치·간격 | `inline-flex`, `align-items:center`, `gap:5px` | `StackPanel Orientation="Horizontal" Spacing="5"` + 세로 중앙 | HTML 소스 :262 |
+| 링크 배지 | 모서리 | 시안은 `border-radius:999px`(완전 캡슐) | **`CornerRadius="4"`(라운드 사각형) — 시안과 의도적으로 다름.** 캡슐 렌더가 타원처럼 보인다는 육안 확인 후 사용자가 "사각형 + 모서리만 조금 둥글게"로 정정(2026-07-22). 같은 행의 메모 블록·`TagBadgeStyle`과 같은 값이라 화면 내 일관성도 유지된다 | 사용자 결정(시안 대비 의도적 차이) |
+| 링크 배지 | 테두리 | `1px solid rgba(90,163,232,.45)` | `BorderThickness="1" BorderBrush="#735AA3E8"`(0.45×255≈0x73) | HTML 소스 :262 |
+| 링크 배지 | 배경 | 없음(투명 — 테두리형) | `Background` 미지정 | HTML 소스 :262 |
+| 링크 배지 | padding | `2px 9px` | `Padding="9,2"` | HTML 소스 :262 |
+| 링크 배지 | 글자 | `11px`, `#7ab5ec` | `FontSize="11" Foreground="#7AB5EC"` | HTML 소스 :262 |
+| 링크 배지 | 폭 | **내용 폭에 딱 맞음**(`inline-flex` + `align-self:flex-start`), 넘치면 말줄임(`max-width:100%`) | 배지 내부를 **`Grid`(Auto/**Auto**)** 로 담는다 + `TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"`. ⚠️ 두 실패 경로를 모두 피해야 한다: `StackPanel`은 자식에게 **무한 폭**을 줘 트리밍 미발동(F-7 M1), `*` 열은 **남는 폭을 다 먹어 배지가 가로로 늘어난다**(사용자 육안 지적 2026-07-22) | HTML 소스 :262, :264 + 사용자 제공 시안/현재 비교 이미지 |
+| 링크 아이콘 | 모양 | 체인 2개가 겹친 링크 아이콘 | `FontIcon Glyph="&#xE71B;"`(Segoe Fluent "Link") | HTML 소스 :263 |
+| 링크 아이콘 | 크기·색 | `10×10`, `stroke:currentColor`(= 글자색 `#7ab5ec`) | `FontSize="10" Foreground="#7AB5EC"` | HTML 소스 :263 |
+| 링크 아이콘 | 축소 | `flex-shrink:0` (텍스트가 길어도 아이콘은 안 줄어듦) | `Grid`가 아니라 `StackPanel` + 텍스트만 말줄임 → 자동 충족 | HTML 소스 :263 |
+| 배지 텍스트 | 내용 | 연결된 **작업 제목**(`link: title`) | `{x:Bind LinkedTaskTitle}` | HTML 소스 :264, :1508 |
+| 행 간격 | 이름↔배지 | `gap:3px` (본문 세로 스택) | 배지 `Margin="0,3,0,0"` | HTML 소스 :259 |
 
 ## Decisions
 
-| # | 항목 | 카테고리 | 결정 | Source |
-|---|---|---|---|---|
-| D1 | 하단 라인 구현 방식 | 기술 | `TextBox`를 `Grid`로 감싸고 **하단 정렬 `Border`(Height 2, `AppDangerBrush`, `CornerRadius 0,0,4,4`, `IsHitTestVisible="False"`)를 겹쳐 그린다.** **기각한 대안**: ⓐ `BorderThickness="1,1,1,2"` + `BorderBrush` — 4면이 한 브러시라 상·좌·우까지 빨개져 시안과 다르다. ⓑ `TextBox` 템플릿 복사 — 유지비가 크고 이 화면 1곳에만 필요하다. ⓒ `Styles.xaml`에 전용 스타일 신설 — 소비처 1곳(4-D) | 시안 + `ControlCornerRadius` 미오버라이드 grep |
-| D2 | 라인이 hover/포커스에 가려지지 않음 | 기술 | 라인은 `TextBox` **바깥에 겹친 형제 요소**라 `TextControlBorderBrushPointerOver`(회색) 오버라이드의 영향을 받지 않는다 → 이전 plan의 **D3-a(hover 시 회색 전환) 문제가 부수적으로 해소**된다. 포커스 시 TextBox 자체 하단 강조선은 accent(#F0716A)로 danger와 **동색**이라 겹쳐도 어긋나지 않는다 | `Palette.xaml:31,39,150` |
-| D3 | `TitleBorderBrush` 처리 | 위치 | **제거**한다 — 유일한 소비처(XAML `BorderBrush` 바인딩)가 사라져 고아가 된다. 정적 브러시 2개(`_titleRequiredBrush`·`_titleNormalBrush`)와 고아가 되는 `using Microsoft.UI;`·`using Microsoft.UI.Xaml.Media;`도 함께 정리하고, **이 이름을 지목하는 `OnSave` 위 주석(`:57`)도 갱신**한다 | grep 전수 **3건**(정의 `:25` · XAML `:44` · 주석 `:57`) |
-| D4 | 빈 제목 저장 차단 | 로직 | **유지**한다(`OnSave`의 `args.Cancel = true`). 라인이 상시 표시로 바뀌면 "비어 있음" 신호 기능은 오히려 약해지므로, 저장 차단이 유일한 실제 방어선이 된다 — 제거하면 빈 제목 작업이 생성되는 회귀 | `TaskEditDialog.xaml.cs:54-62` |
-| D5 | 카테고리 콤보 기본값 | UX | **첫 카테고리("UI·UX")를 자동 선택**한다 | 사용자 결정 2026-07-20 |
-| D6 | 편집 모드의 빈 카테고리 | 로직 | **콤보를 미선택 상태로 열고, 사용자가 고르지 않으면 빈 카테고리를 그대로 저장**한다(D5의 자동 선택은 **새 작업에만** 적용). 근거: 요청 ③이 "기존 카테고리 없는 항목은 목록에서 미분류로 표시"를 요구하므로 그 항목의 빈 값이 **보존돼야** 규칙이 성립한다. 편집창을 여는 것만으로 "UI·UX"가 붙으면 그 항목이 미분류 그룹에서 조용히 사라진다(무성 데이터 변경) | 요청 ③ + `TaskPageViewModel:140,173` |
-| D6-a | 미선택의 null 방어 | 기술 | **`SelectedCategoryOption`을 `string?`으로 바꾸고 `BuildResult()`에서 `?? string.Empty`로 흡수**한다. 근거: ComboBox가 목록에 없는 값을 받았을 때 null을 TwoWay로 되써넣는지는 **확인되지 않은 프레임워크 동작**이고, null이 새면 `Todos.Category`(`TEXT NOT NULL`)에서 저장 실패 또는 읽기 예외가 난다. 방어 한 줄로 **ComboBox가 어느 쪽으로 동작하든 D6이 성립**하게 만든다(추측 대신 무해화). **기각한 대안**: 실제 동작을 실험해 한쪽으로 확정 — 실행 확인이 필요해 계획 단계에서 끝나지 않고, 확정해도 방어보다 안전하지 않다 | plan-reviewer B1 + `DatabaseContext.cs:254` + `SqliteProjectRepository.cs:571,114,860` |
-| D7 | `TaskCategory_None` resw 키 | 위치 | **존치**한다 — VM 소비는 사라지지만 칸반·목록 표시 2곳이 계속 쓴다. 지우면 표시명이 raw 키로 렌더된다(`LocalizationService.Get`은 미존재 키를 키 문자열로 반환) | `TaskPageViewModel:140,173` + `LocalizationService.cs:56,60` |
-| D8 | 목록·칸반 "미분류" 표시 | 범위 | **무변경**(요청 ③은 이미 충족). 이번 diff는 `TaskPageViewModel`에 닿지 않으며, 회귀 방지 확인만 acceptance에 둔다 | Investigation Log ②③ |
-| D9 | 네비게이션 버그 수정 방식 | 기술 | **`Loaded`에서 재구독**한다. `Unloaded`에서는 구독만 해제하고 **`Unloaded`·`DataContextChanged` 핸들러 자체는 떼지 않는다**(그것이 재구독 경로를 없앤 원인). **기각한 대안**: ⓐ `Unloaded`에서 아예 해제하지 않기 — 페이지 표시 중에도 카드 이벤트가 살아 있어 백그라운드 다이얼로그가 뜰 수 있다. ⓑ `MainWindow.ShowDashboard()`에서 재구독 호출 — 뷰 내부 사정을 창이 알아야 해 의존이 역전되고, 다른 복귀 경로가 생기면 또 빠뜨린다 | `DashboardView.xaml.cs:38-52` + `MainWindow.xaml.cs:126,524` |
-| D10 | 구독 로직 중복 | 구조 | 구독/해제 루프를 private 메서드로 추출하되 **카드 수준(`SubscribeCards`/`UnsubscribeCards`)과 VM 수준(`SubscribeAll`/`UnsubscribeAll`) 2단으로 나눈다.** 한 쌍으로 묶으면 4개 호출처의 요구가 충돌한다 — `OnLoaded`/`OnUnloaded`는 `CollectionChanged`·`_subscribedVm`까지 포함해야 하지만, `OnDisplayCardsChanged`의 Reset 분기는 **카드만** 재구축하는 것이 현행 동작이라 같은 쌍을 쓰면 자기 이벤트를 해제·재등록하는 다른 동작이 된다. 호출처별 매핑은 T3 구성의 표에 못박는다 | plan-reviewer M2 + `DashboardView.xaml.cs:74-134` |
-| D11 | 수정 범위(버튼 6종) | 범위 | **한 곳 수정으로 6개 이벤트가 함께 되살아난다** — 작업 버튼만 선별 복구하는 것은 불가능하고 무의미하다. 요청 범위 확대가 아니라 **같은 결함의 전체 영향** | `SubscribeCardEvents:136-144` |
+- **D1 (표시 값을 도메인 표시 전용 속성으로)**: `TestItem`에 `LinkedTaskTitle`(`[ObservableProperty]`, **비영속**)을 추가하고 `TestPageViewModel`이 채운다. *Source*: `TodoItem.LinkedTestBadge`(`TodoItem.cs:52-54`)가 정확히 같은 규약("표시 전용 — 영속화하지 않으며 TaskPageViewModel이 설정")으로 이미 존재하며, 그 값을 `TaskPage.xaml`이 직접 바인딩해 왔다. 같은 패턴을 반대 방향으로 재현하면 `TestSuiteGroup` wrapper를 바꾸지 않고 XAML이 `TestItem`을 그대로 바인딩할 수 있다.
+  - **대안 기각**: VM에 `testId → 작업제목` 딕셔너리를 두고 XAML이 함수 바인딩으로 조회 — 함정 5로 함수 바인딩은 Converter를 못 받고, `TestItem`이 자기 표시 값을 모르면 행 템플릿이 VM 참조를 별도로 들어야 해 복잡해진다.
+- **D2 (영속화하지 않음)**: `LinkedTaskTitle`은 매 `Rebuild()`마다 재계산하며 DB에 저장하지 않는다. *Source*: 값의 출처가 `TodoItem.Text`(이미 영속)라 **중복 저장은 동기화 실패 지점**만 만든다 — 작업 제목이 바뀌면 저장된 사본이 낡는다. `SaveTestCategories`의 INSERT 컬럼을 건드리지 않으므로 NFR-3(스키마 하위호환)에도 무영향(AGENTS.md의 "INSERT 컬럼 추가 시 파라미터 갱신" 함정도 비해당).
+- **D3 (딕셔너리 없이 단순 조회)**: 역참조는 `_project.Todos`에서 `LinkedTestId == test.Id`인 항목을 찾는 방식으로 하되, **매 테스트마다 전체 Todos를 훑지 않도록** `Rebuild()` 시작에서 `LinkedTestId → 작업제목` 딕셔너리를 **한 번** 만들어 쓴다. *Source*: `TaskPageViewModel.BuildTestStatusLookup`(:75-81)이 같은 이유로 `_testStatusById` 딕셔너리를 쓰는 선례. 개인 대시보드 규모라 성능 자체는 문제가 아니지만, 이중 루프보다 **의도가 명확**하고 선례와 일관된다.
+- **D4 (한 테스트에 여러 작업이 연결된 경우 첫 항목만)**: `LinkedTestId`는 작업당 1개지만 **여러 작업이 같은 테스트 Id를 가질 수 있다**(도메인이 막지 않음 — `CreateLinkedTest`는 항상 새 테스트를 만들어 1:1이지만 데이터상 보장은 없다). 딕셔너리 구성 시 **먼저 만난 항목을 유지**한다(`TryAdd`). 시안도 링크가 문자열 하나라 복수 표현이 없다.
+- **D5 (배지는 표시 전용 — 클릭 동작 없음)**: 시안 마크업(`:262-265`)에 `onClick`이 없다. 작업으로 이동하는 링크 동작은 넣지 않는다(넣으려면 페이지 전환·스크롤·하이라이트 설계가 필요해 별도 논의 대상).
+- **D6 (색은 XAML 리터럴)**: 글자 `#7AB5EC`·테두리 `#735AA3E8`을 XAML에 직접 적는다. *Source*: 상태에 따라 변하지 않는 고정색이며, TestPage의 미실행 배지가 같은 이유로 `#8A8890`/`#35353C`를 리터럴로 쓴 선례가 있다(notes 2026-07-21). 팔레트 신규 색은 추가하지 않는다(함정 4 — 다크 단일 딕셔너리 정책 유지).
+- **D8 (테스트 화면 진입 시 `Todos`도 로드한다)**: `ProjectCardViewModel.CreateTestPageViewModel()`에 `EnsureTodosLoaded()`를 추가한다. *Source*: `SqliteProjectRepository.cs:35`(지연 로딩 규약) + `ProjectCardViewModel.cs:517-523`(작업 화면은 `EnsureTestsLoaded()`까지 부른다) vs `:533-537`(테스트 화면은 `EnsureTestsLoaded()`만) — 이 비대칭 때문에 역참조 대상인 `Todos`가 비어 **배지가 전멸**한다(plan-reviewer B1). 로드는 `_todosLoaded` 플래그로 1회만 일어나므로 비용은 최초 진입 1회의 DB 조회뿐이고, 작업 화면이 이미 반대 방향(테스트 로드)을 하고 있어 **대칭을 맞추는 것이 자연스럽다**.
+  - **대안 기각**: `TestPageViewModel` 생성자에서 리포지토리로 직접 `GetTodos`를 부르는 방식 — 로드 책임이 `ProjectCardViewModel`에 모여 있는 기존 구조(플래그 기반 1회 로드)를 깨고 중복 조회를 만든다.
+- **D7 (작업이 삭제되면 배지도 자동으로 사라진다)**: 역참조를 **매번 계산**하므로 작업이 삭제되면 딕셔너리에 없어져 배지가 자동 소멸한다 — 별도 정리 로직이 필요 없다. 반대로 **테스트가 삭제되면** `TodoItem.LinkedTestId`가 고아 값으로 남지만(기존 동작), 그것은 작업 쪽 배지 경로의 문제라 이번 범위 밖이다(기존과 동일하게 `GetLinkedTestStatus`가 null을 반환해 배지 미표시).
 
 ## PRD Coverage
 
 | PRD ID | 우선순위 | 대응 task | 상태 |
 |---|---|---|---|
-| FR-T5 (편집 다이얼로그 + 삭제 확인) | Must | T1, T2 | ✅ 커버 (필수 표시 형태 + 카테고리 선택지 정정) |
-| FR-C3 (페이지 네비 컨테이너 — 대시보드 ↔ 페이지 전환) | Must | T3 | ✅ 커버 (**회귀 수정** — 복귀 후 재진입 불가 상태 해소) |
-| FR-T2 (작업 전체 페이지 + 칸반/목록) | Must | — | 이번 범위 외 (기구현). 단 T3이 **진입 경로**를 복구하므로 간접 관련 |
-| FR-T1 (작업 데이터 모델) | Must | — | 이번 범위 외 (`TodoItem` 무변경, 스키마·직렬화 무변경) |
-| FR-T6 (테스트 추가 토글) | Should | — | 이번 범위 외 (기구현 — `AddTestRequested` 경로 무변경, T1 acceptance에 회귀 방지) |
-| FR-T7 (담당자(who) 필드) | Could | — | **의도적 미구현** — 사용자 제외 결정 유지(`deferred.md:9`) |
-| FR-E1 (테스트 페이지) | Must | — | 이번 범위 외 (기구현). T3이 진입 경로를 함께 복구 |
-| FR-T3·T4·T8·FR-C1·C2·C4·FR-S1~S5·FR-E2~E5·FR-H*·FR-N* | Must/Should | — | 이번 범위 외 (Phase 0~5에서 기구현, 이번 diff가 닿지 않음). 단 **FR-S5**는 기구현이 아니라 `deferred.md:6` 대기 중 — 이번에도 유지 |
-| NFR-1 (빌드 오류 0·신규 경고 0) | — | T1·T2·T3 | 검증 대상 (기존 경고 5건 제외) |
-| NFR-2 (계층 위반 0) | — | T2·T3 | 검증 대상 (도메인 무변경, VM→페이지 역참조 없음) |
-| NFR-3 (DB 스키마 하위호환) | — | — | ✅ 무영향 (`TodoItem`·스키마·직렬화 무변경) |
-| NFR-4 (다국어 ko/en 대칭) | — | T2 | ✅ 충족 예정 (**신규·제거 resw 키 0** — `TaskCategory_None` 존치) |
-| NFR-5 (테스트) | — | — | 조건 미발동 (테스트 프로젝트 부재 — AGENTS.md 명시) |
+| FR-E4 (테스트↔작업 연결 배지·링크 + FR-T8 배선) | Should | T1, T2 | ⚠️ **부분 커버(확대)** — "연결 **배지**"의 **테스트 쪽 표현**을 이번에 구현(시안에 실재하는 유일한 연결 배지). FR-T8 배선 몫은 기구현·무변경. **미충족 잔여 2건**: ① **"링크"(배지 클릭 → 연결된 작업으로 이동)** 미구현 — 시안에 `onClick`이 없어 표시 전용으로 뒀다(D5, Deferred 등재) ② **작업 쪽 배지**(`TodoItem.LinkedTestBadge`)는 시안에 없어 여전히 미표시(대장 `[FR-E4 작업별 연결 배지 표시 소멸]` 유지) |
+| FR-E1·E2·E3·E5 (테스트 페이지·상태 모델·다이얼로그·목록 restyle) | Must/Should | — | 이번 범위 외 (기구현 — 행 템플릿에 요소 1개를 추가할 뿐 기존 구성 무변경) |
+| FR-T1~T8 (작업 도메인·칸반·목록·다이얼로그) | Must/Should | — | 이번 범위 외 (기구현 — `TodoItem`은 **읽기만** 하고 수정하지 않는다) |
+| FR-C*·FR-S*·FR-H*·FR-N* 등 그 외 active Must | Must/Should | — | 이번 범위 외 (기구현, 이번 diff 무관) |
+| NFR-1 (빌드 오류 0·신규 경고 0) | — | 전 task | 검증 대상(실측 baseline `CS0618` 1건 제외) |
+| NFR-2 (계층 위반 0) | — | T1 | 검증 대상(VM은 View 타입을 참조하지 않는다 — 표시 값은 `string`) |
+| NFR-3 (DB 스키마 하위호환) | — | — | ✅ 무영향(D2 — 비영속 표시 전용 속성, INSERT 컬럼 무변경) |
+| NFR-4 (다국어 ko/en 대칭) | — | — | 해당 없음(신규 문구 0 — 배지 내용은 사용자 데이터인 작업 제목) |
+| NFR-5 (테스트) | — | — | 조건 미발동(테스트 프로젝트 부재 — AGENTS.md) |
 
 ## 작업 단계
 
-### T1 — 제목 필수 표시를 상시 하단 빨간 라인으로 변경 `Type C`
+### T1 — 데이터: `TestItem`에 연결 작업 제목 + VM 역참조 채우기 `Type C`
 - [x] 구현
-- **Files**: `DevDashboard_WinUI/Presentation/Views/Dialogs/TaskEditDialog.xaml`, `DevDashboard_WinUI/Presentation/Views/Dialogs/TaskEditDialog.xaml.cs`
-- **Design**: ① 배치 — 마크업은 `TaskEditDialog.xaml`의 제목 필드 블록(`:41-45`)에만. 코드비하인드에는 **아무것도 추가하지 않고 제거만** 한다. ② 신규 심볼 — 없음(인라인 `Grid` + `Border` 1개, 이름 없음). ③ 의존 방향 — XAML이 `AppDangerBrush` ThemeResource를 소비. 역참조 없음. ④ 비추상화 — 필수 표시를 `Style`·`Behavior`·재사용 컨트롤로 빼지 않는다(소비처 1곳, 4-D).
+- **Files**: `DevDashboard_WinUI/Domain/Entities/TestItem.cs`, `DevDashboard_WinUI/Presentation/ViewModels/TestPageViewModel.cs`, `DevDashboard_WinUI/Presentation/ViewModels/ProjectCardViewModel.cs`(지연 로딩 — D8)
+- **Design**: ① 배치 — 표시 값 속성은 `Domain/Entities/TestItem.cs`(선례 `TodoItem.LinkedTestBadge`와 같은 자리), 채우는 로직은 `TestPageViewModel`, 데이터 로드 보장은 `ProjectCardViewModel.CreateTestPageViewModel()`. ② 신규 심볼 — `TestItem.LinkedTaskTitle`(표시 전용 비영속 string, 연결된 작업 제목 / 빈 문자열이면 미연결) / `TestPageViewModel.BuildLinkedTaskTitles()`(`Rebuild()` 앞부분에서 `LinkedTestId → 작업 제목` 딕셔너리를 만들어 각 `TestItem`에 대입). ③ 의존 방향 — VM이 `_project.Todos`(도메인)를 읽어 `TestItem`(도메인)에 쓴다. View 타입 참조 없음(값이 `string`). ④ 비추상화 — 양방향 링크를 관리하는 서비스/인덱스 클래스를 만들지 않는다(조회 지점이 이 한 곳뿐 — 3회 문턱 미달). `TodoItem`·`TestItem`에 상호 참조 필드를 추가하지도 않는다(D2 — 영속 중복 금지).
 - **구성**:
-  - 제목 `TextBox`를 `Grid`로 감싸고, 형제로 `Border`(`Height="2"`, `VerticalAlignment="Bottom"`, `Background="{ThemeResource AppDangerBrush}"`, `CornerRadius="0,0,4,4"`, `IsHitTestVisible="False"`)를 겹친다(D1).
-  - `TextBox`의 `BorderBrush="{x:Bind local:TaskEditDialog.TitleBorderBrush(...)}"` **바인딩 제거** → 다른 입력칸과 같은 기본 테두리로 복귀.
-  - 코드비하인드에서 `TitleBorderBrush()`·`_titleRequiredBrush`·`_titleNormalBrush`와 고아가 되는 `using Microsoft.UI;`·`using Microsoft.UI.Xaml.Media;` **제거**(D3).
-  - `xmlns:local` 선언은 **다른 소비처가 없으면 함께 제거**한다(제거 전 이 파일 내 `local:` 참조 0건을 grep으로 확인 — 남기면 미사용 선언).
-  - `OnSave`의 **차단 로직(`args.Cancel = true`)은 손대지 않되**, 그 위 주석(`.xaml.cs:56-57`)은 **갱신**한다(plan-reviewer M1) — 현재 주석이 "빈 값일 때 danger 테두리가 이미 표시돼 있어"라는 **사라질 동작**을 근거로 들고 제거될 `TitleBorderBrush`를 지목한다. 새 문구는 D4의 실제 근거(라인이 상시 표시라 "비어 있음" 신호로 쓸 수 없고, **저장 차단이 유일한 방어선**)를 적는다.
-- **Acceptance**: 빌드 성공(신규 경고 0) + 제목 입력칸 아래에 danger 라인이 **값 유무와 무관하게** 렌더 + **설명·카테고리·우선순위·날짜 입력에는 라인이 없음** + `TitleBorderBrush`·`_titleRequiredBrush`·`_titleNormalBrush` 문자열 잔존 **0건**(grep — **주석 포함**, M1) + `OnSave` 위 주석이 새 동작을 설명함(사라진 테두리 동작을 근거로 들지 않음) + `TaskEditDialog.xaml`에 `BorderBrush=` 잔존 0건(grep) + **빈 제목으로 "등록"을 눌러도 다이얼로그가 닫히지 않음**(D4 회귀 방지) + **"테스트 추가" ON으로 만든 작업이 여전히 테스트를 생성**(FR-T6 회귀 방지 — `AddTestRequested` 경로 무변경)
-- **Edge Cases**: `IsHitTestVisible="False"`를 빠뜨리면 **라인이 입력칸 하단 클릭을 가로채** 커서가 안 잡힌다. `Grid`로 감싸며 기존 `StackPanel`의 세로 흐름이 깨지지 않게 할 것(라벨-입력칸 간격은 `InputLabelStyle`의 `Margin 0,0,0,4`가 담당 — 이전 plan Progress Log). 다이얼로그 폭이 바뀌어도 라인은 `Grid` 폭을 따라 늘어난다(고정 `Width` 금지). 포커스 시 TextBox 자체 강조선과 2중으로 겹쳐 라인이 더 굵어 보일 수 있음(동색이라 색은 어긋나지 않음 — ⏳ HUMAN-VERIFY). 라인이 입력칸 라운드 밖으로 삐져나오면 `CornerRadius`/좌우 `Margin` 1px 조정(⏳ HUMAN-VERIFY).
-- **Halt Forecast**: 없음 — 파일 2개, 파괴적·외부 작업 없음. 심볼 제거는 사전 승인 항목 등재.
+  - (D1·D2) `TestItem`에 `[ObservableProperty] public partial string LinkedTaskTitle { get; set; } = string.Empty;` 추가 + 주석에 **"표시 전용 — 영속화하지 않으며 TestPageViewModel이 설정"** 명시(`TodoItem.LinkedTestBadge` 규약 그대로).
+  - (D3·D4) `BuildLinkedTaskTitles()`: `_project.Todos`를 훑어 `LinkedTestId`가 비어 있지 않은 항목으로 `Dictionary<string, string>`(테스트 Id → 작업 제목)을 만들되 **`TryAdd`로 첫 항목 유지**. 그 뒤 `_project.TestCategories`의 전 항목을 돌며 `t.LinkedTaskTitle = map.GetValueOrDefault(t.Id, string.Empty)`로 대입(연결이 없으면 빈 문자열 — 이전 값이 남지 않게 **항상 대입**).
+  - `Rebuild()` 시작(통계 계산 전)에서 `BuildLinkedTaskTitles()` 호출 — 필터 변경·재구성 때마다 최신 값이 반영된다.
+  - **(D8) `ProjectCardViewModel.CreateTestPageViewModel()`(:533-537)에 `EnsureTodosLoaded();`를 추가**한다(`EnsureTestsLoaded()` 앞·뒤 무관, 작업 화면의 `CreateTaskPageViewModel()`과 대칭). **이 한 줄이 없으면 배지가 하나도 뜨지 않으며 빌드·grep으로는 검출되지 않는다.** 같은 메서드의 XML 주석(`:532` "TestCategories를 로드해 전달합니다")도 사실과 어긋나게 되므로 **"TestCategories와 Todos(연결 배지 역참조용)를 로드해 전달합니다"로 함께 갱신**한다.
+- **Acceptance**:
+  1. 빌드 오류 0 · 신규 경고 0(실측 baseline `CS0618` 1건 제외).
+  2. `TestItem.LinkedTaskTitle`이 `[ObservableProperty] partial` 방식으로 정의되고, 주석에 "표시 전용"·"영속화하지 않"음이 명시된다.
+  3. `TestPageViewModel.Rebuild()`가 `BuildLinkedTaskTitles()`를 호출하고, 그 메서드가 `_project.Todos`의 `LinkedTestId`로 딕셔너리를 만든다.
+  4. 연결이 없는 테스트에는 **빈 문자열이 대입**된다(이전 값 잔존 없음 — 작업 삭제·링크 해제 시 배지가 사라져야 함, D7).
+  5. `TestItem`이 **DB 저장 경로에 추가되지 않는다** — `SqliteProjectRepository`의 테스트 INSERT/SELECT 컬럼 목록에 `LinkedTaskTitle`이 없다(NFR-3, AGENTS.md의 "INSERT 컬럼 추가 시 파라미터 갱신" 함정 비해당 확인).
+  6. `TestPageViewModel.cs`에 `Microsoft.UI.Xaml` 계열 using·타입이 추가되지 않는다(NFR-2).
+  7. **`CreateTestPageViewModel()`이 `EnsureTodosLoaded()`를 호출한다**(D8) — 이 acceptance가 없으면 기능이 무동작인 채로 전 검증을 통과한다.
+- **Edge Cases**: **`Todos`가 로드되지 않은 상태 → 배지 전멸(정상 아님, D8이 해소)** — `?? []` 가드는 예외만 막을 뿐 이 실패를 고치지 못한다 / `_project.Todos`가 null(`?? []` 가드) / `LinkedTestId`가 빈 문자열인 작업 → 딕셔너리 제외 / `LinkedTestId`가 이미 삭제된 테스트를 가리킴 → 그 키는 어떤 테스트와도 매칭되지 않아 무해 / 같은 테스트에 여러 작업이 연결 → 첫 항목만(D4) / 작업 제목이 빈 문자열 → 배지가 `StringNotEmptyToVisibility`로 미표시(빈 pill이 그려지지 않음) / 작업 제목이 매우 김 → T2에서 말줄임 / `TestCategories`가 null(`?? []` 가드 유지) / `EnsureTodosLoaded()`는 `_todosLoaded` 플래그로 1회만 로드하므로 작업 화면을 먼저 열었다 와도 **중복 DB 조회가 없다**.
+- **Halt Forecast**: (ii-a) 사전 승인 — **도메인 엔티티(`TestItem`)에 공개 속성 1개 추가**(비영속·표시 전용, 기존 선례와 동일 규약) + `CreateTestPageViewModel()`에 로드 호출 1줄 추가(기존 공개 메서드 `EnsureTodosLoaded` 재사용, 시그니처 변경 0). 파괴적·스키마 변경·외부 작업 없음.
 
-### T2 — 카테고리 "미분류" 선택지 제거 + 빈 카테고리 보존 `Type C`
+### T2 — XAML: 테스트 항목 행에 링크 배지 추가 `Type C`
 - [x] 구현
-- **Files**: `DevDashboard_WinUI/Presentation/ViewModels/TaskEditDialogViewModel.cs`
-- **Design**: ① 배치 — 선택지 구성·초기 선택·저장 역변환 모두 `TaskEditDialogViewModel` 안에서 끝난다(다이얼로그·페이지 무변경). ② 신규 심볼 — 없음(기존 `CategoryOptions`·생성자·`BuildResult` 수정 + `SelectedCategoryOption`의 nullable 전환). `_noneCategoryLabel` 필드는 **제거**(소비처가 전부 사라진다). ③ 의존 방향 — VM은 `AppSettingsDialogViewModel.DefaultTaskCategories`와 `settings.TaskCategories`만 참조(현행 유지), `TaskPage`를 참조하지 않는다. ④ 비추상화 — "빈 카테고리 ↔ 표시명" 매핑을 공용 헬퍼로 빼지 않는다(표시 쪽 2곳은 이미 각자 처리 중이고 이번엔 VM 쪽 매핑이 **사라지는** 방향이라 공통화 대상이 아니다).
+- **Files**: `DevDashboard_WinUI/Presentation/Views/TestPage.xaml`
+- **Design**: ① 배치 — `TestItemRowTemplate`(`TestPage.xaml`) 안, 이름 행과 메모 행 사이. ② 신규 심볼 — **없음**(마크업만 추가. 표시 조건은 기존 `StringNotEmptyToVisibility` 컨버터, 색은 리터럴 — 4-D). ③ 의존 방향 — XAML이 `TestItem.LinkedTaskTitle`(T1)을 바인딩. 코드비하인드 변경 없음. ④ 비추상화 — 배지용 공용 스타일(`LinkBadgeStyle` 등)을 `Styles.xaml`에 만들지 않는다(소비처 1곳 — 3회 문턱 미달, 인라인이 추적에 낫다).
 - **구성**:
-  - `CategoryOptions`에서 선두 `_noneCategoryLabel` 제거 → `DefaultTaskCategories` + `settings.TaskCategories`만(D5 성립 근거: 기본 3개가 항상 존재).
-  - `_noneCategoryLabel` 필드와 `LocalizationService.Get("TaskCategory_None")` 호출 제거. **resw 키 자체는 존치**(D7).
-  - **`SelectedCategoryOption`을 `string?`으로 전환**(`:18`, D6-a) — 미선택을 정식으로 표현할 수 있게 하고, ComboBox가 null을 되써넣어도 타입이 깨지지 않게 한다.
-  - 새 작업 분기: `SelectedCategoryOption = CategoryOptions[0]`(D5).
-  - 편집 분기: 기존 카테고리가 비어 있으면 `SelectedCategoryOption = null`로 두어 **콤보 미선택**(D6). 값이 있으면 현행대로 그 값.
-  - `BuildResult()`: **`todo.Category = SelectedCategoryOption ?? string.Empty;`**(D6-a) — 미선택이든 ComboBox가 null을 되써넣었든 **빈 문자열로 흡수**돼 `Todos.Category`(NOT NULL)가 깨지지 않는다. `_noneCategoryLabel` 비교 제거.
-  - 관련 주석(`:13` "미분류 표시 라벨", `:26` "미분류 + 기본 + 사용자 정의") 갱신 — 새 동작과 어긋나는 주석을 남기지 않는다. `?? string.Empty`에는 **왜** 방어하는지(NOT NULL 스키마 + ComboBox 미선택) 한 줄 주석을 단다.
-- **Acceptance**: 빌드 성공(신규 경고 0 — **nullable 전환으로 인한 CS8600/CS8618 등 신규 경고 0 포함**) + 카테고리 콤보에 **"미분류" 항목이 없음** + 새 작업 시 콤보가 **"UI·UX"로 선택된 상태**로 열림 + **카테고리가 빈 기존 작업을 편집하면 콤보가 미선택으로 열리고, 그대로 저장하면 카테고리가 여전히 빈 문자열**(D6) + **그 저장이 예외 없이 완료되고, 저장 후 목록을 다시 열어도 항목이 정상 표시**(D6-a — null이 DB에 새면 여기서 드러난다) + 카테고리가 있는 기존 작업 편집 시 그 값이 선택된 채 열림 + **칸반·목록에서 빈 카테고리 항목이 계속 "미분류" 그룹으로 표시**(D8 회귀 방지) + `_noneCategoryLabel` 심볼 잔존 **0건**(grep) + `BuildResult`에 `?? string.Empty` **1건**(grep — D6-a 방어 생존) + `TaskCategory_None` resw 키는 ko/en 양쪽 **존치**(grep — 지우면 표시가 raw 키로 깨진다)
-- **Edge Cases**: **`SelectedCategoryOption`이 null**(ComboBox 미선택 또는 목록에 없는 값을 거부하며 되써넣은 경우) → `BuildResult`의 `?? string.Empty`가 흡수(D6-a). **빈 문자열** → 그대로 빈 카테고리로 저장돼 미분류 그룹에 들어간다(동일 결과). `settings.TaskCategories`가 비어도 기본 3개가 있어 `CategoryOptions[0]`은 항상 성립(빈 컬렉션 인덱싱 예외 없음) — 사용자가 앱 설정에서 카테고리를 전부 지워도 `DefaultTaskCategories`는 하드코딩이라 리스트가 빌 수 없다. 편집 대상의 카테고리가 목록에 없는 값일 때(설정에서 그 카테고리를 삭제한 뒤 편집) → 콤보가 미선택으로 열리고, 그대로 저장하면 **원래 카테고리가 빈 문자열로 바뀐다**(기존 코드도 동일한 성질이었으나 이번에 관찰 가능해짐 → Deferred 등재). 새 작업의 기본 선택이 생겨 **"카테고리 없는 작업"을 새로 만들 수단이 사라진다**(사용자 D5 선택의 의도된 귀결 → Deferred 등재).
-- **Halt Forecast**: 없음 — 단일 파일, 스키마·resw 변경 0.
-
-### T3 — 대시보드 복귀 시 카드 이벤트 재구독 (네비게이션 버그) `Type C`
-- [x] 구현
-- **Files**: `DevDashboard_WinUI/Presentation/Views/DashboardView.xaml.cs`
-- **Design**: ① 배치 — 수정은 `DashboardView` 코드비하인드 한 곳. `MainWindow`·`TaskPage`·VM은 건드리지 않는다(D9 ⓑ 기각 — 뷰의 구독 수명을 창이 알아야 하는 역의존 회피). ② 신규 심볼 — `OnLoaded(object, RoutedEventArgs)` 핸들러 1개 + **2단으로 분리한** private 메서드 4개(아래 D10 표). ③ 의존 방향 — `DashboardView` → `MainViewModel`/`ProjectCardViewModel`(현행 그대로), 역참조 신설 없음. ④ 비추상화 — 구독 수명을 관리하는 범용 헬퍼·베이스 클래스·`WeakEventListener`를 도입하지 않는다(같은 문제를 가진 뷰가 이 하나뿐 — 다른 페이지는 매번 새로 생성된다).
-- **구성**:
-  - 생성자에 `Loaded += OnLoaded;` 추가(기존 `DataContextChanged`·`Unloaded` 구독은 유지).
-  - **추출 메서드의 책임을 2단으로 나눈다**(plan-reviewer M2 — 한 쌍으로는 4개 호출처의 요구가 서로 충돌한다). 카드 수준과 VM 수준을 섞지 않는 것이 핵심:
-
-    | 메서드 | 책임 |
-    |---|---|
-    | `SubscribeCards()` | **`_subscribedVm`이 null이면 반환**(현행 `:109` 가드 보존 — 없으면 CS8602 신규 경고). 아니면 `_subscribedVm.DisplayCards`의 카드에 `SubscribeCardEvents` + `_subscribedCards`에 등록 |
-    | `UnsubscribeCards()` | `_subscribedCards` 전체에 `UnsubscribeCardEvents` + 집합 비우기 |
-    | `SubscribeAll(MainViewModel? vm)` | **VM을 파라미터로 받는다**(아래 사유). null이면 **조용히 반환**. 아니면 `_subscribedVm = vm` + `DisplayCards.CollectionChanged` 구독 + `SubscribeCards()` |
-    | `UnsubscribeAll()` | `_subscribedVm`이 null이면 반환. 아니면 `CollectionChanged` 해제 + `UnsubscribeCards()` + `_subscribedVm = null` |
-
-    `SubscribeAll`이 `DataContext`를 직접 읽지 않고 **파라미터로 받는 이유**: 현행 `OnDataContextChanged`는 `args.NewValue`로 구독하는데(`:87`), 이벤트 발생 시점에 `DataContext` 프로퍼티가 이미 갱신돼 있는지는 **확인하지 않은 프레임워크 동작**이다(B1과 같은 유형의 가정). 파라미터화하면 `OnDataContextChanged`는 `args.NewValue`를, `OnLoaded`는 `DataContext`를 넘겨 **가정 없이 양쪽 모두 성립**한다.
-
-    | 호출처 | 사용 | 이유 |
-    |---|---|---|
-    | `OnLoaded`(신규) | `SubscribeAll(DataContext as MainViewModel)` | 복귀 시 VM 수준까지 통째로 복원해야 `CollectionChanged`도 되살아난다 |
-    | `OnUnloaded` | `UnsubscribeAll()` | 트리에서 떨어지는 동안 전부 해제 |
-    | `OnDataContextChanged` | `UnsubscribeAll()` → `SubscribeAll(args.NewValue as MainViewModel)` | 기존 동작(이전 VM 해제 후 새 VM 구독)과 동일. `args.NewValue`를 그대로 쓰므로 현행과 의미가 바뀌지 않는다 |
-    | `OnDisplayCardsChanged` **Reset 분기** | `UnsubscribeCards()` → `SubscribeCards()` | **카드 전용**을 쓴다. VM 수준을 쓰면 자기가 처리 중인 `CollectionChanged`를 해제·재등록하고 `_subscribedVm`을 null로 만들었다 되살리는 **다른 동작**이 된다 |
-    | `OnDisplayCardsChanged` Add/Remove 분기 | 현행 유지(개별 항목 구독/해제) | 전체 재구축이 불필요 |
-  - `OnLoaded`: **`_subscribedVm`이 현재 `DataContext`와 다르거나 null이면** `UnsubscribeAll()` 후 `SubscribeAll()`. 같으면 아무것도 하지 않는다. 단순히 `is null`만 보지 않는 이유는 plan-reviewer m3 — `Loaded`/`Unloaded`가 같은 레이아웃 패스에서 역순 처리되면 `is null` 가드가 재구독을 건너뛴 뒤 `Unloaded`가 해제해 **원래 버그로 되돌아갈** 수 있다. "현재 DataContext 기준으로 구독 상태가 맞는가"를 판정하면 순서 가정에 기대지 않는다.
-  - `OnUnloaded`: `UnsubscribeAll()`만 호출하고 **`Unloaded -= OnUnloaded`·`DataContextChanged -= OnDataContextChanged` 두 줄을 제거**한다(D9 — 이 두 줄이 재구독 경로를 없앤 직접 원인).
-  - 왜 이렇게 두는지 주석으로 남긴다 — "이 뷰는 `MainWindow._dashboardView`로 **재사용**되므로 트리에서 분리됐다 다시 붙는다. `DataContext`가 바뀌지 않아 `DataContextChanged`가 재발동하지 않으니 `Loaded`가 재구독 지점이다."
-- **Acceptance**: 빌드 성공(신규 경고 0) + `OnUnloaded`에 `Unloaded -=`·`DataContextChanged -=` 잔존 **0건**(grep — 남으면 버그 그대로) + `Loaded +=` **1건**(grep) + **대시보드 → 작업 → 대시보드 → 작업 재진입이 동작**(수동 확인) + 같은 왕복 후 **테스트·Git 상태·작업 기록·명령 슬롯 버튼도 동작**(D11, 수동 확인) + 복귀 후 **프로젝트를 추가하면 새 카드의 버튼도 동작**(`DisplayCards.CollectionChanged` 재구독 확인) + **작업 페이지를 보는 동안 카드 이벤트가 발동하지 않음**(D9 ⓐ 기각 근거 — 페이지 위에 다이얼로그가 뜨지 않는다) + **왕복을 3회 이상 반복해도 다이얼로그·페이지가 한 번만 열림**(중복 구독 회귀 방지) + 언어 변경 후 대시보드 재생성 경로(`ReloadLanguageUI`)에서도 버튼 정상
-- **Edge Cases**: `Loaded`는 창 최초 표시 시에도 발동하므로 `OnDataContextChanged`의 최초 구독과 **겹칠 수 있다** → "`_subscribedVm`이 현재 `DataContext`와 같으면 아무것도 하지 않는" 가드가 중복 구독을 막는다(가드 없으면 버튼 1회 클릭에 다이얼로그 2개). **`Loaded`/`Unloaded` 처리 순서가 뒤바뀌어도** 같은 가드가 상태를 기준으로 판정하므로 재구독이 누락되지 않는다(m3). `Loaded` 시점에 `DataContext`가 아직 `null`일 수 있다(`MainWindow`는 `:126`에서 생성과 동시에 `DataContext`를 넣지만 순서 보장에 기대지 않는다) → `SubscribeAll()`이 null이면 조용히 반환. `Unloaded`는 창을 닫을 때도 발동하며, 그때는 재부착이 없어 해제만 되고 끝난다(누수 없음). `ReloadLanguageUI`(`MainWindow.xaml.cs:510`)는 **새 인스턴스**를 만들어 붙이는데, 새 인스턴스의 `DataContextChanged` 구독이 구 인스턴스의 `Unloaded`보다 **먼저** 일어나 같은 `ProjectCardViewModel`들에 잠시 이중 구독되는 구간이 생긴다 — 다만 핸들러가 **인스턴스별 델리게이트**라 서로의 구독을 해제하지 못해 충돌이 없고, 그 사이 사용자 입력이 불가능해 무해하다(기존 동작과 동일 — plan-reviewer m2).
-- **Halt Forecast**: 없음 — 단일 파일, 공개 API·시그니처 변경 없음(추가 심볼 전부 private).
+  - `TestItemRowTemplate`의 `Grid.RowDefinitions`를 2행 → **3행**으로 늘리고, 기존 **메모 `Border`를 `Grid.Row="1"` → `Grid.Row="2"`로 이동**. 상태 아이콘·상태 pill의 `Grid.RowSpan="2"`를 **`"3"`으로** 갱신(세로 중앙 유지).
+  - 링크 배지를 `Grid.Column="1" Grid.Row="1"`에 추가 — `Border`(`CornerRadius="999"`, `BorderThickness="1"`, `BorderBrush="#735AA3E8"`, `Padding="9,2"`, `HorizontalAlignment="Left"`, `Margin="0,3,0,0"`, `Visibility="{x:Bind LinkedTaskTitle, Converter={StaticResource StringNotEmptyToVisibility}, Mode=OneWay}"`) 안에 `StackPanel Orientation="Horizontal" Spacing="5"`(세로 중앙) = `FontIcon Glyph="&#xE71B;" FontSize="10" Foreground="#7AB5EC"` + `TextBlock Text="{x:Bind LinkedTaskTitle, Mode=OneWay}" FontSize="11" Foreground="#7AB5EC" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"`.
+  - 배지 위에 시안 근거 주석 1줄(어느 시안 요소인지 — 후속 수정자가 색 리터럴을 팔레트로 바꾸지 않도록 D6 근거 포함).
+- **Acceptance**:
+  1. 빌드 오류 0 · 신규 경고 0.
+  2. `TestItemRowTemplate`의 `Grid`가 **3행**이고, 메모 `Border`가 `Grid.Row="2"`, 링크 배지가 `Grid.Row="1"`이다.
+  3. 상태 아이콘·상태 pill의 `Grid.RowSpan`이 **`"3"`**이다(2 잔존 0 — 갱신 누락 시 세로 중앙이 깨진다).
+  4. 배지가 `LinkedTaskTitle`에 `Mode=OneWay`로 바인딩되고, `Visibility`가 `StringNotEmptyToVisibility` 컨버터를 쓴다(신규 Visibility 헬퍼 추가 0).
+  5. 배지 마크업이 시각 요소 분해 표의 값과 일치한다 — `CornerRadius="999"`·`BorderBrush="#735AA3E8"`·`Padding="9,2"`·`Spacing="5"`·`HorizontalAlignment="Left"`·`FontSize` 11(글자)/10(아이콘)·`Foreground="#7AB5EC"`·`Glyph="&#xE71B;"`.
+  6. `TestPage.xaml.cs`·`Styles.xaml`·`Palette.xaml`이 **변경되지 않는다**(신규 심볼·공용 스타일·팔레트 색 0).
+- **Edge Cases**: 연결 없음 → 배지 `Collapsed`(행 높이 0, 이름과 메모가 붙는다) / 작업 제목이 매우 김 → 본문 열(`*`) 폭에서 말줄임(아이콘은 축소되지 않음) / 이름이 2줄 + 배지 + 메모 동시 → 행이 세로로 길어지고 아이콘·pill은 `RowSpan=3`으로 세로 중앙 / 메모는 없고 배지만 있음 → 배지가 마지막 요소 / 배지 pill 위에서 우클릭 → 행의 `ContextFlyout`이 그대로 뜬다(배지가 입력을 가로채지 않음 — `Border`에 핸들러 없음).
+- **Halt Forecast**: (i) 사전 해소 — `TestItemRowTemplate` 소비처가 `TestPage.xaml` 1곳임을 grep 전수 확인(함정 11). 파괴적·외부·신규 의존성 없음.
 
 ## 사전 승인 항목 (일괄 승인 대상)
-- `TaskEditDialog.xaml.cs`에서 `TitleBorderBrush()`·정적 브러시 2개·고아 `using` 2개 **제거** + `OnSave` 위 주석 갱신(T1, D3) — 소비처 전수 확인 완료(**참조 3건** = 정의 `:25` + XAML `:44` + 주석 `:57`).
-- `TaskEditDialogViewModel`의 `_noneCategoryLabel` 필드 **제거**, `SelectedCategoryOption`을 **`string?`로 전환**, `CategoryOptions`·`BuildResult` 동작 변경(T2, D5·D6·D6-a) — 호출부는 `TaskEditDialog` 1곳뿐(이전 plan grep 확인, 이번에 재확인). 도메인·스키마 무변경.
-- `DashboardView.OnUnloaded`에서 핸들러 해제 2줄 **제거** + 구독 로직 4개 메서드로 추출(T3, D9·D10) — 전부 private, 외부 계약 무변경.
-- 로컬 작업 브랜치 `task/taskedit-dialog-design-align`(현행 유지, 사용자 결정)에서 task별 commit.
+- **도메인 엔티티 공개 속성 추가**: `TestItem.LinkedTaskTitle`(T1) — 비영속·표시 전용, `TodoItem.LinkedTestBadge`와 동일 규약. DB 스키마·직렬화 무영향.
+- 로컬 작업 브랜치에서 task별 commit(현재 브랜치 `task/taskpage-list-view`에 이어서 진행 — 같은 세션의 연속 작업이라 새 브랜치를 파지 않는다).
 
 ## 불가피한 Halt (위임 불가)
-- master 병합·push·태그·릴리즈·PR — **이번 작업 완료 후 이전 작업분과 함께 한 번에 별도 승인**(사용자 결정 2026-07-20).
-- 시안 대조의 **최종 시각 판정** — 빌드는 마크업 존재만 보증하고 "시안과 같아 보이는가"는 사용자만 판정 가능(⏳ HUMAN-VERIFY).
-- **T3의 동작 확인** — 네비게이션 왕복은 빌드로 검증 불가하며 앱 실행이 필요하다(⏳ HUMAN-VERIFY).
+- master 병합·push·태그·릴리즈·PR — 별도 승인.
+- **시안 대조 최종 시각 판정** — 배지의 캡슐 모양·테두리 농도·아이콘 모양(`E71B`가 시안의 체인 아이콘과 비슷해 보이는지)·이름/메모와의 간격은 사용자만 판정(⏳ HUMAN-VERIFY).
+- **연결 데이터 실동작 확인** — "테스트 추가" 토글로 만든 작업↔테스트 쌍에서 실제로 배지에 작업 제목이 뜨는지는 앱 실행 확인 필요(⏳ HUMAN-VERIFY).
+- **표시 중복이 의도한 표현인지 판정** — `CreateLinkedTest`는 테스트 제목을 **작업 제목 그대로 복사**하므로(`TaskPageViewModel.cs:239` `Text = todo.Text`), "테스트 추가"로 만든 연결에서는 **행 이름과 배지 텍스트가 같은 문자열로 두 줄 겹쳐 보인다**(작업 제목을 나중에 바꿔야 갈라진다). 시안 예시는 둘이 다른 데이터라 이 중복이 드러나지 않는다. 그대로 둘지, 배지를 다르게(예: 접두어·아이콘만) 표현할지는 사용자 판정 대상(⏳ HUMAN-VERIFY, plan-reviewer m3).
 
 ## Deferred / Follow-up
-- **[카테고리 필터에서 "미분류"를 고를 수 없음]** — `TaskPage`의 카테고리 필터 콤보는 `AvailableCategories`(실제 카테고리만)로 구성돼(`TaskPage.xaml.cs:72-75`) **"미분류" 그룹만 골라 보는 필터가 없다**. 이번 변경으로 "미분류"가 표시 전용이 되면서 이 비대칭이 더 두드러진다. 필터에 "미분류" 항목 추가 검토. (T2 조사에서 발견)
-- **[삭제된 카테고리를 가진 작업을 편집하면 카테고리가 사라짐]** — 앱 설정에서 카테고리를 지운 뒤 그 카테고리를 쓰던 작업을 편집하면, 콤보에 해당 값이 없어 미선택으로 열리고 그대로 저장 시 **빈 카테고리가 된다**. 기존 코드도 같은 성질이었으나 D6으로 미선택 상태가 정식 표현이 되면서 관찰 가능해졌다. 콤보에 "현재 값"을 임시 항목으로 추가하는 방식 검토. (T2 Edge Case)
-- **[카테고리 없는 작업을 새로 만들 수단 부재]** — D5(첫 카테고리 자동 선택)의 귀결로, 새 작업은 항상 카테고리를 갖게 된다. "미분류"로 두고 싶으면 콤보를 비울 방법이 필요하다(선택 해제 항목 또는 지우기 버튼). 기존 빈 카테고리 항목은 그대로 유지되므로 표시 규칙 자체는 계속 유효하다. (D5의 귀결)
-- **[이전 plan Deferred 유지]** — `[시작일을 지울 수단 부재]`·`[다른 다이얼로그 라벨 스타일 불일치]`·`[빈 제목 오류 문구 제거에 따른 접근성 약화]`·`[SUGGEST status 선택적 파라미터]`는 이번 작업이 해소하지 않는다 → `docs/plans/deferred.md`에 그대로 유지. 단 **hover 시 테두리 회색 전환(D3-a)** 은 T1의 D2로 **해소**되므로 완료 처리한다.
-- 기타 대장(`docs/plans/deferred.md`) 기등재 항목은 이번 작업과 무관 — 그대로 유지.
+- **[테스트 행에 방법(Method)·에러 미표시]** — 시안 같은 행에 `t.method`(`:267-269`)·`t.error`(`:277-279`)도 있으나 이번 요청은 연결 배지 한정. 대장의 `[FR-T6/E4 "방법" 필드 확장 소비]`·`[FR-E5 에러 표시 미착수]` 그대로 유지.
+- **[배지 클릭으로 작업 이동 미구현]** — 시안에 클릭 동작이 없어 표시 전용으로 뒀다(D5). 연결된 작업으로 이동하고 싶다는 요구가 생기면 페이지 전환·하이라이트 설계부터 논의.
+- **[작업 쪽 연결 배지는 여전히 미표시]** — 대장 `[FR-E4 작업별 연결 배지 표시 소멸]`은 이번 작업(테스트 쪽)과 별개로 유지된다. 다만 이번 구현으로 FR-E4의 "연결 배지"가 한쪽에서 충족되므로, 대장 `[PRD FR-E4 문구가 구현과 어긋남]`의 정정 필요성은 재판단 대상이 된다.
+- **[SUGGEST] 링크 배지 색을 팔레트 근접색으로 통일 검토** — 시안 값 `#7AB5EC`/테두리 `rgba(90,163,232,.45)`가 팔레트에 없어 XAML 리터럴로 적었다(D6). 팔레트의 `AppInfoBrush`(#5B93D8)가 "정보/링크성" 의미에 부합하는 근접색이라 재사용하면 임의색 도입을 피할 수 있으나, 시안과 색이 달라져 이번엔 시안 정합을 우선했다. 색 리터럴이 더 늘면 팔레트 이관을 함께 검토. (T2 quality 리뷰 S1, 2026-07-22)
+- **[테스트 삭제 시 `TodoItem.LinkedTestId` 고아]** — 테스트를 지워도 작업의 `LinkedTestId`가 남는다(기존 동작, 이번 변경과 무관). 표시상으로는 배지가 안 떠 무해하나 데이터 위생 관점의 후속.
 
 ## Out of Scope
-- `TodoItem` 도메인·SQLite 스키마·직렬화 변경.
-- **칸반/목록의 "미분류" 그룹 정렬 통일**(`deferred.md:27`) — 이번 요청은 표시 유지이지 정렬 규칙 변경이 아니다.
-- 다른 다이얼로그·다른 페이지의 필수 입력 표시 정합 — 이번은 `TaskEditDialog` 제목 1곳.
-- `TaskCategory_None` resw 키 제거(D7 — 표시가 깨진다).
-- 다른 화면의 이벤트 구독 수명 점검 — `DashboardView` 외에는 매번 새로 생성돼 같은 결함이 없음을 확인했다(Investigation Log ④).
-- 픽셀 단위 수치 일치 — 목업 HTML이 없어 대조 불가. 구조·형태 일치까지가 목표.
+- `TodoItem`·`LinkedTestId` 변경 — 이번 작업은 **읽기 전용**으로만 참조한다.
+- DB 스키마·직렬화·마이그레이션 변경(D2 — 비영속).
+- 시안 같은 행의 방법·에러 표시(위 Deferred).
+- 배지 클릭 시 작업으로 이동하는 네비게이션(D5).
+- `Palette.xaml` 신규 색·`Styles.xaml` 신규 공용 스타일(D6·Design ④).
+- 작업 화면(TaskPage) 쪽 연결 배지 복원 — 시안에 없으며 별개 항목.
 
 ## Open Questions
-- [x] 카테고리 "미분류" 제거 후 새 작업의 기본 선택값 → **첫 카테고리("UI·UX") 자동 선택**(사용자, 2026-07-20)
-- [x] 이번 작업을 진행할 브랜치 → **현재 `task/taskedit-dialog-design-align`에서 이어서, 병합은 최종 1회**(사용자, 2026-07-20)
-- [x] 이전 plan의 F-8 미확인 7항목 처리 → **필수 테두리 1건만 이번에 수정, 나머지 6건은 이상 없음으로 종결**(사용자, 2026-07-20)
-- [x] 편집 모드에서 빈 카테고리 항목의 콤보 표현 → **미선택 유지 + 빈 값 보존**(요청 ③의 성립 조건에서 도출 — D6)
+- 없음 — 시안 원본(`:261-266`·`:1078`·`:1508`)과 사용자 제공 렌더 이미지로 형태·데이터 출처가 모두 확정됐고, 구현 방식은 기존 선례(`TodoItem.LinkedTestBadge` 대칭)로 결정 가능하다.
 
 ## 검증 방법
-- 빌드: `"C:/Program Files/Microsoft Visual Studio/18/Professional/MSBuild/Current/Bin/MSBuild.exe" "DevDashboard_WinUI/DevDashboard.csproj" -t:Build -p:Configuration=Debug -p:Platform=x64` → 오류 0 + **AGENTS.md 기존 경고 5건(NU1903 1 + CS0612 4) 외 신규 경고 0**
-- 회귀 방지 grep(⚠️ **판정 대상을 정확히 한정**):
-  - `TaskEditDialog.xaml.cs`에 `TitleBorderBrush`·`_titleRequiredBrush`·`_titleNormalBrush` **0건**(T1 — **주석 포함**. `:57` 주석이 이 이름을 지목하므로 갱신하지 않으면 실패한다)
-  - `TaskEditDialog.xaml`에 `BorderBrush=` **0건**(T1) / `IsHitTestVisible="False"` **1건**(라인이 클릭을 가로채지 않음)
-  - `TaskEditDialog.xaml.cs`에 `args.Cancel = true` **1건 이상**(D4 — 빈 제목 저장 차단 생존)
-  - `AddTestRequested` 대입부 **1건 이상**(FR-T6 생존)
-  - `TaskEditDialogViewModel.cs`에 `_noneCategoryLabel`·`TaskCategory_None` **0건**(T2)
-  - `TaskEditDialogViewModel.cs`의 `BuildResult`에 `?? string.Empty` **1건**(D6-a — null이 `Todos.Category`(NOT NULL)로 새는 것을 막는 방어)
-  - `Strings/{ko-KR,en-US}/Resources.resw`에 `TaskCategory_None` **각 1건 존치**(D7 — 지우면 표시가 raw 키로 깨진다)
-  - `TaskPageViewModel.cs`의 `TaskCategory_None` 소비 **2건 유지**(D8 — 칸반·목록 표시)
-  - `DashboardView.xaml.cs`의 `OnUnloaded`에 `Unloaded -=`·`DataContextChanged -=` **0건**, `Loaded +=` **1건**(T3)
-  - `DashboardView.xaml.cs`에 `SubscribeCards`·`UnsubscribeCards`·`SubscribeAll`·`UnsubscribeAll` **4개 모두 정의됨**(M2 2단 분리 — 한 쌍으로 합치면 Reset 분기 동작이 바뀐다)
+- 빌드: `"C:/Program Files/Microsoft Visual Studio/18/Professional/MSBuild/Current/Bin/MSBuild.exe" "DevDashboard_WinUI/DevDashboard.csproj" -t:Build -p:Configuration=Debug -p:Platform=x64` → 오류 0 + 실측 baseline(`CS0618` 1건) 외 신규 0
+- 회귀 방지 grep(소스 `*.cs`/`*.xaml`, `obj/`·`bin/` 제외):
+  - **T1**: `TestItem.cs`에 `LinkedTaskTitle` 정의 1 + "표시 전용"·"영속화하지 않" 주석 / `TestPageViewModel.cs`에 `BuildLinkedTaskTitles` 정의 1 + `Rebuild()` 호출 1 / `SqliteProjectRepository.cs`에 `LinkedTaskTitle` 잔존 **0**(비영속 확인) / `TestPageViewModel.cs`에 `Microsoft.UI.Xaml` 0 / **`ProjectCardViewModel.cs` 파일 전체 `EnsureTodosLoaded` 3건**(정의 :295 + `CreateTaskPageViewModel` 1 + **`CreateTestPageViewModel` 신규 1**) — 판정 기준은 그중 **`CreateTestPageViewModel` 본문 1건의 존재**다(D8 — 이 grep이 B1 재발을 막는 유일한 정적 방어) / 같은 메서드 XML 주석에 `Todos` 언급 1건
+  - **T2**: `TestItemRowTemplate` 안 `RowDefinition` 3개 / `Grid.RowSpan="2"` 잔존 0·`Grid.RowSpan="3"` 2건 / `Glyph="&#xE71B;"` 1건 / `#7AB5EC` 2건(아이콘·텍스트)·`#735AA3E8` 1건 / `StringNotEmptyToVisibility`가 `LinkedTaskTitle`에 적용 / `TestPage.xaml.cs`·`Styles.xaml`·`Palette.xaml` diff 없음
 - 동작 확인(빌드로 검증 불가 → ⏳ HUMAN-VERIFY):
-  - **T1**: 제목 입력칸 하단 라인이 값 유무·포커스·hover와 무관하게 유지 / 다른 입력칸엔 라인 없음 / 라인 위를 클릭해도 입력 커서 정상 / 빈 제목으로 "등록" 시 닫히지 않음 / 시안 육안 대조
-  - **T2**: 콤보에 "미분류" 없음 / 새 작업이 "UI·UX"로 열림 / 빈 카테고리 기존 작업 편집→그대로 저장 시 미분류 그룹에 남아 있음 / 칸반·목록의 "미분류" 그룹 정상 표시
-  - **T3**: 대시보드↔작업 왕복 3회 이상 후에도 재진입 정상 / 테스트·Git 상태·작업 기록·명령 슬롯 버튼 정상 / 다이얼로그가 두 번 뜨지 않음 / 복귀 후 프로젝트 추가 시 새 카드 버튼 정상 / 작업 페이지 표시 중 카드 다이얼로그가 뜨지 않음
+  - 작업 화면에서 "테스트 추가"를 켜고 새 작업을 만든 뒤 → 테스트 화면의 그 테스트 행에 **파란 캡슐 배지 + 링크 아이콘 + 작업 제목**이 뜨는지
+  - 배지가 이름 아래·메모 위에 좌측 정렬로 붙는지, 제목이 길면 말줄임되는지
+  - 연결이 없는 테스트에는 배지가 없는지 / **연결된 작업을 삭제하면 배지가 사라지는지**(D7)
+  - 상태 아이콘·상태 pill이 배지가 생겨도 세로 중앙에 유지되는지
+
+## F-8 인계 목록 (렌더 육안 확인 필요 — 완료 선언 보류 사유)
+
+1. 배지가 **모서리만 살짝 둥근 파란 사각형**으로 보이는지(`CornerRadius="4"` — 시안의 완전 캡슐에서 사용자 결정으로 정정)
+2. 이름 아래·메모 위에 좌측 정렬로 붙는지, **배지 폭이 내용에 딱 맞는지**(2026-07-22 육안 지적 후 `*` → `Auto` 정정), **작업 제목이 길면 말줄임(…)** 되는지
+3. **"테스트 추가"로 만든 작업↔테스트 쌍에서 실제로 배지에 작업 제목이 뜨는지**(D8 지연 로딩 해소의 실동작 확인)
+4. **연결된 작업을 삭제하면 배지가 사라지는지**(D7 — 역참조를 매번 재계산)
+5. 상태 아이콘·상태 pill이 배지가 생겨도 세로 중앙에 유지되는지(RowSpan 3)
+6. `E71B` 글리프가 시안의 체인 아이콘과 비슷해 보이는지 / 테두리 알파(0x73) 농도
+7. ⚠️ **행 이름과 배지 텍스트가 같은 문자열로 겹쳐 보이는 것**이 의도한 표현인지 — `CreateLinkedTest`가 테스트 제목을 작업 제목 그대로 복사하기 때문(plan-reviewer m3)
 
 ## Phase Ledger
-- 전 task(T1~T3) 완료.
-- Phase F 통과 (HEAD f9ddf7d) — F-1 클린 리빌드(-t:Rebuild) 오류 0·신규 경고 0(기존 5건만). F-7 plan-completion-reviewer BLOCKER/MAJOR/MINOR 0.
-- Phase G 통과 (Must 100%) — 커버 대상 Must FR(T5·C3) 충족. FR-C3 실제 왕복 동작은 ⏳ HUMAN-VERIFY(앱 실행). Should(T6) 회귀 방지. 갭 0건이라 재루프 없음.
-- **F-8 미통과 — 시각/동작 확인 대기**: T1 하단 라인의 렌더 일치 + T3 네비게이션 왕복 동작이 `⏳ 미확인`이라 **완료 선언 보류**(사용자 육안·실행 확인 필요).
+- 전 task(T1~T2) 완료.
+- **Phase F 통과** — F-2 클린 리빌드(`-t:Rebuild`) 오류 0·신규 경고 0(자동 생성 `CS0618` 1건만), F-3 회귀 grep 10종 기대값, F-6.5 notes 기록(22,636자 — 아카이브 기준 미만)·Deferred 대장 반영(`[테스트→작업 역방향 링크/배지]` 종결 이동), F-7 `plan-completion-reviewer`: BLOCKER 0 / **MAJOR 1**(M1 배지 말줄임 미동작 — `StackPanel`→`Grid` 교체로 **수정 완료**) / MINOR 3(m1 PRD Coverage에 "링크" 미구현 명시 → 반영, m2 Phase Ledger → 이 기록, m3 notes 문구 → M1 수정으로 사실과 일치).
+- **Phase G 통과 (Must 100%)** — 이번 plan이 커버 대상으로 선언한 FR은 **FR-E4(Should)** 하나이며 배지 몫 충족·링크 몫 Deferred로 정직하게 기록. active **Must** FR은 전부 `이번 범위 외 (기구현)`이고 F-7이 코드 4파일 외 무변경으로 회귀 표면 0을 확인 → 미충족 Must 0건, 재루프 0회.
+- **F-8 미통과 — 시각/실동작 확인 대기**: 위 `## F-8 인계 목록` 7건이 남아 **완료 선언 보류**.
 
 ## Progress Log
-- T1 완료 (커밋 amend): 제목 필수 표시를 조건부 4면 테두리 → Grid에 겹친 상시 하단 danger 라인(2px, IsHitTestVisible=False)으로 변경. TitleBorderBrush·정적 브러시 2개·고아 using 2개·xmlns:local 제거, OnSave 주석 갱신. 빌드 OK(신규 경고 0), spec·quality 리뷰 지적 0.
-  - 결정(D2 부수효과 확정): 라인이 TextBox 형제라 hover 시 회색 전환(이전 plan D3-a) 문제가 해소됨. 렌더 육안(라인 두께·모서리·포커스 중첩)은 F-8 인계.
-- T2 완료 (커밋 amend): 카테고리 "미분류" 선택지 제거(_noneCategoryLabel 필드 삭제), 새 작업은 CategoryOptions[0]="UI·UX" 자동 선택. SelectedCategoryOption을 string?로 전환 — 편집 빈 카테고리는 null 미선택, BuildResult에서 ?? string.Empty로 흡수(Todos.Category NOT NULL 방어, plan-reviewer B1). TaskPageViewModel의 미분류 표시·TaskCategory_None resw는 존치(D7/D8). 빌드 OK(신규 경고 0), 리뷰 지적 0.
-  - 확인: SelectedItem이 object 타입이라 string→string? 전환에 XAML 바인딩(xaml:78) 무영향.
+- T1~T2 완료: `TestItem.LinkedTaskTitle`(표시 전용·비영속) + VM 역참조 채우기 + `EnsureTodosLoaded()` 추가(T1) → `TestItemRowTemplate`에 링크 배지 마크업 추가, 행 2→3단으로 확장하고 메모를 행 2로 이동(T2). 빌드 OK, 리뷰 지적 0.
+  - 결정(T1): plan-reviewer가 BLOCKER로 잡은 **지연 로딩**이 핵심이었다 — `CreateTestPageViewModel()`이 `EnsureTestsLoaded()`만 부르고 `Todos`를 로드하지 않아, 그대로 뒀으면 빌드·grep을 전부 통과하면서 **배지가 조용히 전멸**했을 것이다. 한 줄 추가로 해소하고 acceptance·grep으로 재발을 막았다.
+  - 결정(T2): 배지 색(`#7AB5EC`·`#735AA3E8`)은 시안 값이 팔레트에 없어 XAML 리터럴로 적었다(같은 파일 미실행 배지의 선례). quality 리뷰가 근접색 `AppInfoBrush`(#5B93D8) 재사용을 SUGGEST했으나 **시안 정합 우선**으로 유지하고 Deferred에 등재.

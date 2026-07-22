@@ -33,44 +33,63 @@ public partial class TestPageViewModel : ObservableObject
     /// <summary>선택된 상태 필터 (null이면 전체, "Pass"/"Fail"/"Untested")</summary>
     [ObservableProperty] public partial string? SelectedStatus { get; set; }
 
-    public TestPageViewModel(ProjectItem project, IProjectRepository repository, Action refreshCardState)
+    /// <summary>선택된 스위트 필터 (null이면 전체). 상태 필터와 직교하게 함께 적용됩니다.</summary>
+    [ObservableProperty] public partial string? SelectedSuiteFilter { get; set; }
+
+    /// <summary>스위트로 선택 가능한 작업 카테고리 목록 (기본 + 사용자 정의).
+    /// 테스트 스위트를 작업 카테고리에 맞춰야 칸반 카테고리 그룹의 통과율 배지(FR-T8)에 반영된다.</summary>
+    public IReadOnlyList<string> AvailableCategories { get; }
+
+    public TestPageViewModel(ProjectItem project, IProjectRepository repository, AppSettings settings, Action refreshCardState)
     {
         ArgumentNullException.ThrowIfNull(project);
         ArgumentNullException.ThrowIfNull(repository);
+        ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(refreshCardState);
 
         _project = project;
         _repository = repository;
         _refreshCardState = refreshCardState;
 
+        AvailableCategories = AppSettingsDialogViewModel.ResolveTaskCategories(settings);
+
         Rebuild();
     }
 
     partial void OnSelectedStatusChanged(string? value) => Rebuild();
 
-    /// <summary>상태 필터를 적용해 스위트 그룹·상태별 통계·통과율을 재구성합니다.
-    /// 통계·통과율은 스위트 전체 기준(필터 무관), 표시 항목만 필터를 적용합니다.</summary>
+    partial void OnSelectedSuiteFilterChanged(string? value) => Rebuild();
+
+    /// <summary>상태·스위트 필터를 적용해 스위트 그룹·상태별 통계·통과율을 재구성합니다.
+    /// 통계·통과율은 프로젝트/스위트 전체 기준(필터 무관), 표시 대상만 필터를 적용합니다.</summary>
     private void Rebuild()
     {
         var categories = _project.TestCategories ?? [];
 
-        // 상태별 통계 (프로젝트 전체 기준)
+        BuildLinkedTaskTitles(categories);
+
+        // 상태별 통계 (프로젝트 전체 기준 — 통계 카드·탭 개수 공용이라 필터를 반영하지 않는다)
         var allItems = categories.SelectMany(c => c.Items).ToList();
         PassCount = allItems.Count(t => t.Status == TestItem.StatusPass);
         FailCount = allItems.Count(t => t.Status == TestItem.StatusFail);
         UntestedCount = allItems.Count(t => t.Status == TestItem.StatusUntested);
         TotalCount = allItems.Count;
 
+        // 스위트 필터 (null이면 전체) — 상태 필터와 직교하게 함께 적용된다
+        var visibleCategories = SelectedSuiteFilter is null
+            ? categories
+            : categories.Where(c => string.Equals(c.Name, SelectedSuiteFilter, StringComparison.OrdinalIgnoreCase)).ToList();
+
         // 스위트 그룹 (표시 항목은 필터 적용, 통과율은 스위트 전체 기준)
         SuiteGroups.Clear();
-        foreach (var cat in categories)
+        foreach (var cat in visibleCategories)
         {
             var items = SelectedStatus is null
                 ? cat.Items.ToList()
                 : cat.Items.Where(t => t.Status == SelectedStatus).ToList();
 
-            // 필터가 걸린 상태에서 표시 항목이 없는 스위트는 숨긴다 (전체 필터에선 빈 스위트도 노출)
-            if (items.Count == 0 && SelectedStatus is not null) continue;
+            // 표시할 항목이 없는 스위트는 카드째 숨긴다 (필터 여부와 무관 — 빈 카드를 시안에 두지 않는다)
+            if (items.Count == 0) continue;
 
             var total = cat.Items.Count;
             var pass = cat.Items.Count(t => t.Status == TestItem.StatusPass);
@@ -81,6 +100,23 @@ public partial class TestPageViewModel : ObservableObject
                 new ObservableCollection<TestItem>(items.OrderByDescending(t => t.CreatedAt)),
                 pass, total, passRate));
         }
+    }
+
+    /// <summary>각 테스트에 연결된 작업의 제목을 채웁니다 (시안의 링크 배지 표시용).
+    /// 링크는 TodoItem.LinkedTestId 단방향이라 작업 쪽에서 역참조 테이블을 만들어 대입한다.
+    /// 연결이 없으면 빈 문자열을 넣어야 한다 — 작업이 삭제되거나 링크가 끊겼을 때 옛 제목이 남지 않게 한다.</summary>
+    private void BuildLinkedTaskTitles(IEnumerable<TestCategory> categories)
+    {
+        var titleByTestId = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var todo in _project.Todos ?? [])
+        {
+            if (string.IsNullOrEmpty(todo.LinkedTestId)) continue;
+            // 한 테스트에 여러 작업이 연결된 경우(도메인이 막지 않는다) 먼저 만난 작업을 쓴다 — 시안도 링크가 하나뿐이다.
+            titleByTestId.TryAdd(todo.LinkedTestId, todo.Text);
+        }
+
+        foreach (var item in categories.SelectMany(c => c.Items))
+            item.LinkedTaskTitle = titleByTestId.GetValueOrDefault(item.Id, string.Empty);
     }
 
     // --- 스위트(카테고리) 편집 ---
@@ -99,26 +135,8 @@ public partial class TestPageViewModel : ObservableObject
         Persist();
     }
 
-    /// <summary>스위트 이름을 수정합니다.</summary>
-    public void RenameSuite(TestCategory category, string newName)
-    {
-        if (category is null) return;
-        var trimmed = newName?.Trim();
-        if (string.IsNullOrWhiteSpace(trimmed)) return;
-
-        category.Name = trimmed;
-        Rebuild();
-        Persist();
-    }
-
-    /// <summary>스위트를 삭제합니다 (소속 테스트도 함께 삭제, 삭제 확인은 View에서 처리).</summary>
-    public void DeleteSuite(TestCategory category)
-    {
-        if (category is null) return;
-        _project.TestCategories?.Remove(category);
-        Rebuild();
-        Persist();
-    }
+    // 스위트 이름수정·삭제는 제공하지 않는다(사용자 결정) — 스위트는 테스트 등록 시 작업 카테고리에서 만들어지고,
+    // 표시할 항목이 없는 스위트는 Rebuild에서 걸러져 화면에 나타나지 않는다.
 
     // --- 테스트 항목 편집 ---
 

@@ -529,11 +529,13 @@ public partial class ProjectCardViewModel : ObservableObject
         OnPropertyChanged(nameof(HasInProgressTodo));
     }
 
-    /// <summary>테스트(칸반) 페이지 뷰모델을 생성합니다. TestCategories를 로드해 전달합니다.</summary>
+    /// <summary>테스트(칸반) 페이지 뷰모델을 생성합니다. TestCategories와 Todos(연결 배지 역참조용)를 로드해 전달합니다.</summary>
     public TestPageViewModel CreateTestPageViewModel()
     {
         EnsureTestsLoaded();
-        return new TestPageViewModel(_item, _repository, RefreshTestCardState);
+        // 테스트 행의 "연결된 작업" 배지가 Todos를 역참조하므로 함께 로드한다 — 빠뜨리면 배지가 조용히 전부 사라진다.
+        EnsureTodosLoaded();
+        return new TestPageViewModel(_item, _repository, _settings, RefreshTestCardState);
     }
 
     /// <summary>테스트 페이지에서 테스트가 변경된 뒤 카드의 진행 중 표시(HasInProgressTest)를 갱신합니다.</summary>

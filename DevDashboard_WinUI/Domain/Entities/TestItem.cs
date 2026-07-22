@@ -39,6 +39,11 @@ public partial class TestItem : ObservableObject
     [ObservableProperty]
     public partial string Status { get; set; } = StatusUntested;
 
+    /// <summary>연결된 작업의 제목 (표시 전용 — 영속화하지 않으며 TestPageViewModel이 설정, 빈 문자열이면 연결 없음).
+    /// 링크는 TodoItem.LinkedTestId 단방향이라 이 값은 매 재구성마다 역참조로 다시 채운다.</summary>
+    [ObservableProperty]
+    public partial string LinkedTaskTitle { get; set; } = string.Empty;
+
     /// <summary>완료 여부 (Status == "Pass")</summary>
     public bool IsCompleted => Status == StatusPass;
 

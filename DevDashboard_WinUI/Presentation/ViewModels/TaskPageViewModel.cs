@@ -35,8 +35,8 @@ public partial class TaskPageViewModel : ObservableObject
     public ObservableCollection<TaskColumnGroup> CompletedItems { get; } = [];
     public ObservableCollection<TaskColumnGroup> HoldItems { get; } = [];
 
-    /// <summary>목록 뷰 — 카테고리별 그룹</summary>
-    public ObservableCollection<TaskCategoryGroup> CategoryGroups { get; } = [];
+    /// <summary>목록 뷰 — 상태별 그룹 (각 그룹 안에 카테고리 서브그룹). 항목이 없는 상태도 항상 포함한다.</summary>
+    public ObservableCollection<TaskListStatusGroup> ListStatusGroups { get; } = [];
 
     // 상태별 개수 (현재 카테고리 필터 반영)
     [ObservableProperty] public partial int WaitingCount { get; set; }
@@ -65,10 +65,7 @@ public partial class TaskPageViewModel : ObservableObject
         _settings = settings;
         _refreshCardState = refreshCardState;
 
-        AvailableCategories = AppSettingsDialogViewModel.DefaultTaskCategories
-            .Concat(settings.TaskCategories)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        AvailableCategories = AppSettingsDialogViewModel.ResolveTaskCategories(settings);
 
         BuildTestStatusLookup();
         Rebuild();
@@ -123,7 +120,28 @@ public partial class TaskPageViewModel : ObservableObject
         CompletedCount = CountItems(CompletedItems);
         HoldCount = CountItems(HoldItems);
 
-        RebuildCategoryGroups(filtered);
+        BuildListStatusGroups(filtered);
+    }
+
+    /// <summary>목록 뷰용 상태 그룹 4개를 구성합니다 (각 그룹 안은 칸반과 같은 카테고리 서브그룹).
+    /// 항목이 0건인 상태도 그룹을 만든다 — 목록은 4개 상태를 항상 보여주고 빈 그룹에 "작업 없음"을 표시한다.</summary>
+    private void BuildListStatusGroups(IEnumerable<TodoItem> filtered)
+    {
+        ListStatusGroups.Clear();
+        foreach (var status in (TodoStatus[])[TodoStatus.Waiting, TodoStatus.Active, TodoStatus.Completed, TodoStatus.Hold])
+        {
+            // 칸반 열과 같은 그룹 구성을 재사용한다(정렬·배지·"미분류" 처리가 두 뷰에서 어긋나지 않게).
+            var categories = new ObservableCollection<TaskColumnGroup>();
+            BuildColumnGroups(categories, filtered, status);
+
+            var count = CountItems(categories);
+            ListStatusGroups.Add(new TaskListStatusGroup(
+                status,
+                LocalizationService.Get($"TaskStatus_{status}"),
+                count,
+                count == 0,
+                categories));
+        }
     }
 
     /// <summary>한 상태 열을 카테고리 그룹으로 묶어 채웁니다 (빈 카테고리는 "미분류" 그룹).</summary>
@@ -138,43 +156,40 @@ public partial class TaskPageViewModel : ObservableObject
         foreach (var g in groups)
         {
             var displayName = string.IsNullOrEmpty(g.Key) ? LocalizationService.Get("TaskCategory_None") : g.Key;
+            var (badgeText, hasResult, isFullPass) = BuildPassRateBadge(g.Key);
             column.Add(new TaskColumnGroup(
                 displayName,
-                BuildPassRateBadge(g.Key),
+                badgeText,
+                hasResult,
+                isFullPass,
                 g.OrderByDescending(t => t.CreatedAt).ToList()));
         }
     }
 
     private static int CountItems(IEnumerable<TaskColumnGroup> groups) => groups.Sum(g => g.Items.Count);
 
-    /// <summary>카테고리 그룹 헤더에 표시할 테스트 통과율 배지 텍스트를 만듭니다.
-    /// 같은 이름의 테스트 카테고리를 기준으로 하며, 일치하는 카테고리가 없거나 테스트가 0건이면 빈 문자열(배지 미표시).
-    /// "미분류"는 실제 카테고리가 아니므로 대상에서 제외한다.</summary>
-    private string BuildPassRateBadge(string category)
+    /// <summary>카테고리 그룹 헤더에 표시할 테스트 배지를 만듭니다 (텍스트 + 통과율을 아는지 여부 + 100% 통과 여부).
+    /// 같은 이름의 테스트 카테고리를 기준으로 하며, 테스트가 없거나 한 건도 실행되지 않았으면
+    /// "테스트 미실행" 배지를 낸다(통과율 0%와 구분 — 실행해서 다 실패한 것과 아직 안 돌린 것은 다르다).
+    /// "미분류"는 실제 카테고리가 아니므로 배지를 달지 않는다.
+    /// 통과율은 **실행된(미실행 제외) 건수 대비**로 계산한다(시안 기준 — 전체 건수로 나누면 미실행이 섞여 값이 낮게 나온다).</summary>
+    private (string Text, bool HasResult, bool IsFullPass) BuildPassRateBadge(string category)
     {
-        if (string.IsNullOrEmpty(category)) return string.Empty;
+        if (string.IsNullOrEmpty(category)) return (string.Empty, false, false);
 
         var testCategory = (_project.TestCategories ?? [])
             .FirstOrDefault(c => string.Equals(c.Name, category, StringComparison.OrdinalIgnoreCase));
 
-        var total = testCategory?.Items.Count ?? 0;
-        if (total == 0) return string.Empty;
+        var items = testCategory?.Items;
+        var total = items?.Count ?? 0;
+        var executed = items?.Count(t => t.Status != TestItem.StatusUntested) ?? 0;
+        if (total == 0 || executed == 0)
+            return (LocalizationService.Get("TaskNoTestBadge"), false, false);
 
-        var pass = testCategory!.Items.Count(t => t.Status == TestItem.StatusPass);
-        var rate = (double)pass / total * 100d;
-        return string.Format(LocalizationService.Get("TaskPassRateBadge"), $"{rate:0}", total);
-    }
-
-    /// <summary>목록 뷰용 카테고리 그룹을 구성합니다 (빈 카테고리는 "미분류").</summary>
-    private void RebuildCategoryGroups(IEnumerable<TodoItem> filtered)
-    {
-        CategoryGroups.Clear();
-        var groups = filtered
-            .GroupBy(t => string.IsNullOrEmpty(t.Category) ? LocalizationService.Get("TaskCategory_None") : t.Category)
-            .OrderBy(g => g.Key, StringComparer.CurrentCulture);
-
-        foreach (var g in groups)
-            CategoryGroups.Add(new TaskCategoryGroup(g.Key, g.OrderByDescending(t => t.CreatedAt).ToList()));
+        var pass = items!.Count(t => t.Status == TestItem.StatusPass);
+        var rate = (double)pass / executed * 100d;
+        var roundedRate = Math.Round(rate, MidpointRounding.AwayFromZero);
+        return (string.Format(LocalizationService.Get("TaskPassRateBadge"), $"{roundedRate:0}", total), true, roundedRate >= 100);
     }
 
     /// <summary>작업의 상태를 변경합니다 (칸반 드래그·상태 콤보에서 호출). 저장·카드 갱신·완료 훅을 처리합니다.</summary>
@@ -202,22 +217,27 @@ public partial class TaskPageViewModel : ObservableObject
     }
 
     /// <summary>작업에 연결된 테스트를 생성합니다 (FR-T6 "테스트 추가" 토글).
-    /// 프로젝트의 "작업" 테스트 카테고리(없으면 자동 생성)에 작업 제목과 같은 테스트 항목을 추가하고 LinkedTestId를 연결합니다.</summary>
+    /// 작업의 카테고리와 같은 이름의 테스트 스위트(없으면 자동 생성)에 작업 제목과 같은 테스트 항목을 추가하고 LinkedTestId를 연결합니다.
+    /// 같은 이름 스위트에 넣어야 칸반 카테고리 그룹의 통과율 배지(FR-T8)에 반영됩니다.</summary>
     public void CreateLinkedTest(TodoItem todo)
     {
         if (todo is null || !string.IsNullOrEmpty(todo.LinkedTestId)) return; // 이미 연결됨 → 중복 생성 방지
 
         var categories = _project.TestCategories ??= [];
-        var categoryName = LocalizationService.Get("TaskLinkedTestCategory");
-        var workCategory = categories.FirstOrDefault(c => string.Equals(c.Name, categoryName, StringComparison.OrdinalIgnoreCase));
-        if (workCategory is null)
+        // 배지(FR-T8)는 작업 카테고리와 같은 이름의 테스트 스위트를 찾으므로, 링크 테스트를 작업의 카테고리 이름 스위트에 넣는다.
+        // 카테고리가 빈(미분류) 작업은 배지 대상이 아니므로 기존 "작업"(TaskLinkedTestCategory) 스위트로 모은다.
+        var categoryName = string.IsNullOrEmpty(todo.Category)
+            ? LocalizationService.Get("TaskLinkedTestCategory")
+            : todo.Category;
+        var suite = categories.FirstOrDefault(c => string.Equals(c.Name, categoryName, StringComparison.OrdinalIgnoreCase));
+        if (suite is null)
         {
-            workCategory = new TestCategory { Name = categoryName };
-            categories.Add(workCategory);
+            suite = new TestCategory { Name = categoryName };
+            categories.Add(suite);
         }
 
-        var test = new TestItem { CategoryId = workCategory.Id, Text = todo.Text };
-        workCategory.Items.Add(test);
+        var test = new TestItem { CategoryId = suite.Id, Text = todo.Text };
+        suite.Items.Add(test);
         todo.LinkedTestId = test.Id;
 
         BuildTestStatusLookup();
@@ -282,10 +302,18 @@ public partial class TaskPageViewModel : ObservableObject
     }
 }
 
-/// <summary>목록 뷰에서 카테고리별로 묶은 작업 그룹</summary>
-public sealed record TaskCategoryGroup(string CategoryName, IReadOnlyList<TodoItem> Items);
+/// <summary>카테고리별로 묶은 작업 그룹 — 칸반 열과 목록 상태 그룹이 함께 쓴다.
+/// 그룹 헤더에 표시할 테스트 배지를 함께 갖는다
+/// (`PassRateBadge`가 빈 문자열이면 배지 미표시, `HasTestResult`가 false면 "테스트 미실행" 배지라 색이 다르다,
+/// `IsFullPass`는 `HasTestResult`가 true일 때만 의미 있으며 100% 통과 여부로 초록/호박 색을 가른다).</summary>
+public sealed record TaskColumnGroup(string CategoryName, string PassRateBadge, bool HasTestResult, bool IsFullPass, IReadOnlyList<TodoItem> Items);
 
-/// <summary>칸반 열 안에서 카테고리별로 묶은 작업 그룹.
-/// 목록 뷰의 TaskCategoryGroup과 달리 그룹 헤더에 표시할 테스트 통과율 배지를 함께 갖는다
-/// (빈 문자열이면 배지 미표시).</summary>
-public sealed record TaskColumnGroup(string CategoryName, string PassRateBadge, IReadOnlyList<TodoItem> Items);
+/// <summary>목록 뷰의 상태 그룹 (예정/진행 중/완료/보류) — 헤더 표시값과 카테고리 서브그룹을 함께 갖는다.
+/// dot 색은 상태(Status)로부터 View가 정한다(VM에 Brush를 두지 않기 위함).
+/// `IsEmpty`가 true면 서브그룹 대신 "작업 없음" 안내를 표시한다.</summary>
+public sealed record TaskListStatusGroup(
+    TodoStatus Status,
+    string StatusLabel,
+    int Count,
+    bool IsEmpty,
+    IReadOnlyList<TaskColumnGroup> Categories);

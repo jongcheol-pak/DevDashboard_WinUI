@@ -388,19 +388,25 @@
   <data name="TestLabel_Completed" xml:space="preserve"><value>Completed :</value></data>
   <data name="NewCategoryBox.PlaceholderText" xml:space="preserve"><value>New category name...</value></data>
   <data name="TestEditCategoryTitle" xml:space="preserve"><value>Edit Category Name</value></data>
-  <data name="TestEdit_TitleAdd" xml:space="preserve"><value>New Test</value></data>
+  <data name="TestEdit_TitleAdd" xml:space="preserve"><value>Register Test</value></data>
   <data name="TestEdit_TitleEdit" xml:space="preserve"><value>Edit Test</value></data>
-  <data name="TestEditLabel_Name.Text" xml:space="preserve"><value>Name</value></data>
-  <data name="TestEditLabel_Suite.Text" xml:space="preserve"><value>Suite</value></data>
-  <data name="TestEditLabel_Method.Text" xml:space="preserve"><value>Method</value></data>
-  <data name="TestEditBox_Name.PlaceholderText" xml:space="preserve"><value>Test name</value></data>
-  <data name="TestEditBox_Method.PlaceholderText" xml:space="preserve"><value>Test method / steps to reproduce</value></data>
+  <data name="TestEdit_Submit" xml:space="preserve"><value>Register</value></data>
+  <data name="TestEditLabel_Name.Text" xml:space="preserve"><value>Test name</value></data>
+  <data name="TestEditLabel_Suite.Text" xml:space="preserve"><value>Suite (task category)</value></data>
+  <data name="TestEditLabel_Method.Text" xml:space="preserve"><value>Test method</value></data>
+  <data name="TestEditBox_Name.PlaceholderText" xml:space="preserve"><value>e.g. Login_LockOnFailure</value></data>
+  <data name="TestEditBox_Method.PlaceholderText" xml:space="preserve"><value>Describe how to run this test (optional)</value></data>
   <data name="TestEdit_NameRequired" xml:space="preserve"><value>Please enter a name.</value></data>
-  <data name="TestEdit_SuiteRequired" xml:space="preserve"><value>Please select or enter a suite.</value></data>
+  <data name="TestEdit_SuiteRequired" xml:space="preserve"><value>Please select a suite.</value></data>
   <data name="TestPage_Title" xml:space="preserve"><value>Test</value></data>
   <data name="TestPage_Back" xml:space="preserve"><value>Dashboard</value></data>
-  <data name="TestAdd_Button" xml:space="preserve"><value>New Test</value></data>
+  <data name="TestAdd_Button" xml:space="preserve"><value>+ Register Test</value></data>
+  <data name="TestSuiteFilter_All" xml:space="preserve"><value>All</value></data>
+  <data name="TestSuitePassCount" xml:space="preserve"><value>{0}/{1} passed</value></data>
+  <data name="TestStatusPill_Tooltip" xml:space="preserve"><value>Click to change status (passed → failed → not run)</value></data>
   <data name="TestNote_Tooltip" xml:space="preserve"><value>Note</value></data>
+  <data name="TestNote_Title" xml:space="preserve"><value>Add note</value></data>
+  <data name="TestNote_Placeholder" xml:space="preserve"><value>Enter a note. Save it empty to remove the note.</value></data>
   <data name="TestStatus_All" xml:space="preserve"><value>All</value></data>
   <data name="TestStatus_Pass" xml:space="preserve"><value>Pass</value></data>
   <data name="TestStatus_Fail" xml:space="preserve"><value>Fail</value></data>
@@ -443,7 +449,9 @@
   <data name="TaskDelete_Confirm" xml:space="preserve"><value>Delete task '{0}'?</value></data>
   <data name="TaskDateRange" xml:space="preserve"><value>{0} – {1}</value></data>
   <data name="TaskPassRateBadge" xml:space="preserve"><value>✓ {0}% passing · {1}</value></data>
+  <data name="TaskNoTestBadge" xml:space="preserve"><value>✓ No tests run</value></data>
   <data name="TaskColumnAdd" xml:space="preserve"><value>+ New task</value></data>
+  <data name="TaskList_Empty.Text" xml:space="preserve"><value>No tasks</value></data>
   <data name="TaskMenu_Edit" xml:space="preserve"><value>Edit</value></data>
   <data name="TaskMenu_Delete" xml:space="preserve"><value>Delete</value></data>
   <data name="TaskMenu_MoveTo" xml:space="preserve"><value>Change status</value></data>

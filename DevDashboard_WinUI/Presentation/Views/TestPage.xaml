@@ -11,145 +11,200 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
 
     <UserControl.Resources>
-        <!-- 테스트 항목 카드 -->
-        <DataTemplate x:Key="TestItemCardTemplate" x:DataType="models:TestItem">
-            <Border
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="6"
-                Padding="10"
-                Margin="0,0,0,8">
-                <StackPanel Spacing="6">
-                    <!-- 상태 아이콘 + 이름 -->
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock
-                            Text="{x:Bind local:TestPage.StatusGlyph(Status), Mode=OneWay}"
-                            Foreground="{x:Bind local:TestPage.StatusBrush(Status), Mode=OneWay}"
-                            FontSize="15"
-                            FontWeight="Bold"
-                            VerticalAlignment="Center" />
-                        <TextBlock
-                            Text="{x:Bind Text, Mode=OneWay}"
-                            TextWrapping="Wrap"
+        <!-- 행 마우스 오버 배경 — 코드비하인드에서 조회하므로 팔레트 색을 이름 있는 리소스로 둔다 -->
+        <SolidColorBrush x:Key="RowHoverBrush" Color="{ThemeResource SubtleFillColorTertiary}" />
+
+        <!--
+            테스트 항목 행 — 시안 구성(좌측 상태 아이콘 + 이름·메모 / 우측 상태 pill).
+            조작 버튼은 노출하지 않는다: 상태는 pill 클릭으로 순환하고, 편집·메모·삭제는 우클릭 메뉴로 한다
+            (작업 칸반 카드와 동일한 방식). 방법 본문은 행에 싣지 않고 편집 다이얼로그에서 다룬다.
+        -->
+        <DataTemplate x:Key="TestItemRowTemplate" x:DataType="models:TestItem">
+            <!-- 상단 1px 선이 행 사이 구분선이 된다(첫 행의 선은 헤더와 목록을 가른다) -->
+            <Border BorderThickness="0,1,0,0"
+                    BorderBrush="{ThemeResource AppBorderBrush}"
+                    Background="Transparent"
+                    PointerEntered="Row_PointerEntered"
+                    PointerExited="Row_PointerExited">
+                <Border.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="{x:Bind local:TestPage.EditTooltip}"
+                                        Tag="{x:Bind}" Click="EditTest_Click">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE70F;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutItem Text="{x:Bind local:TestPage.NoteTooltip}"
+                                        Tag="{x:Bind}" Click="EditNote_Click">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE70B;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutSeparator />
+                        <MenuFlyoutItem Text="{x:Bind local:TestPage.DeleteTooltip}"
+                                        Tag="{x:Bind}" Click="DeleteTest_Click">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE74D;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                    </MenuFlyout>
+                </Border.ContextFlyout>
+
+                <!-- Background=Transparent 유지: 빈 영역까지 hit-test 돼야 행 전체가 hover·우클릭 대상이 된다 -->
+                <Grid ColumnSpacing="10" Padding="12,9" Background="Transparent">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <!-- 상태 아이콘 — 시안 기준: 세 상태 모두 동일한 라운드 사각형, 통과·실패는 소프트 틴트 배경 + 색 글리프,
+                         미실행은 불투명 회색 배경 + "○" 글리프 -->
+                    <Border Grid.Column="0"
+                            Width="20" Height="20"
+                            CornerRadius="6"
                             VerticalAlignment="Center"
-                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            Background="{x:Bind local:TestPage.StatusIconBackground(Status), Mode=OneWay}">
+                        <TextBlock Text="{x:Bind local:TestPage.StatusGlyph(Status), Mode=OneWay}"
+                                   Foreground="{x:Bind local:TestPage.StatusBrush(Status), Mode=OneWay}"
+                                   FontSize="11" FontWeight="Bold"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+
+                    <!-- 이름·배지·메모를 한 StackPanel로 묶고 그 묶음을 세로 중앙에 둔다.
+                         Grid 행 3개로 쪼개면 배지·메모가 없는 항목에서 남는 높이가 빈 아래 행으로 몰려
+                         이름이 행 위쪽에 붙는다(2026-07-22 육안 지적). -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{x:Bind Text, Mode=OneWay}"
+                                   FontSize="13"
+                                   TextWrapping="Wrap"
+                                   MaxLines="2"
+                                   TextTrimming="CharacterEllipsis" />
+
+                        <!-- 연결된 작업 배지 — 테두리형 라운드 사각형 + 체인 아이콘 + 작업 제목.
+                             시안은 완전 캡슐(radius 999)이나 렌더가 타원처럼 보여 사용자가 사각형+약간 둥근 모서리로 정정(2026-07-22).
+                             상태와 무관한 고정색이라 미실행 배지처럼 색을 리터럴로 적는다(팔레트에 같은 값이 없다). -->
+                        <Border Visibility="{x:Bind LinkedTaskTitle, Converter={StaticResource StringNotEmptyToVisibility}, Mode=OneWay}"
+                                BorderBrush="#735AA3E8"
+                                BorderThickness="1"
+                                CornerRadius="4"
+                                Padding="9,2"
+                                Margin="0,3,0,0"
+                                HorizontalAlignment="Left">
+                            <!-- 두 열 모두 Auto — 배지 폭이 내용에 딱 맞아야 한다(시안). `*`를 쓰면 남는 폭을 다 먹어 배지가 가로로 늘어난다.
+                                 StackPanel을 쓰지 않는 이유는 적층 방향으로 자식에게 무한 폭을 줘 제목이 길어도 TextTrimming이 발동하지 않기 때문. -->
+                            <Grid ColumnSpacing="5" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <FontIcon Grid.Column="0"
+                                          Glyph="&#xE71B;" FontSize="10"
+                                          Foreground="#7AB5EC"
+                                          VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1"
+                                           Text="{x:Bind LinkedTaskTitle, Mode=OneWay}"
+                                           FontSize="11"
+                                           Foreground="#7AB5EC"
+                                           TextWrapping="NoWrap"
+                                           TextTrimming="CharacterEllipsis"
+                                           VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+
+                        <!-- 메모 — 있을 때만 이름 아래에 인용 블록으로 붙는다 -->
+                        <Border Visibility="{x:Bind local:TestPage.NoteVisibility(ProgressNote), Mode=OneWay}"
+                                Background="{ThemeResource AppInputBrush}"
+                                BorderBrush="{ThemeResource AppWarningBrush}"
+                                BorderThickness="2,0,0,0"
+                                CornerRadius="4"
+                                Padding="8,6"
+                                Margin="0,6,0,0">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE7C1;" FontSize="11"
+                                          Foreground="{ThemeResource AppWarningBrush}"
+                                          VerticalAlignment="Top" Margin="0,2,0,0" />
+                                <TextBlock Text="{x:Bind ProgressNote, Mode=OneWay}"
+                                           FontSize="12"
+                                           TextWrapping="Wrap"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
 
-                    <!-- 방법 -->
-                    <TextBlock
-                        Text="{x:Bind Method, Mode=OneWay}"
-                        FontSize="11"
-                        TextWrapping="Wrap"
-                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                        Visibility="{x:Bind local:TestPage.MethodVisibility(Method), Mode=OneWay}" />
-
-                    <!-- 메모 -->
-                    <TextBlock
-                        Text="{x:Bind ProgressNote, Mode=OneWay}"
-                        FontSize="11"
-                        TextWrapping="Wrap"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Visibility="{x:Bind local:TestPage.NoteVisibility(ProgressNote), Mode=OneWay}" />
-
-                    <!-- 상태 콤보 + 메모/수정/삭제 -->
-                    <Grid ColumnSpacing="4">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <ComboBox
-                            Grid.Column="0"
-                            HorizontalAlignment="Stretch"
-                            Padding="8,2"
+                    <!-- 상태 pill — 클릭할 때마다 통과 → 실패 → 미실행 순으로 바뀐다.
+                         MinWidth로 세 상태의 폭을 맞춘다("미실행" 3자가 최대 폭) -->
+                    <Border Grid.Column="2"
+                            Style="{StaticResource TagBadgeStyle}"
+                            Margin="0"
+                            MinWidth="52"
+                            VerticalAlignment="Center"
+                            Background="{x:Bind local:TestPage.StatusSoftBrush(Status), Mode=OneWay}"
                             Tag="{x:Bind}"
-                            Loaded="StatusCombo_Loaded"
-                            SelectionChanged="StatusCombo_SelectionChanged" />
-                        <Button
-                            Grid.Column="1"
-                            Padding="8,4"
-                            Background="Transparent" BorderThickness="0"
-                            Tag="{x:Bind}"
-                            Click="EditNote_Click"
-                            ToolTipService.ToolTip="{x:Bind local:TestPage.NoteTooltip}">
-                            <FontIcon Glyph="&#xE70B;" FontSize="12" />
-                        </Button>
-                        <Button
-                            Grid.Column="2"
-                            Padding="8,4"
-                            Background="Transparent" BorderThickness="0"
-                            Tag="{x:Bind}"
-                            Click="EditTest_Click"
-                            ToolTipService.ToolTip="{x:Bind local:TestPage.EditTooltip}">
-                            <FontIcon Glyph="&#xE70F;" FontSize="12" />
-                        </Button>
-                        <Button
-                            Grid.Column="3"
-                            Padding="8,4"
-                            Background="Transparent" BorderThickness="0"
-                            Tag="{x:Bind}"
-                            Click="DeleteTest_Click"
-                            ToolTipService.ToolTip="{x:Bind local:TestPage.DeleteTooltip}">
-                            <FontIcon Glyph="&#xE74D;" FontSize="12" />
-                        </Button>
-                    </Grid>
-                </StackPanel>
+                            Tapped="StatusPill_Click"
+                            ToolTipService.ToolTip="{x:Bind local:TestPage.StatusPillTooltip}">
+                        <TextBlock Text="{x:Bind local:TestPage.StatusText(Status), Mode=OneWay}"
+                                   FontSize="11"
+                                   HorizontalAlignment="Stretch"
+                                   TextAlignment="Center"
+                                   Foreground="{x:Bind local:TestPage.StatusBrush(Status), Mode=OneWay}" />
+                    </Border>
+                </Grid>
             </Border>
         </DataTemplate>
 
-        <!-- 스위트 그룹 (헤더 + 통과율 바 + 항목 목록) -->
+        <!--
+            스위트 그룹 — 시안 구성(폴더 아이콘 + 스위트명 + "N/M 통과" + 우측 진행바, 아래에 항목 행).
+            스위트 이름수정·삭제는 두지 않는다(사용자 결정) — 스위트는 테스트 등록 시 작업 카테고리에서 만들어지고,
+            표시할 항목이 없는 스위트는 아예 렌더되지 않는다.
+        -->
         <DataTemplate x:Key="TestSuiteGroupTemplate" x:DataType="vm:TestSuiteGroup">
-            <StackPanel Margin="0,0,0,18" MaxWidth="560" HorizontalAlignment="Left">
-                <Grid ColumnSpacing="8" Margin="0,0,0,6">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock
-                        Grid.Column="0"
-                        Text="{x:Bind Category.Name, Mode=OneWay}"
-                        VerticalAlignment="Center"
-                        Style="{StaticResource BodyStrongTextBlockStyle}" />
-                    <TextBlock
-                        Grid.Column="1"
-                        Text="{x:Bind local:TestPage.FormatPassRate(PassRate)}"
-                        VerticalAlignment="Center"
-                        FontSize="12"
-                        Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                    <Button
-                        Grid.Column="2"
-                        Padding="8,4"
-                        Background="Transparent" BorderThickness="0"
-                        Tag="{x:Bind Category}"
-                        Click="RenameSuite_Click"
-                        ToolTipService.ToolTip="{x:Bind local:TestPage.EditTooltip}">
-                        <FontIcon Glyph="&#xE70F;" FontSize="12" />
-                    </Button>
-                    <Button
-                        Grid.Column="3"
-                        Padding="8,4"
-                        Background="Transparent" BorderThickness="0"
-                        Tag="{x:Bind Category}"
-                        Click="DeleteSuite_Click"
-                        ToolTipService.ToolTip="{x:Bind local:TestPage.DeleteTooltip}">
-                        <FontIcon Glyph="&#xE74D;" FontSize="12" />
-                    </Button>
-                </Grid>
-                <ProgressBar
-                    Value="{x:Bind PassRate}"
-                    Maximum="100"
-                    Margin="0,0,0,8" />
-                <ItemsControl ItemsSource="{x:Bind Items}" ItemTemplate="{StaticResource TestItemCardTemplate}" />
-            </StackPanel>
+            <Border Background="{ThemeResource AppCardBrush}"
+                    BorderBrush="{ThemeResource AppBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Margin="0,0,0,12">
+                <StackPanel>
+                    <Grid ColumnSpacing="10" Padding="12,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <FontIcon Grid.Column="0" Glyph="&#xE8B7;" FontSize="14"
+                                  VerticalAlignment="Center"
+                                  Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{x:Bind Category.Name, Mode=OneWay}"
+                                   VerticalAlignment="Center"
+                                   Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <TextBlock Grid.Column="2"
+                                   Text="{x:Bind local:TestPage.FormatPassCount(PassCount, TotalCount)}"
+                                   FontSize="12"
+                                   VerticalAlignment="Center"
+                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        <!-- 통과율 진행바 — ProgressBar는 트랙과 인디케이터의 높이가 서로 달라
+                             통과율 0%인 스위트만 얇게 보인다. 두께를 확정하려고 직접 그린다. -->
+                        <Grid Grid.Column="4" Width="120" Height="4" VerticalAlignment="Center">
+                            <Border Background="{ThemeResource AppBorderStrongBrush}" CornerRadius="2" />
+                            <Border Background="{x:Bind local:TestPage.PassBrush}"
+                                    CornerRadius="2"
+                                    HorizontalAlignment="Left"
+                                    Width="{x:Bind local:TestPage.IndicatorWidth(PassRate)}" />
+                        </Grid>
+                    </Grid>
+
+                    <ItemsControl ItemsSource="{x:Bind Items}" ItemTemplate="{StaticResource TestItemRowTemplate}" />
+                </StackPanel>
+            </Border>
         </DataTemplate>
     </UserControl.Resources>
 
     <Grid Padding="16">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -160,7 +215,9 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
@@ -177,57 +234,124 @@
                        Style="{StaticResource SubtitleTextBlockStyle}"
                        VerticalAlignment="Center" Margin="6,0,0,0" />
 
-            <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                <RadioButton Content="{x:Bind local:TestPage.LabelAll}" Tag="" GroupName="TestStatusFilter"
-                             IsChecked="True" Checked="StatusTab_Checked" />
-                <RadioButton Content="{x:Bind local:TestPage.LabelPass}" Tag="Pass" GroupName="TestStatusFilter"
-                             Checked="StatusTab_Checked" />
-                <RadioButton Content="{x:Bind local:TestPage.LabelFail}" Tag="Fail" GroupName="TestStatusFilter"
-                             Checked="StatusTab_Checked" />
-                <RadioButton Content="{x:Bind local:TestPage.LabelUntested}" Tag="Untested" GroupName="TestStatusFilter"
-                             Checked="StatusTab_Checked" />
-            </StackPanel>
+            <!-- 대상 프로젝트명 배지 — 어느 프로젝트의 테스트를 보고 있는지 헤더에서 바로 알 수 있게 한다 -->
+            <Border Grid.Column="2"
+                    Style="{StaticResource TagBadgeStyle}"
+                    Margin="0"
+                    VerticalAlignment="Center"
+                    Background="{ThemeResource AppMutedSoftBrush}">
+                <TextBlock Text="{x:Bind Vm.Project.Name}"
+                           FontSize="12"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </Border>
 
-            <Button Grid.Column="4"
+            <!-- 스위트(작업 카테고리) 필터 — 상태 필터와 직교하게 함께 적용된다 -->
+            <ComboBox Grid.Column="5" x:Name="SuiteFilterCombo"
+                      MinWidth="130" VerticalAlignment="Center"
+                      SelectionChanged="SuiteFilter_SelectionChanged" />
+
+            <Button Grid.Column="6"
                     Content="{x:Bind local:TestPage.AddButtonText}"
                     Style="{StaticResource AccentButtonStyle}"
                     VerticalAlignment="Center"
                     Click="AddTest_Click" />
         </Grid>
 
-        <!-- ===== 상태 통계 카드 ===== -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="0,0,0,12">
-            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
-                    CornerRadius="6" Padding="12,8">
-                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Ellipse Width="10" Height="10" Fill="{x:Bind local:TestPage.PassBrush}" VerticalAlignment="Center" />
+        <!-- ===== 상태 통계 카드 (가로 3등분 — 좌측 색점+라벨, 우측 큰 숫자) ===== -->
+        <Grid Grid.Row="1" Margin="0,0,0,12" ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource StatCardStyle}">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Left">
+                        <Ellipse Width="10" Height="10" Fill="{x:Bind local:TestPage.PassBrush}" VerticalAlignment="Center" />
+                        <TextBlock Text="{x:Bind local:TestPage.LabelPass}" FontSize="13" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="{x:Bind Vm.PassCount, Mode=OneWay}"
+                               FontSize="22" FontWeight="SemiBold"
+                               VerticalAlignment="Center" HorizontalAlignment="Right"
+                               Foreground="{x:Bind local:TestPage.PassBrush}" />
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1" Style="{StaticResource StatCardStyle}">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Left">
+                        <Ellipse Width="10" Height="10" Fill="{x:Bind local:TestPage.FailBrush}" VerticalAlignment="Center" />
+                        <TextBlock Text="{x:Bind local:TestPage.LabelFail}" FontSize="13" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="{x:Bind Vm.FailCount, Mode=OneWay}"
+                               FontSize="22" FontWeight="SemiBold"
+                               VerticalAlignment="Center" HorizontalAlignment="Right"
+                               Foreground="{x:Bind local:TestPage.FailBrush}" />
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Style="{StaticResource StatCardStyle}">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Left">
+                        <Ellipse Width="10" Height="10" Fill="{x:Bind local:TestPage.UntestedBrush}" VerticalAlignment="Center" />
+                        <TextBlock Text="{x:Bind local:TestPage.LabelUntested}" FontSize="13" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="{x:Bind Vm.UntestedCount, Mode=OneWay}"
+                               FontSize="22" FontWeight="SemiBold"
+                               VerticalAlignment="Center" HorizontalAlignment="Right"
+                               Foreground="{x:Bind local:TestPage.UntestedBrush}" />
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ===== 상태 필터 탭바 (각 탭에 개수 배지, 선택 탭은 밑줄) ===== -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="16" Margin="0,0,0,12">
+            <RadioButton Style="{StaticResource FilterTabStyle}" Tag="All" GroupName="TestStatusFilter"
+                         IsChecked="True" Checked="StatusTab_Checked">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="{x:Bind local:TestPage.LabelAll}" VerticalAlignment="Center" />
+                    <!-- 선택 탭은 라벨만 굵어진다 — 개수 배지는 상속을 끊어 시안대로 보통 굵기를 유지한다 -->
+                    <Border Style="{StaticResource TagBadgeStyle}" Margin="0" VerticalAlignment="Center"
+                            Background="{ThemeResource AppMutedSoftBrush}">
+                        <TextBlock Text="{x:Bind Vm.TotalCount, Mode=OneWay}" FontSize="10" FontWeight="Normal" />
+                    </Border>
+                </StackPanel>
+            </RadioButton>
+            <RadioButton Style="{StaticResource FilterTabStyle}" Tag="Pass" GroupName="TestStatusFilter"
+                         Checked="StatusTab_Checked">
+                <StackPanel Orientation="Horizontal" Spacing="6">
                     <TextBlock Text="{x:Bind local:TestPage.LabelPass}" VerticalAlignment="Center" />
-                    <TextBlock Text="{x:Bind Vm.PassCount, Mode=OneWay}" FontWeight="Bold" VerticalAlignment="Center" />
+                    <Border Style="{StaticResource TagBadgeStyle}" Margin="0" VerticalAlignment="Center"
+                            Background="{ThemeResource AppMutedSoftBrush}">
+                        <TextBlock Text="{x:Bind Vm.PassCount, Mode=OneWay}" FontSize="10" FontWeight="Normal" />
+                    </Border>
                 </StackPanel>
-            </Border>
-            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
-                    CornerRadius="6" Padding="12,8">
-                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Ellipse Width="10" Height="10" Fill="{x:Bind local:TestPage.FailBrush}" VerticalAlignment="Center" />
+            </RadioButton>
+            <RadioButton Style="{StaticResource FilterTabStyle}" Tag="Fail" GroupName="TestStatusFilter"
+                         Checked="StatusTab_Checked">
+                <StackPanel Orientation="Horizontal" Spacing="6">
                     <TextBlock Text="{x:Bind local:TestPage.LabelFail}" VerticalAlignment="Center" />
-                    <TextBlock Text="{x:Bind Vm.FailCount, Mode=OneWay}" FontWeight="Bold" VerticalAlignment="Center" />
+                    <Border Style="{StaticResource TagBadgeStyle}" Margin="0" VerticalAlignment="Center"
+                            Background="{ThemeResource AppMutedSoftBrush}">
+                        <TextBlock Text="{x:Bind Vm.FailCount, Mode=OneWay}" FontSize="10" FontWeight="Normal" />
+                    </Border>
                 </StackPanel>
-            </Border>
-            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
-                    CornerRadius="6" Padding="12,8">
-                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Ellipse Width="10" Height="10" Fill="{x:Bind local:TestPage.UntestedBrush}" VerticalAlignment="Center" />
+            </RadioButton>
+            <RadioButton Style="{StaticResource FilterTabStyle}" Tag="Untested" GroupName="TestStatusFilter"
+                         Checked="StatusTab_Checked">
+                <StackPanel Orientation="Horizontal" Spacing="6">
                     <TextBlock Text="{x:Bind local:TestPage.LabelUntested}" VerticalAlignment="Center" />
-                    <TextBlock Text="{x:Bind Vm.UntestedCount, Mode=OneWay}" FontWeight="Bold" VerticalAlignment="Center" />
+                    <Border Style="{StaticResource TagBadgeStyle}" Margin="0" VerticalAlignment="Center"
+                            Background="{ThemeResource AppMutedSoftBrush}">
+                        <TextBlock Text="{x:Bind Vm.UntestedCount, Mode=OneWay}" FontSize="10" FontWeight="Normal" />
+                    </Border>
                 </StackPanel>
-            </Border>
+            </RadioButton>
         </StackPanel>
 
         <!-- ===== 스위트 그룹 목록 ===== -->
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
             <ItemsControl ItemsSource="{x:Bind Vm.SuiteGroups, Mode=OneWay}"
                           ItemTemplate="{StaticResource TestSuiteGroupTemplate}" />
         </ScrollViewer>

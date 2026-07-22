@@ -388,19 +388,25 @@
   <data name="TestLabel_Completed" xml:space="preserve"><value>완료 :</value></data>
   <data name="NewCategoryBox.PlaceholderText" xml:space="preserve"><value>새 카테고리 이름 입력...</value></data>
   <data name="TestEditCategoryTitle" xml:space="preserve"><value>카테고리 이름 수정</value></data>
-  <data name="TestEdit_TitleAdd" xml:space="preserve"><value>새 테스트</value></data>
+  <data name="TestEdit_TitleAdd" xml:space="preserve"><value>새 테스트 등록</value></data>
   <data name="TestEdit_TitleEdit" xml:space="preserve"><value>테스트 편집</value></data>
-  <data name="TestEditLabel_Name.Text" xml:space="preserve"><value>이름</value></data>
-  <data name="TestEditLabel_Suite.Text" xml:space="preserve"><value>스위트</value></data>
-  <data name="TestEditLabel_Method.Text" xml:space="preserve"><value>방법</value></data>
-  <data name="TestEditBox_Name.PlaceholderText" xml:space="preserve"><value>테스트 이름</value></data>
-  <data name="TestEditBox_Method.PlaceholderText" xml:space="preserve"><value>테스트 방법 · 재현 절차</value></data>
+  <data name="TestEdit_Submit" xml:space="preserve"><value>등록</value></data>
+  <data name="TestEditLabel_Name.Text" xml:space="preserve"><value>테스트 이름</value></data>
+  <data name="TestEditLabel_Suite.Text" xml:space="preserve"><value>스위트 (작업 카테고리)</value></data>
+  <data name="TestEditLabel_Method.Text" xml:space="preserve"><value>테스트 방법</value></data>
+  <data name="TestEditBox_Name.PlaceholderText" xml:space="preserve"><value>예: 로그인_실패시_잠금처리</value></data>
+  <data name="TestEditBox_Method.PlaceholderText" xml:space="preserve"><value>테스트 수행 방법을 입력하세요 (선택)</value></data>
   <data name="TestEdit_NameRequired" xml:space="preserve"><value>이름을 입력하세요.</value></data>
-  <data name="TestEdit_SuiteRequired" xml:space="preserve"><value>스위트를 선택하거나 입력하세요.</value></data>
+  <data name="TestEdit_SuiteRequired" xml:space="preserve"><value>스위트를 선택하세요.</value></data>
   <data name="TestPage_Title" xml:space="preserve"><value>테스트</value></data>
   <data name="TestPage_Back" xml:space="preserve"><value>대시보드</value></data>
-  <data name="TestAdd_Button" xml:space="preserve"><value>새 테스트</value></data>
+  <data name="TestAdd_Button" xml:space="preserve"><value>+ 테스트 등록</value></data>
+  <data name="TestSuiteFilter_All" xml:space="preserve"><value>전체</value></data>
+  <data name="TestSuitePassCount" xml:space="preserve"><value>{0}/{1} 통과</value></data>
+  <data name="TestStatusPill_Tooltip" xml:space="preserve"><value>클릭하면 상태가 바뀝니다 (통과 → 실패 → 미실행)</value></data>
   <data name="TestNote_Tooltip" xml:space="preserve"><value>메모</value></data>
+  <data name="TestNote_Title" xml:space="preserve"><value>메모 추가</value></data>
+  <data name="TestNote_Placeholder" xml:space="preserve"><value>메모를 입력하세요. 비워 두고 저장하면 메모가 삭제됩니다.</value></data>
   <data name="TestStatus_All" xml:space="preserve"><value>전체</value></data>
   <data name="TestStatus_Pass" xml:space="preserve"><value>통과</value></data>
   <data name="TestStatus_Fail" xml:space="preserve"><value>실패</value></data>
@@ -443,7 +449,9 @@
   <data name="TaskDelete_Confirm" xml:space="preserve"><value>'{0}' 작업을 삭제할까요?</value></data>
   <data name="TaskDateRange" xml:space="preserve"><value>{0} – {1}</value></data>
   <data name="TaskPassRateBadge" xml:space="preserve"><value>✓ 통과율 {0}% · {1}건</value></data>
+  <data name="TaskNoTestBadge" xml:space="preserve"><value>✓ 테스트 미실행</value></data>
   <data name="TaskColumnAdd" xml:space="preserve"><value>+ 새 작업</value></data>
+  <data name="TaskList_Empty.Text" xml:space="preserve"><value>작업 없음</value></data>
   <data name="TaskMenu_Edit" xml:space="preserve"><value>편집</value></data>
   <data name="TaskMenu_Delete" xml:space="preserve"><value>삭제</value></data>
   <data name="TaskMenu_MoveTo" xml:space="preserve"><value>상태 변경</value></data>

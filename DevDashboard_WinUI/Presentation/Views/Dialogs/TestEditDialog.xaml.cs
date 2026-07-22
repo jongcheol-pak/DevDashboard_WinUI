@@ -16,15 +16,20 @@ public sealed partial class TestEditDialog : ContentDialog
     /// <summary>저장 시 선택/입력된 스위트 이름 (호출부가 스위트 연결에 사용)</summary>
     public string ResultSuiteName { get; private set; } = string.Empty;
 
-    public TestEditDialog(TestItem? existing, IReadOnlyList<string> suiteNames, string? presetSuite)
+    /// <param name="taskCategories">스위트로 고를 수 있는 작업 카테고리 목록</param>
+    /// <param name="presetSuite">기본 선택 스위트 (편집이면 그 테스트의 현재 스위트)</param>
+    public TestEditDialog(TestItem? existing, IReadOnlyList<string> taskCategories, string? presetSuite)
     {
-        Vm = new TestEditDialogViewModel(existing, suiteNames, presetSuite);
+        Vm = new TestEditDialogViewModel(existing, taskCategories, presetSuite);
         InitializeComponent();
 
         Title = existing is null
             ? LocalizationService.Get("TestEdit_TitleAdd")
             : LocalizationService.Get("TestEdit_TitleEdit");
-        PrimaryButtonText = LocalizationService.Get("Dialog_Save");
+        // 새 테스트는 "등록", 편집은 공용 "저장" (공용 Dialog_Save는 다른 다이얼로그와 공유하므로 값을 바꾸지 않는다)
+        PrimaryButtonText = existing is null
+            ? LocalizationService.Get("TestEdit_Submit")
+            : LocalizationService.Get("Dialog_Save");
         CloseButtonText = LocalizationService.Get("Dialog_Cancel");
     }
 

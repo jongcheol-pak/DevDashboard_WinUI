@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#131316;color:#e8e6e3;}
+a{color:#f0716a;text-decoration:none;}a:hover{color:#f5928c;}
+@keyframes dlgIn{from{opacity:0;transform:translateY(10px) scale(.98);}to{opacity:1;transform:none;}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+::-webkit-scrollbar{width:10px;}::-webkit-scrollbar-thumb{background:#333338;border-radius:5px;border:2px solid #131316;}
+</style>
+</helmet>
+<div style="font-family:'Noto Sans KR',system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;background:#131316;overflow:hidden;" data-screen-label="대시보드">
+  <header style="display:flex;align-items:center;gap:16px;padding:0 20px;height:64px;border-bottom:1px solid #232328;flex-shrink:0;">
+    <div style="display:flex;align-items:center;gap:11px;">
+      <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#f0716a,#c94a5e);display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3px;padding:7px;box-sizing:border-box;">
+        <div style="background:#fff;border-radius:2px;opacity:.95;"></div><div style="background:#fff;border-radius:2px;opacity:.55;"></div><div style="background:#fff;border-radius:2px;opacity:.55;"></div><div style="background:#fff;border-radius:2px;opacity:.95;"></div>
+      </div>
+      <div style="font-size:16px;font-weight:700;letter-spacing:-.01em;">프로젝트 대시보드</div>
+    </div>
+    <div style="flex:1;display:flex;justify-content:center;">
+      <div style="display:flex;align-items:center;gap:9px;background:#1d1d21;border:1px solid #2b2b31;border-radius:10px;padding:0 14px;height:38px;width:min(420px,100%);">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a8890" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21"></line></svg>
+        <input onInput="{{ onSearch }}" placeholder="프로젝트 검색…" style="flex:1;background:transparent;border:none;outline:none;color:#e8e6e3;font-size:13.5px;font-family:inherit;">
+        <sc-if value="{{ hasQuery }}" hint-placeholder-val="{{ false }}"><button onClick="{{ clearSearch }}" style="background:none;border:none;color:#8a8890;cursor:pointer;font-size:14px;padding:0;">✕</button></sc-if>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button title="정렬" style="width:36px;height:36px;border-radius:9px;background:transparent;border:1px solid transparent;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;" style-hover="background:#222226;border-color:#2b2b31;color:#e8e6e3;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="7" y1="4" x2="7" y2="20"></line><line x1="4" y1="7" x2="7" y2="4"></line><line x1="17" y1="20" x2="17" y2="4"></line><line x1="20" y1="17" x2="17" y2="20"></line></svg>
+      </button>
+      <button onClick="{{ toggleNotif }}" title="알림" style="position:relative;width:36px;height:36px;border-radius:9px;background:transparent;border:1px solid transparent;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;" style-hover="background:#222226;border-color:#2b2b31;color:#e8e6e3;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.5 21a1.8 1.8 0 0 1-3 0"></path></svg>
+        <sc-if value="{{ hasNotif }}" hint-placeholder-val="{{ false }}">
+          <span style="{{ notifDotStyle }}">{{ notifCount }}</span>
+        </sc-if>
+      </button>
+      <button onClick="{{ openHistory }}" title="작업 기록" style="width:36px;height:36px;border-radius:9px;background:transparent;border:1px solid transparent;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;" style-hover="background:#222226;border-color:#2b2b31;color:#e8e6e3;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="7" x2="12" y2="12"></line><line x1="12" y1="12" x2="15" y2="14"></line></svg>
+      </button>
+      <button onClick="{{ openSettings }}" title="앱 설정" style="width:36px;height:36px;border-radius:9px;background:transparent;border:1px solid transparent;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;" style-hover="background:#222226;border-color:#2b2b31;color:#e8e6e3;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"></path></svg>
+      </button>
+      <button onClick="{{ openProject }}" style="display:flex;align-items:center;gap:7px;height:38px;padding:0 18px;border-radius:10px;background:#f0716a;border:none;color:#1d1113;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;" style-hover="background:#f5857e;">
+        <span style="font-size:16px;line-height:1;">＋</span> 새 프로젝트
+      </button>
+    </div>
+  </header>
+  <div style="flex:1;display:flex;min-height:0;">
+    <sc-if value="{{ showLauncher }}" hint-placeholder-val="{{ true }}">
+      <aside style="width:68px;border-right:1px solid #232328;display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 0;overflow-y:auto;flex-shrink:0;">
+        <sc-for list="{{ launcher }}" as="app" hint-placeholder-count="8">
+          <button title="{{ app.name }}" style="width:44px;height:44px;border-radius:12px;border:1px solid #2b2b31;background:#1d1d21;cursor:pointer;display:grid;place-items:center;font-family:inherit;font-size:16px;font-weight:700;color:{{ app.color }};transition:transform .12s;" style-hover="transform:scale(1.08);border-color:#3a3a41;">{{ app.label }}</button>
+        </sc-for>
+        <button title="앱 추가" style="width:44px;height:44px;border-radius:12px;border:1px dashed #3a3a41;background:transparent;color:#8a8890;font-size:18px;cursor:pointer;" style-hover="color:#f0716a;border-color:#f0716a;">＋</button>
+      </aside>
+    </sc-if>
+    <main style="flex:1;display:flex;flex-direction:column;min-width:0;">
+      <sc-if value="{{ viewTodo }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;flex:1;min-height:0;" data-screen-label="작업 칸반 페이지">
+          <div style="display:flex;align-items:center;gap:14px;padding:16px 24px 0;">
+            <button onClick="{{ backToDashboard }}" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 13px;border-radius:9px;border:1px solid #2b2b31;background:#1d1d21;color:#a8a6ad;font-size:12.5px;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;" style-hover="color:#e8e6e3;background:#222226;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 5l-7 7 7 7"></path></svg>
+              대시보드
+            </button>
+            <div style="font-size:17px;font-weight:700;">작업</div>
+            <sc-if value="{{ taskScoped }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ clearTaskScope }}" title="전체 보기" style="display:flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:7px;border:1px solid #f0716a;background:rgba(240,113,106,.12);color:#f0716a;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;" style-hover="background:rgba(240,113,106,.2);">
+                {{ taskScope }}
+                <span style="font-size:13px;line-height:1;">✕</span>
+              </button>
+            </sc-if>
+            <div style="flex:1;"></div>
+            <select value="{{ taskCatFilter }}" onChange="{{ onTaskCatFilter }}" title="카테고리 필터" style="height:36px;background:#1d1d21;border:1px solid #2b2b31;border-radius:9px;padding:0 12px;color:#e8e6e3;font-size:12.5px;font-family:inherit;outline:none;cursor:pointer;">
+              <sc-for list="{{ taskCatFilterOptions }}" as="cf" hint-placeholder-count="4"><option value="{{ cf }}">{{ cf }}</option></sc-for>
+            </select>
+            <div style="display:flex;gap:3px;background:#1d1d21;border:1px solid #2b2b31;border-radius:9px;padding:3px;">
+              <button onClick="{{ setTaskKanban }}" style="{{ taskKanbanBtn }}">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="4" width="5" height="16" rx="1"></rect><rect x="10" y="4" width="5" height="11" rx="1"></rect><rect x="17" y="4" width="4" height="14" rx="1"></rect></svg>
+                칸반
+              </button>
+              <button onClick="{{ setTaskList }}" style="{{ taskListBtn }}">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3.5" y1="6" x2="3.6" y2="6"></line><line x1="3.5" y1="12" x2="3.6" y2="12"></line><line x1="3.5" y1="18" x2="3.6" y2="18"></line></svg>
+                목록
+              </button>
+            </div>
+          </div>
+          <sc-if value="{{ taskViewKanban }}" hint-placeholder-val="{{ true }}">
+          <div style="flex:1;overflow-y:auto;padding:18px 24px 24px;">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:start;">
+              <sc-for list="{{ kanbanCols }}" as="col" hint-placeholder-count="4">
+                <div onDragOver="{{ col.onDragOver }}" onDrop="{{ col.onDrop }}" onDragLeave="{{ col.onDragLeave }}" style="{{ col.dropStyle }}">
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="{{ col.dotStyle }}"></span>
+                    <span style="font-size:14px;font-weight:700;">{{ col.name }}</span>
+                    <span style="font-size:12.5px;color:#8a8890;font-family:ui-monospace,monospace;">{{ col.count }}</span>
+                  </div>
+                  <sc-if value="{{ col.empty }}" hint-placeholder-val="{{ false }}">
+                    <div style="border:1px dashed #35353c;border-radius:10px;padding:26px 0;text-align:center;font-size:12.5px;color:#5f5d66;">여기로 드래그</div>
+                  </sc-if>
+                  <sc-for list="{{ col.groups }}" as="grp" hint-placeholder-count="1">
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                      <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+                        <span style="{{ grp.dotStyle }}"></span>
+                        <span style="font-size:12.5px;font-weight:700;color:#c9c6ce;">{{ grp.name }}</span>
+                        <span style="font-size:11.5px;color:#8a8890;font-family:ui-monospace,monospace;">{{ grp.count }}</span>
+                        <sc-if value="{{ grp.testIdle }}" hint-placeholder-val="{{ true }}">
+                          <span style="font-size:11px;color:#8a8890;border:1px solid #35353c;border-radius:6px;padding:2px 7px;">✓ 테스트 미실행</span>
+                        </sc-if>
+                        <sc-if value="{{ grp.testRan }}" hint-placeholder-val="{{ false }}">
+                          <span style="{{ grp.testBadgeStyle }}">{{ grp.testLabel }}</span>
+                        </sc-if>
+                      </div>
+                      <sc-for list="{{ grp.tasks }}" as="tk" hint-placeholder-count="1">
+                        <div draggable="true" onDragStart="{{ tk.onDragStart }}" onDragEnd="{{ tk.onDragEnd }}" onContextMenu="{{ tk.onMenu }}" style="{{ tk.cardStyle }}" style-hover="border-color:#3d3d45;">
+                          <div style="display:flex;align-items:flex-start;gap:8px;">
+                            <div style="flex:1;font-size:13.5px;font-weight:700;line-height:1.4;">{{ tk.title }}</div>
+                            <span style="{{ tk.priStyle }}">{{ tk.pri }}</span>
+                          </div>
+                          <div style="font-size:12px;color:#98959d;line-height:1.55;">{{ tk.desc }}</div>
+                          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px;">
+                            <span style="font-size:11px;color:#8a8890;font-family:ui-monospace,monospace;">{{ tk.range }}</span>
+                            <span style="font-size:11.5px;color:#8a8890;">{{ tk.who }}</span>
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-for>
+                  <button onClick="{{ col.openNew }}" style="border:1px dashed #35353c;border-radius:10px;background:transparent;padding:12px 0;text-align:center;font-size:12.5px;color:#8a8890;cursor:pointer;font-family:inherit;" style-hover="color:#e8e6e3;border-color:#4a4a52;">＋ 새 작업</button>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ taskViewList }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1;overflow-y:auto;padding:18px 24px 24px;display:flex;flex-direction:column;gap:22px;">
+            <sc-for list="{{ taskListGroups }}" as="lg" hint-placeholder-count="4">
+              <div style="display:flex;flex-direction:column;gap:12px;">
+                <div style="display:flex;align-items:center;gap:9px;">
+                  <span style="{{ lg.dotStyle }}"></span>
+                  <span style="font-size:14.5px;font-weight:700;">{{ lg.name }}</span>
+                  <span style="font-size:12px;color:#8a8890;font-family:ui-monospace,monospace;">{{ lg.count }}</span>
+                  <span style="flex:1;height:1px;background:#26262c;"></span>
+                  <button onClick="{{ lg.openNew }}" style="height:28px;padding:0 11px;border-radius:7px;border:1px solid #2b2b31;background:#1d1d21;color:#8a8890;font-size:12px;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap;" style-hover="color:#e8e6e3;background:#222226;">＋ 새 작업</button>
+                </div>
+                <sc-if value="{{ lg.empty }}" hint-placeholder-val="{{ false }}">
+                  <div style="border:1px dashed #35353c;border-radius:10px;padding:18px 0;text-align:center;font-size:12.5px;color:#5f5d66;">작업 없음</div>
+                </sc-if>
+                <sc-for list="{{ lg.cats }}" as="cg" hint-placeholder-count="2">
+                  <div style="display:flex;flex-direction:column;gap:7px;padding-left:4px;">
+                    <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+                      <span style="{{ cg.dotStyle }}"></span>
+                      <span style="font-size:12.5px;font-weight:700;color:#c9c6ce;">{{ cg.name }}</span>
+                      <span style="font-size:11.5px;color:#8a8890;font-family:ui-monospace,monospace;">{{ cg.count }}</span>
+                      <sc-if value="{{ cg.testIdle }}" hint-placeholder-val="{{ true }}">
+                        <span style="font-size:11px;color:#8a8890;border:1px solid #35353c;border-radius:6px;padding:2px 7px;">✓ 테스트 미실행</span>
+                      </sc-if>
+                      <sc-if value="{{ cg.testRan }}" hint-placeholder-val="{{ false }}">
+                        <span style="{{ cg.testBadgeStyle }}">{{ cg.testLabel }}</span>
+                      </sc-if>
+                    </div>
+                    <sc-for list="{{ cg.tasks }}" as="tk" hint-placeholder-count="2">
+                      <div draggable="true" onDragStart="{{ tk.onDragStart }}" onDragEnd="{{ tk.onDragEnd }}" onContextMenu="{{ tk.onMenu }}" style="{{ tk.rowStyle }}" style-hover="border-color:#3d3d45;">
+                        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;">
+                          <span style="font-size:13.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ tk.title }}</span>
+                          <sc-if value="{{ tk.hasDesc }}" hint-placeholder-val="{{ false }}">
+                            <span style="font-size:12px;color:#98959d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ tk.desc }}</span>
+                          </sc-if>
+                        </div>
+                        <span style="font-size:11px;color:#8a8890;font-family:ui-monospace,monospace;flex-shrink:0;">{{ tk.range }}</span>
+                        <span style="{{ tk.priStyle }}">{{ tk.pri }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+          </sc-if>
+        </div>
+      </sc-if>
+      <sc-if value="{{ viewTests }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;flex:1;min-height:0;" data-screen-label="테스트 목록 페이지">
+          <div style="display:flex;align-items:center;gap:14px;padding:16px 24px 0;">
+            <button onClick="{{ backToDashboard }}" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 13px;border-radius:9px;border:1px solid #2b2b31;background:#1d1d21;color:#a8a6ad;font-size:12.5px;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;" style-hover="color:#e8e6e3;background:#222226;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 5l-7 7 7 7"></path></svg>
+              대시보드
+            </button>
+            <div style="font-size:17px;font-weight:700;">테스트</div>
+            <span style="font-size:12px;color:#b3b0b8;background:#26262c;border-radius:7px;padding:4px 10px;white-space:nowrap;">{{ testScope }}</span>
+            <div style="flex:1;"></div>
+            <select value="{{ testCatFilter }}" onChange="{{ onTestCatFilter }}" title="카테고리 필터" style="height:36px;background:#1d1d21;border:1px solid #2b2b31;border-radius:9px;padding:0 12px;color:#e8e6e3;font-size:12.5px;font-family:inherit;outline:none;cursor:pointer;flex-shrink:0;">
+              <sc-for list="{{ testCatFilterOptions }}" as="cf" hint-placeholder-count="3"><option value="{{ cf }}">{{ cf }}</option></sc-for>
+            </select>
+            <button onClick="{{ openNewTest }}" style="display:flex;align-items:center;gap:7px;height:36px;padding:0 16px;border-radius:9px;border:none;background:#f0716a;color:#1d1113;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;" style-hover="background:#f5857e;">＋ 테스트 등록</button>
+          </div>
+          <sc-if value="{{ testNewOpen }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ closeNewTest }}" style="position:fixed;inset:0;background:rgba(8,8,10,.62);backdrop-filter:blur(3px);display:grid;place-items:center;z-index:50;animation:fadeIn .15s;" data-screen-label="테스트 등록 다이얼로그">
+              <div onClick="{{ stopClick }}" style="width:min(520px,92vw);background:#1c1c20;border:1px solid #2e2e34;border-radius:16px;padding:28px;animation:dlgIn .18s ease-out;box-sizing:border-box;display:flex;flex-direction:column;gap:16px;">
+                <div style="font-size:19px;font-weight:700;">{{ testDlgTitle }}</div>
+                <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;"><span>테스트 이름 <span style="color:#f0716a;">*</span></span>
+                  <input onInput="{{ onNewTestName }}" value="{{ newTestName }}" placeholder="예: 로그인_실패시_잠금처리" style="height:38px;background:#242429;border:1px solid #2e2e34;border-bottom:2px solid #f0716a;border-radius:8px;padding:0 12px;color:#e8e6e3;font-size:13.5px;font-family:ui-monospace,monospace;outline:none;">
+                </label>
+                <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">스위트 (작업 카테고리)
+                  <select onChange="{{ onNewTestSuite }}" value="{{ newTestSuite }}" style="height:38px;background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:0 10px;color:#e8e6e3;font-size:13px;font-family:inherit;outline:none;">
+                    <sc-for list="{{ suiteNames }}" as="sn" hint-placeholder-count="3"><option value="{{ sn }}">{{ sn }}</option></sc-for>
+                  </select>
+                </label>
+                <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">테스트 방법
+                  <textarea onInput="{{ onNewTestMethod }}" value="{{ newTestMethod }}" placeholder="테스트 수행 방법을 입력하세요 (선택)" rows="4" style="background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:10px 12px;color:#e8e6e3;font-size:13px;font-family:inherit;outline:none;resize:vertical;line-height:1.6;"></textarea>
+                </label>
+                <div style="display:flex;gap:10px;margin-top:6px;">
+                  <button onClick="{{ saveNewTest }}" style="{{ saveTestStyle }}">{{ testDlgSave }}</button>
+                  <button onClick="{{ closeNewTest }}" style="flex:1;height:42px;border-radius:10px;border:1px solid #2e2e34;background:#242429;color:#e8e6e3;font-size:14px;cursor:pointer;font-family:inherit;" style-hover="background:#2b2b31;">취소</button>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+          <div style="display:flex;align-items:center;gap:10px;padding:16px 24px 0;">
+            <sc-for list="{{ testStats }}" as="ts" hint-placeholder-count="4">
+              <div style="flex:1;display:flex;align-items:center;gap:12px;background:#1f1f24;border:1px solid #27272d;border-radius:12px;padding:14px 16px;">
+                <span style="{{ ts.dotStyle }}"></span>
+                <div style="font-size:12px;color:#8a8890;">{{ ts.label }}</div>
+                <div style="margin-left:auto;font-size:19px;font-weight:700;font-family:ui-monospace,monospace;color:{{ ts.color }};">{{ ts.count }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;padding:14px 24px 0;">
+            <sc-for list="{{ testFilters }}" as="tf" hint-placeholder-count="4">
+              <button onClick="{{ tf.onClick }}" style="{{ tf.style }}" style-hover="color:#e8e6e3;">{{ tf.name }}<span style="{{ tf.countStyle }}">{{ tf.count }}</span></button>
+            </sc-for>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:16px 24px 24px;display:flex;flex-direction:column;gap:16px;">
+            <sc-if value="{{ testEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="text-align:center;padding:60px 0;color:#6f6d75;font-size:13px;">해당하는 테스트가 없습니다</div>
+            </sc-if>
+            <sc-for list="{{ testSuites }}" as="su" hint-placeholder-count="2">
+              <div style="background:#1f1f24;border:1px solid #27272d;border-radius:14px;overflow:hidden;flex-shrink:0;">
+                <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid #27272d;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a8890" stroke-width="2" stroke-linejoin="round"><path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"></path></svg>
+                  <span style="font-size:13.5px;font-weight:700;font-family:ui-monospace,monospace;">{{ su.name }}</span>
+                  <span style="font-size:11.5px;color:#8a8890;">{{ su.summary }}</span>
+                  <div style="flex:1;"></div>
+                  <div style="{{ su.barStyle }}">
+                    <span style="{{ su.barPass }}"></span><span style="{{ su.barFail }}"></span>
+                  </div>
+                </div>
+                <sc-for list="{{ su.tests }}" as="t" hint-placeholder-count="3">
+                  <div onContextMenu="{{ t.onMenu }}" style="display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid #232328;" style-hover="background:#232329;">
+                    <span style="{{ t.statusStyle }}">{{ t.statusIcon }}</span>
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;">
+                      <span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ t.name }}</span>
+                      <sc-if value="{{ t.hasLink }}" hint-placeholder-val="{{ false }}">
+                        <span style="display:inline-flex;align-items:center;gap:5px;align-self:flex-start;font-size:11px;color:#7ab5ec;border:1px solid rgba(90,163,232,.45);border-radius:999px;padding:2px 9px;max-width:100%;box-sizing:border-box;">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="flex-shrink:0;"><path d="M10 14a4 4 0 0 0 6 .5l3-3a4 4 0 0 0-5.5-5.5l-1.7 1.7"></path><path d="M14 10a4 4 0 0 0-6-.5l-3 3a4 4 0 0 0 5.5 5.5l1.7-1.7"></path></svg>
+                          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ t.link }}</span>
+                        </span>
+                      </sc-if>
+                      <sc-if value="{{ t.hasMethod }}" hint-placeholder-val="{{ false }}">
+                        <span style="font-size:11.5px;color:#8a8890;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ t.method }}</span>
+                      </sc-if>
+                      <sc-if value="{{ t.hasMemo }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;align-items:flex-start;gap:7px;background:#26262c;border-left:2px solid #e8b45a;border-radius:0 8px 8px 0;padding:7px 10px;margin-top:3px;">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#e8b45a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"></path></svg>
+                          <span style="font-size:11.5px;color:#c9c6ce;line-height:1.55;white-space:pre-wrap;">{{ t.memo }}</span>
+                        </div>
+                      </sc-if>
+                    </div>
+                    <sc-if value="{{ t.hasError }}" hint-placeholder-val="{{ false }}">
+                      <span style="font-size:11.5px;color:#f0716a;font-family:ui-monospace,monospace;max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ t.error }}</span>
+                    </sc-if>
+                    <button onClick="{{ t.onToggle }}" title="상태 전환" style="{{ t.badgeStyle }}">{{ t.status }}</button>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ viewNotif }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;flex:1;min-height:0;" data-screen-label="알림 페이지">
+          <div style="display:flex;align-items:center;gap:14px;padding:16px 24px 0;">
+            <button onClick="{{ backToDashboard }}" style="display:flex;align-items:center;gap:7px;height:34px;padding:0 13px;border-radius:9px;border:1px solid #2b2b31;background:#1d1d21;color:#a8a6ad;font-size:12.5px;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;" style-hover="color:#e8e6e3;background:#222226;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 5l-7 7 7 7"></path></svg>
+              대시보드
+            </button>
+            <div style="font-size:17px;font-weight:700;">알림</div>
+            <span style="font-size:12px;color:#b3b0b8;background:#26262c;border-radius:7px;padding:4px 10px;white-space:nowrap;">읽지 않음 {{ notifCount }}건</span>
+            <div style="flex:1;"></div>
+            <sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ markAllRead }}" style="height:32px;padding:0 14px;border-radius:8px;border:1px solid #2e2e34;background:#242429;color:#a8a6ad;font-size:12.5px;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;" style-hover="color:#e8e6e3;background:#2b2b31;">모두 읽음</button>
+            </sc-if>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:18px 24px 24px;">
+            <sc-if value="{{ notifEmpty }}" hint-placeholder-val="{{ true }}">
+              <div style="text-align:center;padding:80px 0;color:#6f6d75;font-size:13.5px;line-height:1.7;">마감된 작업이 없습니다.<br>종료일이 지난 미완료 작업이 여기에 표시됩니다.</div>
+            </sc-if>
+            <div style="display:flex;flex-direction:column;gap:22px;max-width:720px;">
+              <sc-for list="{{ notifProjects }}" as="np" hint-placeholder-count="2">
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:14px;font-weight:700;">{{ np.name }}</span>
+                    <span style="font-size:12px;color:#8a8890;font-family:ui-monospace,monospace;">{{ np.count }}</span>
+                    <span style="flex:1;height:1px;background:#26262c;"></span>
+                  </div>
+                  <sc-for list="{{ np.items }}" as="n" hint-placeholder-count="2">
+                    <div onClick="{{ n.onClick }}" style="{{ n.rowStyle }}" style-hover="border-color:#3d3d45;">
+                      <span style="{{ n.iconStyleLg }}">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+                      </span>
+                      <div style="flex:1;min-width:0;">
+                        <div style="font-size:14px;font-weight:700;line-height:1.4;">{{ n.title }}</div>
+                        <div style="font-size:12px;color:#98959d;margin-top:3px;">{{ n.subCat }}</div>
+                      </div>
+                      <span style="{{ n.badgeStyle }}">{{ n.badge }}</span>
+                      <button onClick="{{ n.onReadToggle }}" title="{{ n.readTitle }}" style="{{ n.readBtnStyle }}">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"></path></svg>
+                      </button>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ viewDashboard }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;flex:1;min-height:0;">
+      <div style="display:flex;align-items:center;gap:4px;padding:14px 24px 0;">
+        <sc-for list="{{ groupsView }}" as="g" hint-placeholder-count="4">
+          <button onClick="{{ g.onClick }}" style="{{ g.style }}" style-hover="color:#e8e6e3;">{{ g.name }}<span style="{{ g.countStyle }}">{{ g.count }}</span></button>
+        </sc-for>
+        <button title="그룹 추가" style="height:34px;padding:0 10px;background:none;border:none;color:#8a8890;font-size:16px;cursor:pointer;" style-hover="color:#e8e6e3;">＋</button>
+        <div style="flex:1;"></div>
+        <button title="새로고침" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1px solid #2b2b31;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;" style-hover="color:#e8e6e3;background:#222226;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"></path><path d="M20 4v4h-4"></path></svg>
+        </button>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:18px 24px 24px;">
+        <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px;">
+            <sc-for list="{{ cards }}" as="c" hint-placeholder-count="9">
+              <article style="background:#1c1c20;border:1px solid #26262c;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;transition:border-color .15s, transform .15s;" style-hover="border-color:#3d3d45;transform:translateY(-2px);">
+                <div style="display:flex;align-items:flex-start;gap:11px;">
+                  <div style="width:38px;height:38px;border-radius:10px;background:{{ c.iconBg }};display:grid;place-items:center;font-weight:700;font-size:16px;color:#fff;flex-shrink:0;">{{ c.initial }}</div>
+                  <div style="flex:1;min-width:0;font-size:14.5px;font-weight:700;letter-spacing:-.01em;align-self:center;">{{ c.name }}</div>
+                  <div style="display:flex;gap:4px;">
+                    <button title="핀 고정" style="width:28px;height:28px;border-radius:7px;border:none;background:transparent;color:#6f6d75;cursor:pointer;display:grid;place-items:center;" style-hover="background:#26262c;color:#e8e6e3;">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 17v5M7 4h10l-1.5 6 3 3H5.5l3-3z"></path></svg>
+                    </button>
+                    <button title="삭제" style="width:28px;height:28px;border-radius:7px;border:none;background:transparent;color:#6f6d75;cursor:pointer;display:grid;place-items:center;" style-hover="background:rgba(240,113,106,.12);color:#f0716a;">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13"></path></svg>
+                    </button>
+                  </div>
+                </div>
+                <div style="font-size:12px;color:#98959d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.desc }}</div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                  <sc-for list="{{ c.tags }}" as="t" hint-placeholder-count="3">
+                    <span style="font-size:11px;color:#b3b0b8;background:#26262c;border-radius:6px;padding:3px 8px;">{{ t }}</span>
+                  </sc-for>
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <button style="{{ c.ideStyle }}" style-hover="filter:brightness(1.15);">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path d="M7 4l13 8-13 8z"></path></svg>
+                    {{ c.ide }}
+                  </button>
+                  <button title="실행" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="color:#e8e6e3;border-color:#3a3a41;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 4l13 8-13 8z"></path></svg>
+                  </button>
+                  <button title="폴더 열기" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="color:#e8e6e3;border-color:#3a3a41;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"></path></svg>
+                  </button>
+                  <button onClick="{{ openProject }}" title="프로젝트 설정" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="color:#e8e6e3;border-color:#3a3a41;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"></path></svg>
+                  </button>
+                  <button title="터미널" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;font-size:11px;font-weight:700;font-family:ui-monospace,monospace;" style-hover="color:#e8e6e3;border-color:#3a3a41;">&gt;_</button>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <button title="스크립트 슬롯 1" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;font-size:11px;font-weight:700;font-family:ui-monospace,monospace;" style-hover="color:#e8e6e3;border-color:#3a3a41;">&gt;_</button>
+                  <button title="스크립트 슬롯 2" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="color:#e8e6e3;border-color:#3a3a41;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 4l13 8-13 8z"></path></svg>
+                  </button>
+                  <button title="스크립트 추가" style="width:34px;height:34px;border-radius:9px;border:1px dashed #35353c;background:transparent;color:#8a8890;cursor:pointer;display:grid;place-items:center;flex-shrink:0;font-size:15px;" style-hover="color:#f0716a;border-color:#f0716a;">＋</button>
+                  <div style="flex:1;"></div>
+                  <button title="GitHub" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;font-size:10.5px;font-weight:700;font-family:ui-monospace,monospace;" style-hover="color:#e8e6e3;border-color:#3a3a41;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 20.5v-3M8 20l0-2M16 20l0-2"></path></svg>
+                  </button>
+                  <button onClick="{{ openTodo }}" title="작업" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="color:#f0716a;border-color:#f0716a;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4.5V3h6v1.5"></path><path d="M9 11l2 2 4-4"></path></svg>
+                  </button>
+                  <button onClick="{{ c.openHistory }}" title="작업 기록" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="color:#e8e6e3;border-color:#3a3a41;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg>
+                  </button>
+                  <button onClick="{{ c.openTests }}" title="테스트" style="width:34px;height:34px;border-radius:9px;border:1px solid #2b2b31;background:#222226;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="color:#e8e6e3;border-color:#3a3a41;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="13.5" rx="4.5" ry="6"></ellipse><path d="M12 7.5V4M9 4.5L8 3M15 4.5L16 3M7.5 11H4M7.5 16H4.5M16.5 11H20M16.5 16h3"></path></svg>
+                  </button>
+                </div>
+              </article>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;padding:80px 0;color:#6f6d75;font-size:13.5px;">"{{ query }}" 에 해당하는 프로젝트가 없습니다</div>
+        </sc-if>
+      </div>
+      </div>
+      </sc-if>
+      <footer style="display:flex;align-items:center;gap:18px;padding:0 24px;height:36px;border-top:1px solid #232328;font-size:11.5px;color:#8a8890;flex-shrink:0;">
+        <span>{{ launcherCount }}개 런처 앱</span>
+        <span>{{ visibleCount }}개 프로젝트</span>
+        <span style="margin-left:auto;display:flex;align-items:center;gap:6px;"><span style="width:6px;height:6px;border-radius:50%;background:#5db463;"></span>모든 변경사항 저장됨</span>
+      </footer>
+    </main>
+  </div>
+
+  <sc-if value="{{ notifOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeNotif }}" style="position:fixed;inset:0;z-index:55;">
+      <div onClick="{{ stopClick }}" style="position:fixed;top:60px;right:20px;width:min(380px,92vw);max-height:70vh;background:#1c1c20;border:1px solid #2e2e34;border-radius:14px;box-shadow:0 16px 40px rgba(0,0,0,.5);animation:dlgIn .16s ease-out;display:flex;flex-direction:column;overflow:hidden;" data-screen-label="알림 패널">
+        <div style="display:flex;align-items:center;gap:9px;padding:16px 18px;border-bottom:1px solid #26262c;">
+          <div style="font-size:15px;font-weight:700;">알림</div>
+          <span style="font-size:11.5px;color:#8a8890;">읽지 않음 {{ notifCount }}건</span>
+          <div style="flex:1;"></div>
+          <sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ markAllRead }}" style="height:28px;padding:0 10px;border-radius:7px;border:1px solid #2e2e34;background:#242429;color:#a8a6ad;font-size:11.5px;cursor:pointer;font-family:inherit;white-space:nowrap;" style-hover="color:#e8e6e3;background:#2b2b31;">모두 읽음</button>
+          </sc-if>
+        </div>
+        <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;">
+          <sc-if value="{{ notifEmpty }}" hint-placeholder-val="{{ true }}">
+            <div style="text-align:center;padding:44px 18px;color:#6f6d75;font-size:12.5px;line-height:1.6;">마감된 작업이 없습니다.<br>종료일이 지난 미완료 작업이 여기에 표시됩니다.</div>
+          </sc-if>
+          <sc-for list="{{ notifItems }}" as="n" hint-placeholder-count="2">
+            <div onClick="{{ n.onClick }}" style="{{ n.popRowStyle }}" style-hover="background:#232329;">
+              <span style="{{ n.iconStyle }}">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+              </span>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:13px;font-weight:700;line-height:1.4;">{{ n.title }}</div>
+                <div style="font-size:11.5px;color:#98959d;margin-top:3px;">{{ n.project }} · {{ n.subCat }}</div>
+              </div>
+              <span style="{{ n.badgeStyle }}">{{ n.badge }}</span>
+              <button onClick="{{ n.onReadToggle }}" title="{{ n.readTitle }}" style="{{ n.readBtnStyle }}">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"></path></svg>
+              </button>
+            </div>
+          </sc-for>
+        </div>
+        <button onClick="{{ openNotifPage }}" style="height:44px;border:none;border-top:1px solid #26262c;background:transparent;color:#a8a6ad;font-size:12.5px;font-weight:500;cursor:pointer;font-family:inherit;flex-shrink:0;" style-hover="background:#232329;color:#e8e6e3;">모든 알림 보기</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ taskMenuOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeTaskMenu }}" onContextMenu="{{ closeTaskMenu }}" style="position:fixed;inset:0;z-index:60;">
+      <div style="{{ taskMenuStyle }}">
+        <button onClick="{{ taskMenuEdit }}" style="display:flex;align-items:center;gap:9px;width:100%;height:34px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#e8e6e3;font-size:12.5px;cursor:pointer;font-family:inherit;text-align:left;box-sizing:border-box;" style-hover="background:#2b2b31;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20l1-4L16 5l3 3L8 19zM14 7l3 3"></path></svg>
+          수정
+        </button>
+        <button onClick="{{ taskMenuDelete }}" style="display:flex;align-items:center;gap:9px;width:100%;height:34px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#f0716a;font-size:12.5px;cursor:pointer;font-family:inherit;text-align:left;box-sizing:border-box;" style-hover="background:rgba(240,113,106,.12);">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13"></path></svg>
+          삭제
+        </button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ testMenuOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeTestMenu }}" onContextMenu="{{ closeTestMenu }}" style="position:fixed;inset:0;z-index:60;">
+      <div style="{{ testMenuStyle }}">
+        <button onClick="{{ testMenuEdit }}" style="display:flex;align-items:center;gap:9px;width:100%;height:34px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#e8e6e3;font-size:12.5px;cursor:pointer;font-family:inherit;text-align:left;box-sizing:border-box;" style-hover="background:#2b2b31;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20l1-4L16 5l3 3L8 19zM14 7l3 3"></path></svg>
+          수정
+        </button>
+        <button onClick="{{ testMenuMemo }}" style="display:flex;align-items:center;gap:9px;width:100%;height:34px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#e8e6e3;font-size:12.5px;cursor:pointer;font-family:inherit;text-align:left;box-sizing:border-box;" style-hover="background:#2b2b31;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"></path></svg>
+          {{ testMemoLabel }}
+        </button>
+        <button onClick="{{ testMenuDelete }}" style="display:flex;align-items:center;gap:9px;width:100%;height:34px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#f0716a;font-size:12.5px;cursor:pointer;font-family:inherit;text-align:left;box-sizing:border-box;" style-hover="background:rgba(240,113,106,.12);">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13"></path></svg>
+          삭제
+        </button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ testMemoOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeTestMemo }}" style="position:fixed;inset:0;background:rgba(8,8,10,.62);backdrop-filter:blur(3px);display:grid;place-items:center;z-index:70;animation:fadeIn .15s;" data-screen-label="테스트 메모 다이얼로그">
+      <div onClick="{{ stopClick }}" style="width:min(480px,92vw);background:#1c1c20;border:1px solid #2e2e34;border-radius:16px;padding:26px;animation:dlgIn .18s ease-out;box-sizing:border-box;display:flex;flex-direction:column;gap:16px;">
+        <div style="font-size:17px;font-weight:700;">{{ testMemoTitle }}</div>
+        <div style="font-size:12.5px;color:#8a8890;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ testMemoTestName }}</div>
+        <textarea onInput="{{ onMemoInput }}" value="{{ memoInput }}" placeholder="메모를 입력하세요. 비워 두고 저장하면 메모가 삭제됩니다." rows="5" style="background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:10px 12px;color:#e8e6e3;font-size:13px;font-family:inherit;outline:none;resize:vertical;line-height:1.6;"></textarea>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <sc-if value="{{ testMemoHas }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ deleteTestMemo }}" style="height:42px;padding:0 18px;border-radius:10px;border:1px solid rgba(240,113,106,.4);background:rgba(240,113,106,.1);color:#f0716a;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;" style-hover="background:rgba(240,113,106,.18);">삭제</button>
+          </sc-if>
+          <div style="flex:1;"></div>
+          <button onClick="{{ closeTestMemo }}" style="height:42px;padding:0 24px;border-radius:10px;border:1px solid #2e2e34;background:#242429;color:#e8e6e3;font-size:14px;cursor:pointer;font-family:inherit;" style-hover="background:#2b2b31;">취소</button>
+          <button onClick="{{ saveTestMemo }}" style="height:42px;padding:0 24px;border-radius:10px;border:none;background:#f0716a;color:#1d1113;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;" style-hover="background:#f5857e;">저장</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ testDelOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeTestDel }}" style="position:fixed;inset:0;background:rgba(8,8,10,.62);backdrop-filter:blur(3px);display:grid;place-items:center;z-index:70;animation:fadeIn .15s;" data-screen-label="테스트 삭제 확인 다이얼로그">
+      <div onClick="{{ stopClick }}" style="width:min(440px,92vw);background:#1c1c20;border:1px solid #2e2e34;border-radius:16px;padding:26px;animation:dlgIn .18s ease-out;box-sizing:border-box;display:flex;flex-direction:column;gap:16px;">
+        <div style="font-size:17px;font-weight:700;">테스트 삭제</div>
+        <div style="font-size:13px;color:#b3b0b8;line-height:1.6;">"{{ testDelName }}" 테스트를 삭제할까요?<br>삭제한 테스트는 복구할 수 없습니다.</div>
+        <sc-if value="{{ testDelLinked }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12px;color:#8a8890;background:#222227;border:1px solid #2a2a30;border-radius:10px;padding:12px 14px;line-height:1.6;">연결된 작업 항목("{{ testDelName }}")은 유지되며 테스트만 삭제됩니다.</div>
+        </sc-if>
+        <div style="display:flex;gap:10px;">
+          <button onClick="{{ confirmTestDel }}" style="flex:1;height:42px;border-radius:10px;border:none;background:#f0716a;color:#1d1113;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;" style-hover="background:#f5857e;">삭제</button>
+          <button onClick="{{ closeTestDel }}" style="flex:1;height:42px;border-radius:10px;border:1px solid #2e2e34;background:#242429;color:#e8e6e3;font-size:14px;cursor:pointer;font-family:inherit;" style-hover="background:#2b2b31;">취소</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ delConfirmOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeDelConfirm }}" style="position:fixed;inset:0;background:rgba(8,8,10,.62);backdrop-filter:blur(3px);display:grid;place-items:center;z-index:70;animation:fadeIn .15s;" data-screen-label="작업 삭제 확인 다이얼로그">
+      <div onClick="{{ stopClick }}" style="width:min(440px,92vw);background:#1c1c20;border:1px solid #2e2e34;border-radius:16px;padding:26px;animation:dlgIn .18s ease-out;box-sizing:border-box;display:flex;flex-direction:column;gap:16px;">
+        <div style="font-size:17px;font-weight:700;">작업 삭제</div>
+        <div style="font-size:13px;color:#b3b0b8;line-height:1.6;">"{{ delTaskTitle }}" 작업을 삭제할까요?<br>삭제한 작업은 복구할 수 없습니다.</div>
+        <sc-if value="{{ delHasLinked }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:14px;background:#222227;border:1px solid #2a2a30;border-radius:10px;padding:13px 16px;">
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:500;">연결된 테스트 항목도 삭제</div>
+              <div style="font-size:11.5px;color:#8a8890;margin-top:2px;">이 작업으로 등록된 테스트 항목을 함께 삭제합니다.</div>
+            </div>
+            <button onClick="{{ toggleDelTest }}" role="switch" style="{{ delTestTrack }}">
+              <span style="{{ delTestKnob }}"></span>
+            </button>
+          </div>
+        </sc-if>
+        <div style="display:flex;gap:10px;">
+          <button onClick="{{ confirmDelete }}" style="flex:1;height:42px;border-radius:10px;border:none;background:#f0716a;color:#1d1113;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;" style-hover="background:#f5857e;">삭제</button>
+          <button onClick="{{ closeDelConfirm }}" style="flex:1;height:42px;border-radius:10px;border:1px solid #2e2e34;background:#242429;color:#e8e6e3;font-size:14px;cursor:pointer;font-family:inherit;" style-hover="background:#2b2b31;">취소</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ taskNewOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeNewTask }}" style="position:fixed;inset:0;background:rgba(8,8,10,.62);backdrop-filter:blur(3px);display:grid;place-items:center;z-index:50;animation:fadeIn .15s;" data-screen-label="새 작업 다이얼로그">
+      <div onClick="{{ stopClick }}" style="width:min(540px,92vw);max-height:88vh;overflow-y:auto;background:#1c1c20;border:1px solid #2e2e34;border-radius:16px;padding:28px;animation:dlgIn .18s ease-out;box-sizing:border-box;display:flex;flex-direction:column;gap:16px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-size:19px;font-weight:700;">{{ taskDlgTitle }}</div>
+          <span style="font-size:12px;color:#b3b0b8;background:#26262c;border-radius:7px;padding:4px 10px;">{{ newTaskStatus }}</span>
+        </div>
+        <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;"><span>제목 <span style="color:#f0716a;">*</span></span>
+          <input onInput="{{ onNewTaskTitle }}" value="{{ newTaskTitle }}" placeholder="무엇을 해야 하나요?" style="height:38px;background:#242429;border:1px solid #2e2e34;border-bottom:2px solid #f0716a;border-radius:8px;padding:0 12px;color:#e8e6e3;font-size:13.5px;font-family:inherit;outline:none;">
+        </label>
+        <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">설명
+          <textarea onInput="{{ onNewTaskDesc }}" value="{{ newTaskDesc }}" placeholder="작업 내용 설명 (선택)" rows="3" style="background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:10px 12px;color:#e8e6e3;font-size:13px;font-family:inherit;outline:none;resize:vertical;line-height:1.6;"></textarea>
+        </label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">카테고리
+            <select onChange="{{ onNewTaskCat }}" value="{{ newTaskCat }}" style="height:38px;background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:0 10px;color:#e8e6e3;font-size:13px;font-family:inherit;outline:none;">
+              <sc-for list="{{ taskCatNames }}" as="cn" hint-placeholder-count="3"><option value="{{ cn }}">{{ cn }}</option></sc-for>
+            </select>
+          </label>
+          <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">우선순위
+            <select onChange="{{ onNewTaskPri }}" value="{{ newTaskPri }}" style="height:38px;background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:0 10px;color:#e8e6e3;font-size:13px;font-family:inherit;outline:none;">
+              <option value="높음">높음</option><option value="보통">보통</option><option value="낮음">낮음</option>
+            </select>
+          </label>
+          <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">시작일
+            <input type="date" onInput="{{ onNewTaskStart }}" value="{{ newTaskStart }}" style="height:38px;background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:0 12px;color:#e8e6e3;font-size:13px;font-family:inherit;outline:none;color-scheme:dark;box-sizing:border-box;width:100%;">
+          </label>
+          <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">종료일
+            <input type="date" onInput="{{ onNewTaskEnd }}" value="{{ newTaskEnd }}" style="height:38px;background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:0 12px;color:#e8e6e3;font-size:13px;font-family:inherit;outline:none;color-scheme:dark;box-sizing:border-box;width:100%;">
+          </label>
+        </div>
+        <sc-if value="{{ taskDlgNew }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:center;gap:14px;background:#222227;border:1px solid #2a2a30;border-radius:10px;padding:13px 16px;">
+          <div style="flex:1;">
+            <div style="font-size:13.5px;font-weight:500;">테스트 추가</div>
+            <div style="font-size:12px;color:#8a8890;margin-top:2px;">이 작업을 테스트 목록에도 추가합니다.</div>
+          </div>
+          <button onClick="{{ toggleNewTaskTest }}" role="switch" style="{{ newTaskTestTrack }}">
+            <span style="{{ newTaskTestKnob }}"></span>
+          </button>
+        </div>
+        </sc-if>
+        <div style="display:flex;gap:10px;margin-top:6px;">
+          <button onClick="{{ saveNewTask }}" style="{{ saveTaskStyle }}">{{ taskDlgSave }}</button>
+          <button onClick="{{ closeNewTask }}" style="flex:1;height:42px;border-radius:10px;border:1px solid #2e2e34;background:#242429;color:#e8e6e3;font-size:14px;cursor:pointer;font-family:inherit;" style-hover="background:#2b2b31;">취소</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ dlgProject }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeDialog }}" style="position:fixed;inset:0;background:rgba(8,8,10,.62);backdrop-filter:blur(3px);display:grid;place-items:center;z-index:50;animation:fadeIn .15s;" data-screen-label="프로젝트 설정 다이얼로그">
+      <div onClick="{{ stopClick }}" style="width:min(560px,92vw);max-height:86vh;overflow-y:auto;background:#1c1c20;border:1px solid #2e2e34;border-radius:16px;padding:28px;animation:dlgIn .18s ease-out;box-sizing:border-box;">
+        <div style="font-size:19px;font-weight:700;margin-bottom:22px;">프로젝트 추가</div>
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;"><span>프로젝트 이름 <span style="color:#f0716a;">*</span></span>
+            <input placeholder="프로젝트 이름 입력" style="height:38px;background:#242429;border:1px solid #2e2e34;border-bottom:2px solid #f0716a;border-radius:8px;padding:0 12px;color:#e8e6e3;font-size:13.5px;font-family:inherit;outline:none;">
+          </label>
+          <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">설명
+            <textarea placeholder="프로젝트 설명 (선택)" rows="3" style="background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:10px 12px;color:#e8e6e3;font-size:13.5px;font-family:inherit;outline:none;resize:vertical;"></textarea>
+          </label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">그룹 *
+              <select style="height:38px;background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:0 10px;color:#e8e6e3;font-size:13.5px;font-family:inherit;outline:none;"><option>업무</option><option>개인</option><option>실험</option></select>
+            </label>
+            <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">카테고리 *
+              <select style="height:38px;background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:0 10px;color:#e8e6e3;font-size:13.5px;font-family:inherit;outline:none;"><option>앱</option><option>웹</option><option>라이브러리</option><option>AI</option></select>
+            </label>
+          </div>
+          <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">개발 도구 *
+            <select style="height:38px;background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:0 10px;color:#e8e6e3;font-size:13.5px;font-family:inherit;outline:none;"><option>개발 도구 선택</option><option>Visual Studio 2026</option><option>VS Code</option><option>Zed</option></select>
+          </label>
+          <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">경로 (폴더 또는 파일)
+            <div style="display:flex;gap:8px;">
+              <input placeholder="폴더 또는 파일 경로" style="flex:1;height:38px;background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:0 12px;color:#e8e6e3;font-size:13.5px;font-family:inherit;outline:none;">
+              <button style="width:44px;height:40px;border-radius:8px;border:1px solid #2e2e34;background:#242429;color:#a8a6ad;cursor:pointer;font-size:15px;" style-hover="color:#e8e6e3;">…</button>
+            </div>
+          </label>
+          <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">옵션
+            <input placeholder="추가 옵션 (선택)" style="height:38px;background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:0 12px;color:#e8e6e3;font-size:13.5px;font-family:inherit;outline:none;">
+          </label>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:26px;">
+          <button onClick="{{ closeDialog }}" style="flex:1;height:42px;border-radius:10px;border:none;background:#f0716a;color:#1d1113;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;" style-hover="background:#f5857e;">저장</button>
+          <button onClick="{{ closeDialog }}" style="flex:1;height:42px;border-radius:10px;border:1px solid #2e2e34;background:#242429;color:#e8e6e3;font-size:14px;cursor:pointer;font-family:inherit;" style-hover="background:#2b2b31;">취소</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ dlgHistory }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeDialog }}" style="position:fixed;inset:0;background:rgba(8,8,10,.62);backdrop-filter:blur(3px);display:grid;place-items:center;z-index:50;animation:fadeIn .15s;" data-screen-label="작업 기록 다이얼로그">
+      <div onClick="{{ stopClick }}" style="width:min(760px,94vw);height:min(680px,90vh);background:#1c1c20;border:1px solid #2e2e34;border-radius:16px;padding:28px;animation:dlgIn .18s ease-out;box-sizing:border-box;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-size:19px;font-weight:700;">작업 기록</div>
+          <span style="font-size:12px;color:#b3b0b8;background:#26262c;border-radius:7px;padding:4px 10px;">{{ historyScope }}</span>
+          <span style="font-size:12px;color:#8a8890;">{{ historyTotal }}건</span>
+        </div>
+        <sc-if value="{{ histList }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <div style="flex:1;display:flex;align-items:center;gap:9px;background:#242429;border:1px solid #2e2e34;border-radius:9px;padding:0 12px;height:38px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a8890" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21"></line></svg>
+            <input onInput="{{ onHistorySearch }}" placeholder="기록 검색…" style="flex:1;background:transparent;border:none;outline:none;color:#e8e6e3;font-size:13px;font-family:inherit;">
+          </div>
+          <button onClick="{{ openNewHistory }}" style="display:flex;align-items:center;gap:6px;height:38px;padding:0 15px;border-radius:9px;border:none;background:#f0716a;color:#1d1113;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;" style-hover="background:#f5857e;">＋ 새 기록</button>
+          <button title="내보내기" style="width:38px;height:38px;border-radius:9px;border:1px solid #2e2e34;background:#242429;color:#a8a6ad;cursor:pointer;display:grid;place-items:center;" style-hover="color:#e8e6e3;background:#2b2b31;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"></path></svg>
+          </button>
+        </div>
+        <div style="flex:1;overflow-y:auto;margin-top:18px;display:flex;flex-direction:column;gap:20px;">
+          <sc-if value="{{ historyEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="text-align:center;padding:60px 0;color:#6f6d75;font-size:13px;">검색 결과가 없습니다</div>
+          </sc-if>
+          <sc-for list="{{ historyGroups }}" as="hg" hint-placeholder-count="2">
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;align-items:center;gap:9px;">
+                <span style="font-size:12.5px;font-weight:700;color:#c9c6ce;font-family:ui-monospace,monospace;">{{ hg.date }}</span>
+                <span style="font-size:11px;color:#8a8890;">{{ hg.count }}건</span>
+                <span style="flex:1;height:1px;background:#26262c;"></span>
+              </div>
+              <sc-for list="{{ hg.entries }}" as="he" hint-placeholder-count="2">
+                <div style="background:#222227;border:1px solid #2a2a30;border-radius:10px;overflow:hidden;">
+                  <div onClick="{{ he.onToggle }}" style="display:flex;align-items:center;gap:11px;padding:12px 14px;cursor:pointer;" style-hover="background:#26262b;">
+                    <span style="{{ he.chevronStyle }}">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 5l7 7-7 7"></path></svg>
+                    </span>
+                    <span style="font-size:11.5px;color:#8a8890;font-family:ui-monospace,monospace;flex-shrink:0;">{{ he.time }}</span>
+                    <span style="flex:1;font-size:13.5px;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ he.title }}</span>
+                    <span style="{{ he.kindStyle }}">{{ he.kind }}</span>
+                    <span style="font-size:11.5px;color:#8a8890;background:#2b2b31;border-radius:6px;padding:3px 9px;flex-shrink:0;">{{ he.project }}</span>
+                    <button title="편집" onClick="{{ stopClick }}" style="width:27px;height:27px;border-radius:7px;border:none;background:transparent;color:#6f6d75;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="background:#2f2f36;color:#e8e6e3;">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20l1-4L16 5l3 3L8 19zM14 7l3 3"></path></svg>
+                    </button>
+                    <button title="삭제" onClick="{{ stopClick }}" style="width:27px;height:27px;border-radius:7px;border:none;background:transparent;color:#6f6d75;cursor:pointer;display:grid;place-items:center;flex-shrink:0;" style-hover="background:rgba(240,113,106,.12);color:#f0716a;">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13"></path></svg>
+                    </button>
+                  </div>
+                  <sc-if value="{{ he.open }}" hint-placeholder-val="{{ false }}">
+                    <div style="padding:0 14px 13px 50px;font-size:12.5px;color:#98959d;line-height:1.65;border-top:1px solid #26262c;padding-top:11px;">{{ he.detail }}</div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ hasPages }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;padding-top:14px;border-top:1px solid #26262c;">
+            <span style="font-size:11.5px;color:#8a8890;margin-right:auto;">{{ pageInfo }}</span>
+            <button onClick="{{ prevPage }}" title="이전" style="{{ prevPageStyle }}">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 5l-7 7 7 7"></path></svg>
+            </button>
+            <sc-for list="{{ pageItems }}" as="pi" hint-placeholder-count="5">
+              <sc-if value="{{ pi.ellipsis }}" hint-placeholder-val="{{ false }}">
+                <span style="min-width:20px;text-align:center;color:#5f5d66;font-size:12.5px;">…</span>
+              </sc-if>
+              <sc-if value="{{ pi.num }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ pi.onClick }}" style="{{ pi.style }}">{{ pi.num }}</button>
+              </sc-if>
+            </sc-for>
+            <button onClick="{{ nextPage }}" title="다음" style="{{ nextPageStyle }}">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 5l7 7-7 7"></path></svg>
+            </button>
+            <span style="margin-left:auto;"></span>
+          </div>
+        </sc-if>
+        </sc-if>
+        <sc-if value="{{ histNew }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;overflow-y:auto;margin-top:16px;display:flex;flex-direction:column;gap:16px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <button onClick="{{ backToHistoryList }}" style="display:flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:8px;border:1px solid #2e2e34;background:#242429;color:#a8a6ad;font-size:12px;cursor:pointer;font-family:inherit;" style-hover="color:#e8e6e3;background:#2b2b31;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 5l-7 7 7 7"></path></svg>
+              목록
+            </button>
+            <div style="font-size:14.5px;font-weight:700;">새 기록 추가</div>
+          </div>
+          <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;"><span>제목 <span style="color:#f0716a;">*</span></span>
+            <input onInput="{{ onNewTitle }}" value="{{ newTitle }}" placeholder="무엇을 작업했나요?" style="height:38px;background:#242429;border:1px solid #2e2e34;border-bottom:2px solid #f0716a;border-radius:8px;padding:0 12px;color:#e8e6e3;font-size:13.5px;font-family:inherit;outline:none;">
+          </label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">날짜
+              <input type="date" onInput="{{ onNewDate }}" value="{{ newDate }}" style="height:38px;background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:0 12px;color:#e8e6e3;font-size:13.5px;font-family:inherit;outline:none;color-scheme:dark;box-sizing:border-box;width:100%;">
+            </label>
+            <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">시간
+              <input type="time" onInput="{{ onNewTime }}" value="{{ newTime }}" style="height:38px;background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:0 12px;color:#e8e6e3;font-size:13.5px;font-family:inherit;outline:none;color-scheme:dark;box-sizing:border-box;width:100%;">
+            </label>
+            <sc-if value="{{ showProjectSelect }}" hint-placeholder-val="{{ true }}">
+              <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">프로젝트
+                <select onChange="{{ onNewProject }}" value="{{ newProject }}" style="height:38px;background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:0 10px;color:#e8e6e3;font-size:13.5px;font-family:inherit;outline:none;">
+                  <sc-for list="{{ projectNames }}" as="pn" hint-placeholder-count="3"><option value="{{ pn }}">{{ pn }}</option></sc-for>
+                </select>
+              </label>
+            </sc-if>
+            <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">유형
+              <select onChange="{{ onNewKind }}" value="{{ newKind }}" style="height:38px;background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:0 10px;color:#e8e6e3;font-size:13.5px;font-family:inherit;outline:none;">
+                <optgroup label="유형">
+                  <sc-for list="{{ histKindNames }}" as="kn" hint-placeholder-count="4"><option value="{{ kn }}">{{ kn }}</option></sc-for>
+                </optgroup>
+                <optgroup label="작업 카테고리">
+                  <sc-for list="{{ histTaskCatNames }}" as="tcn" hint-placeholder-count="3"><option value="{{ tcn }}">{{ tcn }}</option></sc-for>
+                </optgroup>
+              </select>
+            </label>
+          </div>
+          <label style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:#b3b0b8;">내용
+            <textarea onInput="{{ onNewDetail }}" value="{{ newDetail }}" placeholder="작업 내용을 기록해 두면 나중에 찾기 쉽습니다 (선택)" rows="6" style="background:#242429;border:1px solid #2e2e34;border-radius:8px;padding:10px 12px;color:#e8e6e3;font-size:13.5px;font-family:inherit;outline:none;resize:vertical;line-height:1.6;"></textarea>
+          </label>
+
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <button onClick="{{ saveNewHistory }}" style="{{ saveHistStyle }}">저장</button>
+          <button onClick="{{ backToHistoryList }}" style="flex:1;height:42px;border-radius:10px;border:1px solid #2e2e34;background:#242429;color:#e8e6e3;font-size:14px;cursor:pointer;font-family:inherit;" style-hover="background:#2b2b31;">취소</button>
+        </div>
+        </sc-if>
+        <sc-if value="{{ histList }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+          <button onClick="{{ closeDialog }}" style="height:40px;padding:0 40px;border-radius:10px;border:1px solid #2e2e34;background:#242429;color:#e8e6e3;font-size:13.5px;cursor:pointer;font-family:inherit;" style-hover="background:#2b2b31;">닫기</button>
+        </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ dlgSettings }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeDialog }}" style="position:fixed;inset:0;background:rgba(8,8,10,.62);backdrop-filter:blur(3px);display:grid;place-items:center;z-index:50;animation:fadeIn .15s;" data-screen-label="앱 설정 다이얼로그">
+      <div onClick="{{ stopClick }}" style="width:min(720px,94vw);height:min(600px,88vh);background:#1c1c20;border:1px solid #2e2e34;border-radius:16px;padding:28px;animation:dlgIn .18s ease-out;box-sizing:border-box;display:flex;flex-direction:column;">
+        <div style="font-size:19px;font-weight:700;margin-bottom:18px;">앱 설정</div>
+        <div style="flex:1;display:flex;gap:22px;min-height:0;">
+          <nav style="display:flex;flex-direction:column;gap:4px;width:88px;flex-shrink:0;">
+            <sc-for list="{{ settingsNav }}" as="sn" hint-placeholder-count="3">
+              <button onClick="{{ sn.onClick }}" style="{{ sn.style }}" style-hover="color:#e8e6e3;">{{ sn.label }}</button>
+            </sc-for>
+          </nav>
+          <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;">
+            <sc-if value="{{ setTabGeneral }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:13px;font-weight:700;color:#b3b0b8;margin-bottom:2px;">시스템</div>
+              <sc-for list="{{ settingRows }}" as="sr" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:14px;background:#222227;border:1px solid #2a2a30;border-radius:10px;padding:14px 16px;">
+                  <div style="flex:1;">
+                    <div style="font-size:13.5px;font-weight:500;">{{ sr.title }}</div>
+                    <div style="font-size:12px;color:#8a8890;margin-top:2px;">{{ sr.desc }}</div>
+                  </div>
+                  <button onClick="{{ sr.onToggle }}" role="switch" style="{{ sr.trackStyle }}">
+                    <span style="{{ sr.knobStyle }}"></span>
+                  </button>
+                </div>
+              </sc-for>
+              <div style="display:flex;align-items:center;gap:14px;background:#222227;border:1px solid #2a2a30;border-radius:10px;padding:14px 16px;">
+                <div style="flex:1;">
+                  <div style="font-size:13.5px;font-weight:500;">테마</div>
+                  <div style="font-size:12px;color:#8a8890;margin-top:2px;">현재 앱의 테마를 변경합니다.</div>
+                </div>
+                <select style="height:34px;background:#2b2b31;border:1px solid #35353c;border-radius:8px;padding:0 10px;color:#e8e6e3;font-size:12.5px;font-family:inherit;outline:none;"><option>시스템 설정</option><option>다크</option><option>라이트</option></select>
+              </div>
+              <div style="display:flex;align-items:center;gap:14px;background:#222227;border:1px solid #2a2a30;border-radius:10px;padding:14px 16px;">
+                <div style="flex:1;">
+                  <div style="font-size:13.5px;font-weight:500;">언어</div>
+                  <div style="font-size:12px;color:#8a8890;margin-top:2px;">앱에 표시되는 언어를 선택합니다. 재시작 후 반영됩니다.</div>
+                </div>
+                <select style="height:34px;background:#2b2b31;border:1px solid #35353c;border-radius:8px;padding:0 10px;color:#e8e6e3;font-size:12.5px;font-family:inherit;outline:none;"><option>시스템 언어</option><option>한국어</option><option>English</option></select>
+              </div>
+              <div style="display:flex;align-items:center;gap:14px;background:#222227;border:1px solid #2a2a30;border-radius:10px;padding:14px 16px;">
+                <div style="flex:1;">
+                  <div style="font-size:13.5px;font-weight:500;">페이지당 표시 개수</div>
+                  <div style="font-size:12px;color:#8a8890;margin-top:2px;">작업 기록 목록에서 한 페이지에 표시할 개수입니다. (100 ~ 1000)</div>
+                </div>
+                <input type="number" min="100" max="1000" step="10" value="{{ pageSize }}" onInput="{{ onPageSizeInput }}" onBlur="{{ onPageSizeBlur }}" style="width:90px;height:34px;background:#2b2b31;border:1px solid #35353c;border-radius:8px;padding:0 12px;color:#e8e6e3;font-size:12.5px;font-family:ui-monospace,monospace;outline:none;box-sizing:border-box;text-align:right;">
+              </div>
+            </sc-if>
+            <sc-if value="{{ setTabTools }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:13px;font-weight:700;color:#b3b0b8;margin-bottom:2px;">외부 개발 도구</div>
+              <sc-for list="{{ toolRows }}" as="tr" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:12px;background:#222227;border:1px solid #2a2a30;border-radius:10px;padding:12px 16px;">
+                  <div style="width:30px;height:30px;border-radius:8px;background:{{ tr.color }};display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff;">{{ tr.initial }}</div>
+                  <div style="flex:1;">
+                    <div style="font-size:13px;font-weight:500;">{{ tr.name }}</div>
+                    <div style="font-size:11.5px;color:#8a8890;font-family:ui-monospace,monospace;">{{ tr.path }}</div>
+                  </div>
+                  <span style="font-size:11px;color:#5db463;">감지됨</span>
+                </div>
+              </sc-for>
+            </sc-if>
+            <sc-if value="{{ setTabCode }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:13px;font-weight:700;color:#b3b0b8;margin-bottom:2px;">기술 스택 태그</div>
+              <div style="background:#222227;border:1px solid #2a2a30;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;">
+                <div style="font-size:12px;color:#8a8890;">사용자 정의 태그 (기본 태그는 변경 불가)</div>
+                <div style="display:flex;gap:8px;">
+                  <input onInput="{{ onTagInput }}" onKeyDown="{{ onTagKey }}" value="{{ tagInput }}" placeholder="새 태그 입력…" style="flex:1;height:36px;background:#2b2b31;border:1px solid #35353c;border-radius:8px;padding:0 12px;color:#e8e6e3;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box;">
+                  <button onClick="{{ addTag }}" style="height:36px;padding:0 16px;border-radius:8px;border:1px solid #35353c;background:#2b2b31;color:#e8e6e3;font-size:12.5px;cursor:pointer;font-family:inherit;flex-shrink:0;" style-hover="background:#33333a;">추가</button>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                  <sc-for list="{{ stackTags }}" as="st" hint-placeholder-count="8">
+                    <span style="{{ st.style }}">{{ st.name }}<sc-if value="{{ st.custom }}" hint-placeholder-val="{{ false }}"><button onClick="{{ st.onRemove }}" style="background:none;border:none;color:#8a8890;cursor:pointer;font-size:11px;padding:0;margin-left:2px;" style-hover="color:#f0716a;">✕</button></sc-if></span>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="font-size:13px;font-weight:700;color:#b3b0b8;margin:10px 0 2px;">작업 카테고리</div>
+              <div style="background:#222227;border:1px solid #2a2a30;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;">
+                <div style="font-size:12px;color:#8a8890;">작업(칸반) 화면에서 사용하는 카테고리 (기본 카테고리는 변경 불가)</div>
+                <div style="display:flex;gap:8px;">
+                  <input onInput="{{ onTaskCatInput }}" onKeyDown="{{ onTaskCatKey }}" value="{{ taskCatInput }}" placeholder="새 작업 카테고리 입력…" style="flex:1;height:36px;background:#2b2b31;border:1px solid #35353c;border-radius:8px;padding:0 12px;color:#e8e6e3;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box;">
+                  <button onClick="{{ addTaskCat }}" style="height:36px;padding:0 16px;border-radius:8px;border:1px solid #35353c;background:#2b2b31;color:#e8e6e3;font-size:12.5px;cursor:pointer;font-family:inherit;flex-shrink:0;" style-hover="background:#33333a;">추가</button>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                  <sc-for list="{{ taskCatTags }}" as="tc" hint-placeholder-count="3">
+                    <span style="{{ tc.style }}"><span style="{{ tc.dotStyle }}"></span>{{ tc.name }}<sc-if value="{{ tc.custom }}" hint-placeholder-val="{{ false }}"><button onClick="{{ tc.onRemove }}" style="background:none;border:none;color:#8a8890;cursor:pointer;font-size:11px;padding:0;margin-left:2px;" style-hover="color:#f0716a;">✕</button></sc-if></span>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="font-size:13px;font-weight:700;color:#b3b0b8;margin:10px 0 2px;">작업 기록 유형</div>
+              <div style="background:#222227;border:1px solid #2a2a30;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;">
+                <div style="font-size:12px;color:#8a8890;">작업 기록에서 사용하는 유형 (기본 유형은 변경 불가)</div>
+                <div style="display:flex;gap:8px;">
+                  <input onInput="{{ onHistKindInput }}" onKeyDown="{{ onHistKindKey }}" value="{{ histKindInput }}" placeholder="새 유형 입력…" style="flex:1;height:36px;background:#2b2b31;border:1px solid #35353c;border-radius:8px;padding:0 12px;color:#e8e6e3;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box;">
+                  <button onClick="{{ addHistKind }}" style="height:36px;padding:0 16px;border-radius:8px;border:1px solid #35353c;background:#2b2b31;color:#e8e6e3;font-size:12.5px;cursor:pointer;font-family:inherit;flex-shrink:0;" style-hover="background:#33333a;">추가</button>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                  <sc-for list="{{ histKindTags }}" as="hk" hint-placeholder-count="4">
+                    <span style="{{ hk.style }}">{{ hk.name }}<sc-if value="{{ hk.custom }}" hint-placeholder-val="{{ false }}"><button onClick="{{ hk.onRemove }}" style="background:none;border:none;color:#8a8890;cursor:pointer;font-size:11px;padding:0;margin-left:2px;" style-hover="color:#f0716a;">✕</button></sc-if></span>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="font-size:13px;font-weight:700;color:#b3b0b8;margin:10px 0 2px;">카테고리</div>
+              <div style="background:#222227;border:1px solid #2a2a30;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;">
+                <div style="font-size:12px;color:#8a8890;">사용자 정의 카테고리 (기본 카테고리는 변경 불가)</div>
+                <div style="display:flex;gap:8px;">
+                  <input onInput="{{ onCatInput }}" onKeyDown="{{ onCatKey }}" value="{{ catInput }}" placeholder="새 카테고리 입력…" style="flex:1;height:36px;background:#2b2b31;border:1px solid #35353c;border-radius:8px;padding:0 12px;color:#e8e6e3;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box;">
+                  <button onClick="{{ addCat }}" style="height:36px;padding:0 16px;border-radius:8px;border:1px solid #35353c;background:#2b2b31;color:#e8e6e3;font-size:12.5px;cursor:pointer;font-family:inherit;flex-shrink:0;" style-hover="background:#33333a;">추가</button>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                  <sc-for list="{{ catTags }}" as="ct" hint-placeholder-count="5">
+                    <span style="{{ ct.style }}">{{ ct.name }}<sc-if value="{{ ct.custom }}" hint-placeholder-val="{{ false }}"><button onClick="{{ ct.onRemove }}" style="background:none;border:none;color:#8a8890;cursor:pointer;font-size:11px;padding:0;margin-left:2px;" style-hover="color:#f0716a;">✕</button></sc-if></span>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ setTabInfo }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:40px 0;color:#8a8890;font-size:13px;">
+                <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#f0716a,#c94a5e);display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:4px;padding:12px;box-sizing:border-box;">
+                  <div style="background:#fff;border-radius:2px;opacity:.95;"></div><div style="background:#fff;border-radius:2px;opacity:.55;"></div><div style="background:#fff;border-radius:2px;opacity:.55;"></div><div style="background:#fff;border-radius:2px;opacity:.95;"></div>
+                </div>
+                <div style="font-size:15px;font-weight:700;color:#e8e6e3;">프로젝트 대시보드</div>
+                <div>버전 2.0.0 · MIT License</div>
+                <div>WinUI 3 · Windows App SDK · .NET</div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+          <button onClick="{{ closeDialog }}" style="height:40px;padding:0 40px;border-radius:10px;border:1px solid #2e2e34;background:#242429;color:#e8e6e3;font-size:13.5px;cursor:pointer;font-family:inherit;" style-hover="background:#2b2b31;">닫기</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showLauncher&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;레이아웃&quot;}}">
+class Component extends DCLogic {
+  state = {
+    group: '전체', query: '', dialog: null, view: 'dashboard', setTab: 'general',
+    historyQuery: '', historyOpen: null, hMode: 'list', historyProject: null, histPage: 1, pageSize: 100,
+    newTitle: '', newProject: 'Aurora API', newKind: '기능', newDetail: '',
+    newDate: new Date().toISOString().slice(0, 10), newTime: new Date().toTimeString().slice(0, 5),
+    history: [
+      { id: 1, date: '2026-07-17', time: '17:42', title: '카드 액션 2단 배치로 변경', project: 'FocusTimer', kind: '기능', detail: '커맨드 스크립트 슬롯을 카드 하단 별도 행으로 분리하고, GitHub·To-Do·기록·테스트 아이콘을 우측에 정렬. 좁은 폭에서 줄바꿈되던 문제 해결.' },
+      { id: 2, date: '2026-07-17', time: '14:05', title: '결제 웹훅 재시도 로직 수정', project: 'Aurora API', kind: '수정', detail: '중복 웹훅 수신 시 idempotency 키 검증이 누락되어 이중 처리되던 버그 수정. 재시도 간격을 지수 백오프로 변경.' },
+      { id: 3, date: '2026-07-16', time: '19:30', title: '메인 메뉴 위치 상단 이동', project: 'Pulse Monitor', kind: '기능', detail: '사이드에 표시되던 메인 메뉴를 상단으로 이동하고 반응형 브레이크포인트 조정.' },
+      { id: 4, date: '2026-07-16', time: '10:15', title: '아이콘 캐시 LRU 정리', project: 'FocusTimer', kind: '리팩터링', detail: '캐시 500개 초과 시 가장 오래된 20%를 제거하는 정리 로직을 백그라운드 작업으로 이동.' },
+      { id: 5, date: '2026-07-14', time: '16:48', title: 'README 스크린샷 갱신', project: 'Nimbus Docs', kind: '문서', detail: '신규 대시보드 UI 기준으로 스크린샷 6장 교체, 설치 절차 문구 정리.' },
+    ],
+    toggles: { autorun: true, marquee: true, launcher: true, popup: false },
+    testProject: null, testFilter: '전체', testNewOpen: false, newTestName: '', newTestSuite: '', newTestMethod: '', editTest: null,
+    customTags: [], customCats: [], tagInput: '', catInput: '', customTaskCats: [], taskCatInput: '', customHistKinds: [], histKindInput: '',
+    taskNewOpen: false, newTaskStatus: '예정', newTaskTitle: '', newTaskDesc: '', newTaskCat: 'UI·UX', newTaskPri: '보통', newTaskWho: '', newTaskStart: '', newTaskEnd: '', newTaskTest: true, taskMenu: null, editTaskId: null, delConfirm: null, delTestToggle: true, testMenu: null, testDel: null, testMemo: null, memoInput: '', dragTaskId: null, dragOverStatus: null, taskView: 'kanban', notifOpen: false, taskProject: null, readNotif: [], taskCatFilter: '전체', testCatFilter: '전체',
+    testSuites: [
+      { name: '백엔드', project: 'Aurora API', tests: [
+        { name: 'Webhook_중복수신시_이중처리되지_않음', status: '통과', dur: '84ms' },
+        { name: 'Idempotency키_누락시_400반환', status: '통과', dur: '31ms' },
+        { name: '재시도_지수백오프_간격검증', status: '실패', dur: '1.2s', error: 'Expected: 4000ms, Actual: 2000ms' },
+        { name: '결제취소_웹훅_서명검증', status: '통과', dur: '52ms' },
+      ]},
+      { name: '프론트엔드', project: 'Aurora API', tests: [
+        { name: '만료토큰_거부', status: '통과', dur: '18ms' },
+        { name: '리프레시토큰_회전', status: '미실행', dur: '—' },
+        { name: '권한없는_리소스_403반환', status: '통과', dur: '25ms' },
+      ]},
+      { name: 'UI·UX', project: 'FocusTimer', tests: [
+        { name: '카드액션_2단배치_렌더링', status: '통과', dur: '96ms' },
+        { name: '좁은폭_줄바꿈_방지', status: '실패', dur: '210ms', error: 'AssertionError: overflow detected at 340px' },
+        { name: '아이콘캐시_LRU_정리', status: '통과', dur: '340ms' },
+        { name: '타이머_일시정지_상태보존', status: '미실행', dur: '—' },
+      ]},
+      { name: '백엔드', project: 'Pulse Monitor', tests: [
+        { name: 'CPU샘플링_1초간격_유지', status: '통과', dur: '1.1s' },
+        { name: '연결끊김시_재연결_시도', status: '통과', dur: '450ms' },
+      ]},
+    ],
+    tasks: [
+      { id: 1, status: '예정', cat: 'UI·UX', project: 'FocusTimer', title: '빈 상태 일러스트 정리', desc: '검색 결과 없음 화면의 안내 문구와 배치를 다듬음.', range: '07-24 - 07-25', who: '김서연', pri: '낮음' },
+      { id: 2, status: '진행 중', cat: 'UI·UX', project: 'FocusTimer', title: '로딩 화면', desc: '목록을 가져오는 화면에 로딩 화면을 표시하도록 함.', range: '07-20 - 07-21', who: '박지훈', pri: '보통' },
+      { id: 3, status: '진행 중', cat: '프론트엔드', project: 'Pulse Monitor', title: '기존 프로젝트 asp로 기본 동작 전환', desc: '기존 wpf프로젝트를 asp로 전환 해서 기본 동작을 할 수 있도록 함.', range: '07-16 - 07-23', who: '박지훈', pri: '높음' },
+      { id: 4, status: '완료', cat: 'UI·UX', project: 'FocusTimer', title: '메인 메뉴 위치 개선', desc: '사이드에 표시되는 메인 메뉴 위치를 상단으로 이동.', range: '07-16 - 07-16', who: '김서연', pri: '보통' },
+      { id: 5, status: '완료', cat: '프론트엔드', project: 'Pulse Monitor', title: '카드 정렬 기준 저장', desc: '마지막으로 선택한 정렬 기준을 재실행 시에도 유지.', range: '07-14 - 07-15', who: '이도현', pri: '보통' },
+      { id: 6, status: '진행 중', cat: '백엔드', project: 'Aurora API', title: '결제 웹훅 재시도 로직', desc: '지수 백오프 재시도와 idempotency 키 검증 마무리.', range: '07-10 - 07-16', who: '', pri: '높음' },
+      { id: 7, status: '예정', cat: 'UI·UX', project: 'FocusTimer', title: '설정 화면 접근성 점검', desc: '키보드 포커스 순서와 대비비 검토.', range: '07-12 - 07-17', who: '', pri: '보통' },
+      { id: 8, status: '보류', cat: '프론트엔드', project: 'Pulse Monitor', title: 'ASP 전환 1차 검증', desc: '기존 WPF 동작을 ASP로 옮겨 기본 흐름 확인.', range: '07-08 - 07-18', who: '', pri: '높음' },
+    ],
+  };
+  cards = [
+    { name: 'Aurora API', desc: '사내 결제 게이트웨이 REST API', initial: 'A', iconBg: '#4a5bd0', tags: ['.net', 'c#', 'sql'], ide: 'VS 2026', ideBg: '#3d7a30', group: '업무', todo: 4, git: '변경 2건', dirty: true, lastRun: '10분 전' },
+    { name: 'Pulse Monitor', desc: '서버 리소스 실시간 모니터링 위젯', initial: 'P', iconBg: '#b0553a', tags: ['react', 'typescript'], ide: 'VS Code', ideBg: '#2f6db3', group: '업무', todo: 2, git: '깨끗함', dirty: false, lastRun: '1시간 전' },
+    { name: 'Nimbus Docs', desc: '팀 문서 정적 사이트 빌더', initial: 'N', iconBg: '#3a8a8a', tags: ['md', 'html'], ide: 'VS Code', ideBg: '#2f6db3', group: '업무', todo: 0, git: '깨끗함', dirty: false, lastRun: '어제' },
+    { name: 'FocusTimer', desc: '포모도로 집중 타이머', initial: 'F', iconBg: '#c04a68', tags: ['.net', 'c#', 'winui'], ide: 'VS 2026', ideBg: '#3d7a30', group: '개인', todo: 3, git: '변경 5건', dirty: true, lastRun: '2시간 전' },
+    { name: 'Recipe Box', desc: '개인 레시피 관리 앱', initial: 'R', iconBg: '#7a4ac0', tags: ['flutter', 'dart'], ide: 'Android Studio', ideBg: '#356e5a', group: '개인', todo: 1, git: '깨끗함', dirty: false, lastRun: '3일 전' },
+    { name: 'Photo Sync', desc: 'NAS 사진 백업 유틸리티', initial: 'S', iconBg: '#8a7a2e', tags: ['python'], ide: 'PyCharm', ideBg: '#5a5a30', group: '개인', todo: 0, git: '변경 1건', dirty: true, lastRun: '지난주' },
+    { name: 'Echo Bot', desc: '디스코드 배포 알림 봇', initial: 'E', iconBg: '#4a6ea0', tags: ['node', 'typescript'], ide: 'VS Code', ideBg: '#2f6db3', group: '실험', todo: 2, git: '깨끗함', dirty: false, lastRun: '어제' },
+    { name: 'Ray Sandbox', desc: '레이트레이싱 렌더러 실험', initial: 'R', iconBg: '#5a4ab0', tags: ['rust'], ide: 'Zed', ideBg: '#5b3fb8', group: '실험', todo: 5, git: '변경 8건', dirty: true, lastRun: '방금 전' },
+    { name: 'ML Playground', desc: '온디바이스 추론 성능 테스트', initial: 'M', iconBg: '#3a6a4a', tags: ['python', 'onnx'], ide: 'VS Code', ideBg: '#2f6db3', group: '실험', todo: 1, git: '깨끗함', dirty: false, lastRun: '4시간 전' },
+  ];
+  launcherApps = [
+    { name: 'Visual Studio', label: 'VS', color: '#b97ae8' }, { name: 'VS Code', label: 'C', color: '#5aa3e8' },
+    { name: 'Terminal', label: '>_', color: '#7ae89a' }, { name: 'Docker', label: 'D', color: '#5ad0e8' },
+    { name: 'Figma', label: 'Fg', color: '#e87a7a' }, { name: 'Notion', label: 'N', color: '#e8e0d0' },
+    { name: 'Slack', label: 'S', color: '#e8b45a' }, { name: 'Postman', label: 'P', color: '#e8925a' },
+  ];
+  taskEndDate(t) {
+    if (t.end) return t.end;
+    const m = (t.range || '').match(/(\d{2})-(\d{2})\s*$/);
+    if (m) return `${new Date().getFullYear()}-${m[1]}-${m[2]}`;
+    return null;
+  }
+  notifVals() {
+    const s = this.state;
+    const today = new Date().toISOString().slice(0, 10);
+    const dayDiff = end => Math.round((new Date(today) - new Date(end)) / 86400000);
+    const read = s.readNotif || [];
+    // 마감 임박(D-3 이내) + 오늘 마감 + 경과, 완료 제외
+    const due = s.tasks.filter(t => {
+      if (t.status === '완료') return false;
+      const end = this.taskEndDate(t);
+      if (!end) return false;
+      return dayDiff(end) >= -3;
+    }).sort((a, b) => (this.taskEndDate(a) || '').localeCompare(this.taskEndDate(b) || ''));
+    // tone: overdue(경과)=red, today(오늘)=orange, soon(임박)=blue
+    const toneOf = d => d > 0 ? { bg: 'rgba(240,113,106,.14)', fg: '#f0716a' }
+      : d === 0 ? { bg: 'rgba(232,146,90,.16)', fg: '#e8925a' }
+      : { bg: 'rgba(90,163,232,.16)', fg: '#7ab5ec' };
+    const mkNotif = t => {
+      const end = this.taskEndDate(t);
+      const d = dayDiff(end);
+      const tone = toneOf(d);
+      const isRead = read.includes(t.id);
+      const badge = d > 0 ? `${d}일 경과` : d === 0 ? '오늘 마감' : `D${d}`;
+      return {
+        id: t.id, title: t.title, isRead, unread: !isRead,
+        project: t.project || '미지정',
+        subCat: `${t.cat} · 종료일 ${end}`,
+        badge,
+        rowStyle: `display:flex;align-items:center;gap:14px;background:#1f1f24;border:1px solid #27272d;border-radius:12px;padding:15px 18px;cursor:pointer;transition:border-color .15s;opacity:${isRead ? 0.5 : 1};`,
+        popRowStyle: `display:flex;align-items:flex-start;gap:11px;padding:13px 18px;border-bottom:1px solid #232328;cursor:pointer;opacity:${isRead ? 0.5 : 1};`,
+        onClick: () => this.setState({ notifOpen: false, view: 'todo', taskView: 'list', taskProject: t.project || null, readNotif: [...new Set([...read, t.id])] }),
+        onReadToggle: e => { e.stopPropagation(); this.setState({ readNotif: isRead ? read.filter(id => id !== t.id) : [...read, t.id] }); },
+        readBtnStyle: `width:26px;height:26px;border-radius:7px;border:1px solid ${isRead ? '#2e2e34' : '#3a3a41'};background:transparent;color:${isRead ? '#5db463' : '#8a8890'};cursor:pointer;display:grid;place-items:center;flex-shrink:0;`,
+        readTitle: isRead ? '읽지 않음으로 표시' : '읽음으로 표시',
+        iconStyle: `width:26px;height:26px;border-radius:8px;display:grid;place-items:center;flex-shrink:0;background:${tone.bg};color:${tone.fg};`,
+        iconStyleLg: `width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex-shrink:0;background:${tone.bg};color:${tone.fg};`,
+        badgeStyle: `font-size:10.5px;font-weight:700;border-radius:6px;padding:3px 8px;flex-shrink:0;white-space:nowrap;background:${tone.bg};color:${tone.fg};`,
+      };
+    };
+    const notifItems = due.map(mkNotif);
+    const unreadCount = due.filter(t => !read.includes(t.id)).length;
+    const notifProjects = [...new Set(due.map(t => t.project || '미지정'))].map(proj => {
+      const items = due.filter(t => (t.project || '미지정') === proj);
+      return { name: proj, count: items.length, items: items.map(mkNotif) };
+    });
+    return {
+      notifOpen: s.notifOpen, notifCount: unreadCount, hasNotif: unreadCount > 0,
+      notifTotal: due.length, notifEmpty: due.length === 0, notifItems, notifProjects,
+      notifDotStyle: 'position:absolute;top:-3px;right:-3px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:#f0716a;color:#1d1113;font-size:10px;font-weight:700;display:grid;place-items:center;box-sizing:border-box;',
+      hasUnread: unreadCount > 0,
+      markAllRead: () => this.setState({ readNotif: [...new Set([...read, ...due.map(t => t.id)])] }),
+      toggleNotif: () => this.setState({ notifOpen: !s.notifOpen }),
+      closeNotif: () => this.setState({ notifOpen: false }),
+      openNotifPage: () => this.setState({ notifOpen: false, view: 'notif' }),
+      viewNotif: s.view === 'notif',
+    };
+  }
+  updateTest(suite, test, patch) {
+    this.setState({ testSuites: this.state.testSuites.map(su => su === suite
+      ? { ...su, tests: su.tests.map(t => t === test ? { ...t, ...patch } : t) } : su) });
+  }
+  testVals() {
+    const s = this.state;
+    const suites = s.testSuites.filter(su => (!s.testProject || su.project === s.testProject) && (s.testCatFilter === '전체' || su.name === s.testCatFilter));
+    const all = suites.flatMap(su => su.tests);
+    const statusMeta = {
+      '통과': { color: '#5aa3e8', icon: '✓', badge: 'background:rgba(90,163,232,.14);color:#7ab5ec;' },
+      '실패': { color: '#e8b45a', icon: '✕', badge: 'background:rgba(232,180,90,.14);color:#e8b45a;' },
+      '미실행': { color: '#8a8890', icon: '○', badge: 'background:#2b2b31;color:#8a8890;' },
+    };
+    const statNames = ['전체', '통과', '실패', '미실행'];
+    const countOf = n => n === '전체' ? all.length : all.filter(t => t.status === n).length;
+    const testStats = statNames.slice(1).map(n => ({
+      label: n, count: countOf(n), color: statusMeta[n].color,
+      dotStyle: `width:9px;height:9px;border-radius:3px;background:${statusMeta[n].color};flex-shrink:0;`,
+    }));
+    const testFilters = statNames.map(n => {
+      const active = n === s.testFilter;
+      return {
+        name: n, count: countOf(n), onClick: () => this.setState({ testFilter: n }),
+        style: `display:flex;align-items:center;gap:6px;height:34px;padding:0 14px;background:none;border:none;border-bottom:2px solid ${active ? '#f0716a' : 'transparent'};color:${active ? '#e8e6e3' : '#8a8890'};font-size:13.5px;font-weight:${active ? 700 : 500};cursor:pointer;font-family:inherit;`,
+        countStyle: `font-size:11px;padding:1px 7px;border-radius:8px;background:${active ? 'rgba(240,113,106,.16)' : '#26262c'};color:${active ? '#f0716a' : '#8a8890'};`,
+      };
+    });
+    const testSuites = suites.map(su => {
+      const tests = su.tests.filter(t => s.testFilter === '전체' || t.status === s.testFilter);
+      const pass = su.tests.filter(t => t.status === '통과').length;
+      const fail = su.tests.filter(t => t.status === '실패').length;
+      const total = su.tests.length;
+      return {
+        name: su.name, summary: `${pass}/${total} 통과`,
+        barStyle: 'display:flex;width:90px;height:6px;border-radius:3px;background:#2b2b31;overflow:hidden;flex-shrink:0;',
+        barPass: `width:${(pass / total) * 100}%;background:#5aa3e8;display:block;`,
+        barFail: `width:${(fail / total) * 100}%;background:#e8b45a;display:block;`,
+        tests: tests.map(t => ({
+          ...t, hasError: !!t.error, error: t.error || '',
+          hasMethod: !!t.method, method: t.method || '',
+          hasLink: !!t.link, link: t.link || '',
+          hasMemo: !!t.memo, memo: t.memo || '',
+          statusIcon: statusMeta[t.status].icon,
+          statusStyle: `width:20px;height:20px;border-radius:6px;display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0;${statusMeta[t.status].badge}`,
+          badgeStyle: `font-size:11px;font-weight:700;border:none;border-radius:6px;padding:5px 9px;flex-shrink:0;width:56px;text-align:center;cursor:pointer;font-family:inherit;box-sizing:border-box;${statusMeta[t.status].badge}`,
+          onToggle: () => {
+            const status = t.status === '미실행' ? '통과' : t.status === '통과' ? '실패' : '미실행';
+            this.updateTest(su, t, { status, dur: status === '미실행' ? '—' : t.dur });
+          },
+          onMenu: e => { e.preventDefault(); this.setState({ testMenu: { x: e.clientX, y: e.clientY, suite: su, test: t } }); },
+        })),
+      };
+    }).filter(su => su.tests.length > 0);
+    return {
+      testStats, testFilters, testSuites,
+      testEmpty: testSuites.length === 0,
+      testScope: s.testProject || '전체 프로젝트',
+      testCatFilter: s.testCatFilter,
+      testCatFilterOptions: ['전체', ...new Set(s.testSuites.filter(su => !s.testProject || su.project === s.testProject).map(su => su.name))],
+      onTestCatFilter: e => this.setState({ testCatFilter: e.target.value }),
+      testLastRun: '오늘 09:12',
+      testMenuOpen: !!s.testMenu,
+      testMenuStyle: s.testMenu ? `position:fixed;left:${Math.min(s.testMenu.x, (typeof window !== 'undefined' ? window.innerWidth : 1200) - 150)}px;top:${Math.min(s.testMenu.y, (typeof window !== 'undefined' ? window.innerHeight : 800) - 90)}px;width:140px;background:#222227;border:1px solid #35353c;border-radius:10px;padding:5px;box-shadow:0 10px 28px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:2px;animation:fadeIn .1s;` : '',
+      closeTestMenu: e => { e.preventDefault(); this.setState({ testMenu: null }); },
+      testMenuEdit: () => {
+        const { suite, test } = s.testMenu;
+        this.setState({ testMenu: null, testNewOpen: true, editTest: { suite, test }, newTestName: test.name, newTestSuite: suite.name, newTestMethod: test.method || '' });
+      },
+      testMenuDelete: () => this.setState({ testMenu: null, testDel: { suite: s.testMenu.suite, test: s.testMenu.test } }),
+      testMemoLabel: s.testMenu && s.testMenu.test.memo ? '메모 수정' : '메모',
+      testMenuMemo: () => this.setState({ testMenu: null, testMemo: { suite: s.testMenu.suite, test: s.testMenu.test }, memoInput: s.testMenu.test.memo || '' }),
+      testMemoOpen: !!s.testMemo,
+      testMemoTitle: s.testMemo && s.testMemo.test.memo ? '메모 수정' : '메모 추가',
+      testMemoTestName: s.testMemo ? s.testMemo.test.name : '',
+      memoInput: s.memoInput,
+      onMemoInput: e => this.setState({ memoInput: e.target.value }),
+      closeTestMemo: () => this.setState({ testMemo: null }),
+      testMemoHas: !!(s.testMemo && s.testMemo.test.memo),
+      deleteTestMemo: () => {
+        const { suite, test } = s.testMemo;
+        this.updateTest(suite, test, { memo: '' });
+        this.setState({ testMemo: null });
+      },
+      saveTestMemo: () => {
+        const { suite, test } = s.testMemo;
+        this.updateTest(suite, test, { memo: s.memoInput.trim() });
+        this.setState({ testMemo: null });
+      },
+      testDelOpen: !!s.testDel,
+      testDelName: s.testDel ? s.testDel.test.name : '',
+      testDelLinked: !!(s.testDel && s.testDel.test.link),
+      closeTestDel: () => this.setState({ testDel: null }),
+      confirmTestDel: () => {
+        const { suite, test } = s.testDel;
+        const next = s.testSuites.map(su => su === suite ? { ...su, tests: su.tests.filter(t => t !== test) } : su).filter(su => su.tests.length > 0);
+        this.setState({ testSuites: next, testDel: null });
+      },
+      testNewOpen: s.testNewOpen,
+      newTestName: s.newTestName, newTestSuite: s.newTestSuite, newTestMethod: s.newTestMethod,
+      onNewTestMethod: e => this.setState({ newTestMethod: e.target.value }),
+      testDlgTitle: s.editTest ? '테스트 수정' : '새 테스트 등록',
+      testDlgSave: s.editTest ? '저장' : '등록',
+      suiteNames: [...new Set(['UI·UX', '프론트엔드', '백엔드', ...s.customTaskCats, ...(s.editTest ? [s.editTest.suite.name] : [])])],
+      onNewTestName: e => this.setState({ newTestName: e.target.value }),
+      onNewTestSuite: e => this.setState({ newTestSuite: e.target.value }),
+      openNewTest: () => this.setState({ testNewOpen: true, editTest: null, newTestName: '', newTestSuite: 'UI·UX', newTestMethod: '' }),
+      closeNewTest: () => this.setState({ testNewOpen: false, editTest: null }),
+      saveTestStyle: `flex:1;height:42px;border-radius:10px;border:none;background:${s.newTestName.trim() ? '#f0716a' : '#3a3a41'};color:${s.newTestName.trim() ? '#1d1113' : '#8a8890'};font-size:13px;font-weight:700;cursor:${s.newTestName.trim() ? 'pointer' : 'not-allowed'};font-family:inherit;`,
+      saveNewTest: () => {
+        const name = s.newTestName.trim(), method = s.newTestMethod.trim();
+        if (!name) return;
+        if (s.editTest) {
+          const { suite, test } = s.editTest;
+          if (suite.name === s.newTestSuite) {
+            this.updateTest(suite, test, { name, method });
+            this.setState({ testNewOpen: false, editTest: null });
+          } else {
+            const moved = { ...test, name, method };
+            let next = s.testSuites.map(su => su === suite ? { ...su, tests: su.tests.filter(t => t !== test) } : su);
+            const dest = next.find(su => su.name === s.newTestSuite && su.project === suite.project);
+            next = dest ? next.map(su => su === dest ? { ...su, tests: [...su.tests, moved] } : su)
+              : [...next, { name: s.newTestSuite, project: suite.project, tests: [moved] }];
+            this.setState({ testSuites: next.filter(su => su.tests.length > 0), testNewOpen: false, editTest: null });
+          }
+          return;
+        }
+        const proj = s.testProject || (suites[0] ? suites[0].project : 'Aurora API');
+        const test = { name, method, status: '미실행', dur: '—' };
+        const exists = s.testSuites.some(su => su.name === s.newTestSuite && su.project === proj);
+        const next = exists
+          ? s.testSuites.map(su => su.name === s.newTestSuite && su.project === proj ? { ...su, tests: [...su.tests, test] } : su)
+          : [...s.testSuites, { name: s.newTestSuite, project: proj, tests: [test] }];
+        this.setState({ testSuites: next, testNewOpen: false });
+      },
+    };
+  }
+  renderVals() {
+    const s = this.state;
+    const showLauncher = (this.props.showLauncher ?? true) && s.toggles.launcher;
+    const q = s.query.trim().toLowerCase();
+    const groups = ['전체', '업무', '개인', '실험'];
+    const matchQ = c => !q || c.name.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q) || c.tags.some(t => t.includes(q));
+    const inGroup = c => s.group === '전체' || c.group === s.group;
+    const filtered = this.cards.filter(c => inGroup(c) && matchQ(c));
+    const cards = filtered.map(c => ({
+      ...c,
+      openHistory: () => this.setState({ dialog: 'history', hMode: 'list', historyProject: c.name }),
+      openTests: () => this.setState({ view: 'tests', testProject: c.name, testFilter: '전체' }),
+      ideStyle: `flex:1;display:flex;align-items:center;justify-content:center;gap:7px;height:34px;border-radius:9px;border:none;background:${c.ideBg};color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;min-width:0;overflow:hidden;`,
+      gitDotStyle: `width:7px;height:7px;border-radius:50%;background:${c.dirty ? '#e8b45a' : '#5db463'};flex-shrink:0;`,
+    }));
+    const groupsView = groups.map(g => {
+      const active = g === s.group;
+      const n = g === '전체' ? this.cards.filter(matchQ).length : this.cards.filter(c => c.group === g && matchQ(c)).length;
+      return {
+        name: g, count: n, onClick: () => this.setState({ group: g }),
+        style: `display:flex;align-items:center;gap:6px;height:34px;padding:0 14px;background:none;border:none;border-bottom:2px solid ${active ? '#f0716a' : 'transparent'};color:${active ? '#e8e6e3' : '#8a8890'};font-size:13.5px;font-weight:${active ? 700 : 500};cursor:pointer;font-family:inherit;`,
+        countStyle: `font-size:11px;padding:1px 7px;border-radius:8px;background:${active ? 'rgba(240,113,106,.16)' : '#26262c'};color:${active ? '#f0716a' : '#8a8890'};`,
+      };
+    });
+    const colDefs = [['예정', '#8a8890'], ['진행 중', '#5aa3e8'], ['완료', '#5db463'], ['보류', '#e8925a']];
+    const catColors = { 'UI·UX': '#d16ba5', '프론트엔드': '#5aa3e8', '백엔드': '#4ac0a8' };
+    const priStyles = {
+      '높음': 'background:rgba(232,180,90,.16);color:#e8b45a;',
+      '보통': 'background:rgba(90,163,232,.16);color:#7ab5ec;',
+      '낮음': 'background:#2b2b31;color:#8a8890;',
+    };
+    const scopedTasks = s.tasks.filter(t => (!s.taskProject || (t.project || '미지정') === s.taskProject) && (s.taskCatFilter === '전체' || t.cat === s.taskCatFilter));
+    const kanbanCols = colDefs.map(([name, color]) => {
+      const items = scopedTasks.filter(t => t.status === name);
+      const cats = [...new Set(items.map(t => t.cat))];
+      const over = s.dragOverStatus === name;
+      return {
+        name, count: items.length, empty: items.length === 0,
+        openNew: () => this.setState({ taskNewOpen: true, newTaskStatus: name, newTaskTitle: '', newTaskDesc: '', newTaskCat: 'UI·UX', newTaskPri: '보통', newTaskWho: '', newTaskStart: new Date().toISOString().slice(0, 10), newTaskEnd: '', newTaskTest: true }),
+        dropStyle: `background:${over ? '#24242c' : '#1f1f24'};border:1px solid ${over ? '#f0716a' : '#27272d'};border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:14px;transition:background .12s,border-color .12s;`,
+        onDragOver: e => { e.preventDefault(); if (s.dragOverStatus !== name) this.setState({ dragOverStatus: name }); },
+        onDragLeave: () => { if (s.dragOverStatus === name) this.setState({ dragOverStatus: null }); },
+        onDrop: e => {
+          e.preventDefault();
+          const id = s.dragTaskId;
+          this.setState({ dragOverStatus: null, dragTaskId: null,
+            tasks: id == null ? s.tasks : s.tasks.map(t => t.id === id ? { ...t, status: name } : t) });
+        },
+        dotStyle: `width:9px;height:9px;border-radius:3px;background:${color};flex-shrink:0;`,
+        groups: cats.map(cat => {
+          const tasks = items.filter(t => t.cat === cat);
+          const catTests = s.testSuites.filter(su => su.name === cat).flatMap(su => su.tests);
+          const ran = catTests.filter(t => t.status !== '미실행');
+          const passed = catTests.filter(t => t.status === '통과').length;
+          const allIdle = catTests.length === 0 || ran.length === 0;
+          const rate = ran.length ? Math.round((passed / ran.length) * 100) : 0;
+          const badgeOk = rate === 100;
+          return {
+            name: cat, count: tasks.length,
+            dotStyle: `width:8px;height:8px;border-radius:3px;background:${catColors[cat] || '#8a8890'};flex-shrink:0;`,
+            testIdle: allIdle, testRan: !allIdle,
+            testLabel: `✓ 통과율 ${rate}% · ${catTests.length}건`,
+            testBadgeStyle: allIdle
+              ? 'font-size:11px;color:#8a8890;border:1px solid #35353c;border-radius:6px;padding:2px 7px;'
+              : `font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px;background:${badgeOk ? 'rgba(93,180,99,.16)' : 'rgba(232,180,90,.16)'};color:${badgeOk ? '#5db463' : '#e8b45a'};`,
+            tasks: tasks.map(t => ({
+              ...t, priStyle: `font-size:11px;font-weight:700;border-radius:6px;padding:3px 9px;flex-shrink:0;${priStyles[t.pri]}`,
+              cardStyle: `background:#25252b;border:1px solid #2e2e34;border-radius:10px;padding:13px 14px;display:flex;flex-direction:column;gap:8px;cursor:grab;transition:border-color .15s,opacity .15s;opacity:${s.dragTaskId === t.id ? 0.45 : 1};`,
+              onMenu: e => { e.preventDefault(); this.setState({ taskMenu: { x: e.clientX, y: e.clientY, id: t.id } }); },
+              onDragStart: e => { e.dataTransfer.effectAllowed = 'move'; this.setState({ dragTaskId: t.id }); },
+              onDragEnd: () => this.setState({ dragTaskId: null, dragOverStatus: null }),
+            })),
+          };
+        }),
+      };
+    });
+    const hq = s.historyQuery.trim().toLowerCase();
+    const hMatch = h => !hq || h.title.toLowerCase().includes(hq) || h.project.toLowerCase().includes(hq) || h.detail.toLowerCase().includes(hq);
+    const hFiltered = s.history.filter(h => (!s.historyProject || h.project === s.historyProject) && hMatch(h));
+    const kindStyles = {
+      '기능': 'background:rgba(90,163,232,.16);color:#7ab5ec;',
+      '수정': 'background:rgba(232,180,90,.16);color:#e8b45a;',
+      '리팩터링': 'background:rgba(122,74,192,.22);color:#b79ae8;',
+      '문서': 'background:#2b2b31;color:#8a8890;',
+    };
+    const pageSize = Math.min(1000, Math.max(100, s.pageSize || 100));
+    const hSorted = [...hFiltered].sort((a, b) => b.date.localeCompare(a.date) || (b.time || '').localeCompare(a.time || ''));
+    const pageCount = Math.max(1, Math.ceil(hSorted.length / pageSize));
+    const curPage = Math.min(s.histPage || 1, pageCount);
+    const pageSlice = hSorted.slice((curPage - 1) * pageSize, curPage * pageSize);
+    const historyGroups = [...new Set(pageSlice.map(h => h.date))].sort((a, b) => b.localeCompare(a)).map(date => {
+      const entries = pageSlice.filter(h => h.date === date).map(h => {
+        const open = s.historyOpen === h.id;
+        return {
+          ...h, open,
+          onToggle: () => this.setState({ historyOpen: open ? null : h.id }),
+          chevronStyle: `display:grid;place-items:center;color:#8a8890;flex-shrink:0;transition:transform .15s;transform:rotate(${open ? 90 : 0}deg);`,
+          kindStyle: `font-size:11px;font-weight:700;border-radius:6px;padding:3px 9px;flex-shrink:0;${kindStyles[h.kind] || kindStyles['문서']}`,
+        };
+      });
+      return { date, count: entries.length, entries };
+    });
+    const pageItems = (() => {
+      if (pageCount <= 1) return [];
+      const set = new Set([1, pageCount, curPage, curPage - 1, curPage + 1]);
+      const nums = [...set].filter(n => n >= 1 && n <= pageCount).sort((a, b) => a - b);
+      const out = [];
+      let prev = 0;
+      for (const n of nums) {
+        if (n - prev > 1) out.push({ ellipsis: true, key: 'e' + n });
+        out.push({
+          ellipsis: false, key: 'p' + n, num: n, active: n === curPage,
+          onClick: () => this.setState({ histPage: n, historyOpen: null }),
+          style: `min-width:32px;height:32px;padding:0 8px;border-radius:8px;border:1px solid ${n === curPage ? '#f0716a' : '#2e2e34'};background:${n === curPage ? '#f0716a' : '#242429'};color:${n === curPage ? '#1d1113' : '#b3b0b8'};font-size:12.5px;font-weight:${n === curPage ? 700 : 500};cursor:pointer;font-family:inherit;`,
+        });
+        prev = n;
+      }
+      return out;
+    })();
+    const navDefs = [['general', '설정'], ['tools', '도구'], ['code', '코드'], ['info', '정보']];
+    const chipStyle = custom => `display:inline-flex;align-items:center;gap:5px;font-size:12px;color:${custom ? '#e8e6e3' : '#b3b0b8'};background:#2b2b31;border:1px solid ${custom ? '#3d3d45' : 'transparent'};border-radius:7px;padding:5px 11px;`;
+    const stackTags = [
+      ...['node.js', 'javascript', 'typescript', 'java', 'python', 'swift', 'kotlin', 'react', 'js', 'php', 'ruby', 'c#', 'c', 'c++', 'objective-c', 'flutter', 'ai', '.net', '.net framework', 'html', 'winui', 'rust', 'asp.net', 'wpf', 'winrt'].map(name => ({ name, custom: false, style: chipStyle(false) })),
+      ...s.customTags.map(name => ({ name, custom: true, style: chipStyle(true), onRemove: () => this.setState({ customTags: s.customTags.filter(t => t !== name) }) })),
+    ];
+    const catTags = [
+      ...['AI', 'Game', 'Mobile', 'Web', 'Windows'].map(name => ({ name, custom: false, style: chipStyle(false) })),
+      ...s.customCats.map(name => ({ name, custom: true, style: chipStyle(true), onRemove: () => this.setState({ customCats: s.customCats.filter(t => t !== name) }) })),
+    ];
+    const catDot = c => `width:8px;height:8px;border-radius:3px;background:${c};flex-shrink:0;`;
+    const taskCatTags = [
+      ...Object.entries(catColors).map(([name, color]) => ({ name, custom: false, style: chipStyle(false), dotStyle: catDot(color) })),
+      ...s.customTaskCats.map(name => ({ name, custom: true, style: chipStyle(true), dotStyle: catDot('#8a8890'), onRemove: () => this.setState({ customTaskCats: s.customTaskCats.filter(t => t !== name) }) })),
+    ];
+    const addTaskCat = () => { const v = s.taskCatInput.trim(); if (v && !s.customTaskCats.includes(v) && !catColors[v]) this.setState({ customTaskCats: [...s.customTaskCats, v], taskCatInput: '' }); };
+    const baseHistKinds = ['기능', '수정', '리팩터링', '문서'];
+    const histKindTags = [
+      ...baseHistKinds.map(name => ({ name, custom: false, style: chipStyle(false) })),
+      ...s.customHistKinds.map(name => ({ name, custom: true, style: chipStyle(true), onRemove: () => this.setState({ customHistKinds: s.customHistKinds.filter(t => t !== name) }) })),
+    ];
+    const addHistKind = () => { const v = s.histKindInput.trim(); if (v && !s.customHistKinds.includes(v) && !baseHistKinds.includes(v)) this.setState({ customHistKinds: [...s.customHistKinds, v], histKindInput: '' }); };
+    const addTag = () => { const v = s.tagInput.trim().toLowerCase(); if (v && !s.customTags.includes(v)) this.setState({ customTags: [...s.customTags, v], tagInput: '' }); };
+    const addCat = () => { const v = s.catInput.trim(); if (v && !s.customCats.includes(v)) this.setState({ customCats: [...s.customCats, v], catInput: '' }); };
+    const settingsNav = navDefs.map(([k, label]) => {
+      const active = s.setTab === k;
+      return {
+        label, onClick: () => this.setState({ setTab: k }),
+        style: `height:40px;border-radius:9px;border:none;background:${active ? '#26262c' : 'transparent'};border-left:3px solid ${active ? '#f0716a' : 'transparent'};color:${active ? '#e8e6e3' : '#8a8890'};font-size:13px;font-weight:${active ? 700 : 500};cursor:pointer;font-family:inherit;text-align:left;padding:0 14px;`,
+      };
+    });
+    const toggleDefs = [
+      ['autorun', '자동 실행', 'Windows에 로그인할 때 앱을 자동으로 실행합니다.'],
+      ['marquee', '태그 애니메이션', '태그가 많은 카드에서 흐르는 애니메이션으로 표시합니다.'],
+      ['launcher', '런처 앱', '메인 화면 왼쪽의 런처 사이드바를 표시합니다.'],
+      ['popup', '작업 기록 팝업', '작업 완료 시 작업 기록 입력 팝업을 표시합니다.'],
+    ];
+    const settingRows = toggleDefs.map(([k, title, desc]) => {
+      const on = s.toggles[k];
+      return {
+        title, desc,
+        onToggle: () => this.setState({ toggles: { ...s.toggles, [k]: !on } }),
+        trackStyle: `width:42px;height:24px;border-radius:12px;border:1px solid ${on ? '#f0716a' : '#3a3a41'};background:${on ? '#f0716a' : '#2b2b31'};cursor:pointer;position:relative;transition:background .15s;flex-shrink:0;padding:0;`,
+        knobStyle: `position:absolute;top:2px;left:${on ? '20px' : '2px'};width:18px;height:18px;border-radius:50%;background:${on ? '#1d1113' : '#8a8890'};transition:left .15s;display:block;`,
+      };
+    });
+    const toolRows = [
+      { name: 'Visual Studio 2026', initial: 'VS', color: '#7a4ac0', path: 'C:\\Program Files\\Microsoft Visual Studio\\2026' },
+      { name: 'VS Code', initial: 'C', color: '#2f6db3', path: 'C:\\Users\\dev\\AppData\\Local\\Programs\\VS Code' },
+      { name: 'Zed', initial: 'Z', color: '#5b3fb8', path: 'C:\\Program Files\\Zed' },
+    ];
+    return {
+      showLauncher, launcher: this.launcherApps, launcherCount: this.launcherApps.length,
+      cards, visibleCount: filtered.length, hasResults: filtered.length > 0, noResults: filtered.length === 0,
+      query: s.query, hasQuery: q.length > 0,
+      onSearch: e => this.setState({ query: e.target.value }),
+      clearSearch: () => this.setState({ query: '' }),
+      groupsView, kanbanCols, settingsNav, settingRows, toolRows,
+      dlgProject: s.dialog === 'project', dlgSettings: s.dialog === 'settings', dlgHistory: s.dialog === 'history',
+      historyGroups, historyTotal: hFiltered.length, historyEmpty: hFiltered.length === 0,
+      pageItems, hasPages: pageCount > 1, pageSize: s.pageSize,
+      onPageSizeInput: e => this.setState({ pageSize: e.target.value === '' ? '' : parseInt(e.target.value, 10) || '', histPage: 1 }),
+      onPageSizeBlur: e => { const v = Math.min(1000, Math.max(100, parseInt(e.target.value, 10) || 100)); this.setState({ pageSize: v, histPage: 1 }); },
+      prevPage: () => this.setState({ histPage: Math.max(1, curPage - 1), historyOpen: null }),
+      nextPage: () => this.setState({ histPage: Math.min(pageCount, curPage + 1), historyOpen: null }),
+      prevPageStyle: `width:32px;height:32px;border-radius:8px;border:1px solid #2e2e34;background:#242429;color:${curPage <= 1 ? '#4a4850' : '#b3b0b8'};cursor:${curPage <= 1 ? 'not-allowed' : 'pointer'};display:grid;place-items:center;`,
+      nextPageStyle: `width:32px;height:32px;border-radius:8px;border:1px solid #2e2e34;background:#242429;color:${curPage >= pageCount ? '#4a4850' : '#b3b0b8'};cursor:${curPage >= pageCount ? 'not-allowed' : 'pointer'};display:grid;place-items:center;`,
+      pageInfo: `${curPage} / ${pageCount} 페이지`,
+      onHistorySearch: e => this.setState({ historyQuery: e.target.value }),
+      openHistory: () => this.setState({ dialog: 'history', hMode: 'list', historyProject: null }),
+      historyScope: s.historyProject || '전체 프로젝트',
+      showProjectSelect: !s.historyProject,
+      histList: s.hMode === 'list', histNew: s.hMode === 'new',
+      openNewHistory: () => this.setState({ hMode: 'new', newTitle: '', newDetail: '', newDate: new Date().toISOString().slice(0, 10), newTime: new Date().toTimeString().slice(0, 5) }),
+      backToHistoryList: () => this.setState({ hMode: 'list' }),
+      projectNames: this.cards.map(c => c.name),
+      histKindNames: ['기능', '수정', '리팩터링', '문서', ...s.customHistKinds],
+      histTaskCatNames: [...new Set(['UI·UX', '프론트엔드', '백엔드', ...s.customTaskCats])],
+      newTitle: s.newTitle, newProject: s.newProject, newKind: s.newKind, newDetail: s.newDetail,
+      newDate: s.newDate, newTime: s.newTime,
+      onNewDate: e => this.setState({ newDate: e.target.value }),
+      onNewTime: e => this.setState({ newTime: e.target.value }),
+      onNewTitle: e => this.setState({ newTitle: e.target.value }),
+      onNewProject: e => this.setState({ newProject: e.target.value }),
+      onNewKind: e => this.setState({ newKind: e.target.value }),
+      onNewDetail: e => this.setState({ newDetail: e.target.value }),
+      nowStamp: new Date().toISOString().slice(0, 16).replace('T', ' '),
+      saveHistStyle: `flex:1;height:42px;border-radius:10px;border:none;background:${s.newTitle.trim() ? '#f0716a' : '#3a3a41'};color:${s.newTitle.trim() ? '#1d1113' : '#8a8890'};font-size:14px;font-weight:700;cursor:${s.newTitle.trim() ? 'pointer' : 'not-allowed'};font-family:inherit;`,
+      saveNewHistory: () => {
+        if (!s.newTitle.trim()) return;
+        const entry = {
+          id: Date.now(),
+          date: s.newDate || new Date().toISOString().slice(0, 10),
+          time: s.newTime || new Date().toTimeString().slice(0, 5),
+          title: s.newTitle.trim(), project: s.historyProject || s.newProject, kind: s.newKind,
+          detail: s.newDetail.trim() || '상세 내용 없음',
+        };
+        this.setState({ history: [entry, ...s.history], hMode: 'list', historyOpen: entry.id });
+      },
+      ...this.testVals(),
+      ...this.notifVals(),
+      taskView: s.taskView, taskViewKanban: s.taskView === 'kanban', taskViewList: s.taskView === 'list',
+      setTaskKanban: () => this.setState({ taskView: 'kanban' }),
+      setTaskList: () => this.setState({ taskView: 'list' }),
+      taskKanbanBtn: `display:flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;border:none;background:${s.taskView === 'kanban' ? '#2e2e34' : 'transparent'};color:${s.taskView === 'kanban' ? '#e8e6e3' : '#8a8890'};font-size:12.5px;font-weight:${s.taskView === 'kanban' ? 700 : 500};cursor:pointer;font-family:inherit;`,
+      taskListBtn: `display:flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:7px;border:none;background:${s.taskView === 'list' ? '#2e2e34' : 'transparent'};color:${s.taskView === 'list' ? '#e8e6e3' : '#8a8890'};font-size:12.5px;font-weight:${s.taskView === 'list' ? 700 : 500};cursor:pointer;font-family:inherit;`,
+      taskScope: s.taskProject || '전체 프로젝트',
+      taskScoped: !!s.taskProject,
+      taskCatFilter: s.taskCatFilter,
+      taskCatFilterOptions: ['전체', ...new Set(['UI·UX', '프론트엔드', '백엔드', ...s.customTaskCats, ...s.tasks.map(t => t.cat)])],
+      onTaskCatFilter: e => this.setState({ taskCatFilter: e.target.value }),
+      clearTaskScope: () => this.setState({ taskProject: null }),
+      taskListGroups: colDefs.map(([name, color]) => {
+        const catOrder = [...new Set([...Object.keys(catColors), ...s.customTaskCats, ...s.tasks.map(t => t.cat)])];
+        const items = scopedTasks.filter(t => t.status === name);
+        const cats = catOrder.filter(cat => items.some(t => t.cat === cat));
+        const mapTask = t => ({
+          ...t, hasDesc: !!t.desc,
+          rowStyle: `display:flex;align-items:center;gap:12px;background:#1f1f24;border:1px solid #27272d;border-radius:10px;padding:11px 14px;cursor:grab;transition:border-color .15s,opacity .15s;opacity:${s.dragTaskId === t.id ? 0.45 : 1};`,
+          priStyle: `font-size:11px;font-weight:700;border-radius:6px;padding:3px 9px;flex-shrink:0;${priStyles[t.pri]}`,
+          onMenu: e => { e.preventDefault(); this.setState({ taskMenu: { x: e.clientX, y: e.clientY, id: t.id } }); },
+          onDragStart: e => { e.dataTransfer.effectAllowed = 'move'; this.setState({ dragTaskId: t.id }); },
+          onDragEnd: () => this.setState({ dragTaskId: null, dragOverStatus: null }),
+        });
+        return {
+          name, count: items.length, empty: items.length === 0,
+          dotStyle: `width:9px;height:9px;border-radius:3px;background:${color};flex-shrink:0;`,
+          openNew: () => this.setState({ taskNewOpen: true, newTaskStatus: name, newTaskTitle: '', newTaskDesc: '', newTaskCat: 'UI·UX', newTaskPri: '보통', newTaskWho: '', newTaskStart: new Date().toISOString().slice(0, 10), newTaskEnd: '', newTaskTest: true }),
+          cats: cats.map(cat => {
+            const catTests = s.testSuites.filter(su => su.name === cat).flatMap(su => su.tests);
+            const ran = catTests.filter(t => t.status !== '미실행');
+            const passed = catTests.filter(t => t.status === '통과').length;
+            const allIdle = catTests.length === 0 || ran.length === 0;
+            const rate = ran.length ? Math.round((passed / ran.length) * 100) : 0;
+            const badgeOk = rate === 100;
+            return {
+              name: cat, count: items.filter(t => t.cat === cat).length,
+              dotStyle: `width:8px;height:8px;border-radius:3px;background:${catColors[cat] || '#8a8890'};flex-shrink:0;`,
+              testIdle: allIdle, testRan: !allIdle,
+              testLabel: `✓ 통과율 ${rate}% · ${catTests.length}건`,
+              testBadgeStyle: allIdle
+                ? 'font-size:11px;color:#8a8890;border:1px solid #35353c;border-radius:6px;padding:2px 7px;'
+                : `font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px;background:${badgeOk ? 'rgba(93,180,99,.16)' : 'rgba(232,180,90,.16)'};color:${badgeOk ? '#5db463' : '#e8b45a'};`,
+              tasks: items.filter(t => t.cat === cat).map(mapTask),
+            };
+          }),
+        };
+      }),
+      taskNewOpen: s.taskNewOpen, newTaskStatus: s.newTaskStatus, newTaskTitle: s.newTaskTitle, newTaskDesc: s.newTaskDesc,
+      newTaskCat: s.newTaskCat, newTaskPri: s.newTaskPri, newTaskWho: s.newTaskWho, newTaskStart: s.newTaskStart, newTaskEnd: s.newTaskEnd,
+      taskCatNames: [...new Set(['UI·UX', '프론트엔드', '백엔드', ...s.customTaskCats])],
+      onNewTaskTitle: e => this.setState({ newTaskTitle: e.target.value }),
+      onNewTaskDesc: e => this.setState({ newTaskDesc: e.target.value }),
+      onNewTaskCat: e => this.setState({ newTaskCat: e.target.value }),
+      onNewTaskPri: e => this.setState({ newTaskPri: e.target.value }),
+      toggleNewTaskTest: () => this.setState({ newTaskTest: !s.newTaskTest }),
+      newTaskTestTrack: `width:42px;height:24px;border-radius:12px;border:1px solid ${s.newTaskTest ? '#f0716a' : '#3a3a41'};background:${s.newTaskTest ? '#f0716a' : '#2b2b31'};cursor:pointer;position:relative;transition:background .15s;flex-shrink:0;padding:0;`,
+      newTaskTestKnob: `position:absolute;top:2px;left:${s.newTaskTest ? '20px' : '2px'};width:18px;height:18px;border-radius:50%;background:${s.newTaskTest ? '#1d1113' : '#8a8890'};transition:left .15s;display:block;`,
+      onNewTaskStart: e => this.setState({ newTaskStart: e.target.value }),
+      onNewTaskEnd: e => this.setState({ newTaskEnd: e.target.value }),
+      closeNewTask: () => this.setState({ taskNewOpen: false, editTaskId: null }),
+      taskDlgTitle: s.editTaskId ? '작업 수정' : '새 작업',
+      taskDlgSave: s.editTaskId ? '저장' : '등록',
+      taskDlgNew: !s.editTaskId,
+      taskMenuOpen: !!s.taskMenu,
+      taskMenuStyle: s.taskMenu ? `position:fixed;left:${Math.min(s.taskMenu.x, (typeof window !== 'undefined' ? window.innerWidth : 1200) - 150)}px;top:${Math.min(s.taskMenu.y, (typeof window !== 'undefined' ? window.innerHeight : 800) - 90)}px;width:140px;background:#222227;border:1px solid #35353c;border-radius:10px;padding:5px;box-shadow:0 10px 28px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:2px;animation:fadeIn .1s;` : '',
+      closeTaskMenu: e => { e.preventDefault(); this.setState({ taskMenu: null }); },
+      taskMenuDelete: () => {
+        const t = s.tasks.find(t => t.id === s.taskMenu.id);
+        if (!t) return this.setState({ taskMenu: null });
+        const hasLinked = s.testSuites.some(su => su.tests.some(ts => ts.link === t.title));
+        this.setState({ taskMenu: null, delConfirm: { id: t.id, title: t.title, hasLinked } });
+      },
+      delConfirmOpen: !!s.delConfirm,
+      delTaskTitle: s.delConfirm ? s.delConfirm.title : '',
+      delHasLinked: !!(s.delConfirm && s.delConfirm.hasLinked),
+      delTestToggle: s.delTestToggle,
+      toggleDelTest: () => this.setState({ delTestToggle: !s.delTestToggle }),
+      delTestTrack: `width:42px;height:24px;border-radius:12px;border:1px solid ${s.delTestToggle ? '#f0716a' : '#3a3a41'};background:${s.delTestToggle ? '#f0716a' : '#2b2b31'};cursor:pointer;position:relative;transition:background .15s;flex-shrink:0;padding:0;`,
+      delTestKnob: `position:absolute;top:2px;left:${s.delTestToggle ? '20px' : '2px'};width:18px;height:18px;border-radius:50%;background:${s.delTestToggle ? '#1d1113' : '#8a8890'};transition:left .15s;display:block;`,
+      closeDelConfirm: () => this.setState({ delConfirm: null }),
+      confirmDelete: () => {
+        const { id, title, hasLinked } = s.delConfirm;
+        let testSuites = s.testSuites;
+        if (hasLinked) {
+          testSuites = s.delTestToggle
+            ? testSuites.map(su => ({ ...su, tests: su.tests.filter(ts => ts.link !== title) })).filter(su => su.tests.length > 0)
+            : testSuites.map(su => ({ ...su, tests: su.tests.map(ts => ts.link === title ? { ...ts, link: '' } : ts) }));
+        }
+        this.setState({ tasks: s.tasks.filter(t => t.id !== id), testSuites, delConfirm: null });
+      },
+      taskMenuEdit: () => {
+        const t = s.tasks.find(t => t.id === s.taskMenu.id);
+        if (!t) return this.setState({ taskMenu: null });
+        this.setState({ taskMenu: null, taskNewOpen: true, editTaskId: t.id, newTaskStatus: t.status, newTaskTitle: t.title, newTaskDesc: t.desc, newTaskCat: t.cat, newTaskPri: t.pri, newTaskStart: t.start || '', newTaskEnd: t.end || '' });
+      },
+      saveTaskStyle: `flex:1;height:42px;border-radius:10px;border:none;background:${s.newTaskTitle.trim() ? '#f0716a' : '#3a3a41'};color:${s.newTaskTitle.trim() ? '#1d1113' : '#8a8890'};font-size:14px;font-weight:700;cursor:${s.newTaskTitle.trim() ? 'pointer' : 'not-allowed'};font-family:inherit;`,
+      saveNewTask: () => {
+        if (!s.newTaskTitle.trim()) return;
+        const fmt = d => d ? d.slice(5) : '';
+        const range = s.newTaskStart || s.newTaskEnd ? `${fmt(s.newTaskStart)} - ${fmt(s.newTaskEnd || s.newTaskStart)}` : '';
+        const title = s.newTaskTitle.trim();
+        if (s.editTaskId) {
+          this.setState({
+            tasks: s.tasks.map(t => t.id === s.editTaskId
+              ? { ...t, title, desc: s.newTaskDesc.trim(), cat: s.newTaskCat, pri: s.newTaskPri, start: s.newTaskStart, end: s.newTaskEnd, range: range || t.range }
+              : t),
+            taskNewOpen: false, editTaskId: null,
+          });
+          return;
+        }
+        const task = { id: Date.now(), status: s.newTaskStatus, cat: s.newTaskCat, title, desc: s.newTaskDesc.trim(), range, who: '', pri: s.newTaskPri, start: s.newTaskStart, end: s.newTaskEnd };
+        let testSuites = s.testSuites;
+        if (s.newTaskTest) {
+          const proj = s.testProject || 'Aurora API';
+          const test = { name: title, method: '', status: '미실행', dur: '—', link: title };
+          const exists = testSuites.some(su => su.name === s.newTaskCat && su.project === proj);
+          testSuites = exists
+            ? testSuites.map(su => su.name === s.newTaskCat && su.project === proj ? { ...su, tests: [...su.tests, test] } : su)
+            : [...testSuites, { name: s.newTaskCat, project: proj, tests: [test] }];
+        }
+        this.setState({ tasks: [...s.tasks, task], testSuites, taskNewOpen: false });
+      },
+      viewDashboard: s.view === 'dashboard', viewTodo: s.view === 'todo', viewTests: s.view === 'tests',
+      backToDashboard: () => this.setState({ view: 'dashboard' }),
+      setTabGeneral: s.setTab === 'general', setTabTools: s.setTab === 'tools', setTabInfo: s.setTab === 'info',
+      setTabCode: s.setTab === 'code',
+      stackTags, catTags, tagInput: s.tagInput, catInput: s.catInput, addTag, addCat,
+      taskCatTags, taskCatInput: s.taskCatInput, addTaskCat,
+      onTaskCatInput: e => this.setState({ taskCatInput: e.target.value }),
+      onTaskCatKey: e => { if (e.key === 'Enter') addTaskCat(); },
+      histKindTags, histKindInput: s.histKindInput, addHistKind,
+      onHistKindInput: e => this.setState({ histKindInput: e.target.value }),
+      onHistKindKey: e => { if (e.key === 'Enter') addHistKind(); },
+      onTagInput: e => this.setState({ tagInput: e.target.value }),
+      onCatInput: e => this.setState({ catInput: e.target.value }),
+      onTagKey: e => { if (e.key === 'Enter') addTag(); },
+      onCatKey: e => { if (e.key === 'Enter') addCat(); },
+      openProject: () => this.setState({ dialog: 'project' }),
+      openTodo: () => this.setState({ view: 'todo' }),
+      openSettings: () => this.setState({ dialog: 'settings' }),
+      closeDialog: () => this.setState({ dialog: null }),
+      stopClick: e => e.stopPropagation(),
+    };
+  }
+}
+</script>
+</body>
+</html>

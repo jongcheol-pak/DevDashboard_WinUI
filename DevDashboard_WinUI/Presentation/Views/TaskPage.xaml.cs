@@ -18,11 +18,7 @@ public sealed partial class TaskPage : UserControl
     /// <summary>페이지 뷰모델 (x:Bind 대상)</summary>
     public TaskPageViewModel Vm { get; }
 
-    // 카드 액션 버튼 툴팁 (x:Bind 정적 참조)
-    public static string EditTooltip { get; } = LocalizationService.Get("TaskEdit_Tooltip");
-    public static string DeleteTooltip { get; } = LocalizationService.Get("TaskDelete_Tooltip");
-
-    // 칸반 카드 우클릭 메뉴 라벨 (x:Bind 정적 참조)
+    // 카드 우클릭 메뉴 라벨 (x:Bind 정적 참조)
     public static string MenuEditText { get; } = LocalizationService.Get("TaskMenu_Edit");
     public static string MenuDeleteText { get; } = LocalizationService.Get("TaskMenu_Delete");
     public static string MenuMoveToText { get; } = LocalizationService.Get("TaskMenu_MoveTo");
@@ -34,32 +30,37 @@ public sealed partial class TaskPage : UserControl
     public static string ViewKanbanText { get; } = LocalizationService.Get("TaskView_Kanban");
     public static string ViewListText { get; } = LocalizationService.Get("TaskView_List");
 
-    // 칸반 열 헤더의 상태 dot 색 — Palette.xaml의 AppAccent/AppInfo/AppSuccess/AppWarning과 같은 값.
+    // 상태 dot 색 — 시안(colDefs)이 정본이다. Palette.xaml의 AppAccent/AppInfo/AppWarning과는 의도적으로 다르다
+    // (예정은 팔레트 강조색이 아니라 회색, 진행 중·보류는 시안 쪽이 조금 밝다) — 팔레트 값으로 되돌리지 말 것.
     // x:Bind는 ThemeResource를 받을 수 없어 우선순위 배지와 동일하게 정적 브러시로 둔다.
-    private static readonly SolidColorBrush _statusDotWaiting = new(ColorHelper.FromArgb(0xFF, 0xF0, 0x71, 0x6A));
-    private static readonly SolidColorBrush _statusDotActive = new(ColorHelper.FromArgb(0xFF, 0x5B, 0x93, 0xD8));
+    private static readonly SolidColorBrush _statusDotWaiting = new(ColorHelper.FromArgb(0xFF, 0x8A, 0x88, 0x90));
+    private static readonly SolidColorBrush _statusDotActive = new(ColorHelper.FromArgb(0xFF, 0x5A, 0xA3, 0xE8));
     private static readonly SolidColorBrush _statusDotCompleted = new(ColorHelper.FromArgb(0xFF, 0x5D, 0xB4, 0x63));
-    private static readonly SolidColorBrush _statusDotHold = new(ColorHelper.FromArgb(0xFF, 0xD9, 0x95, 0x4A));
+    private static readonly SolidColorBrush _statusDotHold = new(ColorHelper.FromArgb(0xFF, 0xE8, 0x92, 0x5A));
 
     public static Brush StatusDotWaiting => _statusDotWaiting;
     public static Brush StatusDotActive => _statusDotActive;
     public static Brush StatusDotCompleted => _statusDotCompleted;
     public static Brush StatusDotHold => _statusDotHold;
 
-    // 칸반 열 헤더 라벨 (x:Bind 정적 참조 — StatusOptions와 동일 리소스 키 재사용)
+    /// <summary>상태 dot 색 — 목록 뷰는 상태 그룹을 데이터로 돌리므로 열마다 고정인 칸반과 달리 상태로부터 골라야 한다.</summary>
+    public static Brush StatusDotBrush(TodoStatus status) => status switch
+    {
+        TodoStatus.Active => _statusDotActive,
+        TodoStatus.Completed => _statusDotCompleted,
+        TodoStatus.Hold => _statusDotHold,
+        _ => _statusDotWaiting,
+    };
+
+    /// <summary>상태를 Tag 문자열로 변환합니다 (ColumnAdd_Click·Column_Drop이 Tag: string → Enum.TryParse로 받는다).
+    /// 칸반은 열마다 Tag를 리터럴로 적지만 목록은 데이터 주도라 변환이 필요하다.</summary>
+    public static string StatusTag(TodoStatus status) => status.ToString();
+
+    // 칸반 열 헤더 라벨 (x:Bind 정적 참조 — 목록 그룹 라벨은 VM이 그룹 데이터에 담아 넘긴다)
     public static string LabelWaiting { get; } = LocalizationService.Get("TaskStatus_Waiting");
     public static string LabelActive { get; } = LocalizationService.Get("TaskStatus_Active");
     public static string LabelCompleted { get; } = LocalizationService.Get("TaskStatus_Completed");
     public static string LabelHold { get; } = LocalizationService.Get("TaskStatus_Hold");
-
-    /// <summary>상태 콤보박스 항목 (예정/진행 중/완료/보류)</summary>
-    public static IReadOnlyList<TaskStatusOption> StatusOptions { get; } =
-    [
-        new(TodoStatus.Waiting, LocalizationService.Get("TaskStatus_Waiting")),
-        new(TodoStatus.Active, LocalizationService.Get("TaskStatus_Active")),
-        new(TodoStatus.Completed, LocalizationService.Get("TaskStatus_Completed")),
-        new(TodoStatus.Hold, LocalizationService.Get("TaskStatus_Hold")),
-    ];
 
     public TaskPage(TaskPageViewModel vm, AppSettings settings)
     {
@@ -90,19 +91,7 @@ public sealed partial class TaskPage : UserControl
     public static string PriorityText(TaskPriority priority)
         => LocalizationService.Get($"TaskPriority_{priority}");
 
-    /// <summary>시작일 표시 ("시작 : yyyy-MM-dd", 미지정이면 빈 문자열)</summary>
-    public static string FormatStart(DateTime? date)
-        => date.HasValue ? $"{LocalizationService.Get("TaskLabel_Start")} {date.Value:yyyy-MM-dd}" : string.Empty;
-
-    /// <summary>종료일 표시 ("종료 : yyyy-MM-dd", 미지정이면 빈 문자열)</summary>
-    public static string FormatEnd(DateTime? date)
-        => date.HasValue ? $"{LocalizationService.Get("TaskLabel_End")} {date.Value:yyyy-MM-dd}" : string.Empty;
-
-    /// <summary>날짜 표시 여부 (지정된 날짜가 있을 때만 표시). x:Bind 함수 바인딩은 Converter를 적용하지 않아 직접 Visibility를 반환한다.</summary>
-    public static Visibility DateVisibility(DateTime? date)
-        => date.HasValue ? Visibility.Visible : Visibility.Collapsed;
-
-    /// <summary>칸반 카드의 날짜 범위 표시 ("MM-dd – MM-dd").
+    /// <summary>카드·행의 날짜 범위 표시 ("MM-dd – MM-dd").
     /// 한쪽만 지정된 경우 그쪽만 표시해 "07-24 – " 같은 반쪽 표기를 만들지 않는다.</summary>
     public static string FormatDateRange(DateTime? start, DateTime? end)
     {
@@ -117,18 +106,18 @@ public sealed partial class TaskPage : UserControl
     public static Visibility DateRangeVisibility(DateTime? start, DateTime? end)
         => start.HasValue || end.HasValue ? Visibility.Visible : Visibility.Collapsed;
 
-    // 우선순위 배지 색 — x:Bind 함수 바인딩은 ThemeResource를 받을 수 없어
-    // TestPage.StatusBrush와 동일하게 정적 브러시로 둔다(Palette.xaml 값과 수동으로 맞춘다).
-    //   High   글자 AppWarningColor(#D9954A) / 배경 AppWarningSoftBrush(#28D9954A)
-    //   Normal 글자 AppInfoColor(#5B93D8)    / 배경 AppInfoSoftBrush(#285B93D8)
-    //   Low    글자는 배경 위 가독성을 위해 AppTextTertiary(#8A8890)를 쓰고(AppTextMuted #6F6D75는 너무 어둡다),
-    //          배경만 AppMutedSoftBrush(#286F6D75)와 같은 값.
-    private static readonly SolidColorBrush _priorityHighBrush = new(ColorHelper.FromArgb(0xFF, 0xD9, 0x95, 0x4A));
-    private static readonly SolidColorBrush _priorityNormalBrush = new(ColorHelper.FromArgb(0xFF, 0x5B, 0x93, 0xD8));
+    // 우선순위 배지 색 — 시안(priStyles)이 정본이다. x:Bind 함수 바인딩은 ThemeResource를 받을 수 없어
+    // TestPage.StatusBrush와 동일하게 정적 브러시로 둔다. Palette.xaml의 AppWarning/AppInfo와는 의도적으로 다르니
+    // 팔레트 값으로 되돌리지 말 것.
+    //   High   글자 #E8B45A / 배경은 같은 색의 저채도(알파 0x28 — 시안 .16 근사)
+    //   Normal 글자 #7AB5EC / 배경은 시안이 글자보다 진한 #5AA3E8 기준이라 베이스가 다르다
+    //   Low    글자 #8A8890 / 배경은 시안이 저채도가 아니라 **불투명** #2B2B31
+    private static readonly SolidColorBrush _priorityHighBrush = new(ColorHelper.FromArgb(0xFF, 0xE8, 0xB4, 0x5A));
+    private static readonly SolidColorBrush _priorityNormalBrush = new(ColorHelper.FromArgb(0xFF, 0x7A, 0xB5, 0xEC));
     private static readonly SolidColorBrush _priorityLowBrush = new(ColorHelper.FromArgb(0xFF, 0x8A, 0x88, 0x90));
-    private static readonly SolidColorBrush _priorityHighSoftBrush = new(ColorHelper.FromArgb(0x28, 0xD9, 0x95, 0x4A));
-    private static readonly SolidColorBrush _priorityNormalSoftBrush = new(ColorHelper.FromArgb(0x28, 0x5B, 0x93, 0xD8));
-    private static readonly SolidColorBrush _priorityLowSoftBrush = new(ColorHelper.FromArgb(0x28, 0x6F, 0x6D, 0x75));
+    private static readonly SolidColorBrush _priorityHighSoftBrush = new(ColorHelper.FromArgb(0x28, 0xE8, 0xB4, 0x5A));
+    private static readonly SolidColorBrush _priorityNormalSoftBrush = new(ColorHelper.FromArgb(0x28, 0x5A, 0xA3, 0xE8));
+    private static readonly SolidColorBrush _priorityLowSoftBrush = new(ColorHelper.FromArgb(0xFF, 0x2B, 0x2B, 0x31));
 
     /// <summary>우선순위 배지의 글자 색</summary>
     public static Brush PriorityBrush(TaskPriority priority) => priority switch
@@ -146,6 +135,38 @@ public sealed partial class TaskPage : UserControl
         _ => _priorityNormalSoftBrush,
     };
 
+    // 테스트 배지 색 — 시안 기준: 100% 통과는 초록(#5DB463), 실행했으나 100% 미만이면 호박(#E8B45A).
+    // 미실행("테스트 미실행")은 배지 자체가 별도 테두리형 Border라 배경·글자색을 XAML에 직접 적었다(아래 IdleTestBadgeVisibility 참조).
+    // (우선순위 배지와 같은 이유로 정적 브러시: x:Bind 함수 바인딩은 ThemeResource를 받지 못한다)
+    private static readonly SolidColorBrush _testBadgeBrush = new(ColorHelper.FromArgb(0xFF, 0x5D, 0xB4, 0x63));
+    private static readonly SolidColorBrush _testBadgeSoftBrush = new(ColorHelper.FromArgb(0x28, 0x5D, 0xB4, 0x63));
+    private static readonly SolidColorBrush _testBadgeAmberBrush = new(ColorHelper.FromArgb(0xFF, 0xE8, 0xB4, 0x5A));
+    private static readonly SolidColorBrush _testBadgeAmberSoftBrush = new(ColorHelper.FromArgb(0x28, 0xE8, 0xB4, 0x5A));
+
+    /// <summary>테스트 배지(실행됨)의 글자 색 — 100% 통과면 초록, 그 미만이면 호박</summary>
+    public static Brush TestBadgeForeground(bool isFullPass)
+        => isFullPass ? _testBadgeBrush : _testBadgeAmberBrush;
+
+    /// <summary>테스트 배지(실행됨)의 배경 색 (같은 색상의 저채도 변형)</summary>
+    public static Brush TestBadgeBackground(bool isFullPass)
+        => isFullPass ? _testBadgeSoftBrush : _testBadgeAmberSoftBrush;
+
+    /// <summary>"테스트 미실행" 테두리형 배지의 표시 여부 (배지 대상이고 아직 한 건도 실행 안 됐을 때만)</summary>
+    public static Visibility IdleTestBadgeVisibility(string badge, bool hasTestResult)
+        => !string.IsNullOrEmpty(badge) && !hasTestResult ? Visibility.Visible : Visibility.Collapsed;
+
+    /// <summary>통과율 채움형 배지의 표시 여부 (배지 대상이고 한 건이라도 실행됐을 때만)</summary>
+    public static Visibility RanTestBadgeVisibility(string badge, bool hasTestResult)
+        => !string.IsNullOrEmpty(badge) && hasTestResult ? Visibility.Visible : Visibility.Collapsed;
+
+    /// <summary>목록 상태 그룹의 "작업 없음" 안내 표시 여부</summary>
+    public static Visibility EmptyGroupVisibility(bool isEmpty)
+        => isEmpty ? Visibility.Visible : Visibility.Collapsed;
+
+    /// <summary>목록 상태 그룹의 카테고리 서브그룹 표시 여부 ("작업 없음" 안내와 배타)</summary>
+    public static Visibility CategoriesVisibility(bool isEmpty)
+        => isEmpty ? Visibility.Collapsed : Visibility.Visible;
+
     // ===== 네비게이션·뷰 =====
 
     private void Back_Click(object sender, RoutedEventArgs e)
@@ -155,22 +176,6 @@ public sealed partial class TaskPage : UserControl
     {
         if (sender is not ComboBox { SelectedIndex: var index } combo) return;
         Vm.SelectedCategoryFilter = index <= 0 ? null : combo.SelectedItem as string;
-    }
-
-    // ===== 상태 콤보 =====
-
-    private void StatusCombo_Loaded(object sender, RoutedEventArgs e)
-    {
-        if (sender is not ComboBox { Tag: TodoItem todo } combo) return;
-        combo.ItemsSource = StatusOptions;
-        combo.SelectedItem = StatusOptions.FirstOrDefault(o => o.Value == todo.Status);
-    }
-
-    private void StatusCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (sender is not ComboBox { Tag: TodoItem todo, SelectedItem: TaskStatusOption option }) return;
-        // MoveToStatus는 동일 상태면 무시하므로 Loaded 초기 선택으로 인한 불필요한 저장이 없다.
-        Vm.MoveToStatus(todo, option.Value);
     }
 
     // ===== 작업 추가/편집/삭제 =====
@@ -211,19 +216,7 @@ public sealed partial class TaskPage : UserControl
             Vm.DeleteTodo(todo);
     }
 
-    private async void EditTask_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement { Tag: TodoItem todo })
-            await EditTodoAsync(todo);
-    }
-
-    private async void DeleteTask_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement { Tag: TodoItem todo })
-            await DeleteTodoAsync(todo);
-    }
-
-    // ===== 칸반 카드 조작 (클릭 = 편집, 우클릭 메뉴 = 편집·삭제·상태 변경) =====
+    // ===== 카드·행 조작 (클릭 = 편집, 우클릭 메뉴 = 편집·삭제·상태 변경) =====
 
     /// <summary>칸반 카드를 클릭하면 편집 다이얼로그를 연다.
     /// 드래그가 성립한 경우에는 Tapped가 발생하지 않으므로 드래그앤드롭과 충돌하지 않는다.</summary>
@@ -257,7 +250,22 @@ public sealed partial class TaskPage : UserControl
             Vm.MoveToStatus(todo, status);
     }
 
-    // ===== 칸반 드래그앤드롭 (상태 열 간 이동, FR-T3) =====
+    // ===== 목록 행 hover =====
+    // DataTemplate 안에서는 VisualStateManager.GoToState가 동작하지 않아 포인터 이벤트로 직접 테두리를 바꾼다.
+
+    private void ListRow_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border border)
+            border.BorderBrush = (Brush)Resources["ListRowHoverBorderBrush"];
+    }
+
+    private void ListRow_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border border)
+            border.BorderBrush = (Brush)Resources["ListRowBorderBrush"];
+    }
+
+    // ===== 칸반·목록 드래그앤드롭 (상태 열/그룹 간 이동, FR-T3) =====
 
     // DragStarting에서 설정 — Drop에서 동기적으로 사용
     private string? _draggedTodoId;
@@ -305,10 +313,4 @@ public sealed partial class TaskPage : UserControl
         await dialog.ShowAsync();
         Vm.CommitWorkLog(historyVm.NewEntries);
     }
-}
-
-/// <summary>상태 콤보박스 항목</summary>
-public sealed record TaskStatusOption(TodoStatus Value, string DisplayName)
-{
-    public override string ToString() => DisplayName;
 }

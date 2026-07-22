@@ -60,10 +60,7 @@ public partial class TaskEditDialogViewModel : ObservableObject
         _existing = existing;
         StatusLabel = StatusLabelFor(existing?.Status ?? status);
 
-        CategoryOptions = AppSettingsDialogViewModel.DefaultTaskCategories
-            .Concat(settings.TaskCategories)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        CategoryOptions = AppSettingsDialogViewModel.ResolveTaskCategories(settings);
 
         Priorities =
         [

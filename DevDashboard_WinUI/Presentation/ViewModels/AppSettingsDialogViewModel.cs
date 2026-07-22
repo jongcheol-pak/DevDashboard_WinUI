@@ -220,6 +220,18 @@ public partial class AppSettingsDialogViewModel : ObservableObject
         "UI·UX", "프론트엔드", "백엔드"
     ];
 
+    /// <summary>기본 + 사용자 정의 작업 카테고리를 순서대로 합쳐 중복 없이 반환합니다.
+    /// 작업 편집 다이얼로그·작업 페이지·테스트 페이지가 같은 목록을 써야 하므로 한 곳에서 만든다
+    /// (세 곳이 각자 계산하면 중복 판정 규칙이 갈릴 수 있다).</summary>
+    public static IReadOnlyList<string> ResolveTaskCategories(AppSettings settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        return DefaultTaskCategories
+            .Concat(settings.TaskCategories)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
     /// <summary>사용자 정의 작업 카테고리 목록</summary>
     public ObservableCollection<string> TaskCategories { get; } = [];
 
