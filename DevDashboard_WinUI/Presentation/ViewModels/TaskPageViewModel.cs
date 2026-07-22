@@ -38,6 +38,9 @@ public partial class TaskPageViewModel : ObservableObject
     /// <summary>목록 뷰 — 카테고리별 그룹</summary>
     public ObservableCollection<TaskCategoryGroup> CategoryGroups { get; } = [];
 
+    /// <summary>목록 뷰 — 상태별 그룹 (각 그룹 안에 카테고리 서브그룹). 항목이 없는 상태도 항상 포함한다.</summary>
+    public ObservableCollection<TaskListStatusGroup> ListStatusGroups { get; } = [];
+
     // 상태별 개수 (현재 카테고리 필터 반영)
     [ObservableProperty] public partial int WaitingCount { get; set; }
     [ObservableProperty] public partial int ActiveCount { get; set; }
@@ -121,6 +124,28 @@ public partial class TaskPageViewModel : ObservableObject
         HoldCount = CountItems(HoldItems);
 
         RebuildCategoryGroups(filtered);
+        BuildListStatusGroups(filtered);
+    }
+
+    /// <summary>목록 뷰용 상태 그룹 4개를 구성합니다 (각 그룹 안은 칸반과 같은 카테고리 서브그룹).
+    /// 항목이 0건인 상태도 그룹을 만든다 — 목록은 4개 상태를 항상 보여주고 빈 그룹에 "작업 없음"을 표시한다.</summary>
+    private void BuildListStatusGroups(IEnumerable<TodoItem> filtered)
+    {
+        ListStatusGroups.Clear();
+        foreach (var status in (TodoStatus[])[TodoStatus.Waiting, TodoStatus.Active, TodoStatus.Completed, TodoStatus.Hold])
+        {
+            // 칸반 열과 같은 그룹 구성을 재사용한다(정렬·배지·"미분류" 처리가 두 뷰에서 어긋나지 않게).
+            var categories = new ObservableCollection<TaskColumnGroup>();
+            BuildColumnGroups(categories, filtered, status);
+
+            var count = CountItems(categories);
+            ListStatusGroups.Add(new TaskListStatusGroup(
+                status,
+                LocalizationService.Get($"TaskStatus_{status}"),
+                count,
+                count == 0,
+                categories));
+        }
     }
 
     /// <summary>한 상태 열을 카테고리 그룹으로 묶어 채웁니다 (빈 카테고리는 "미분류" 그룹).</summary>
@@ -301,3 +326,13 @@ public sealed record TaskCategoryGroup(string CategoryName, IReadOnlyList<TodoIt
 /// (`PassRateBadge`가 빈 문자열이면 배지 미표시, `HasTestResult`가 false면 "테스트 미실행" 배지라 색이 다르다,
 /// `IsFullPass`는 `HasTestResult`가 true일 때만 의미 있으며 100% 통과 여부로 초록/호박 색을 가른다).</summary>
 public sealed record TaskColumnGroup(string CategoryName, string PassRateBadge, bool HasTestResult, bool IsFullPass, IReadOnlyList<TodoItem> Items);
+
+/// <summary>목록 뷰의 상태 그룹 (예정/진행 중/완료/보류) — 헤더 표시값과 카테고리 서브그룹을 함께 갖는다.
+/// dot 색은 상태(Status)로부터 View가 정한다(VM에 Brush를 두지 않기 위함).
+/// `IsEmpty`가 true면 서브그룹 대신 "작업 없음" 안내를 표시한다.</summary>
+public sealed record TaskListStatusGroup(
+    TodoStatus Status,
+    string StatusLabel,
+    int Count,
+    bool IsEmpty,
+    IReadOnlyList<TaskColumnGroup> Categories);
