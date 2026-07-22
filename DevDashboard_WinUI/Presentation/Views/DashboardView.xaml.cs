@@ -330,6 +330,23 @@ public sealed partial class DashboardView : UserControl
     }
 
     /// <summary>드래그가 드롭 없이 종료되거나 취소될 때 플레이스홀더를 정리합니다.</summary>
+    // 카드 hover 테두리 (시안 :352). DataTemplate 안에서는 VisualStateManager가 동작하지 않아
+    // 포인터 이벤트로 직접 브러시를 바꾼다(TestPage·TaskPage 행 hover와 같은 방식).
+    private static readonly Microsoft.UI.Xaml.Media.SolidColorBrush CardHoverBorderBrush =
+        new(Windows.UI.Color.FromArgb(0xFF, 0x3D, 0x3D, 0x45));
+
+    private void Card_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (sender is Border card)
+            card.BorderBrush = CardHoverBorderBrush;
+    }
+
+    private void Card_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (sender is Border card)
+            card.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"];
+    }
+
     private void Card_DropCompleted(UIElement sender, DropCompletedEventArgs e)
     {
         RemoveDropPlaceholder();

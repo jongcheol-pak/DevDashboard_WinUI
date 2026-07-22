@@ -88,7 +88,9 @@
                     DragStarting="Card_DragStarting"
                     DropCompleted="Card_DropCompleted"
                     DragOver="Card_DragOver"
-                    Drop="Card_Drop">
+                    Drop="Card_Drop"
+                    PointerEntered="Card_PointerEntered"
+                    PointerExited="Card_PointerExited">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="62" />
