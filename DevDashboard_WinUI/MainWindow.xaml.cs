@@ -864,9 +864,6 @@ public sealed partial class MainWindow : WindowEx
 
     // ─── 프로젝트 추가/편집 ──────────────────────────────────────────────
 
-    private void AddProjectButton_Click(object sender, RoutedEventArgs e)
-        => _ = OpenProjectSettingsDialogAsync(null);
-
     private void OnAddProjectRequested(object? sender, EventArgs e)
         => _ = OpenProjectSettingsDialogAsync(null);
 

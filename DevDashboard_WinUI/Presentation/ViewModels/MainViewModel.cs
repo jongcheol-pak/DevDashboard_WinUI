@@ -30,7 +30,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     public partial BulkObservableCollection<ProjectCardViewModel> FilteredCards { get; set; } = [];
 
-    /// <summary>UI에 바인딩되는 카드 목록 (FilteredCards + AddCardPlaceholder 마지막 항목)</summary>
+    /// <summary>UI에 바인딩되는 카드 목록 (AddCardPlaceholder 첫 항목 + FilteredCards)</summary>
     public BulkObservableCollection<object> DisplayCards { get; } = [];
 
     [ObservableProperty]
@@ -243,7 +243,7 @@ public partial class MainViewModel : ObservableObject
         FilteredCards.ResetWith(sorted);
         ProjectCount = sorted.Count;
         HasAnyProjects = _allCards.Count > 0;
-        DisplayCards.ResetWith(sorted.Cast<object>().Append(_addCardPlaceholder));
+        DisplayCards.ResetWith(sorted.Cast<object>().Prepend(_addCardPlaceholder));
 
         sw.Stop();
         PerfLog($"ApplyFilterAndSort: all={_allCards.Count}, filtered={sorted.Count}, total={sw.ElapsedMilliseconds}ms");
