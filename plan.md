@@ -315,7 +315,7 @@ PRD `:5`가 "요구 변경은 PRD → plan → 코드 순서로만"을 규약으
 - **Halt Forecast**: (i) 사전 해소 — 폴백 규칙을 미리 정해 실패 시에도 멈추지 않는다.
 
 ### T8 — 그룹 탭 개수 배지 `Type D`
-- [ ] 구현
+- [x] 구현
 - **Files**: `Presentation/ViewModels/MainViewModel.cs`, `Presentation/ViewModels/GroupTabViewModel.cs`(신규), `MainWindow.xaml`, `MainWindow.xaml.cs`, `Strings/{ko-KR,en-US}/Resources.resw`(M3)
 - **Design**: ① 배치 — 개수 계산은 `MainViewModel`(필터 파이프라인과 같은 조건), 탭 항목은 신규 `GroupTabViewModel`, 마크업은 `MainWindow.xaml` 탭 템플릿. ② 신규 심볼 — `GroupTabViewModel`(`Group`(ProjectGroup) + `[ObservableProperty] Count` — 탭 1개의 표시 상태) / `MainViewModel.GroupTabs`(탭 소스) / `MainViewModel.AllGroupCount`("전체" 탭용) / 개수 갱신 메서드 1개. ③ 의존 방향 — Presentation → Domain(읽기). ④ 비추상화 — 탭 전용 스타일·컨버터를 만들지 않는다(배지는 인라인 `Border`).
 - **구성**:
@@ -357,7 +357,8 @@ PRD `:5`가 "요구 변경은 PRD → plan → 코드 순서로만"을 규약으
 - **[시안 보라 액센트 미채택]** — D7. 시안 대시보드는 `#8b7cf7`, 앱은 `#F0716A`. 앱 전역 액센트를 바꾸는 것은 별개 논의.
 - **[GitHub 연결·프로젝트 메모 미구현]** — 시안 `…` 메뉴의 2항목은 현행에 기능이 없어 제외(사용자 결정). 필요해지면 도메인 필드부터 논의.
 - **[README/스크린샷 갱신]** — 대장의 기존 항목에 **대시보드 카드**가 추가된다(이번 변경으로 메인 화면 스크린샷이 낡음).
-- **[구 `ToolTip_*`·`AllGroupTab.Content` resw 고아]** — T5에서 소비처가 사라지는 툴팁 키와 T8에서 대체되는 `AllGroupTab.Content`(M3)가 resw에 남는다(빌드·런타임 무해). 대장의 resw 고아 audit 항목과 함께 처리.
+- **[구 `ToolTip_*` resw 고아]** — T5에서 소비처가 사라진 툴팁 키 5개(`ToolTip_Run`·`ToolTip_OpenFolder`·`ToolTip_CardSettings`·`ToolTip_GitStatus`·`ToolTip_WorkHistory`·`ToolTip_Terminal`)가 resw에 남는다(빌드·런타임 무해). 대장의 resw 고아 audit 항목과 함께 처리. ※ `AllGroupTab.Content`는 **고아가 아니다** — T8에서 `AllGroupTabLabel.Text`로 키를 치환했다.
+- **[SUGGEST] `RestoreGroupTabSelection()` 정리 검토** — T8에서 `GroupTabViewModel.IsSelected` 값 바인딩이 선택 복원을 담당하게 되면서, 컨테이너를 직접 찾아 `IsChecked`를 세팅하는 `MainWindow.xaml.cs`의 기존 메서드와 기능이 겹친다. 현재는 둘 다 같은 결과로 수렴해 무해하나 다음 정리 때 제거 검토. (T8 quality 리뷰 S1, 2026-07-22)
 - **[그리드 가변 폭 폴백 시]** — `ItemsStretch="Fill"`이 기대대로 동작하지 않아 고정폭으로 되돌린 경우(T7 폴백), 시안의 `minmax(310,360)` 정합이 미달인 채로 남는다 — 대안(커스텀 Layout 등) 검토.
 
 ## Out of Scope
