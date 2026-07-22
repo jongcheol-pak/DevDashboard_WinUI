@@ -96,7 +96,7 @@
 | 링크 배지 | 배경 | 없음(투명 — 테두리형) | `Background` 미지정 | HTML 소스 :262 |
 | 링크 배지 | padding | `2px 9px` | `Padding="9,2"` | HTML 소스 :262 |
 | 링크 배지 | 글자 | `11px`, `#7ab5ec` | `FontSize="11" Foreground="#7AB5EC"` | HTML 소스 :262 |
-| 링크 배지 | 최대 폭 | `max-width:100%` (넘치면 말줄임) | 본문 열이 `*`라 자동 제한 + `TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"` | HTML 소스 :262, :264 |
+| 링크 배지 | 최대 폭 | `max-width:100%` (넘치면 말줄임) | 배지 내부를 **`Grid`(Auto/`*`)** 로 담아 텍스트 열이 유한 폭을 받게 한다 + `TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"`. ⚠️ `StackPanel`은 적층 방향으로 자식에게 **무한 폭**을 줘 트리밍이 발동하지 않는다(F-7 M1) | HTML 소스 :262, :264 |
 | 링크 아이콘 | 모양 | 체인 2개가 겹친 링크 아이콘 | `FontIcon Glyph="&#xE71B;"`(Segoe Fluent "Link") | HTML 소스 :263 |
 | 링크 아이콘 | 크기·색 | `10×10`, `stroke:currentColor`(= 글자색 `#7ab5ec`) | `FontSize="10" Foreground="#7AB5EC"` | HTML 소스 :263 |
 | 링크 아이콘 | 축소 | `flex-shrink:0` (텍스트가 길어도 아이콘은 안 줄어듦) | `Grid`가 아니라 `StackPanel` + 텍스트만 말줄임 → 자동 충족 | HTML 소스 :263 |
@@ -120,7 +120,7 @@
 
 | PRD ID | 우선순위 | 대응 task | 상태 |
 |---|---|---|---|
-| FR-E4 (테스트↔작업 연결 배지·링크 + FR-T8 배선) | Should | T1, T2 | ✅ **커버 확대** — "연결 배지"의 **테스트 쪽 표현**을 이번에 구현(시안에 실재하는 유일한 연결 배지). FR-T8 배선 몫은 기구현·무변경. **작업 쪽 배지**(`TodoItem.LinkedTestBadge`)는 시안에 없어 여전히 미표시(대장 `[FR-E4 작업별 연결 배지 표시 소멸]` 유지) |
+| FR-E4 (테스트↔작업 연결 배지·링크 + FR-T8 배선) | Should | T1, T2 | ⚠️ **부분 커버(확대)** — "연결 **배지**"의 **테스트 쪽 표현**을 이번에 구현(시안에 실재하는 유일한 연결 배지). FR-T8 배선 몫은 기구현·무변경. **미충족 잔여 2건**: ① **"링크"(배지 클릭 → 연결된 작업으로 이동)** 미구현 — 시안에 `onClick`이 없어 표시 전용으로 뒀다(D5, Deferred 등재) ② **작업 쪽 배지**(`TodoItem.LinkedTestBadge`)는 시안에 없어 여전히 미표시(대장 `[FR-E4 작업별 연결 배지 표시 소멸]` 유지) |
 | FR-E1·E2·E3·E5 (테스트 페이지·상태 모델·다이얼로그·목록 restyle) | Must/Should | — | 이번 범위 외 (기구현 — 행 템플릿에 요소 1개를 추가할 뿐 기존 구성 무변경) |
 | FR-T1~T8 (작업 도메인·칸반·목록·다이얼로그) | Must/Should | — | 이번 범위 외 (기구현 — `TodoItem`은 **읽기만** 하고 수정하지 않는다) |
 | FR-C*·FR-S*·FR-H*·FR-N* 등 그 외 active Must | Must/Should | — | 이번 범위 외 (기구현, 이번 diff 무관) |
@@ -209,8 +209,21 @@
   - 연결이 없는 테스트에는 배지가 없는지 / **연결된 작업을 삭제하면 배지가 사라지는지**(D7)
   - 상태 아이콘·상태 pill이 배지가 생겨도 세로 중앙에 유지되는지
 
+## F-8 인계 목록 (렌더 육안 확인 필요 — 완료 선언 보류 사유)
+
+1. 배지가 **파란 캡슐**로 보이는지 — `CornerRadius="999"`의 캡슐 렌더는 레포 내 선례가 없다(미검증). 모서리가 덜 둥글면 `CornerRadius="10"`으로 대체.
+2. 이름 아래·메모 위에 좌측 정렬로 붙는지, **작업 제목이 길면 말줄임(…)** 되는지(F-7 M1 수정분 실측 — `Grid`로 교체해 트리밍이 발동해야 한다)
+3. **"테스트 추가"로 만든 작업↔테스트 쌍에서 실제로 배지에 작업 제목이 뜨는지**(D8 지연 로딩 해소의 실동작 확인)
+4. **연결된 작업을 삭제하면 배지가 사라지는지**(D7 — 역참조를 매번 재계산)
+5. 상태 아이콘·상태 pill이 배지가 생겨도 세로 중앙에 유지되는지(RowSpan 3)
+6. `E71B` 글리프가 시안의 체인 아이콘과 비슷해 보이는지 / 테두리 알파(0x73) 농도
+7. ⚠️ **행 이름과 배지 텍스트가 같은 문자열로 겹쳐 보이는 것**이 의도한 표현인지 — `CreateLinkedTest`가 테스트 제목을 작업 제목 그대로 복사하기 때문(plan-reviewer m3)
+
 ## Phase Ledger
-- (구현 시작 전)
+- 전 task(T1~T2) 완료.
+- **Phase F 통과** — F-2 클린 리빌드(`-t:Rebuild`) 오류 0·신규 경고 0(자동 생성 `CS0618` 1건만), F-3 회귀 grep 10종 기대값, F-6.5 notes 기록(22,636자 — 아카이브 기준 미만)·Deferred 대장 반영(`[테스트→작업 역방향 링크/배지]` 종결 이동), F-7 `plan-completion-reviewer`: BLOCKER 0 / **MAJOR 1**(M1 배지 말줄임 미동작 — `StackPanel`→`Grid` 교체로 **수정 완료**) / MINOR 3(m1 PRD Coverage에 "링크" 미구현 명시 → 반영, m2 Phase Ledger → 이 기록, m3 notes 문구 → M1 수정으로 사실과 일치).
+- **Phase G 통과 (Must 100%)** — 이번 plan이 커버 대상으로 선언한 FR은 **FR-E4(Should)** 하나이며 배지 몫 충족·링크 몫 Deferred로 정직하게 기록. active **Must** FR은 전부 `이번 범위 외 (기구현)`이고 F-7이 코드 4파일 외 무변경으로 회귀 표면 0을 확인 → 미충족 Must 0건, 재루프 0회.
+- **F-8 미통과 — 시각/실동작 확인 대기**: 위 `## F-8 인계 목록` 7건이 남아 **완료 선언 보류**.
 
 ## Progress Log
 - T1~T2 완료: `TestItem.LinkedTaskTitle`(표시 전용·비영속) + VM 역참조 채우기 + `EnsureTodosLoaded()` 추가(T1) → `TestItemRowTemplate`에 링크 배지 마크업 추가, 행 2→3단으로 확장하고 메모를 행 2로 이동(T2). 빌드 OK, 리뷰 지적 0.

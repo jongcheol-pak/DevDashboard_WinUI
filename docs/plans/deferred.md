@@ -8,7 +8,6 @@
 - **[교차 작업/테스트 집계 페이지]** (PRD D-2) — 작업·테스트 모두 현재 프로젝트 종속만 구현됨. 전체/프로젝트 스코프 필터 교차 집계 페이지(ProjectHistoryDialog 패턴)는 별도 진행. (원 plan: Phase 2·3, 2026-07-18/19)
 - **[FR-T7 담당자(who) 필드]** — Could. 작업 항목 담당자 표시/편집. 사용자 제외 결정. (원 plan: Phase 2 작업, 2026-07-18)
 - **[칸반 열 내 카드 재정렬]** — 작업 칸반은 상태 열 이동만 구현. 열 내 정렬 순서 영속화는 별도. (원 plan: Phase 2 작업, 2026-07-19)
-- **[테스트→작업 역방향 링크/배지]** (FR-E4 확장) — 테스트 목록에서 연결된 작업 배지/링크 표시. 현재 TodoItem.LinkedTestId 단방향만. TestItem→Todo 역참조 조회 필요. 사용자 결정으로 Phase 3 제외. (원 plan: Phase 3 테스트, 2026-07-19)
 - **[FR-T6/E4 "방법" 필드 확장 소비]** — Phase 3에서 TestItem.Method 추가·다이얼로그 노출. 향후 필터/통계에 활용 여부는 별도. (원 plan: Phase 3 테스트, 2026-07-19)
 - **[Test* 구 resw 고아 정리]** — 삭제된 TestListDialog 전용 resw 키(`TestListDialogTitle`·`TestStatusTesting/Fix/Done.Content`·`TestTab*`·`TestGroupBy*`·`NewTestBox`·`NewCategoryBox`·`TestAddNoteLink`·`EmptyTestText`·`TestDeleteCategoryConfirm` 등)가 소스 미사용 상태로 잔존. 빌드·런타임 무해 — audit 후 제거. (원 plan: Phase 3 테스트, 2026-07-19)
 - **[`TestDateGroup` 고아 정리]** — `Presentation/Models/TestDateGroup.cs`가 소스 미참조(구 테스트 다이얼로그 이전 버전 잔재, T6 이전부터 존재). 별도 정리. (원 plan: Phase 3 테스트, 2026-07-19)
@@ -66,7 +65,13 @@
 
 > **[Todo* resw 고아 정리] 항목 보강(2026-07-22)**: 위 항목의 대상에 `TaskLabel_Start`·`TaskLabel_End`(ko/en)가 추가됐다 — 유일 소비처였던 `TaskPage.FormatStart`/`FormatEnd`가 목록 뷰 재구현으로 제거되면서 고아화. 일괄 audit 시 함께 처리. ⚠️ 반면 `TaskEdit_Tooltip`·`TaskDelete_Tooltip`은 **고아가 아니다** — `TestPage.xaml.cs:60-61`이 계속 소비하며, 이름이 `Task*`라 오탐하기 쉬우니 audit 시 주의.
 
+- **[배지 클릭으로 작업 이동 미구현]** — 테스트 행의 연결 배지는 표시 전용이다(시안 `:262-265`에 `onClick`이 없어 그대로 따름). 연결된 작업으로 이동하고 싶다는 요구가 생기면 페이지 전환·스크롤·하이라이트 설계부터 논의. (원 plan: 테스트 연결 배지 D5, 2026-07-22)
+- **[연결 배지와 테스트 이름이 같은 문자열로 겹쳐 보임]** — `CreateLinkedTest`가 테스트 제목을 **작업 제목 그대로 복사**하므로(`TaskPageViewModel.cs`), "테스트 추가" 토글로 만든 연결에서는 행 이름과 배지 텍스트가 동일하게 표시된다(작업 제목을 나중에 바꿔야 갈라짐). 시안 예시는 둘이 다른 데이터라 드러나지 않았다. 그대로 둘지 배지를 다르게 표현할지 **사용자 판단 대기**. (plan-reviewer m3, 2026-07-22)
+- **[SUGGEST] 링크 배지 색을 팔레트 근접색으로 통일 검토** — 시안 값 `#7AB5EC`/`rgba(90,163,232,.45)`가 팔레트에 없어 XAML 리터럴로 적었다. `AppInfoBrush`(#5B93D8)가 "정보/링크성" 의미의 근접색이나 시안과 색이 달라져 이번엔 시안 정합을 우선했다. 색 리터럴이 더 늘면 팔레트 이관을 함께 검토. (T2 quality 리뷰 S1, 2026-07-22)
+- **[테스트 연결 배지 F-8 육안 확인 미완]** — 2026-07-22 구현분의 렌더 확인 대기: ① 배지가 파란 캡슐로 보이는지(`CornerRadius="999"`가 완전 둥글게 렌더되는지 — 아니면 `10`으로 대체) ② 이름 아래·메모 위 좌측 정렬, 제목이 길면 말줄임 ③ **"테스트 추가"로 만든 작업↔테스트 쌍에서 실제로 배지에 작업 제목이 뜨는지** ④ **연결된 작업을 삭제하면 배지가 사라지는지** ⑤ 상태 아이콘·pill이 배지가 생겨도 세로 중앙을 유지하는지 ⑥ 위 `[연결 배지와 테스트 이름이 같은 문자열로 겹쳐 보임]` 판정. (원 plan: 테스트 연결 배지 F-8, 2026-07-22)
+
 ## 종결
+- [2026-07-19 → 2026-07-22] **[테스트→작업 역방향 링크/배지]** (FR-E4 확장) — 구현 완료(테스트 행에 연결된 작업 제목 배지 표시, `TestItem.LinkedTaskTitle` 역참조 방식)
 - [2026-07-20 → 2026-07-22] **[칸반/목록 "미분류" 그룹 정렬 불일치]** — 해소(목록 뷰가 칸반과 같은 `BuildColumnGroups`를 재사용하게 되어 정렬 규칙이 자동 통일됨)
 - [2026-07-20 → 2026-07-22] **[목록 뷰 시안 대조]** — 재수용(시안 원본 HTML의 `taskViewList` 분기 확보 → TaskPage 목록 뷰 시안 정합 plan)
 - [2026-07-19 → 2026-07-20] **[미사용 심볼 정리]** — 반영(TaskPage 시안 정합 T4: `ShowKanban`/`ShowList`/`TotalCount`/고아 using, TaskEditDialog 시안 정합 T3: `x:Name="TitleBox"`)
