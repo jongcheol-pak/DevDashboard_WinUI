@@ -120,7 +120,7 @@
   <data name="AllHistoryButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>전체 작업 기록</value></data>
   <data name="AppSettingsBtn.[ToolTipService.ToolTip]" xml:space="preserve"><value>앱 설정</value></data>
   <data name="NewProjectText.Text" xml:space="preserve"><value>새 프로젝트</value></data>
-  <data name="AllGroupTab.Content" xml:space="preserve"><value>전체</value></data>
+  <data name="AllGroupTabLabel.Text" xml:space="preserve"><value>전체</value></data>
   <data name="GroupTabRenameItem.Text" xml:space="preserve"><value>이름 변경</value></data>
   <data name="GroupTabDeleteItem.Text" xml:space="preserve"><value>삭제</value></data>
   <data name="AddGroupButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>그룹 추가</value></data>

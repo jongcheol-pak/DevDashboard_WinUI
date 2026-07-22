@@ -290,35 +290,51 @@
                                       ViewChanged="GroupTabsScrollViewer_ViewChanged">
                             <StackPanel x:Name="GroupTabsPanel" Orientation="Horizontal">
 
-                                <!-- 전체 탭 -->
+                                <!-- 전체 탭 — 라벨과 개수 배지를 함께 담아야 해서 Content를 직접 구성한다
+                                     (x:Uid를 RadioButton에 두면 resw가 Content를 통째로 덮어써 배지가 사라진다) -->
                                 <RadioButton x:Name="AllGroupTab"
-                                             x:Uid="AllGroupTab"
                                              GroupName="GroupTabs"
                                              Style="{StaticResource GroupTabRadioButtonStyle}"
                                              IsChecked="True"
-                                             Checked="AllGroupTab_Checked" />
+                                             Checked="AllGroupTab_Checked">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <TextBlock x:Uid="AllGroupTabLabel" VerticalAlignment="Center" />
+                                        <Border Style="{StaticResource GroupTabCountBadgeStyle}">
+                                            <TextBlock Text="{Binding AllGroupCount, Mode=OneWay}"
+                                                       FontSize="11"
+                                                       Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                        </Border>
+                                    </StackPanel>
+                                </RadioButton>
 
                                 <!-- 사용자 그룹 탭 (코드비하인드에서 동적 추가) -->
                                 <ItemsRepeater x:Name="GroupTabsRepeater"
-                                               ItemsSource="{Binding Groups}">
+                                               ItemsSource="{Binding GroupTabs}">
                                     <ItemsRepeater.Layout>
                                         <StackLayout Orientation="Horizontal" />
                                     </ItemsRepeater.Layout>
                                     <ItemsRepeater.ItemTemplate>
-                                        <DataTemplate x:DataType="models:ProjectGroup">
-                                            <RadioButton Content="{Binding Name}"
-                                                         GroupName="GroupTabs"
+                                        <DataTemplate x:DataType="vm:GroupTabViewModel">
+                                            <RadioButton GroupName="GroupTabs"
                                                          Style="{StaticResource GroupTabRadioButtonStyle}"
-                                                         Tag="{Binding Id}"
+                                                         Tag="{Binding Group.Id}"
                                                          Checked="GroupTab_Checked"
                                                          DoubleTapped="GroupTab_DoubleTapped">
+                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Group.Name}" VerticalAlignment="Center" />
+                                                    <Border Style="{StaticResource GroupTabCountBadgeStyle}">
+                                                        <TextBlock Text="{Binding Count, Mode=OneWay}"
+                                                                   FontSize="11"
+                                                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                                    </Border>
+                                                </StackPanel>
                                                 <RadioButton.ContextFlyout>
                                                     <MenuFlyout>
                                                         <MenuFlyoutItem x:Uid="GroupTabRenameItem"
                                                                        Click="GroupTabRename_Click" />
                                                         <MenuFlyoutItem x:Uid="GroupTabDeleteItem"
                                                                        Click="GroupTabDelete_Click"
-                                                                       Visibility="{Binding IsDefault, Converter={StaticResource InverseBoolToVisibility}}" />
+                                                                       Visibility="{Binding Group.IsDefault, Converter={StaticResource InverseBoolToVisibility}}" />
                                                     </MenuFlyout>
                                                 </RadioButton.ContextFlyout>
                                             </RadioButton>

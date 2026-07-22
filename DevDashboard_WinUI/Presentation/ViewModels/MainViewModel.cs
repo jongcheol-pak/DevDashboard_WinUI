@@ -107,7 +107,53 @@ public partial class MainViewModel : ObservableObject
 
     private void OnGroupsCollectionChanged(object? sender,
         System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        => OnPropertyChanged(nameof(CanAddGroup));
+    {
+        OnPropertyChanged(nameof(CanAddGroup));
+        RebuildGroupTabs();
+    }
+
+    /// <summary>
+    /// 그룹 탭 목록 — <see cref="Groups"/>와 같은 순서·개수를 유지합니다
+    /// (코드비하인드가 두 컬렉션의 인덱스를 짝지어 쓰므로 순서가 어긋나면 탭 스크롤이 엉킵니다).
+    /// </summary>
+    public ObservableCollection<GroupTabViewModel> GroupTabs { get; } = [];
+
+    /// <summary>"전체" 탭에 표시할 프로젝트 수</summary>
+    [ObservableProperty]
+    public partial int AllGroupCount { get; set; }
+
+    /// <summary>그룹 목록이 바뀌면 탭을 통째로 다시 만듭니다(순서 보장).</summary>
+    private void RebuildGroupTabs()
+    {
+        GroupTabs.Clear();
+        foreach (var g in Groups)
+            GroupTabs.Add(new GroupTabViewModel(g));
+
+        UpdateGroupCounts();
+    }
+
+    /// <summary>
+    /// 각 탭의 프로젝트 수를 다시 셉니다.
+    /// 시안(:1290)처럼 검색어가 걸려 있으면 검색 결과 기준으로 센다 — 목록에 보이는 것과 숫자가 맞아야 한다.
+    /// </summary>
+    private void UpdateGroupCounts()
+    {
+        var matched = _allCards.Where(MatchesSearch).ToList();
+
+        AllGroupCount = matched.Count;
+        foreach (var tab in GroupTabs)
+            tab.Count = matched.Count(c => c.GroupId == tab.Group.Id);
+    }
+
+    /// <summary>현재 검색어에 맞는 카드인지 — 필터 파이프라인과 같은 조건입니다.</summary>
+    private bool MatchesSearch(ProjectCardViewModel card)
+    {
+        if (string.IsNullOrWhiteSpace(SearchText)) return true;
+
+        var keyword = SearchText.Trim();
+        return card.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase)
+            || card.Description.Contains(keyword, StringComparison.OrdinalIgnoreCase);
+    }
 
     private void ApplyInitialSettings()
     {
@@ -243,6 +289,7 @@ public partial class MainViewModel : ObservableObject
         FilteredCards.ResetWith(sorted);
         ProjectCount = sorted.Count;
         HasAnyProjects = _allCards.Count > 0;
+        UpdateGroupCounts();
         DisplayCards.ResetWith(sorted.Cast<object>().Prepend(_addCardPlaceholder));
 
         sw.Stop();

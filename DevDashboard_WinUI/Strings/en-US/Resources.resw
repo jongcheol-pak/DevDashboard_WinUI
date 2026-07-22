@@ -120,7 +120,7 @@
   <data name="AllHistoryButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>All Work History</value></data>
   <data name="AppSettingsBtn.[ToolTipService.ToolTip]" xml:space="preserve"><value>App Settings</value></data>
   <data name="NewProjectText.Text" xml:space="preserve"><value>New Project</value></data>
-  <data name="AllGroupTab.Content" xml:space="preserve"><value>All</value></data>
+  <data name="AllGroupTabLabel.Text" xml:space="preserve"><value>All</value></data>
   <data name="GroupTabRenameItem.Text" xml:space="preserve"><value>Rename</value></data>
   <data name="GroupTabDeleteItem.Text" xml:space="preserve"><value>Delete</value></data>
   <data name="AddGroupButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>Add Group</value></data>
