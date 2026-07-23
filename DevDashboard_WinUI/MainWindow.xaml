@@ -71,7 +71,7 @@
 
                     <!-- 정렬 버튼 -->
                     <Button x:Name="SortButton"
-                            Width="36" Height="36" Padding="0"
+                            Style="{StaticResource TopBarIconButtonStyle}"
                             IsEnabled="{Binding HasAnyProjects}">
                         <Button.Flyout>
                             <MenuFlyout>
@@ -91,14 +91,14 @@
 
                     <!-- 전체 작업 기록 버튼 -->
                     <Button x:Name="AllHistoryButton"
-                            Width="36" Height="36" Padding="0"
+                            Style="{StaticResource TopBarIconButtonStyle}"
                             IsEnabled="{Binding HasAnyProjects}"
                             Click="ProjectHistoryButton_Click">
                         <FontIcon Glyph="&#xE81C;" FontSize="16" />
                     </Button>
 
                     <!-- 내보내기 / 가져오기 버튼 -->
-                    <Button x:Name="ExportImportButton" Width="36" Height="36" Padding="0">
+                    <Button x:Name="ExportImportButton" Style="{StaticResource TopBarIconButtonStyle}">
                         <Button.Flyout>
                             <MenuFlyout Opening="ExportImportFlyout_Opening">
                                 <MenuFlyoutItem x:Name="ExportMenuItem"
@@ -113,7 +113,7 @@
 
                     <!-- 알림 벨 버튼 (안읽음 배지 + 드롭다운 요약) -->
                     <Button x:Name="NotificationButton"
-                            Width="36" Height="36" Padding="0"
+                            Style="{StaticResource TopBarIconButtonStyle}"
                             ToolTipService.ToolTip="{x:Bind NotificationTooltip}">
                         <Button.Flyout>
                             <Flyout Opening="NotificationFlyout_Opening">
@@ -148,7 +148,7 @@
 
                     <!-- 앱 설정 버튼 -->
                     <Button x:Name="AppSettingsButton"
-                            Width="36" Height="36" Padding="0"
+                            Style="{StaticResource TopBarIconButtonStyle}"
                             Click="AppSettingsButton_Click">
                         <FontIcon Glyph="&#xE713;" FontSize="16" />
                     </Button>
@@ -393,9 +393,10 @@
 
                         <!-- 새로고침 버튼 -->
                         <Button x:Name="RefreshButton"
+                                Style="{StaticResource TopBarIconButtonStyle}"
                                 Margin="12,0,0,0"
                                 Grid.Column="3"
-                                Width="32" Height="32" Padding="0"
+                                Width="32" Height="32"
                                 VerticalAlignment="Center"
                                 Command="{Binding RefreshCommand}">
                             <Button.ContextFlyout>

@@ -813,6 +813,10 @@ public partial class ProjectCardViewModel : ObservableObject
         {
             // 관리자 권한 UAC 취소 — 정상 동작으로 무시
         }
+        catch (System.ComponentModel.Win32Exception ex) when (ex.NativeErrorCode == 1223)
+        {
+            // 관리자 권한 UAC 프롬프트를 사용자가 취소함(ERROR_CANCELLED 1223) — 정상 동작으로 무시
+        }
         catch (Exception ex)
         {
             _ = DialogService.ShowErrorAsync(
