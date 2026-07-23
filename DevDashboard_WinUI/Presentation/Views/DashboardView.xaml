@@ -106,6 +106,10 @@
                     Drop="Card_Drop"
                     PointerEntered="Card_PointerEntered"
                     PointerExited="Card_PointerExited">
+                <!-- 카드 hover 시 살짝 떠오르는 이동 애니메이션의 대상 (시안 :352 translateY) -->
+                <Border.RenderTransform>
+                    <TranslateTransform />
+                </Border.RenderTransform>
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="62" />

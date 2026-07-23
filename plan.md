@@ -103,7 +103,7 @@
 - **Halt Forecast**: 없음 — 단일 파일, 마크업 속성 교체, 파괴적·외부 작업 없음.
 
 ### T2 — 카드 hover 이동 애니메이션(translateY -2px) `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `Presentation/Views/DashboardView.xaml`, `Presentation/Views/DashboardView.xaml.cs`
 - **Design**: ① 배치 — XAML은 카드 `Border`에 `RenderTransform`(TranslateTransform) 선언, 애니메이션 로직은 View 코드비하인드(NFR-2: VM 무관). ② 신규 심볼 — `DashboardView.xaml.cs`에 private 헬퍼 `AnimateCardTranslate(Border card, double toY)`(대상 카드의 TranslateTransform.Y를 0.15s 동안 toY로) 1개. ③ 의존 방향 — `Card_PointerEntered/Exited`가 헬퍼 호출 + 기존 BorderBrush 교체 유지. ④ 비추상화 — 공용 애니메이션 유틸/첨부 프로퍼티를 만들지 않는다(소비처 카드 1곳, 코드비하인드 인라인).
 - **구성**:
@@ -139,6 +139,7 @@
 - `[카드 hover 테두리 자식 버튼 조기 해제]`(deferred.md:92) — 이번 이동 애니메이션도 같은 핸들러 경로라 성질 공유(악화 없음). 대장 유지.
 - **[README/스크린샷 갱신]** — 카드 플레이스홀더·hover 변경으로 스크린샷이 또 낡음(계속 Deferred).
 - **[SUGGEST] 플레이스홀더 모서리 반경** — `DashedAddButtonStyle` radius 8 vs 시안 9(미세차, 기존 [SUGGEST] 유지).
+- **[SUGGEST] 카드 hover 애니메이션 Storyboard 재사용** (T2 V-6 m1) — `AnimateCardTranslate`가 호출마다 새 Storyboard를 만들고 이전 것을 Stop하지 않아, 카드 경계에서 빠르게 들락거리면 잔상 가능성(0.15s·마지막 To 우선이라 실사용 영향 작음). 필요 시 카드당 Storyboard 캐시 후 재사용 검토.
 
 ## Out of Scope
 - 신규 프로젝트 추가 시 핀 로직 변경 — 이미 off라 대상 아님(③ 확인만).

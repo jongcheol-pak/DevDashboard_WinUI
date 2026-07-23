@@ -331,13 +331,40 @@ public sealed partial class DashboardView : UserControl
     private void Card_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
         if (sender is Border card)
+        {
             card.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Resources["CardHoverBorderBrush"];
+            AnimateCardTranslate(card, -2);
+        }
     }
 
     private void Card_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
         if (sender is Border card)
+        {
             card.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Resources["CardBorderBrush"];
+            AnimateCardTranslate(card, 0);
+        }
+    }
+
+    // 카드에 마우스가 올라오면 위로 살짝(2px) 떠올랐다가 벗어나면 복귀하는 애니메이션 (시안 :352 translateY).
+    // TranslateTransform은 렌더 트랜스폼이라 종속 애니메이션(EnableDependentAnimation)이 필요하다.
+    private static void AnimateCardTranslate(Border card, double toY)
+    {
+        if (card.RenderTransform is not Microsoft.UI.Xaml.Media.TranslateTransform transform)
+            return;
+
+        var animation = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
+        {
+            To = toY,
+            Duration = new Microsoft.UI.Xaml.Duration(TimeSpan.FromMilliseconds(150)),
+            EnableDependentAnimation = true,
+        };
+        Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(animation, transform);
+        Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(animation, "Y");
+
+        var storyboard = new Microsoft.UI.Xaml.Media.Animation.Storyboard();
+        storyboard.Children.Add(animation);
+        storyboard.Begin();
     }
 
     // "새 프로젝트 추가" 카드 hover — 시안(:347)은 액센트 테두리로 강조한다.
