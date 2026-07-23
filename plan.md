@@ -120,7 +120,7 @@
 - **Halt Forecast**: (i) 사전 해소 — 소비처 `DashboardView.xaml` 1곳 grep 전수(함정 11). 파괴적·외부 작업 없음.
 
 ### T3 — 액션 버튼 테두리 제거(슬롯 유지) `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `Presentation/Views/DashboardView.xaml`
 - **Design**: ① 배치 — `CardIconButtonStyle` 정의(`:33~90`) + 슬롯 버튼 4곳. ② 신규 심볼 — 없음(스타일 값 변경 + 로컬 속성). ③ 의존 방향 — 스타일 소비처는 카드 내부 10곳(grep 전수). ④ 비추상화 — 슬롯 전용 스타일을 새로 파생하지 않는다(로컬 `BorderThickness`로 충분).
 - **구성**:
@@ -152,8 +152,13 @@
 - master 병합·push·PR — 별도 승인.
 - **시안 대조 최종 시각 판정** — 플레이스홀더 4조합 렌더·버튼 테두리 제거·하단 위치는 사용자만 판정(⏳ HUMAN-VERIFY).
 
+## Progress Log
+- T1-T2 완료 (커밋 5b06d0f, 508ac0f): VM 빈 상태 파생 5개 → 카드 본문 플레이스홀더 5블록 + resw 3키. 빌드 OK, spec·quality 리뷰 전부 OK.
+  - 결정: 점선 플레이스홀더는 기존 `DashedAddButtonStyle`(Styles.xaml) 재사용(hover 액센트가 D3와 일치) — 신규 스타일 0. 클릭은 `EditCommand` 재사용.
+  - 편집 후 갱신: 재생성 경로(MainViewModel:477) 확정 → OnPropertyChanged 배선 불요(plan-reviewer m2).
+
 ## Phase Ledger
-- (미시작)
+- (진행 중 — T1·T2 완료)
 
 ## Open Questions
 - (없음 — 근거로 전부 결정. D1 클릭 동작·D2 테두리·D3 hover색·D4 문구 방식·D5 레이아웃 전부 시안+코드+기존 선례로 확정)

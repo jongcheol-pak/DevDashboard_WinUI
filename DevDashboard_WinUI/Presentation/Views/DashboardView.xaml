@@ -35,7 +35,8 @@
             <Setter Property="Height" Value="30" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="1" />
+            <!-- 헤더·액션 아이콘 버튼은 시안대로 테두리 없음(border:none). 슬롯 버튼만 로컬로 테두리를 되살린다 -->
+            <Setter Property="BorderThickness" Value="0" />
             <Setter Property="CornerRadius" Value="6" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -402,6 +403,7 @@
                                 <!-- 슬롯 0 -->
                                 <Button Style="{StaticResource CardIconButtonStyle}"
                                         Width="28" Height="28" CornerRadius="8"
+                                        BorderThickness="1"
                                         Background="{ThemeResource AppInputBrush}"
                                         BorderBrush="{ThemeResource AppHoverFillBrush}"
                                         Command="{Binding ExecuteCommandSlotCommand}"
@@ -444,6 +446,7 @@
                                 <!-- 슬롯 1 -->
                                 <Button Style="{StaticResource CardIconButtonStyle}"
                                         Width="28" Height="28" CornerRadius="8"
+                                        BorderThickness="1"
                                         Background="{ThemeResource AppInputBrush}"
                                         BorderBrush="{ThemeResource AppHoverFillBrush}"
                                         Command="{Binding ExecuteCommandSlotCommand}"
@@ -485,6 +488,7 @@
                                 <!-- 슬롯 2 -->
                                 <Button Style="{StaticResource CardIconButtonStyle}"
                                         Width="28" Height="28" CornerRadius="8"
+                                        BorderThickness="1"
                                         Background="{ThemeResource AppInputBrush}"
                                         BorderBrush="{ThemeResource AppHoverFillBrush}"
                                         Command="{Binding ExecuteCommandSlotCommand}"
@@ -526,6 +530,7 @@
                                 <!-- 슬롯 3 -->
                                 <Button Style="{StaticResource CardIconButtonStyle}"
                                         Width="28" Height="28" CornerRadius="8"
+                                        BorderThickness="1"
                                         Background="{ThemeResource AppInputBrush}"
                                         BorderBrush="{ThemeResource AppHoverFillBrush}"
                                         Command="{Binding ExecuteCommandSlotCommand}"
