@@ -1,195 +1,184 @@
-# plan.md — 대시보드 카드: 빈 설명·태그 플레이스홀더 + 헤더/액션 버튼 테두리 제거
+# plan.md — 대시보드 카드: 플레이스홀더 점선박스 통일 + 카드 hover 이동 애니메이션 + 편집 시 핀 유지
 
-**기준 디자인**: `docs/design/DevDashboard Redesign.dc.html` — 카드 마크업 `:352~410`(설명·태그 5블록 조건 `:366~386`, 액션 버튼 `:357~401`, 슬롯 `:403~409`). 사용자가 시안을 갱신(플레이스홀더 추가)하고 새 렌더 이미지 1장 제공(2026-07-23).
+**기준 디자인**: `docs/design/DevDashboard Redesign.dc.html`(갱신본, 미커밋) — 카드 `article`(`:352`), 플레이스홀더 noMeta/needDesc/needTags(`:367,375,385`). 사용자가 시안을 갱신(설명·태그 추가를 점선 박스로 통일)하고 렌더 이미지 1장 제공(2026-07-23).
 **PRD**: `docs/prd.md` — 이번 변경은 active **FR-D1**(카드 시안 재구성)의 세부 보강에 닿으므로 연결한다(Phase G 재검증 활성). `## PRD Coverage` 참조.
 
 ## 요구 이해
 
-> 원문(사용자, 2026-07-23): "디자인 시안을 확인해서 설명, 태그가 없는 경우 이미지처럼 표시 하고, 헤더에 있는 고정/삭제 버튼, 할 일, 테스트 목록, 더 보기 버튼은 이미지처럼 버튼의 사각테두리가 없도록 수정" (+ 시안 갱신 + 렌더 이미지 1장)
+> 원문(사용자, 2026-07-23): "① 디자인 시안을 확인해서 이미지처럼 설명 추가, 태그 추가 를 수정하고 마우스 오버시 색상이 다른데 확인해서 수정. ② 디자인 시안은 카드에 마우스가 올라가면 카드가 움직이는 애니메이션이 있는데 적용 가능한지 검토해서 적용. ③ 프로젝트 추가시 핀 고정 기본값이 on으로 되어 있으면 off로 설정" (+ 시안 갱신 + 렌더 이미지 1장)
 
 이해한 요구:
-- **① 빈 설명·태그 플레이스홀더**: 카드에 설명/태그가 없을 때 빈 공간으로 두지 말고 시안대로 "추가 유도" 플레이스홀더를 표시한다. 시안은 상태를 3분기한다 — 둘 다 없으면 큰 점선 박스 "＋ 설명·태그 추가", 설명만 없으면(태그는 있음) 텍스트 링크 "＋ 설명 추가", 태그만 없으면(설명은 있음) 점선 pill "＋ 태그 추가".
-- **② 액션 버튼 사각 테두리 제거**: 헤더의 핀·삭제 버튼, 하단 액션의 할 일·테스트·더 보기 버튼은 시안에서 전부 `border:none`인데, 현행 공용 `CardIconButtonStyle`이 `BorderThickness="1"`이라 사각 테두리가 보인다. 시안대로 테두리를 없앤다. **스크립트 슬롯 버튼은 시안이 `border:1px solid`라 테두리를 유지**한다(요구에 미포함).
-- 직전 세션(2026-07-23)에서 넣은 "설명·태그 자리 고정 예약(Height 32/24)"은 이번 시안 방식(플레이스홀더가 자리를 채우고 액션 행을 바닥으로 밀어냄)으로 **대체**한다.
+- **① 플레이스홀더 점선박스 통일**: 갱신 시안에서 "＋ 설명 추가"(needDesc)·"＋ 태그 추가"(needTags)가 이전(텍스트 링크/작은 pill)과 달리 **카드 폭 전체 점선 박스**(noMeta와 같은 형태, 크기만 차등)로 통일됐다. 현행은 ③needDesc가 기본 Button(hover 시 회색 사각 배경), ⑤needTags가 `DashedAddButtonStyle`(hover 시 액센트 테두리)이라 **hover 동작이 서로 다르다** — 이것이 "마우스 오버 색상이 다른" 원인. 셋을 동일 `DashedAddButtonStyle`로 통일해 모양·hover를 일치시킨다. hover 강조색은 앱 액센트 산호(`AppAccentBrush`) 유지(Q1).
+- **② 카드 hover 이동 애니메이션**: 시안 카드는 hover 시 `transform:translateY(-2px)`로 살짝 떠오른다(`:352`, transition 0.15s). 현행은 테두리색만 바뀐다. WinUI에서 `Storyboard`로 `TranslateTransform.Y`를 애니메이션해 적용한다(적용 가능 — 검토 완료).
+- **③ 핀 기본값**: 코드 확인 결과 **신규 추가 시 핀은 이미 off**다(`ToProjectItem`이 `IsPinned` 미설정 → `ProjectItem` 기본값 false, DB `DEFAULT 0`). 신규 경로는 변경 불필요. 다만 **핀 걸린 프로젝트를 편집 저장하면 핀이 풀리는 별개 버그**를 함께 고친다(Q2) — `AddOrUpdateProjectAsync`의 편집 분기가 다이얼로그 결과(IsPinned=false)로 기존 값을 덮어쓰므로 기존 IsPinned/PinOrder를 보존한다.
 
 ## PRD Coverage
 
 | PRD ID | 우선순위 | 대응 task | 상태 |
 |---|---|---|---|
-| FR-D1 카드 시안 재구성(빈 상태 플레이스홀더·버튼 시안 정합) | Must | T1, T2, T3 | ✅ 커버(세부 보강) |
-| FR-D2 / FR-D3 / FR-D4 (대시보드 카드 기존 항목) | Must/Should | — | 이번 범위 외 (기구현 — 색상·액션 축약·그리드는 직전 plan에서 완료, 이번 diff 무관) |
+| FR-D1 카드 시안 재구성(본문 설명·태그·액션, 핀·삭제) | Must | T1, T2, T3 | ✅ 커버(세부 보강·버그 수정) |
+| FR-D2 / FR-D3 / FR-D4 (대시보드 카드 기존 항목) | Must/Should | — | 이번 범위 외 (기구현 — 이번 diff 무관) |
 | FR-C* / FR-S* / FR-T* / FR-E* / FR-H* / FR-N* | Must/Should | — | 이번 범위 외 (기구현) |
-| NFR-1 (빌드 오류 0·신규 경고 0) | — | 전 task | 검증 대상(실측 baseline `CS0618` 1건 제외) |
-| NFR-2 (계층 위반 0) | — | T1 | 검증 대상(VM은 `Microsoft.UI.Xaml` Brush 미참조 유지) |
-| NFR-4 (다국어 ko/en 대칭) | — | T2 | 검증 대상(신규 resw 3키 전량 ko/en) |
+| NFR-1 (빌드 오류 0·신규 경고 0) | — | 전 task | 검증 대상(baseline `CS0618` 1건 제외) |
+| NFR-2 (계층 위반 0) | — | T1,T2 | 검증 대상(VM에 Brush 미참조 유지, 애니메이션은 View 코드비하인드) |
 | NFR-5 (테스트) | — | — | 조건 미발동(테스트 프로젝트 부재 — AGENTS.md) |
 
 ## Investigation Log (근거)
 
 - **위키 참조**: vault 미설정 — 코드·시안 1차 출처로 진행.
-- **기존 plan**: 직전 카드 리디자인 plan은 `## Phase Ledger` **Phase G 통과(Must 100%)** = 완료 → 새 계획으로 교체(Deferred는 F-6.5에서 `docs/plans/deferred.md`로 이관 완료).
-- **Deferred 대장 확인**: `[태그 pill 시안화 미적용]`(deferred.md:84)이 있으나 이번 작업과 **별개** — 그 항목은 태그 *표시*를 `MarqueeTagsControl`에서 시안 pill로 바꿀지의 문제이고, 이번은 태그 *표시는 유지*하고 "태그가 **없을 때** 플레이스홀더"만 추가한다. 대장에 그대로 유지.
-- **시안 명세 (직접 Read, `:365~409`)**:
-  - 본문 컨테이너(`:365`): `padding:14px 16px 16px; display:flex; flex-direction:column; gap:12px; flex:1`. 액션 행(`:387`)에 `margin-top:auto`(하단으로 밀어냄).
-  - `c.noMeta`(둘 다 없음, `:366~370`): `button` `flex:1; min-height:52px; border:1px dashed #2e2e35; border-radius:9; background:transparent; color:#5f5d66; font-size:11.5px; gap:7; justify-content:center` → `＋`(13px) + "설명·태그 추가". hover `color:#8b7cf7; border-color:#4a4460`.
-  - `c.hasDesc`(`:371~373`): `div font-size:12px; color:#98959d; nowrap; ellipsis` = 설명 1줄. **단 현행은 사용자 결정으로 2줄(`MaxLines="2"`) — 이번 요구는 "없을 때"라 설명 표시 방식은 무변경(2줄 유지)**.
-  - `c.needDesc`(설명 없고 태그 있음, `:374~376`): `button border:none; background:transparent; padding:0; color:#5f5d66; font-size:12px; align-self:flex-start; gap:6` → "＋ 설명 추가".
-  - `c.hasTags`(`:377~383`): 태그 pill wrap → **현행 `MarqueeTagsControl` 유지**.
-  - `c.needTags`(태그 없고 설명 있음, `:384~386`): `button border:1px dashed #2e2e35; border-radius:6; padding:3px 8px; color:#5f5d66; font-size:11px; align-self:flex-start` → "＋ 태그 추가".
-  - 버튼 테두리: 핀(`:357`)·삭제(`:360`) 28px `border:none`, 할일(`:392`)·테스트(`:395`)·더보기(`:399`) 34px `border:none`. 슬롯(`:404,405`) 28px **`border:1px solid #2b2b31`**(유지), 슬롯추가(`:408`) `border:1px dashed`(유지).
+- **기존 plan**: 직전 카드 빈상태 플레이스홀더 plan은 `## Phase Ledger` **Phase G 통과(Must 100%)** = 완료(F-8 육안만 미완) → 새 계획으로 교체. 미커밋 변경은 시안 파일뿐이라 이번 요청과 직접 관련.
+- **Deferred 대장 확인** (`docs/plans/deferred.md`):
+  - **[카드 hover 이동 애니메이션 미구현]**(`:85`) — 시안 translateY(-2px) 미구현 → **이번 T2가 재수용**.
+  - **[시안 보라 액센트 미채택]**(`:86`) — 앱 액센트 `#F0716A` 유지 결정 → Q1 답변(산호 유지)과 일치. 대장 유지(전역 액센트 변경은 별개).
+  - **[태그 pill 시안화 미적용]**(`:84`) — 태그 *표시* 방식은 이번과 별개. 대장 유지.
+  - **[대시보드 카드 F-8 육안 확인 미완]**(`:90`) — 이번 렌더 확인과 함께 다룸.
+- **시안 명세 (직접 Read)**:
+  - 카드 `article`(`:352`): `transition:border-color .15s, transform .15s`, hover `border-color:#3d3d45; transform:translateY(-2px)`.
+  - noMeta(`:367`): `flex:1; min-height:52px; 1px dashed #2e2e35; radius 9; center`, hover `color:#8b7cf7; border-color:#4a4460`. → **현행 유지**(이미 `DashedAddButtonStyle` MinHeight 52).
+  - needDesc(`:375`): `min-height:36px; 1px dashed #2e2e35; radius 9; padding:0; center; gap:6`, hover 동일 → "＋ 설명 추가". **갱신점**: 이전 시안의 "border:none 텍스트 링크"에서 점선 박스로 변경됨.
+  - needTags(`:385`): `min-height:24px; 1px dashed #2e2e35; radius 9; padding:0; center; gap:6`, hover 동일 → "＋ 태그 추가". **갱신점**: 이전 시안의 "작은 좌측 pill(radius 6, padding 3/8)"에서 폭 전체 점선 박스로 변경됨.
 - **현행 구현 (직접 Read)**:
-  - `Presentation/Views/DashboardView.xaml`: 직전 세션에서 본문을 `Grid`(Row0 상단 고정 / Row1 `*` / Row2 하단)로 바꾸고 설명 `Height="32"`·태그 `Height="24"` 고정 예약(`:192~207` 부근). 이번에 플레이스홀더 방식으로 재구성.
-  - `CardIconButtonStyle`(`:33~90`) `BorderThickness="1"`, `PointerOver` VSM에서 `BorderBrush`를 `ControlStrokeColorSecondaryBrush`로. **소비처는 `DashboardView.xaml` 9곳뿐**(grep 전수 — 핀·삭제·할일·테스트·더보기 5 + 슬롯 4). `DashboardView.xaml.cs`의 1건은 주석. 다른 파일 0 → 스타일 수정은 카드 내부만 영향. (개발도구 실행 버튼은 이미 로컬 `BorderThickness="0"`이라 이 스타일 미소비.)
-  - `ProjectCardViewModel`: `Description`(`:159` `_item.Description` 위임)·`Tags`(`:165` `IReadOnlyList<string>` 위임)·`Initial`·`EditCommand`(프로젝트 설정 다이얼로그) 실재. **`HasDescription`/`HasTags` 없음** → 신규. 이름 충돌 없음(`HistoryDialogViewModel`의 동명은 별개 클래스).
-  - resw 카드 키: `CardMenu_*.Text`(x:Uid `.Text` 접미). `AddCardTemplate`의 `TextBlock x:Uid="AddNewProjectText"`(`:553`)로 **DataTemplate 안 TextBlock의 `x:Uid`가 동작함이 확인됨** → 플레이스홀더 문구도 같은 방식.
-- **AGENTS.md**: 실재. 빌드 `MSBuild x64`(메모리 정본). 이번 참조 경로 전부 실재 — stale 없음.
+  - `DashboardView.xaml`:
+    - ① noMeta(`:209~217`): `DashedAddButtonStyle` MinHeight 52 — 시안 일치(유지).
+    - ② 설명(`:220~228`): Height 32 고정 2줄 — 최근 커밋 4ec0d1b("1줄일 때 태그가 위로 붙던 문제") 유지(이번 무변경).
+    - ③ needDesc(`:231~240`): `Background=Transparent BorderThickness=0` **기본 Button** 좌측 텍스트 링크 → 점선 박스로 교체 대상.
+    - ⑤ needTags(`:250~260`): `DashedAddButtonStyle` + `HorizontalAlignment=Left Padding=8,3 FontSize=11` **작은 pill** → 폭 전체 점선 박스로 교체 대상.
+    - 카드 `Border`(`:90~108`): `PointerEntered=Card_PointerEntered`/`PointerExited=Card_PointerExited` 이미 배선. `RenderTransform` 없음.
+  - `DashboardView.xaml.cs`: `Card_PointerEntered`(`:331`)/`Card_PointerExited`(`:337`)가 `BorderBrush`만 교체(`CardHoverBorderBrush`↔`CardBorderBrush`). **translateY 없음** → T2가 여기에 Storyboard 추가.
+  - `DashedAddButtonStyle`(`Styles.xaml:232~283`): `Background Transparent`, `BorderThickness 0`, `HorizontalAlignment Stretch`, `HorizontalContentAlignment Center`, `Padding 8,7`, hover VSM `DashBorder.Stroke=AppAccentBrush`(산호) + `Content.Foreground=TextFillColorPrimaryBrush`. **radius 8**(시안 9와 미세차 — 기존 [SUGGEST] 유지). 폭 전체 stretch가 기본이라 ③/⑤ 교체 시 폭 자동 채움.
+  - `AppAccentBrush`=`#F0716A`(산호, `Palette.xaml:31,56`). 시안 보라 `#8b7cf7`는 팔레트에 없음.
+  - 핀 경로:
+    - `ProjectItem.IsPinned`(`:46`) 기본 false. DB `IsPinned INTEGER NOT NULL DEFAULT 0`(`DatabaseContext.cs:215`). INSERT `p.IsPinned ? 1 : 0`(`SqliteProjectRepository.cs:439`).
+    - `ProjectSettingsDialogViewModel.ToProjectItem()`(`:245~270`): **IsPinned/PinOrder 미설정** → 반환 item은 항상 false/0. 다이얼로그 VM에 IsPinned 프로퍼티 없음(grep 전수).
+    - `MainViewModel.AddOrUpdateProjectAsync`(`:456~504`): 편집 분기(`existing is not null`)는 `item.CommandScripts = existing.ToModel().CommandScripts`로 CommandScripts만 보존하고 `_projectRepository.Update(item)` → **IsPinned/PinOrder는 false/0으로 덮어써짐**(핀 풀림 버그). 신규 분기(else)는 `Add(item)` → false(정상, off).
+    - `ProjectCardViewModel.IsPinned`(`:56`) 실재, `ToModel()`(`:421`)이 `_item.IsPinned=IsPinned` 후 `_item` 반환(PinOrder는 `_item.PinOrder` 그대로) → `existing.ToModel().IsPinned`/`.PinOrder`로 기존 값 회수 가능.
+- **AGENTS.md**: 빌드 `MSBuild x64`. 함정 5(`x:Bind` 함수 바인딩은 Converter/ThemeResource 불가 — 이번 미해당), 함정 6(점선은 Rectangle — `DashedAddButtonStyle` 선례 재사용), baseline 경고 `CS0618` 1건. 참조 경로 전부 실재.
 
 ### 4-D. 재사용 확인
 
 | 신규 심볼 | 유사 기존 구현 검색 결과 | 재사용/신규 사유 |
 |---|---|---|
-| `ProjectCardViewModel.HasDescription`/`HasTags`/`ShowMetaPlaceholder`/`ShowDescPlaceholder`/`ShowTagsPlaceholder` | 카드 VM에 빈 상태 판정 프로퍼티 없음. `StringNotEmptyToVisibility` 컨버터는 단일 값만 판정(조합 불가) | **신규(계산 프로퍼티)** — noMeta/needDesc/needTags는 설명·태그 **조합** 조건이라 단일 컨버터로 표현 불가. 파생 지점을 VM 한 곳으로 모은다 |
-| 플레이스홀더 3버튼 마크업 | 카드에 점선 버튼 선례 `DashedAddButtonStyle`(슬롯 추가) | **마크업 신규 + 점선은 기법 재사용 검토** — noMeta/needTags의 점선 테두리는 `Rectangle StrokeDashArray` 기법(함정 6)을 쓰되, 크기·문구가 달라 인라인. needDesc는 테두리 없는 텍스트 버튼이라 스타일 불필요. 신규 C# 심볼 0 |
-| resw 3키(`CardPlaceholder_*`) | — | **신규** — 신규 문구, ko/en 대칭 |
+| (T1) 플레이스홀더 점선 박스 | `DashedAddButtonStyle`(Styles.xaml, noMeta·needTags가 이미 소비) | **재사용** — ③needDesc도 같은 스타일로 교체. 신규 스타일·심볼 0 |
+| (T2) 카드 hover 이동 애니메이션 헬퍼 | 코드비하인드에 Storyboard 애니메이션 선례 없음(현행은 브러시 즉시 교체). deferred `:61`에 작업/테스트 행도 동일 미구현 | **신규(View 코드비하인드 private 헬퍼 1개)** — `TranslateTransform.Y`를 0↔-2로 애니메이션. 카드마다 RenderTransform 인스턴스가 달라 대상별 Storyboard 필요 |
+| (T3) 핀 보존 | `existing.ToModel().CommandScripts` 보존 선례(`:462`) | **재사용(동일 병합 패턴 확장)** — IsPinned/PinOrder 2줄 추가. 신규 심볼 0 |
 
 ## 시각 요소 분해
 
-> 기준: 시안 `:365~409` 인라인 스타일 + 렌더 이미지(2026-07-23). CSS px는 WinUI 논리 단위로 옮긴다. 최종 판정은 빌드 후 육안 대조(⏳ HUMAN-VERIFY). hover 보라(`#8b7cf7`)는 앱 액센트로 대체(D3 — 직전 plan D7 선례).
+> 기준: 시안 `:352,367,375,385` 인라인 스타일 + 렌더 이미지(2026-07-23). CSS px는 WinUI 논리 단위로 옮긴다. hover 보라(`#8b7cf7`)는 앱 액센트 산호(D2)로 대체. 최종 판정은 빌드 후 육안 대조(⏳ HUMAN-VERIFY).
 
 | 요소 | 속성 | 디자인 값 | XAML 대응 수단 | 확인 방법 |
 |---|---|---|---|---|
-| 본문 컨테이너 | 레이아웃 | flex column, gap 12, flex:1, 액션은 margin-top:auto | `Grid`(상단 Auto / `*` 여백 / 하단 Auto), 상단 `StackPanel Spacing="12"` | HTML `:365,387` |
-| noMeta 박스 | 크기·테두리 | flex:1, min-height:52, 1px dashed #2e2e35, radius 9, bg transparent | `Button` `MinHeight="52"` + `Rectangle StrokeDashArray`(함정 6) 또는 점선 스타일, `CornerRadius="9"` | HTML `:367` |
-| noMeta 박스 | 내용·정렬 | ＋(13px) + "설명·태그 추가"(11.5px, #5f5d66), 중앙 정렬, gap 7 | `StackPanel Orientation="Horizontal" Spacing="7"` 중앙, `FontIcon`/글리프 13 + `TextBlock x:Uid` 11.5 | HTML `:368` |
-| noMeta 박스 | hover | color #8b7cf7, border #4a4460 | 앱 액센트(D3) | HTML `:367` |
-| 설명 | 글자·줄수 | 12px, #98959d | `FontSize="12"`, `TextFillColorSecondaryBrush`, **`MaxLines="2"` 유지(현행)** | HTML `:372` + 사용자 결정 |
-| needDesc | 형태 | border:none, bg transparent, padding 0, #5f5d66, 12px, 좌측 정렬 | `Button` 투명·테두리 0, `HorizontalAlignment="Left"`, `＋`+`TextBlock x:Uid` | HTML `:375` |
-| needTags | 형태 | 1px dashed #2e2e35, radius 6, padding 3/8, #5f5d66, 11px, 좌측 정렬 | 점선 pill(`Rectangle StrokeDashArray` 또는 점선 스타일), `CornerRadius="6"`, `Padding="8,3"`, 좌측 | HTML `:385` |
-| 태그 | — | pill wrap | **현행 `MarqueeTagsControl` 유지**(없을 때만 needTags로 대체) | 사용자 결정 |
-| 핀·삭제 버튼 | 테두리 | border:none | `CardIconButtonStyle` `BorderThickness` 1→0(스타일 정의 수정) | HTML `:357,360` |
-| 할일·테스트·더보기 버튼 | 테두리 | border:none | 위와 동일 스타일 공유 → 함께 해소 | HTML `:392,395,399` |
-| 슬롯 버튼 | 테두리 | 1px solid #2b2b31 (**유지**) | 스타일 기본이 0이 되므로 슬롯 4곳에 `BorderThickness="1"` 로컬 지정 | HTML `:404` |
+| needDesc 박스 | 형태 | 폭 전체 점선(1px dashed #2e2e35, radius 9), min-height 36, bg transparent, 중앙 정렬 | `DashedAddButtonStyle` + `MinHeight="36"`(폭 Stretch·중앙은 스타일 기본) | HTML `:375` |
+| needDesc 박스 | 내용 | ＋ 글리프 + "설명 추가"(≈11.5px, #5f5d66), gap 6 | `StackPanel Horizontal Spacing="6"` + `TextBlock ＋` + `TextBlock x:Uid="CardPlaceholder_Desc"` | HTML `:375` |
+| needTags 박스 | 형태 | 폭 전체 점선(1px dashed #2e2e35, radius 9), min-height 24, bg transparent, 중앙 정렬 | `DashedAddButtonStyle` + `MinHeight="24"`(Left·Padding 8,3 제거) | HTML `:385` |
+| needTags 박스 | 내용 | ＋ + "태그 추가"(≈11px), gap 6 | `StackPanel Horizontal Spacing="6"` + `TextBlock ＋` + `TextBlock x:Uid="CardPlaceholder_Tags"` | HTML `:385` |
+| noMeta 박스 | (유지) | min-height 52, 점선 radius 9, 중앙 | 현행 `DashedAddButtonStyle` MinHeight 52 | HTML `:367` |
+| 플레이스홀더 hover | 강조 | color #8b7cf7 / border #4a4460 → 앱 액센트 산호 | `DashedAddButtonStyle` PointerOver VSM(`AppAccentBrush`) — 3종 동일 | HTML `:375` + Q1/D2 |
+| 카드 | hover 이동 | transform translateY(-2px), transition .15s | `Border.RenderTransform=TranslateTransform` + `Storyboard`(Y 0↔-2, 0.15s) | HTML `:352` |
+| 카드 | hover 테두리 | border-color #3d3d45 | 현행 `Card_PointerEntered` BorderBrush 교체(유지) | HTML `:352` |
 
 ## Decisions
 
-- **D1 (플레이스홀더 클릭 → 프로젝트 설정 다이얼로그)**: 3개 플레이스홀더를 누르면 `EditCommand`(프로젝트 설정 다이얼로그)를 실행한다. *Source*: 설명·태그를 추가하려면 프로젝트를 편집해야 하고, 그 진입점은 기존 `EditCommand`(`…` 메뉴의 "프로젝트 설정"과 동일 커맨드)다. 시안 `onMore` 바인딩은 목업의 임시 핸들러이며, 실제 앱에서 설명/태그 입력 수단은 설정 다이얼로그 하나뿐(자명 확정, 신규 커맨드 0).
-- **D2 (버튼 테두리는 공용 스타일에서 제거, 슬롯만 로컬 복원)**: `CardIconButtonStyle`의 `BorderThickness` Setter를 `1`→`0`으로 바꿔 핀·삭제·할일·테스트·더보기 5버튼의 테두리를 한 번에 없앤다. 슬롯 버튼 4곳은 시안이 `border:1px solid`라 로컬 `BorderThickness="1"`을 지정해 유지한다. *Source*: 소비처 grep 전수 — 스타일은 `DashboardView.xaml`에서만 소비(카드 내부). 스타일에서 없애고 슬롯만 복원하는 것이, 5곳에 로컬 0을 다는 것보다 적은 변경이며 의도가 스타일에 모인다. `PointerOver` VSM의 `BorderBrush` 변경은 `BorderThickness="0"`이면 보이지 않으므로 그대로 둬도 무해(제거는 선택).
-- **D3 (hover 보라 → 앱 액센트)**: 플레이스홀더 hover 강조 `#8b7cf7`(보라)은 이 앱 팔레트에 없으므로 앱 액센트(`AppAccentBrush`)를 쓴다. *Source*: 직전 plan D7과 동일 — 팔레트 다크 단일·전역 정책(함정 4), 카드만 보라를 쓰면 강조색이 둘로 갈린다.
-- **D4 (플레이스홀더 문구는 resw x:Uid `.Text`)**: 3개 문구를 resw ko/en에 `.Text` 접미로 등록하고 DataTemplate 안 `TextBlock x:Uid`로 소비한다. *Source*: `AddNewProjectText`(`:553`)가 DataTemplate 안 `TextBlock x:Uid`로 이미 동작함이 확인됨(함정 3의 `.Text` 접미 준수). 글리프 `＋`는 문구에 넣지 않고 별도 `FontIcon`/`TextBlock`으로 분리(문구 재사용·정렬 독립).
-- **D5 (직전 세션 Height 고정 예약 대체)**: 2026-07-23의 설명 `Height="32"`·태그 `Height="24"` 고정 예약은 제거하고, 시안 방식(빈 상태에 플레이스홀더가 자리를 채우고 액션 행을 `*` 여백으로 바닥에 밀어냄)으로 대체한다. *Source*: 시안 `:365,387`. 플레이스홀더가 항상 무언가를 표시하므로 자리 예약이 불필요해지고, 하단 위치는 셀 균일 높이(`MinItemHeight="256"`) + 하단 바닥 배치로 유지된다.
+- **D1 (플레이스홀더 3종을 `DashedAddButtonStyle`로 통일)**: ③needDesc(기본 Button)·⑤needTags(작은 좌측 pill)를 ①noMeta와 같은 `DashedAddButtonStyle` 폭 전체 점선 박스로 바꾸고 크기만 `MinHeight`로 차등(52/36/24)한다. *Source*: 갱신 시안 `:375,385`가 셋을 동일 점선 박스로 통일. 스타일 통일이 곧 hover 통일(모두 `AppAccentBrush`)이라 "hover 색상이 다른" 문제가 자연 해소. 신규 스타일 0.
+- **D2 (hover 강조색 = 앱 액센트 산호 유지)**: 통일된 플레이스홀더 hover는 `DashedAddButtonStyle`의 `AppAccentBrush`(#F0716A) 그대로. *Source*: 사용자 Q1 "앱 액센트 산호색 유지". deferred `:86`·직전 plan D3과 동일(팔레트 다크 단일·전역, 시안 보라는 목업 색). 색 변경 코드 0.
+- **D3 (카드 hover 이동은 코드비하인드 Storyboard)**: 카드 `Border`에 `TranslateTransform`을 두고 `Card_PointerEntered/Exited`에서 `Storyboard`(`DoubleAnimation` Y 0↔-2, 0.15s, `EnableDependentAnimation`)로 애니메이션한다. *Source*: 카드는 `ItemsRepeater` DataTemplate 내 `Border`라 `VisualStateManager` PointerOver가 자동 공급되지 않아 이미 코드비하인드 핸들러를 쓴다(`:331,337`) — 같은 자리에 이동 애니메이션을 더한다. `TranslateTransform`은 렌더 트랜스폼이라 종속 애니메이션(`EnableDependentAnimation="True"`) 필요. XAML VSM/ControlTemplate 신설보다 최소 변경.
+- **D4 (편집 시 핀 보존은 MainViewModel 병합)**: `AddOrUpdateProjectAsync` 편집 분기에서 `existing.ToModel()`의 `IsPinned`/`PinOrder`를 다이얼로그 결과 `item`에 대입해 보존한다. *Source*: 다이얼로그 VM은 핀을 다루지 않고(핀 토글은 카드 헤더 버튼 전용) `ToProjectItem`은 false 반환. 기존 `CommandScripts` 보존(`:462`)과 동일 패턴 확장이 가장 국소적. 다이얼로그 VM에 IsPinned 추가(더 큰 변경)를 하지 않는다.
 
 ## 작업 단계
 
-### T1 — VM: 빈 설명·태그 상태 파생 프로퍼티 `Type C`
-- [x] 구현
-- **Files**: `Presentation/ViewModels/ProjectCardViewModel.cs`
-- **Design**: ① 배치 — 파생 값은 `ProjectCardViewModel`(Presentation VM), 브러시·표시는 XAML. ② 신규 심볼 — `HasDescription`/`HasTags`(원자 판정) + `ShowMetaPlaceholder`/`ShowDescPlaceholder`/`ShowTagsPlaceholder`(조합 파생, 상호 배타). ③ 의존 방향 — VM은 `string`/`bool`만 계산(`Microsoft.UI.Xaml` Brush 미참조 — NFR-2 유지). XAML이 `BoolToVisibility`로 소비. ④ 비추상화 — 빈 상태를 담는 값 객체·enum을 만들지 않는다(bool 5개로 충분, 소비처 1곳).
-- **구성**:
-  - `HasDescription => !string.IsNullOrEmpty(Description)`, `HasTags => Tags is { Count: > 0 }`.
-  - `ShowMetaPlaceholder => !HasDescription && !HasTags`(noMeta), `ShowDescPlaceholder => !HasDescription && HasTags`(needDesc), `ShowTagsPlaceholder => HasTags == false && HasDescription`(needTags). 세 값은 상호 배타 + hasDesc/hasTags와 합쳐 5블록이 겹치지 않는다.
-  - 한글 주석으로 각 프로퍼티의 시안 대응(noMeta/needDesc/needTags)을 1줄씩 명시.
-  - **편집 후 갱신**: 편집 저장 시 `MainViewModel`(`:477` `new ProjectCardViewModel(item, ...)`)이 카드 VM을 **재생성**하므로 파생값은 자동 갱신된다 → **`OnPropertyChanged` 배선 불요**(plan-reviewer m2 확정).
-- **Acceptance**:
-  1. 빌드 오류 0 · 신규 경고 0(실측 baseline `CS0618` 1건 제외).
-  2. 5개 프로퍼티가 정의되고, `ShowMeta`/`ShowDesc`/`ShowTags`Placeholder가 상호 배타(동시에 둘 이상 true 불가)임이 로직으로 성립한다.
-  3. `ProjectCardViewModel.cs`에 `Brush`/`SolidColorBrush` 타입이 신규로 추가되지 않는다(NFR-2 — 값은 bool).
-- **Edge Cases**: `Description`이 공백만("   ") → `IsNullOrEmpty`는 false지만 시안상 "빈"에 가까움 — 현행 `StringNotEmptyToVisibility`도 `IsNullOrEmpty` 기준이므로 **일관되게 `IsNullOrEmpty` 사용**(공백만은 "있음"으로 처리, 기존 동작과 동일) / `Tags`가 null → `is { Count: > 0 }`가 false로 안전 / 태그 0개 → HasTags false.
-- **Halt Forecast**: 없음 — 단일 파일, 신규 계산 프로퍼티, 파괴적·외부 작업 없음.
-
-### T2 — 카드 템플릿: 빈 상태 플레이스홀더 5블록 재구성 + resw `Type C`
-- [x] 구현
-- **Files**: `Presentation/Views/DashboardView.xaml`, `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`
-- **Design**: ① 배치 — 본문 상단 영역(현행 `Grid.Row=0` StackPanel)에 조건부 5블록. ② 신규 심볼 — 마크업만(신규 C# 0) + resw 3키. ③ 의존 방향 — XAML → VM(T1 값)·`EditCommand`·`BoolToVisibility`. ④ 비추상화 — 플레이스홀더 전용 UserControl·공용 스타일을 만들지 않는다(소비처 1곳, 인라인).
-- **구성**:
-  - 직전 세션의 설명 `Height="32"`·태그 `Height="24"` 고정 제거(D5). 상단 `StackPanel Spacing="12"` 안에 5블록을 `Visibility` 바인딩으로 조건부 배치:
-    - noMeta 박스(`ShowMetaPlaceholder`): `Button` `MinHeight="52"` + 점선 테두리(`Rectangle StrokeDashArray` 기법 또는 `DashedAddButtonStyle` 응용) + `CornerRadius="9"`, 내부 중앙 정렬 `＋`+`TextBlock x:Uid="CardPlaceholder_DescAndTags"`, `Command="{Binding EditCommand}"`.
-    - 설명(`HasDescription`): 현행 설명 `TextBlock`(2줄 유지) + `Visibility="{Binding HasDescription, Converter={StaticResource BoolToVisibility}}"`.
-    - needDesc 버튼(`ShowDescPlaceholder`): 테두리·배경 없는 `Button` 좌측 정렬, `＋`+`x:Uid="CardPlaceholder_Desc"`, `EditCommand`.
-    - 태그(`HasTags`): 현행 `MarqueeTagsControl` + `Visibility="{Binding HasTags, ...}"`.
-    - needTags pill(`ShowTagsPlaceholder`): 점선 pill `CornerRadius="6" Padding="8,3"` 좌측 정렬, `＋`+`x:Uid="CardPlaceholder_Tags"`, `EditCommand`.
-  - resw ko/en 3키(`.Text` 접미, 함정 3): `CardPlaceholder_DescAndTags`="설명·태그 추가"/"Add description · tags", `CardPlaceholder_Desc`="설명 추가"/"Add description", `CardPlaceholder_Tags`="태그 추가"/"Add tags"(en 문구는 자연스러운 관용 표현으로 확정).
-  - 드래그 6속성·헤더 밴드·하단 액션/슬롯은 무변경(승계).
-- **Acceptance**:
-  1. 빌드 오류 0 · 신규 경고 0.
-  2. 4가지 조합이 각각 시안대로 렌더된다(코드 경로 존재): 둘 다 있음(설명+태그) / 설명만(설명+태그추가) / 태그만(설명추가+태그) / 둘 다 없음(설명·태그추가 박스). Visibility 바인딩이 T1의 상호 배타 값과 짝을 이룬다.
-  3. 3개 플레이스홀더가 `EditCommand`에 바인딩된다(D1).
-  4. 신규 resw 3키가 ko/en **양쪽**에 있고 `x:Uid` 소비 형식(`.Text`)을 따른다.
-  5. 직전 세션의 설명 `Height="32"`·태그 `Height="24"` 고정이 제거된다.
-  6. 액션 행이 셀 하단에 유지되고(하단 위치 회귀 없음), 드래그 6속성이 카드 `Border`에 남아 있다.
-- **Edge Cases**: 설명 매우 김 → 2줄 말줄임(현행 유지) / 태그 많음 → `MarqueeTagsControl` 기존 처리 / noMeta 박스가 상단을 크게 차지 → `MinHeight="52"`로 시안 근사, 남는 공간은 `*` 여백 / 플레이스홀더 클릭 후 편집 저장 → T1 파생값 갱신 경로에 의존(T1 Edge 참조).
-- **Halt Forecast**: (i) 사전 해소 — 소비처 `DashboardView.xaml` 1곳 grep 전수(함정 11). 파괴적·외부 작업 없음.
-
-### T3 — 액션 버튼 테두리 제거(슬롯 유지) `Type C`
+### T1 — 플레이스홀더 needDesc·needTags 점선박스 통일 `Type C`
 - [x] 구현
 - **Files**: `Presentation/Views/DashboardView.xaml`
-- **Design**: ① 배치 — `CardIconButtonStyle` 정의(`:33~90`) + 슬롯 버튼 4곳. ② 신규 심볼 — 없음(스타일 값 변경 + 로컬 속성). ③ 의존 방향 — 스타일 소비처는 카드 내부 10곳(grep 전수). ④ 비추상화 — 슬롯 전용 스타일을 새로 파생하지 않는다(로컬 `BorderThickness`로 충분).
+- **Design**: 해당 없음 — 신규 C# 심볼 0. 마크업 스타일 교체만(③/⑤를 `DashedAddButtonStyle`로, 크기·정렬 속성 조정). 기존 스타일·VM 값·resw 키(`CardPlaceholder_Desc`/`_Tags`) 재사용.
 - **구성**:
-  - `CardIconButtonStyle`의 `<Setter Property="BorderThickness" Value="1" />`을 `Value="0"`으로 변경 → 핀·삭제·할일·테스트·더보기 5버튼 테두리 제거(D2).
-  - 슬롯 버튼 4곳(`IsCmd0~3Configured` 버튼)은 이미 `BorderBrush` 로컬 지정 상태 → `BorderThickness="1"`을 로컬로 추가해 시안(`1px solid #2b2b31`) 유지. 슬롯 추가(`DashedAddButtonStyle`)는 별도 스타일이라 무영향.
-  - `PointerOver` VSM의 `BorderBrush` 애니메이션은 두께 0이면 비가시라 무해 — 제거하지 않는다(동작 보존, 최소 변경).
+  - ③ needDesc(`:231~240`): `Background="Transparent" BorderThickness="0" Padding="0" HorizontalAlignment="Left" Foreground=...` 제거 → `Style="{StaticResource DashedAddButtonStyle}" MinHeight="36"`. 내부 `StackPanel Horizontal Spacing="6"`(＋ 글리프 + `x:Uid="CardPlaceholder_Desc"`) 유지. `Command="{Binding EditCommand}"`·`Visibility="{Binding ShowDescPlaceholder,...}"` 유지.
+  - ⑤ needTags(`:250~260`): `HorizontalAlignment="Left" Padding="8,3" FontSize="11"` 제거 → `Style="{StaticResource DashedAddButtonStyle}" MinHeight="24"`. 내부 StackPanel(＋ + `x:Uid="CardPlaceholder_Tags"`) 유지. `Command`·`Visibility="{Binding ShowTagsPlaceholder,...}"` 유지.
+  - ① noMeta·② 설명(Height 32)·④ 태그·하단 액션/슬롯·드래그 6속성은 무변경.
+- **Acceptance**:
+  1. 빌드 오류 0 · 신규 경고 0(baseline `CS0618` 제외).
+  2. ③needDesc·⑤needTags가 `DashedAddButtonStyle`을 소비하고 `MinHeight`가 각 36·24다(폭 전체 점선 박스).
+  3. 세 플레이스홀더(①③⑤)가 모두 같은 스타일이라 hover 강조가 동일(`AppAccentBrush`)하다 — "hover 색상 다름" 해소(코드 경로 성립).
+  4. `CardPlaceholder_Desc`/`_Tags` x:Uid·`EditCommand` 바인딩·`ShowDescPlaceholder`/`ShowTagsPlaceholder` Visibility가 유지된다.
+- **Edge Cases**: 설명 매우 김 → ② 2줄 말줄임(무변경) / needTags 문구 길이 → 중앙 정렬 점선 박스가 폭 채움 / 4조합(둘 다/설명만/태그만/둘 다 없음) 상호 배타 유지(T1 VM 값 무변경).
+- **Halt Forecast**: 없음 — 단일 파일, 마크업 속성 교체, 파괴적·외부 작업 없음.
+
+### T2 — 카드 hover 이동 애니메이션(translateY -2px) `Type C`
+- [ ] 구현
+- **Files**: `Presentation/Views/DashboardView.xaml`, `Presentation/Views/DashboardView.xaml.cs`
+- **Design**: ① 배치 — XAML은 카드 `Border`에 `RenderTransform`(TranslateTransform) 선언, 애니메이션 로직은 View 코드비하인드(NFR-2: VM 무관). ② 신규 심볼 — `DashboardView.xaml.cs`에 private 헬퍼 `AnimateCardTranslate(Border card, double toY)`(대상 카드의 TranslateTransform.Y를 0.15s 동안 toY로) 1개. ③ 의존 방향 — `Card_PointerEntered/Exited`가 헬퍼 호출 + 기존 BorderBrush 교체 유지. ④ 비추상화 — 공용 애니메이션 유틸/첨부 프로퍼티를 만들지 않는다(소비처 카드 1곳, 코드비하인드 인라인).
+- **구성**:
+  - XAML 카드 `Border`(`:90`)에 `<Border.RenderTransform><TranslateTransform /></Border.RenderTransform>` 추가(RenderTransformOrigin 불요 — Y 이동만).
+  - 코드비하인드 `AnimateCardTranslate`: `card.RenderTransform as TranslateTransform`을 대상으로 `DoubleAnimation`(To=toY, Duration 0.15s, `EnableDependentAnimation="True"`) 담은 `Storyboard`를 `Begin()`. 대상 프로퍼티는 `TranslateTransform.Y`.
+  - `Card_PointerEntered`: 기존 BorderBrush 교체 + `AnimateCardTranslate(card, -2)`.
+  - `Card_PointerExited`: 기존 BorderBrush 복귀 + `AnimateCardTranslate(card, 0)`.
 - **Acceptance**:
   1. 빌드 오류 0 · 신규 경고 0.
-  2. `CardIconButtonStyle`의 `BorderThickness` 기본값이 `0`이다.
-  3. 슬롯 버튼 4곳에 로컬 `BorderThickness="1"`이 있어 테두리가 유지된다(시안 슬롯 정합).
-  4. 핀·삭제·할일·테스트·더보기 5버튼에 사각 테두리가 렌더되지 않는다(⏳ HUMAN-VERIFY — hover 배경 강조는 유지).
-- **Edge Cases**: 다른 파일이 `CardIconButtonStyle`을 소비 → grep 전수로 0 확인(카드 내부만) / hover 시 테두리 잔상 → `BorderThickness="0"`이면 `BorderBrush` 변경이 그려지지 않음 / 슬롯 로컬 `BorderThickness` 누락 → 슬롯 테두리가 사라져 시안과 어긋남(acceptance 3이 방어).
-- **Halt Forecast**: 없음 — 단일 파일, 값·로컬 속성 변경, 파괴적·외부 작업 없음.
+  2. 카드 `Border`에 `TranslateTransform` RenderTransform이 있고, `Card_PointerEntered/Exited`가 Y를 각 -2·0으로 애니메이션한다(코드 경로 존재, `EnableDependentAnimation` 지정).
+  3. 기존 hover 테두리색 교체(BorderBrush)가 함께 유지된다(회귀 없음).
+  4. 카드가 hover 시 위로 살짝 떠올랐다가 벗어나면 복귀한다(⏳ HUMAN-VERIFY).
+- **Edge Cases**: hover 중 재진입/빠른 이동 → `Storyboard.Begin`이 진행 중 애니메이션을 이어받아 To로 수렴(튐 없음) / `RenderTransform`이 TranslateTransform이 아니면(방어) 헬퍼가 no-op / deferred `:92`의 "자식 버튼에서 hover 조기 해제" 성질은 기존과 동일(BorderBrush·이동 모두 같은 핸들러라 함께 조기 해제될 수 있음 — 이번에 **악화 없음**, 별도 항목 유지).
+- **Halt Forecast**: 없음 — 2개 파일, 신규 private 헬퍼 1개, 파괴적·외부 작업 없음.
+
+### T3 — 편집 저장 시 핀(IsPinned/PinOrder) 유지 `Type C`
+- [ ] 구현
+- **Files**: `Presentation/ViewModels/MainViewModel.cs`
+- **Design**: 해당 없음 — 신규 심볼 0. 기존 `AddOrUpdateProjectAsync` 편집 분기의 병합 로직에 2줄 추가(기존 `CommandScripts` 보존 패턴 확장). 동작 보존 목적의 버그 수정.
+- **구성**:
+  - `AddOrUpdateProjectAsync`(`:456`) 편집 분기(`:461~462`): `existing.ToModel()`을 지역 변수로 받아 `item.CommandScripts` + `item.IsPinned` + `item.PinOrder`를 그 값으로 대입(기존 핀 상태·순서 보존). 신규 분기(else)는 무변경(핀 off 정상).
+  - 한글 주석으로 "다이얼로그는 핀을 다루지 않으므로 기존 핀 상태를 보존"을 명시.
+- **Acceptance**:
+  1. 빌드 오류 0 · 신규 경고 0.
+  2. `AddOrUpdateProjectAsync` 편집 분기가 `item.IsPinned`·`item.PinOrder`를 `existing`의 기존 값으로 설정한다(핀 걸린 프로젝트 편집 저장 시 핀 유지).
+  3. 신규 추가 분기는 무변경 — 신규 프로젝트 핀은 off 유지(회귀 없음).
+- **Edge Cases**: 핀 안 걸린 프로젝트 편집 → existing.IsPinned=false 그대로 보존(무해) / PinOrder>0인 핀 카드 편집 → 순서 유지 / 편집 대상이 목록에 없음(existing null) → 신규 분기, 무관.
+- **Halt Forecast**: 없음 — 단일 파일, 2줄 추가, 파괴적·외부 작업 없음.
 
 ## Deferred / Follow-up
-- `[태그 pill 시안화 미적용]`(deferred.md:84) — 태그 *표시*를 `MarqueeTagsControl` → 시안 pill로 바꿀지는 이번에도 미결(사용자 판단 대기). 이번 작업(빈 태그 플레이스홀더)과 별개로 대장에 유지.
-- **[README/스크린샷 갱신]** — 대장의 기존 항목. 이번 카드 빈 상태 표시 변경으로 메인 화면 스크린샷이 또 낡는다(계속 Deferred).
-- **[SUGGEST] 플레이스홀더 모서리 반경** — noMeta 박스·needTags pill이 `DashedAddButtonStyle`(radius 8)을 공유해 시안(9/6)과 미세 차이. 육안에서 거슬리면 인라인 `Rectangle`로 개별 지정(F-7 m1).
-- **[SUGGEST] needDesc 링크 버튼 hover 배경** — "＋ 설명 추가"(③)가 기본 Button 템플릿이라 hover 시 회색 사각 배경이 보일 수 있다(시안은 텍스트 색만 변경). 육안에서 거슬리면 hover 배경 없는 전용 처리 검토(F-7 m2).
+- `[태그 pill 시안화 미적용]`(deferred.md:84) — 태그 표시 방식 교체는 이번과 별개, 대장 유지.
+- `[시안 보라 액센트 미채택]`(deferred.md:86) — 앱 액센트 산호 유지(Q1 확정), 전역 액센트 변경은 별개로 대장 유지.
+- `[카드 hover 테두리 자식 버튼 조기 해제]`(deferred.md:92) — 이번 이동 애니메이션도 같은 핸들러 경로라 성질 공유(악화 없음). 대장 유지.
+- **[README/스크린샷 갱신]** — 카드 플레이스홀더·hover 변경으로 스크린샷이 또 낡음(계속 Deferred).
+- **[SUGGEST] 플레이스홀더 모서리 반경** — `DashedAddButtonStyle` radius 8 vs 시안 9(미세차, 기존 [SUGGEST] 유지).
 
 ## Out of Scope
-- 설명 표시 줄 수 변경(시안은 1줄이나 사용자 결정으로 2줄 유지) — 이번 diff 대상 아님.
-- 스크립트 슬롯 버튼 테두리 제거 — 시안이 테두리 유지라 대상 아님.
-- 태그 표시 방식을 `MarqueeTagsControl` → 시안 pill로 교체 — Deferred(별개 논의).
+- 신규 프로젝트 추가 시 핀 로직 변경 — 이미 off라 대상 아님(③ 확인만).
+- 태그 표시를 `MarqueeTagsControl` → 시안 pill로 교체 — Deferred(별개).
+- 설명 2줄 표시(Height 32)·noMeta 박스 — 이번 diff 대상 아님(유지).
+- 작업/테스트 화면 행 hover 이동 애니메이션 — 이번은 대시보드 카드만(요청 범위).
 
 ## 사전 승인 항목 (일괄 승인 대상)
-- 없음 (구조·공개 API·스키마·의존성 변경 없음. 전부 카드 템플릿·VM 파생값·resw 3키).
+- 없음 (구조·공개 API·스키마·의존성 변경 없음. 카드 템플릿·코드비하인드 애니메이션·VM 병합 2줄).
 - 로컬 작업 브랜치(`task/dashboard-card-redesign`)에서 task별 commit.
 
 ## 불가피한 Halt (위임 불가)
 - master 병합·push·PR — 별도 승인.
-- **시안 대조 최종 시각 판정** — 플레이스홀더 4조합 렌더·버튼 테두리 제거·하단 위치는 사용자만 판정(⏳ HUMAN-VERIFY).
-
-## Progress Log
-- T1-T2 완료 (커밋 5b06d0f, 508ac0f): VM 빈 상태 파생 5개 → 카드 본문 플레이스홀더 5블록 + resw 3키. 빌드 OK, spec·quality 리뷰 전부 OK.
-  - 결정: 점선 플레이스홀더는 기존 `DashedAddButtonStyle`(Styles.xaml) 재사용(hover 액센트가 D3와 일치) — 신규 스타일 0. 클릭은 `EditCommand` 재사용.
-  - 편집 후 갱신: 재생성 경로(MainViewModel:477) 확정 → OnPropertyChanged 배선 불요(plan-reviewer m2).
-
-## Phase Ledger
-- 전 task(T1~T3) 완료.
-- **Phase F 통과 (HEAD 53f03b2)** — F-1 클린 리빌드(`-t:Rebuild`) 오류 0·신규 경고 0(baseline `CS0618` 1건만), F-2 테스트 부재(NFR-5 미발동), F-3 회귀 grep 전부 기대값(파생 5·플레이스홀더 x:Uid 3·resw ko/en 3·Height 잔존 0·스타일 BorderThickness 0·슬롯 로컬 1 4곳), F-7 `plan-completion-reviewer`: **BLOCKER 0 / MAJOR 0 / MINOR 2**(시각 반경·hover 배경 — 육안 확인 항목으로 Deferred 등재).
-- **Phase G 통과 (Must 100%)** — 이번 plan이 커버 대상으로 선언한 **FR-D1(Must)** 세부 보강 충족. 다른 active Must FR(D2~D4·C/S/T/E/H/N)은 `이번 범위 외 (기구현)`, 공용 자산(`Styles.xaml`·`DashedAddButtonStyle`) 무변경으로 회귀 0 → 미충족 Must 0건, 재루프 0회.
-- **F-8 미통과 — 렌더 육안 확인 대기**: `## 시각 요소 분해`의 플레이스홀더 4조합 렌더·버튼 테두리 제거·하단 위치가 ⏳ HUMAN-VERIFY로 남아 완료 선언 보류.
+- **시안 대조 최종 시각 판정** — 플레이스홀더 통일 렌더·카드 hover 이동·편집 후 핀 유지는 사용자만 판정(⏳ HUMAN-VERIFY).
 
 ## Open Questions
-- (없음 — 근거로 전부 결정. D1 클릭 동작·D2 테두리·D3 hover색·D4 문구 방식·D5 레이아웃 전부 시안+코드+기존 선례로 확정)
+- [x] hover 강조색 → **앱 액센트 산호(#F0716A) 유지**(Q1, 2026-07-23).
+- [x] 핀 기본값 → 신규는 이미 off, **편집 저장 시 핀 유지 버그 함께 수정**(Q2, 2026-07-23).
 
 ## 검증 방법
-- 빌드: `"C:/Program Files/Microsoft Visual Studio/18/Professional/MSBuild/Current/Bin/MSBuild.exe" "DevDashboard_WinUI/DevDashboard.csproj" -t:Build -p:Configuration=Debug -p:Platform=x64` → 오류 0 + 실측 baseline(`CS0618` 1건) 외 신규 0
-- 회귀 방지 grep(소스 `*.cs`/`*.xaml`/`*.resw`, `obj/`·`bin/` 제외):
-  - **T1**: `ProjectCardViewModel.cs`에 `HasDescription`·`HasTags`·`ShowMetaPlaceholder`·`ShowDescPlaceholder`·`ShowTagsPlaceholder` 정의 각 1 + **`Brush` 계열 타입 신규 0건**(NFR-2)
-  - **T2**: `DashboardView.xaml`에 `CardPlaceholder_DescAndTags`·`CardPlaceholder_Desc`·`CardPlaceholder_Tags` x:Uid 각 1 + `EditCommand` 바인딩(플레이스홀더 3곳) / resw ko·en 3키 대칭 / 설명 `Height="32"`·태그 `Height="24"` 잔존 0(D5) / 드래그 6속성(`CanDrag`·`AllowDrop`·`DragStarting`·`DropCompleted`·`DragOver`·`Drop`) 잔존
-  - **T3**: `CardIconButtonStyle`의 `BorderThickness` Setter가 `0` / 슬롯 버튼 로컬 `BorderThickness="1"` 4건 / `CardIconButtonStyle` 다른 파일 소비 0건(카드 내부만)
+- 빌드: `"C:/Program Files/Microsoft Visual Studio/18/Professional/MSBuild/Current/Bin/MSBuild.exe" "DevDashboard_WinUI/DevDashboard.csproj" -t:Build -p:Configuration=Debug -p:Platform=x64` → 오류 0 + baseline(`CS0618` 1건) 외 신규 0
+- 회귀 방지 grep(소스, `obj/`·`bin/` 제외):
+  - **T1**: `DashboardView.xaml`의 ③needDesc·⑤needTags가 `DashedAddButtonStyle` 소비 + `MinHeight` 36·24 / `CardPlaceholder_Desc`·`_Tags` x:Uid 잔존 / `ShowDescPlaceholder`·`ShowTagsPlaceholder`·`EditCommand` 바인딩 잔존 / ③에서 `Background="Transparent" BorderThickness="0"` 인라인 제거
+  - **T2**: 카드 `Border`에 `TranslateTransform` RenderTransform 1건 / `AnimateCardTranslate` 정의·호출(Entered/Exited) / `EnableDependentAnimation` 지정 / 기존 `CardHoverBorderBrush`·`CardBorderBrush` 교체 잔존
+  - **T3**: `AddOrUpdateProjectAsync` 편집 분기에 `item.IsPinned`·`item.PinOrder` 대입 각 1
 - 동작 확인(빌드로 검증 불가 → ⏳ HUMAN-VERIFY):
-  - 설명만/태그만/둘 다 없음/둘 다 있음 4조합 카드가 시안대로 렌더되는지(플레이스홀더 문구·점선·정렬)
-  - 플레이스홀더 클릭 시 프로젝트 설정 다이얼로그가 열리는지
-  - 핀·삭제·할일·테스트·더보기 버튼의 사각 테두리가 사라졌는지(hover 배경 강조는 유지) / 슬롯 버튼 테두리는 유지되는지
-  - 액션 행·슬롯이 카드마다 같은 하단 위치인지(직전 위치 고정 회귀 없음)
+  - 설명만/태그만/둘 다 없음 카드의 플레이스홀더가 동일한 폭 전체 점선 박스로 보이고, 마우스 오버 시 세 종류 모두 같은 산호 강조가 되는지
+  - 카드에 마우스를 올리면 위로 살짝 떠오르고(≈2px) 벗어나면 복귀하는지(부드러운 전환)
+  - 핀 걸린 프로젝트를 편집·저장한 뒤에도 핀이 유지되는지 / 신규 프로젝트는 핀 off인지
 
 ## 통과 체크리스트
 - [x] 근거 없는 단정 0 (시안·코드 직접 Read)
 - [x] `## 요구 이해` 작성됨
-- [x] Impact Analysis 4-A~4-D (스타일 소비처 grep 전수, 신규 심볼 4-D 기록)
-- [x] plan-reviewer 이슈 0 (BLOCKER 0/MAJOR 0, MINOR 2 반영 완료)
+- [x] Impact Analysis 4-A~4-D (핀 경로 전수 grep, hover 핸들러·스타일 소비처 확인, 4-D 신규 심볼 기록)
+- [x] plan-reviewer 이슈 0 (BLOCKER 0/MAJOR 0, MINOR 1 = 시안 HTML 라인참조 밀림 위험 — 서술 근거 병기로 방어됨, follow-up)
 - [x] 각 task 검증 가능 acceptance + 동시 만족 가능
-- [x] Open Questions 없음(근거로 전부 결정)
+- [x] Open Questions 없음(Q1/Q2 해결)
 - [x] 코드 중 결정 분기 0
 - [x] Type 분류 명시(T1/T2/T3 = C)
-- [x] Design 필드(신규 심볼 도입 T1/T2)
+- [x] Design 필드(T2 신규 헬퍼 / T1·T3 해당 없음 근거)
 - [x] Edge Cases 명시
 - [x] Halt Forecast 명시
 - [x] `## 시각 요소 분해` 작성됨(시각 충실도 요청 + 기준 디자인 존재)

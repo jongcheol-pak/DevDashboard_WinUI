@@ -227,10 +227,9 @@
                                        TextTrimming="CharacterEllipsis"
                                        Visibility="{Binding HasDescription, Converter={StaticResource BoolToVisibility}}" />
 
-                            <!-- ③ 설명 없고 태그 있음 — 테두리 없는 텍스트 링크 (시안 needDesc :375) -->
-                            <Button Background="Transparent" BorderThickness="0" Padding="0"
-                                    HorizontalAlignment="Left"
-                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                            <!-- ③ 설명 없고 태그 있음 — 폭 전체 점선 박스 (시안 needDesc :375, noMeta와 동일 스타일·크기만 차등) -->
+                            <Button Style="{StaticResource DashedAddButtonStyle}"
+                                    MinHeight="36"
                                     Command="{Binding EditCommand}"
                                     Visibility="{Binding ShowDescPlaceholder, Converter={StaticResource BoolToVisibility}}">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
@@ -246,11 +245,9 @@
                                 MaxTagLength="20"
                                 Visibility="{Binding HasTags, Converter={StaticResource BoolToVisibility}}" />
 
-                            <!-- ⑤ 설명 있고 태그 없음 — 점선 pill (시안 needTags :385) -->
+                            <!-- ⑤ 설명 있고 태그 없음 — 폭 전체 점선 박스 (시안 needTags :385, noMeta와 동일 스타일·크기만 차등) -->
                             <Button Style="{StaticResource DashedAddButtonStyle}"
-                                    HorizontalAlignment="Left"
-                                    Padding="8,3"
-                                    FontSize="11"
+                                    MinHeight="24"
                                     Command="{Binding EditCommand}"
                                     Visibility="{Binding ShowTagsPlaceholder, Converter={StaticResource BoolToVisibility}}">
                                 <StackPanel Orientation="Horizontal" Spacing="6">

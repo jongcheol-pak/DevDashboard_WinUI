@@ -369,10 +369,10 @@ a{color:#8b7cf7;text-decoration:none;}a:hover{color:#a89dfa;}
                   </button>
                 </sc-if>
                 <sc-if value="{{ c.hasDesc }}" hint-placeholder-val="{{ true }}">
-                  <div style="font-size:12px;color:#98959d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.desc }}</div>
+                  <div style="font-size:12px;color:#98959d;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;min-height:36px;">{{ c.desc }}</div>
                 </sc-if>
                 <sc-if value="{{ c.needDesc }}" hint-placeholder-val="{{ false }}">
-                  <button onClick="{{ c.onMore }}" style="display:flex;align-items:center;gap:6px;align-self:flex-start;border:none;background:transparent;padding:0;color:#5f5d66;font-size:12px;cursor:pointer;font-family:inherit;" style-hover="color:#8b7cf7;">＋ 설명 추가</button>
+                  <button onClick="{{ c.onMore }}" style="display:flex;align-items:center;justify-content:center;gap:6px;min-height:36px;border:1px dashed #2e2e35;border-radius:9px;background:transparent;padding:0;color:#5f5d66;font-size:11.5px;cursor:pointer;font-family:inherit;" style-hover="color:#8b7cf7;border-color:#4a4460;">＋ 설명 추가</button>
                 </sc-if>
                 <sc-if value="{{ c.hasTags }}" hint-placeholder-val="{{ true }}">
                   <div style="display:flex;flex-wrap:wrap;gap:6px;">
@@ -382,7 +382,7 @@ a{color:#8b7cf7;text-decoration:none;}a:hover{color:#a89dfa;}
                   </div>
                 </sc-if>
                 <sc-if value="{{ c.needTags }}" hint-placeholder-val="{{ false }}">
-                  <button onClick="{{ c.onMore }}" style="display:flex;align-items:center;align-self:flex-start;border:1px dashed #2e2e35;background:transparent;border-radius:6px;padding:3px 8px;color:#5f5d66;font-size:11px;cursor:pointer;font-family:inherit;" style-hover="color:#8b7cf7;border-color:#4a4460;">＋ 태그 추가</button>
+                  <button onClick="{{ c.onMore }}" style="display:flex;align-items:center;justify-content:center;gap:6px;min-height:24px;border:1px dashed #2e2e35;border-radius:9px;background:transparent;padding:0;color:#5f5d66;font-size:11.5px;cursor:pointer;font-family:inherit;" style-hover="color:#8b7cf7;border-color:#4a4460;">＋ 태그 추가</button>
                 </sc-if>
                 <div style="display:flex;align-items:center;gap:6px;margin-top:auto;">
                   <button style="{{ c.ideStyle }}" style-hover="filter:brightness(1.15);">
