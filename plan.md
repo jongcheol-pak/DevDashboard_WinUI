@@ -138,6 +138,8 @@
 ## Deferred / Follow-up
 - `[태그 pill 시안화 미적용]`(deferred.md:84) — 태그 *표시*를 `MarqueeTagsControl` → 시안 pill로 바꿀지는 이번에도 미결(사용자 판단 대기). 이번 작업(빈 태그 플레이스홀더)과 별개로 대장에 유지.
 - **[README/스크린샷 갱신]** — 대장의 기존 항목. 이번 카드 빈 상태 표시 변경으로 메인 화면 스크린샷이 또 낡는다(계속 Deferred).
+- **[SUGGEST] 플레이스홀더 모서리 반경** — noMeta 박스·needTags pill이 `DashedAddButtonStyle`(radius 8)을 공유해 시안(9/6)과 미세 차이. 육안에서 거슬리면 인라인 `Rectangle`로 개별 지정(F-7 m1).
+- **[SUGGEST] needDesc 링크 버튼 hover 배경** — "＋ 설명 추가"(③)가 기본 Button 템플릿이라 hover 시 회색 사각 배경이 보일 수 있다(시안은 텍스트 색만 변경). 육안에서 거슬리면 hover 배경 없는 전용 처리 검토(F-7 m2).
 
 ## Out of Scope
 - 설명 표시 줄 수 변경(시안은 1줄이나 사용자 결정으로 2줄 유지) — 이번 diff 대상 아님.
@@ -158,7 +160,10 @@
   - 편집 후 갱신: 재생성 경로(MainViewModel:477) 확정 → OnPropertyChanged 배선 불요(plan-reviewer m2).
 
 ## Phase Ledger
-- (진행 중 — T1·T2 완료)
+- 전 task(T1~T3) 완료.
+- **Phase F 통과 (HEAD 53f03b2)** — F-1 클린 리빌드(`-t:Rebuild`) 오류 0·신규 경고 0(baseline `CS0618` 1건만), F-2 테스트 부재(NFR-5 미발동), F-3 회귀 grep 전부 기대값(파생 5·플레이스홀더 x:Uid 3·resw ko/en 3·Height 잔존 0·스타일 BorderThickness 0·슬롯 로컬 1 4곳), F-7 `plan-completion-reviewer`: **BLOCKER 0 / MAJOR 0 / MINOR 2**(시각 반경·hover 배경 — 육안 확인 항목으로 Deferred 등재).
+- **Phase G 통과 (Must 100%)** — 이번 plan이 커버 대상으로 선언한 **FR-D1(Must)** 세부 보강 충족. 다른 active Must FR(D2~D4·C/S/T/E/H/N)은 `이번 범위 외 (기구현)`, 공용 자산(`Styles.xaml`·`DashedAddButtonStyle`) 무변경으로 회귀 0 → 미충족 Must 0건, 재루프 0회.
+- **F-8 미통과 — 렌더 육안 확인 대기**: `## 시각 요소 분해`의 플레이스홀더 4조합 렌더·버튼 테두리 제거·하단 위치가 ⏳ HUMAN-VERIFY로 남아 완료 선언 보류.
 
 ## Open Questions
 - (없음 — 근거로 전부 결정. D1 클릭 동작·D2 테두리·D3 hover색·D4 문구 방식·D5 레이아웃 전부 시안+코드+기존 선례로 확정)
