@@ -216,8 +216,10 @@
                                 </StackPanel>
                             </Button>
 
-                            <!-- ② 설명 있음 — 최대 2줄 말줄임 (시안 hasDesc :372) -->
+                            <!-- ② 설명 있음 — 항상 2줄 높이를 예약해(1줄이어도 32) 아래 태그 위치를 일정하게 유지 -->
                             <TextBlock Text="{Binding Description}"
+                                       Height="32"
+                                       VerticalAlignment="Top"
                                        FontSize="12"
                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                        TextWrapping="Wrap"
