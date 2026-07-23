@@ -120,7 +120,7 @@
 - **Halt Forecast**: 없음 — 2개 파일, 신규 private 헬퍼 1개, 파괴적·외부 작업 없음.
 
 ### T3 — 편집 저장 시 핀(IsPinned/PinOrder) 유지 `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `Presentation/ViewModels/MainViewModel.cs`
 - **Design**: 해당 없음 — 신규 심볼 0. 기존 `AddOrUpdateProjectAsync` 편집 분기의 병합 로직에 2줄 추가(기존 `CommandScripts` 보존 패턴 확장). 동작 보존 목적의 버그 수정.
 - **구성**:
@@ -140,6 +140,7 @@
 - **[README/스크린샷 갱신]** — 카드 플레이스홀더·hover 변경으로 스크린샷이 또 낡음(계속 Deferred).
 - **[SUGGEST] 플레이스홀더 모서리 반경** — `DashedAddButtonStyle` radius 8 vs 시안 9(미세차, 기존 [SUGGEST] 유지).
 - **[SUGGEST] 카드 hover 애니메이션 Storyboard 재사용** (T2 V-6 m1) — `AnimateCardTranslate`가 호출마다 새 Storyboard를 만들고 이전 것을 Stop하지 않아, 카드 경계에서 빠르게 들락거리면 잔상 가능성(0.15s·마지막 To 우선이라 실사용 영향 작음). 필요 시 카드당 Storyboard 캐시 후 재사용 검토.
+- **[SUGGEST] PinOrder 메모리 동기화 간극** (T3 V-6 m1/S1) — 드래그 재정렬(`UpdatePinOrder`)이 DB만 갱신하고 각 카드 `ProjectCardViewModel._item.PinOrder`는 갱신하지 않아, `ToModel()`이 stale PinOrder를 반환한다. "재정렬 → 새로고침 없이 곧바로 편집 저장" 순서에서 T3의 PinOrder 보존이 그 stale 값을 DB에 재기록해 방금 만든 재정렬을 되돌릴 수 있다(핀 자체는 유지 — 순서만). T3 범위 밖 사전 존재 간극. 근본 해결: 재정렬 시 메모리 `_item.PinOrder` 동기화 또는 `ToModel()`에 PinOrder 동기화 추가.
 
 ## Out of Scope
 - 신규 프로젝트 추가 시 핀 로직 변경 — 이미 off라 대상 아님(③ 확인만).
