@@ -238,7 +238,7 @@
                                     Visibility="{Binding ShowDescPlaceholder, Converter={StaticResource BoolToVisibility}}">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <TextBlock Text="&#xFF0B;" FontSize="12" VerticalAlignment="Center" />
-                                    <TextBlock x:Uid="CardPlaceholder_Desc" FontSize="12" VerticalAlignment="Center" />
+                                    <TextBlock x:Uid="CardPlaceholder_Desc" FontSize="11.5" VerticalAlignment="Center" />
                                 </StackPanel>
                             </Button>
 
