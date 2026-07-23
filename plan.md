@@ -155,6 +155,10 @@
 - master 병합·push·PR — 별도 승인.
 - **시안 대조 최종 시각 판정** — 플레이스홀더 통일 렌더·카드 hover 이동·편집 후 핀 유지는 사용자만 판정(⏳ HUMAN-VERIFY).
 
+## Progress Log
+- T1-T2 완료 (커밋 d6ac3bf, a915e78): ③needDesc·⑤needTags를 `DashedAddButtonStyle` 폭 전체 점선 박스로 통일(hover 산호 통일) + 카드 hover translateY(-2px) 이동 애니메이션(코드비하인드 Storyboard). 빌드 OK, spec 리뷰 OK, quality MINOR 1(Storyboard 재사용 — follow-up 등재).
+  - 결정: hover 강조색 앱 액센트 산호 유지(Q1). 애니메이션은 View 코드비하인드 private static 헬퍼(NFR-2, EnableDependentAnimation 필수).
+
 ## Open Questions
 - [x] hover 강조색 → **앱 액센트 산호(#F0716A) 유지**(Q1, 2026-07-23).
 - [x] 핀 기본값 → 신규는 이미 off, **편집 저장 시 핀 유지 버그 함께 수정**(Q2, 2026-07-23).
