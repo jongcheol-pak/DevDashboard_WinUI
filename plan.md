@@ -160,6 +160,12 @@
 - T1-T2 완료 (커밋 d6ac3bf, a915e78): ③needDesc·⑤needTags를 `DashedAddButtonStyle` 폭 전체 점선 박스로 통일(hover 산호 통일) + 카드 hover translateY(-2px) 이동 애니메이션(코드비하인드 Storyboard). 빌드 OK, spec 리뷰 OK, quality MINOR 1(Storyboard 재사용 — follow-up 등재).
   - 결정: hover 강조색 앱 액센트 산호 유지(Q1). 애니메이션은 View 코드비하인드 private static 헬퍼(NFR-2, EnableDependentAnimation 필수).
 
+## Phase Ledger
+- 전 task(T1~T3) 완료.
+- **Phase F 통과 (HEAD 3b532ad)** — F-1 클린 리빌드(`-t:Rebuild`) 오류 0·신규 경고 0(baseline `CS0618` 1건만), F-3 회귀 grep 전부 기대값, F-6.5 notes·deferred 갱신, F-7 `plan-completion-reviewer` BLOCKER 0/MAJOR 0/MINOR 1(needDesc 폰트 11.5 — 즉시 반영 커밋 3b532ad).
+- **Phase G 통과 (Must 100%)** — PRD **FR-D1**(Must) 세부 보강 충족(T1~T3, 빌드·코드 경로). 다른 active Must FR은 `## PRD Coverage`에서 '이번 범위 외(기구현)' → 대조 제외, 미충족 0. 재루프 0회.
+- **F-8 미통과 — 렌더 육안 확인 대기**: 플레이스홀더 통일 렌더·카드 hover 이동·편집 후 핀 유지가 ⏳ HUMAN-VERIFY로 남아 완료 선언 보류.
+
 ## Open Questions
 - [x] hover 강조색 → **앱 액센트 산호(#F0716A) 유지**(Q1, 2026-07-23).
 - [x] 핀 기본값 → 신규는 이미 off, **편집 저장 시 핀 유지 버그 함께 수정**(Q2, 2026-07-23).
