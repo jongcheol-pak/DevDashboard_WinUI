@@ -196,6 +196,21 @@ public partial class ProjectCardViewModel : ObservableObject
         }
     }
 
+    /// <summary>설명이 있는지 여부 (빈 문자열·null이면 false — 표시 컨버터와 같은 IsNullOrEmpty 기준)</summary>
+    public bool HasDescription => !string.IsNullOrEmpty(Description);
+
+    /// <summary>태그가 하나라도 있는지 여부</summary>
+    public bool HasTags => Tags is { Count: > 0 };
+
+    /// <summary>설명·태그가 모두 없어 통합 "설명·태그 추가" 플레이스홀더를 보일지 (시안 noMeta)</summary>
+    public bool ShowMetaPlaceholder => !HasDescription && !HasTags;
+
+    /// <summary>태그는 있으나 설명이 없어 "설명 추가" 플레이스홀더를 보일지 (시안 needDesc)</summary>
+    public bool ShowDescPlaceholder => !HasDescription && HasTags;
+
+    /// <summary>설명은 있으나 태그가 없어 "태그 추가" 플레이스홀더를 보일지 (시안 needTags)</summary>
+    public bool ShowTagsPlaceholder => HasDescription && !HasTags;
+
     /// <summary>완료되지 않은 활성 To-Do 항목이 있는지 여부</summary>
     public bool HasInProgressTodo => _item.HasActiveTodo;
 

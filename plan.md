@@ -81,7 +81,7 @@
 ## 작업 단계
 
 ### T1 — VM: 빈 설명·태그 상태 파생 프로퍼티 `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `Presentation/ViewModels/ProjectCardViewModel.cs`
 - **Design**: ① 배치 — 파생 값은 `ProjectCardViewModel`(Presentation VM), 브러시·표시는 XAML. ② 신규 심볼 — `HasDescription`/`HasTags`(원자 판정) + `ShowMetaPlaceholder`/`ShowDescPlaceholder`/`ShowTagsPlaceholder`(조합 파생, 상호 배타). ③ 의존 방향 — VM은 `string`/`bool`만 계산(`Microsoft.UI.Xaml` Brush 미참조 — NFR-2 유지). XAML이 `BoolToVisibility`로 소비. ④ 비추상화 — 빈 상태를 담는 값 객체·enum을 만들지 않는다(bool 5개로 충분, 소비처 1곳).
 - **구성**:
