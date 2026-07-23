@@ -188,26 +188,40 @@
                         </Grid>
                     </Border>
 
-                    <!-- 카드 본문 (시안 :365 — padding 14/16/16, 세로 간격 12) -->
-                    <StackPanel Grid.Row="1" Margin="16,14,16,16" Spacing="12">
+                    <!-- 카드 본문 (시안 :365 — padding 14/16/16)
+                         설명·태그가 없어도 하단(액션·슬롯)이 위로 당겨지지 않도록,
+                         상단(설명+태그)에 고정 높이를 예약하고 하단은 * 여백 아래로 밀어
+                         모든 카드에서 하단 컨트롤이 같은 위치에 오게 한다 -->
+                    <Grid Grid.Row="1" Margin="16,14,16,16">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
-                        <!-- 설명 — 최대 2줄, 넘치면 말줄임 (사용자 확인 2026-07-22) -->
-                        <TextBlock Text="{Binding Description}"
-                                   FontSize="12"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                   TextWrapping="Wrap"
-                                   MaxLines="2"
-                                   TextTrimming="CharacterEllipsis"
-                                   Visibility="{Binding Description, Converter={StaticResource StringNotEmptyToVisibility}}" />
+                        <!-- 상단 고정 영역 — 설명 2줄 + 태그 자리를 내용 유무와 무관하게 항상 예약한다 -->
+                        <StackPanel Grid.Row="0" Spacing="12">
 
-                        <!-- 태그 영역 (마키 애니메이션 컨트롤) -->
-                        <ctrl:MarqueeTagsControl
-                            Tags="{Binding Tags}"
-                            IsAnimationEnabled="{Binding EnableTagAnimation}"
-                            MaxTagLength="20" />
+                            <!-- 설명 — 최대 2줄 말줄임. 값이 없어도 2줄 높이를 유지한다(위치 고정 목적) -->
+                            <TextBlock Text="{Binding Description}"
+                                       Height="32"
+                                       FontSize="12"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       TextWrapping="Wrap"
+                                       MaxLines="2"
+                                       VerticalAlignment="Top"
+                                       TextTrimming="CharacterEllipsis" />
+
+                            <!-- 태그 영역 (마키 애니메이션 컨트롤) — 태그가 없어도 높이를 유지한다 -->
+                            <ctrl:MarqueeTagsControl
+                                Height="24"
+                                Tags="{Binding Tags}"
+                                IsAnimationEnabled="{Binding EnableTagAnimation}"
+                                MaxTagLength="20" />
+                        </StackPanel>
 
                     <!-- 카드 하단 -->
-                    <StackPanel Spacing="8">
+                    <StackPanel Grid.Row="2" Spacing="8">
 
                         <!-- 액션 행 (시안 :372~387) — 큰 실행 버튼 + 작업/테스트 + 더 보기 메뉴.
                              폴더·터미널·Git·작업 기록·설정은 '더 보기' 메뉴로 옮겼다 -->
@@ -526,7 +540,7 @@
                             </StackPanel>
                         </Border>
                     </StackPanel>
-                    </StackPanel>
+                    </Grid>
                 </Grid>
             </Border>
         </DataTemplate>
