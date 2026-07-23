@@ -97,7 +97,7 @@
 - **Halt Forecast**: 없음 — 단일 파일, 신규 계산 프로퍼티, 파괴적·외부 작업 없음.
 
 ### T2 — 카드 템플릿: 빈 상태 플레이스홀더 5블록 재구성 + resw `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `Presentation/Views/DashboardView.xaml`, `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`
 - **Design**: ① 배치 — 본문 상단 영역(현행 `Grid.Row=0` StackPanel)에 조건부 5블록. ② 신규 심볼 — 마크업만(신규 C# 0) + resw 3키. ③ 의존 방향 — XAML → VM(T1 값)·`EditCommand`·`BoolToVisibility`. ④ 비추상화 — 플레이스홀더 전용 UserControl·공용 스타일을 만들지 않는다(소비처 1곳, 인라인).
 - **구성**:

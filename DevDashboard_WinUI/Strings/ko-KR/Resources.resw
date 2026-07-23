@@ -484,5 +484,8 @@
   <data name="Notification_MarkRead_Tooltip" xml:space="preserve"><value>읽음 처리</value></data>
   <data name="Notification_Header_Tooltip" xml:space="preserve"><value>알림</value></data>
   <data name="Notification_ViewAll" xml:space="preserve"><value>모든 알림 보기</value></data>
+  <data name="CardPlaceholder_DescAndTags.Text" xml:space="preserve"><value>설명·태그 추가</value></data>
+  <data name="CardPlaceholder_Desc.Text" xml:space="preserve"><value>설명 추가</value></data>
+  <data name="CardPlaceholder_Tags.Text" xml:space="preserve"><value>태그 추가</value></data>
 
 </root>

@@ -199,25 +199,62 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <!-- 상단 고정 영역 — 설명 2줄 + 태그 자리를 내용 유무와 무관하게 항상 예약한다 -->
+                        <!-- 상단 영역 — 설명·태그가 없으면 시안대로 "추가 유도" 플레이스홀더를 표시한다(시안 :366~386).
+                             5블록은 VM의 상호 배타 상태값으로 겹치지 않게 분기하고, 하단(액션·슬롯)은 * 여백이 바닥으로 민다.
+                             클릭하면 프로젝트 설정 다이얼로그(EditCommand)가 열려 설명·태그를 입력할 수 있다. -->
                         <StackPanel Grid.Row="0" Spacing="12">
 
-                            <!-- 설명 — 최대 2줄 말줄임. 값이 없어도 2줄 높이를 유지한다(위치 고정 목적) -->
+                            <!-- ① 설명·태그 모두 없음 — 통합 점선 박스 (시안 noMeta :367) -->
+                            <Button Style="{StaticResource DashedAddButtonStyle}"
+                                    MinHeight="52"
+                                    Command="{Binding EditCommand}"
+                                    Visibility="{Binding ShowMetaPlaceholder, Converter={StaticResource BoolToVisibility}}">
+                                <StackPanel Orientation="Horizontal" Spacing="7">
+                                    <TextBlock Text="&#xFF0B;" FontSize="13" VerticalAlignment="Center" />
+                                    <TextBlock x:Uid="CardPlaceholder_DescAndTags" FontSize="11.5" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <!-- ② 설명 있음 — 최대 2줄 말줄임 (시안 hasDesc :372) -->
                             <TextBlock Text="{Binding Description}"
-                                       Height="32"
                                        FontSize="12"
                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                        TextWrapping="Wrap"
                                        MaxLines="2"
-                                       VerticalAlignment="Top"
-                                       TextTrimming="CharacterEllipsis" />
+                                       TextTrimming="CharacterEllipsis"
+                                       Visibility="{Binding HasDescription, Converter={StaticResource BoolToVisibility}}" />
 
-                            <!-- 태그 영역 (마키 애니메이션 컨트롤) — 태그가 없어도 높이를 유지한다 -->
+                            <!-- ③ 설명 없고 태그 있음 — 테두리 없는 텍스트 링크 (시안 needDesc :375) -->
+                            <Button Background="Transparent" BorderThickness="0" Padding="0"
+                                    HorizontalAlignment="Left"
+                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                    Command="{Binding EditCommand}"
+                                    Visibility="{Binding ShowDescPlaceholder, Converter={StaticResource BoolToVisibility}}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="&#xFF0B;" FontSize="12" VerticalAlignment="Center" />
+                                    <TextBlock x:Uid="CardPlaceholder_Desc" FontSize="12" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <!-- ④ 태그 있음 — 마키 애니메이션 컨트롤 (시안 hasTags :377) -->
                             <ctrl:MarqueeTagsControl
-                                Height="24"
                                 Tags="{Binding Tags}"
                                 IsAnimationEnabled="{Binding EnableTagAnimation}"
-                                MaxTagLength="20" />
+                                MaxTagLength="20"
+                                Visibility="{Binding HasTags, Converter={StaticResource BoolToVisibility}}" />
+
+                            <!-- ⑤ 설명 있고 태그 없음 — 점선 pill (시안 needTags :385) -->
+                            <Button Style="{StaticResource DashedAddButtonStyle}"
+                                    HorizontalAlignment="Left"
+                                    Padding="8,3"
+                                    FontSize="11"
+                                    Command="{Binding EditCommand}"
+                                    Visibility="{Binding ShowTagsPlaceholder, Converter={StaticResource BoolToVisibility}}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="&#xFF0B;" FontSize="11" VerticalAlignment="Center" />
+                                    <TextBlock x:Uid="CardPlaceholder_Tags" FontSize="11" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
 
                     <!-- 카드 하단 -->

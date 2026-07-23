@@ -484,5 +484,8 @@
   <data name="Notification_MarkRead_Tooltip" xml:space="preserve"><value>Mark as read</value></data>
   <data name="Notification_Header_Tooltip" xml:space="preserve"><value>Notifications</value></data>
   <data name="Notification_ViewAll" xml:space="preserve"><value>View all notifications</value></data>
+  <data name="CardPlaceholder_DescAndTags.Text" xml:space="preserve"><value>Add description · tags</value></data>
+  <data name="CardPlaceholder_Desc.Text" xml:space="preserve"><value>Add description</value></data>
+  <data name="CardPlaceholder_Tags.Text" xml:space="preserve"><value>Add tags</value></data>
 
 </root>
