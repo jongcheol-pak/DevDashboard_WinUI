@@ -275,10 +275,9 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <!-- 빈 상태 -->
+                    <!-- 빈 상태 — 문구는 검색 여부에 따라 코드비하인드가 설정한다 -->
                     <TextBlock
                         x:Name="EmptyText"
-                        x:Uid="EmptyHistoryText"
                         Foreground="{ThemeResource AppTextMutedBrush}"
                         FontSize="13"
                         HorizontalAlignment="Center"

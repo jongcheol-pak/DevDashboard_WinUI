@@ -323,6 +323,8 @@
   <!-- ===== XAML x:Uid — HistoryDialog ===== -->
 
   <data name="HistoryDialog_Header.Text" xml:space="preserve"><value>Work history</value></data>
+  <data name="HistoryEmpty_NoEntries" xml:space="preserve"><value>No work history yet</value></data>
+  <data name="HistoryEmpty_NoSearchResult" xml:space="preserve"><value>No results found</value></data>
   <data name="HistoryDialog_CountFormat" xml:space="preserve"><value>{0} entries</value></data>
   <data name="HistorySearchBox.PlaceholderText" xml:space="preserve"><value>Search...</value></data>
   <data name="AddHistoryBtn.Content" xml:space="preserve"><value>+ New entry</value></data>

@@ -323,6 +323,8 @@
   <!-- ===== XAML x:Uid — HistoryDialog ===== -->
 
   <data name="HistoryDialog_Header.Text" xml:space="preserve"><value>작업 기록</value></data>
+  <data name="HistoryEmpty_NoEntries" xml:space="preserve"><value>작업 기록이 없습니다</value></data>
+  <data name="HistoryEmpty_NoSearchResult" xml:space="preserve"><value>검색 결과가 없습니다</value></data>
   <data name="HistoryDialog_CountFormat" xml:space="preserve"><value>{0}건</value></data>
   <data name="HistorySearchBox.PlaceholderText" xml:space="preserve"><value>검색...</value></data>
   <data name="AddHistoryBtn.Content" xml:space="preserve"><value>＋ 새 기록</value></data>

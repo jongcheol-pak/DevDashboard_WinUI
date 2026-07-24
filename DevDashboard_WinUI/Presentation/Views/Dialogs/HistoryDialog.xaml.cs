@@ -57,8 +57,7 @@ public sealed partial class HistoryDialog : ContentDialog
         Vm = vm;
         InitializeComponent();
 
-        // 프로젝트명을 포함한 동적 타이틀 설정
-        Title = string.Format(LocalizationService.Get("HistoryDialog_TitleFormat"), vm.ProjectName);
+        // 제목은 본문 헤더(제목 + 프로젝트 pill + 건수)가 담당하므로 ContentDialog.Title은 쓰지 않는다
         CloseButtonText = LocalizationService.Get("Dialog_Close");
 
         GroupList.ItemsSource = Vm.DateGroups;
@@ -131,7 +130,16 @@ public sealed partial class HistoryDialog : ContentDialog
     // ObservableCollection이 CollectionChanged로 자동 갱신하므로 ItemsSource 재할당 불필요
     private void RefreshList()
     {
-        EmptyText.Visibility = !Vm.HasEntries ? Visibility.Visible : Visibility.Collapsed;
+        // 보이는 목록이 비었을 때 안내한다. 검색 때문에 빈 것과 기록 자체가 없는 것은
+        // 사용자가 해야 할 일이 다르므로(검색어를 지우기 vs 기록을 추가하기) 문구를 나눈다.
+        var isEmpty = Vm.FilteredCount == 0;
+        EmptyText.Visibility = isEmpty ? Visibility.Visible : Visibility.Collapsed;
+        if (isEmpty)
+        {
+            EmptyText.Text = string.IsNullOrWhiteSpace(Vm.SearchText)
+                ? LocalizationService.Get("HistoryEmpty_NoEntries")
+                : LocalizationService.Get("HistoryEmpty_NoSearchResult");
+        }
     }
 
     /// <summary>유형 콤보박스를 "미분류" + 사용자 유형 목록으로 구성하고 선택값을 설정합니다.</summary>
