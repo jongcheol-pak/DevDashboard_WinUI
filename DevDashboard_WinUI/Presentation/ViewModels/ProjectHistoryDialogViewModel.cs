@@ -22,7 +22,7 @@ public sealed partial class ProjectHistoryDialogViewModel : HistoryDialogViewMod
     public bool CanAddHistory => SelectedProject is not null;
 
     public ProjectHistoryDialogViewModel(List<ProjectItem> projects, IProjectRepository projectRepository, AppSettings settings)
-        : base([], settings.PageSize, BuildKinds(settings))
+        : base([], settings.PageSize, BuildKinds(settings), string.Empty)
     {
         ArgumentNullException.ThrowIfNull(projects);
         ArgumentNullException.ThrowIfNull(projectRepository);
@@ -57,6 +57,8 @@ public sealed partial class ProjectHistoryDialogViewModel : HistoryDialogViewMod
         _entries.Clear();
         if (SelectedProject?.Histories is { } histories)
             _entries.AddRange(histories);
+        // CurrentPage 대입이 RebuildGroups를 먼저 트리거할 수 있으므로 그 전에 프로젝트명을 갱신한다
+        SetEntryProjectName(SelectedProject?.Name ?? string.Empty);
         CurrentPage = 1;
         RebuildGroups();
     }

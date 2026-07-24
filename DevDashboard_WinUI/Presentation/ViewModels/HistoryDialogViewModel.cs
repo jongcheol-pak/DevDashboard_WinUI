@@ -35,6 +35,16 @@ public partial class HistoryEntryViewModel : ObservableObject
     public string CompletedAtText => Model.CompletedAt.ToString("yyyy-MM-dd HH:mm");
     public string CreatedAtText => Model.CreatedAt.ToString("yyyy-MM-dd HH:mm");
 
+    /// <summary>행에 표시할 완료 시각 (HH:mm).
+    /// 시각 필드 도입 전에 만들어진 기록은 CompletedAt이 00:00이라 등록 일시의 시각으로 대신 보여줍니다
+    /// (기존 데이터를 변형하지 않고도 의미 있는 시각을 표시하기 위함).</summary>
+    public string TimeText => Model.CompletedAt.TimeOfDay == TimeSpan.Zero
+        ? Model.CreatedAt.ToString("HH:mm")
+        : Model.CompletedAt.ToString("HH:mm");
+
+    /// <summary>행에 표시할 프로젝트명 (생성 시 주입)</summary>
+    public string ProjectName { get; }
+
     /// <summary>작업 기록 유형 (배지 텍스트)</summary>
     public string Kind => Model.Kind;
 
@@ -70,9 +80,10 @@ public partial class HistoryEntryViewModel : ObservableObject
     /// <summary>수정 버튼 툴팁 ({x:Bind} 전용)</summary>
     public string EditTooltip => LocalizationService.Get("IconEditBtn_Tooltip");
 
-    public HistoryEntryViewModel(HistoryEntry model)
+    public HistoryEntryViewModel(HistoryEntry model, string projectName)
     {
         Model = model;
+        ProjectName = projectName;
     }
 
     /// <summary>펼치기/접기 토글</summary>
@@ -95,7 +106,7 @@ public sealed class HistoryDialogViewModel : HistoryDialogViewModelBase
     public string ProjectName => _projectItem.Name;
 
     public HistoryDialogViewModel(ProjectItem projectItem, AppSettings settings)
-        : base([.. (projectItem.Histories ?? [])], settings.PageSize, BuildKinds(settings))
+        : base([.. (projectItem.Histories ?? [])], settings.PageSize, BuildKinds(settings), projectItem.Name)
     {
         _projectItem = projectItem;
     }

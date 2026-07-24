@@ -17,6 +17,10 @@ public abstract partial class HistoryDialogViewModelBase : ObservableObject
 
     private readonly int _pageSize;
 
+    // 항목 행에 표시할 프로젝트명. 파생의 ExportProjectName을 쓰면 베이스 생성자가 RebuildGroups를
+    // 호출하는 시점에 파생 필드가 아직 null이라 NRE가 나므로, 베이스가 직접 값을 들고 있는다.
+    private string _entryProjectName;
+
     /// <summary>검색어</summary>
     [ObservableProperty]
     public partial string SearchText { get; set; } = string.Empty;
@@ -30,6 +34,9 @@ public abstract partial class HistoryDialogViewModelBase : ObservableObject
 
     /// <summary>작업 기록 존재 여부</summary>
     public bool HasEntries => _entries.Count > 0;
+
+    /// <summary>검색 필터를 적용한 기록 수 (헤더의 "N건" 표시용)</summary>
+    public int FilteredCount => FilteredEntries().Count;
 
     /// <summary>전체 페이지 수 (검색 필터 반영, 최소 1)</summary>
     public int TotalPages => Math.Max(1, (int)Math.Ceiling(FilteredEntries().Count / (double)_pageSize));
@@ -52,13 +59,18 @@ public abstract partial class HistoryDialogViewModelBase : ObservableObject
     /// <summary>다음 페이지 버튼 툴팁 (아이콘 전용 버튼 접근성)</summary>
     public string NextPageTooltip { get; } = LocalizationService.Get("HistoryPage_NextPage");
 
-    protected HistoryDialogViewModelBase(List<HistoryEntry> entries, int pageSize, IReadOnlyList<string> availableKinds)
+    protected HistoryDialogViewModelBase(List<HistoryEntry> entries, int pageSize,
+        IReadOnlyList<string> availableKinds, string entryProjectName)
     {
         _entries = entries;
         _pageSize = pageSize > 0 ? pageSize : 100;
         AvailableKinds = availableKinds;
+        _entryProjectName = entryProjectName;
         RebuildGroups();
     }
+
+    /// <summary>항목 행에 표시할 프로젝트명을 갱신합니다 (프로젝트를 전환하는 파생이 호출).</summary>
+    protected void SetEntryProjectName(string projectName) => _entryProjectName = projectName;
 
     /// <summary>기본 유형 + 사용자 정의 유형을 합쳐 선택 목록을 구성합니다.</summary>
     protected static IReadOnlyList<string> BuildKinds(AppSettings settings)
@@ -98,8 +110,9 @@ public abstract partial class HistoryDialogViewModelBase : ObservableObject
     /// <summary>검색 필터 → 현재 페이지 슬라이스 → 날짜 그룹핑 순으로 목록을 재구성합니다.</summary>
     protected void RebuildGroups()
     {
+        // CompletedAt에 시각까지 담기므로 날짜가 아닌 전체 시점으로 정렬한다 (같은 날은 늦은 시각이 위)
         var filtered = FilteredEntries()
-            .OrderByDescending(e => e.CompletedAt.Date)
+            .OrderByDescending(e => e.CompletedAt)
             .ThenByDescending(e => e.CreatedAt)
             .ToList();
 
@@ -115,11 +128,15 @@ public abstract partial class HistoryDialogViewModelBase : ObservableObject
         var groups = pageItems.GroupBy(e => e.CompletedAt.Date).OrderByDescending(g => g.Key);
         foreach (var group in groups)
         {
-            var entryVms = group.OrderByDescending(e => e.CreatedAt).Select(e => new HistoryEntryViewModel(e));
+            var entryVms = group
+                .OrderByDescending(e => e.CompletedAt)
+                .ThenByDescending(e => e.CreatedAt)
+                .Select(e => new HistoryEntryViewModel(e, _entryProjectName));
             DateGroups.Add(new HistoryDateGroup(group.Key, entryVms));
         }
 
         OnPropertyChanged(nameof(HasEntries));
+        OnPropertyChanged(nameof(FilteredCount));
         OnPropertyChanged(nameof(TotalPages));
         OnPropertyChanged(nameof(PageInfoText));
         OnPropertyChanged(nameof(CanPrevPage));
@@ -191,9 +208,9 @@ public abstract partial class HistoryDialogViewModelBase : ObservableObject
             sb.AppendLine($"## {group.Key:yyyy-MM-dd}");
             sb.AppendLine();
 
-            foreach (var entry in group.OrderByDescending(e => e.CreatedAt))
+            foreach (var entry in group.OrderByDescending(e => e.CompletedAt).ThenByDescending(e => e.CreatedAt))
             {
-                sb.AppendLine($"### {entry.Title}");
+                sb.AppendLine($"### {entry.CompletedAt:HH:mm} {entry.Title}");
                 sb.AppendLine();
 
                 if (!string.IsNullOrWhiteSpace(entry.Description))
