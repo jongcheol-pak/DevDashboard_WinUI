@@ -68,7 +68,6 @@
   <data name="GroupDialog_TitleEdit" xml:space="preserve"><value>그룹 수정</value></data>
   <data name="GroupDialog_NameRequired" xml:space="preserve"><value>그룹 이름을 입력하세요.</value></data>
   <data name="GroupDialog_DuplicateFormat" xml:space="preserve"><value>'{0}' 이름의 그룹이 이미 존재합니다.</value></data>
-  <data name="HistoryDialog_TitleFormat" xml:space="preserve"><value>작업 기록 — {0}</value></data>
   <data name="HistoryDialog_TitleRequired" xml:space="preserve"><value>제목을 입력하세요.</value></data>
   <data name="HistoryDialog_MarkdownType" xml:space="preserve"><value>마크다운</value></data>
   <data name="ProjectHistoryDialog_TitleRequired" xml:space="preserve"><value>제목을 입력하세요.</value></data>
@@ -336,7 +335,6 @@
   <data name="HistoryPage_NextPage" xml:space="preserve"><value>다음 페이지</value></data>
   <data name="AddTitleBox.PlaceholderText" xml:space="preserve"><value>제목 (필수)</value></data>
   <data name="AddDescriptionBox.PlaceholderText" xml:space="preserve"><value>상세 설명 (선택)</value></data>
-  <data name="EmptyHistoryText.Text" xml:space="preserve"><value>검색 결과가 없습니다</value></data>
 
   <!-- ===== XAML x:Uid — ProjectHistoryDialog ===== -->
   <data name="ProjectHistoryDialogTitle" xml:space="preserve"><value>전체 작업 기록</value></data>
