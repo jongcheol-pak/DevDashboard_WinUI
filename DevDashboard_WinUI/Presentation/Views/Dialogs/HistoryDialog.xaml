@@ -48,7 +48,7 @@
                 VerticalAlignment="Center" />
         </StackPanel>
 
-        <!-- 목록 화면 (검색행 + 인라인 추가 폼 + 기록 목록 + 페이지네이션) -->
+        <!-- 목록 화면 (검색행 + 기록 목록 + 페이지네이션) — 폼을 열면 통째로 감춘다 -->
         <Grid Grid.Row="1" x:Name="ListArea" RowSpacing="12">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -291,7 +291,8 @@
 
             <!-- 뒤로가기 + 폼 제목 -->
             <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                <Button x:Uid="HistoryForm_Back" Height="32" CornerRadius="8" Padding="12,0" Click="BackToList_Click">
+                <!-- 라벨은 아이콘과 함께 놓아야 해서 코드비하인드가 BackText에 직접 채운다(x:Uid 미사용) -->
+                <Button Height="32" CornerRadius="8" Padding="12,0" Click="BackToList_Click">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <FontIcon Glyph="&#xE76B;" FontSize="12" />
                         <TextBlock x:Name="BackText" FontSize="12" VerticalAlignment="Center" />
