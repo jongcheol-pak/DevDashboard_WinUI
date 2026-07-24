@@ -477,6 +477,11 @@
 - [x] 유형 배지 색 → **시안 값 그대로**(보라 포함, 회색 폴백)(2026-07-24).
 - [x] 기존 기록 시각 → **`CreatedAt` 시각으로 폴백**(데이터 변형 없음)(2026-07-24).
 
+## Next Steps
+- 권장 다음 액션: **F-8 육안 확인** — 아래 `## F-8 인계 목록`과 이 절의 동작 확인 항목을 앱에서 확인. 이상이 있으면 그 항목만 알려주면 수정한다.
+- 육안 확인 통과 후: master 병합·push (둘 다 **별도 승인 필요** — 자율 루프 권한 밖).
+- Suggested skills: `pjc:implement-task`(수정 필요 시), 공식 `/code-review`(병합 전 검토를 원할 때).
+
 ## 검증 방법
 - 빌드: `"C:/Program Files/Microsoft Visual Studio/18/Professional/MSBuild/Current/Bin/MSBuild.exe" "DevDashboard_WinUI/DevDashboard.csproj" -t:Build -p:Configuration=Debug -p:Platform=x64` → 오류 0 + **baseline 외 신규 경고 0**
 - **baseline 경고 정의(판정 기준)**: `AGENTS.md:29~33`은 `NU1903` 1건 + `CS0612` 4건을, `deferred.md:64`는 그 기록이 stale이며 실측은 `CS0618` 1건뿐이라고 적는다(직전 plan도 실측 기준으로 통과). → **`NU1903`·`CS0612`·`CS0618` 중 무엇이 나오든 baseline으로 인정**하고, 그 외 경고만 신규로 판정한다. 실측 목록은 첫 빌드 결과를 Progress Log에 기록해 이후 판정의 기준으로 삼는다(둘 중 어느 기록이 맞는지 실측으로 확정).
@@ -498,6 +503,12 @@
   - 페이지 번호 이동(기록을 페이지 크기 이상 만든 뒤)·현재 페이지 강조
   - **작업 페이지에서 작업을 완료로 옮겼을 때** 작업기록 팝업이 제목이 채워진 폼으로 열리는지(D9 회귀 확인)
   - **전체 작업 기록(헤더 버튼) 회귀 확인**(D10): 화면 구성은 종전 그대로이고, 목록·검색·페이지 이동·마크다운 내보내기가 정상인지. 정렬과 내보내기에 시각이 반영되는 것은 의도된 변화다
+
+## Phase Ledger
+- 전 task(T1~T6) 완료.
+- **Phase F 통과 (HEAD `f5e10f5`)** — F-1 클린 리빌드(`-t:Rebuild`) 오류 0·신규 경고 0(baseline `CS0618` 1건만), F-3 회귀 grep 전부 기대값(resw ko/en 447 대칭), F-6.5 notes·deferred 갱신, F-7 `plan-completion-reviewer` **BLOCKER 1 + MINOR 3 → 전건 수정 후 재리빌드 통과**.
+- **Phase G 통과 (Must 100%)** — F-7의 PRD 전수 대조를 재사용(G-1). active Must FR 중 이번 커버 대상 **FR-D5**(카드 메모)·**FR-H3**(작업 기록 restyle) 충족, F-7이 B1으로 미성립 판정했던 **FR-H2**(페이지네이션)·FR-H3의 번호 이동은 리소스 키 수정으로 해소. 나머지 active Must FR(FR-C*/S*/T*/E*/N*/D1~D4·H1)은 회귀 없음 확인. NFR-1~4 충족, NFR-5는 조건 미발동(테스트 프로젝트 부재). 재루프 0회.
+- **F-8 미통과 — 렌더 육안 확인 대기**: `## F-8 인계 목록`의 38행이 `⏳ 미확인`으로 남아 완료 선언을 보류한다(WinUI 데스크톱이라 자율 루프에 창 캡처 수단 없음).
 
 ## 통과 체크리스트
 - [x] 근거 없는 단정 0 (시안 HTML·현행 코드·DB 스키마 직접 Read)
