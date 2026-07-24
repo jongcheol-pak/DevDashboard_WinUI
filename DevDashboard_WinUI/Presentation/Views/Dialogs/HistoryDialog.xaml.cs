@@ -49,6 +49,14 @@ public sealed partial class HistoryDialog : ContentDialog
     /// <summary>헤더의 총 건수 표시 ("N건")</summary>
     public static string CountText(int count)
         => string.Format(LocalizationService.Get("HistoryDialog_CountFormat"), count);
+
+    /// <summary>번호 버튼 표시 여부 (생략 표식 자리에는 버튼을 두지 않는다)</summary>
+    public static Visibility NumberVisibility(bool isEllipsis)
+        => isEllipsis ? Visibility.Collapsed : Visibility.Visible;
+
+    /// <summary>현재 페이지만 액센트로 강조한다</summary>
+    public static Style PageButtonStyle(bool isCurrent)
+        => (Style)Application.Current.Resources[isCurrent ? "AccentButtonStyle" : "DefaultButtonStyle"];
     private readonly System.ComponentModel.PropertyChangedEventHandler _vmPropertyChangedHandler;
     private TaskCompletionSource<bool>? _nestedTcs;
 
@@ -166,6 +174,12 @@ public sealed partial class HistoryDialog : ContentDialog
     private void FormTitle_TextChanged(object sender, TextChangedEventArgs e) => UpdateSaveEnabled();
 
     private void BackToList_Click(object sender, RoutedEventArgs e) => ShowListView();
+
+    private void PageNumber_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: int page })
+            Vm.GoToPageCommand.Execute(page);
+    }
 
     // ObservableCollection이 CollectionChanged로 자동 갱신하므로 ItemsSource 재할당 불필요
     private void RefreshList()

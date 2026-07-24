@@ -338,6 +338,7 @@
   <data name="HistoryEditHeader" xml:space="preserve"><value>기록 수정</value></data>
   <data name="AddKindCombo.Header" xml:space="preserve"><value>유형</value></data>
   <data name="HistoryKind_None" xml:space="preserve"><value>미분류</value></data>
+  <data name="HistoryPage_InfoFormat" xml:space="preserve"><value>{0} / {1} 페이지</value></data>
   <data name="HistoryPage_PrevPage" xml:space="preserve"><value>이전 페이지</value></data>
   <data name="HistoryPage_NextPage" xml:space="preserve"><value>다음 페이지</value></data>
 

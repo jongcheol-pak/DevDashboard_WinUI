@@ -41,8 +41,11 @@ public abstract partial class HistoryDialogViewModelBase : ObservableObject
     /// <summary>전체 페이지 수 (검색 필터 반영, 최소 1)</summary>
     public int TotalPages => Math.Max(1, (int)Math.Ceiling(FilteredEntries().Count / (double)_pageSize));
 
-    /// <summary>페이지 표시 텍스트 ("현재 / 전체")</summary>
-    public string PageInfoText => $"{CurrentPage} / {TotalPages}";
+    /// <summary>페이지 표시 텍스트 ("현재 / 전체 페이지")</summary>
+    public string PageInfoText => string.Format(LocalizationService.Get("HistoryPage_InfoFormat"), CurrentPage, TotalPages);
+
+    /// <summary>페이지 이동 버튼 목록 (번호 또는 생략 표식)</summary>
+    public ObservableCollection<HistoryPageButton> PageButtons { get; } = [];
 
     /// <summary>이전 페이지 이동 가능 여부</summary>
     public bool CanPrevPage => CurrentPage > 1;
@@ -99,6 +102,34 @@ public abstract partial class HistoryDialogViewModelBase : ObservableObject
         if (CurrentPage < TotalPages) CurrentPage++;
     }
 
+    /// <summary>지정한 페이지로 이동합니다 (번호 버튼).</summary>
+    [RelayCommand]
+    private void GoToPage(int page)
+    {
+        if (page >= 1 && page <= TotalPages) CurrentPage = page;
+    }
+
+    /// <summary>페이지 버튼 목록을 재구성합니다 — 첫 페이지·마지막 페이지·현재 페이지 주변만 남기고
+    /// 번호가 건너뛰는 자리에 생략 표식을 넣는다(시안 :1398~1413).</summary>
+    private void RebuildPageButtons()
+    {
+        PageButtons.Clear();
+        var total = TotalPages;
+        if (total <= 1) return;   // 한 페이지뿐이면 번호를 두지 않는다
+
+        var numbers = new SortedSet<int> { 1, total, CurrentPage - 1, CurrentPage, CurrentPage + 1 }
+            .Where(n => n >= 1 && n <= total)
+            .ToList();
+
+        var previous = 0;
+        foreach (var n in numbers)
+        {
+            if (n - previous > 1) PageButtons.Add(HistoryPageButton.Ellipsis());
+            PageButtons.Add(HistoryPageButton.Number(n, n == CurrentPage));
+            previous = n;
+        }
+    }
+
     /// <summary>검색 필터를 적용한 기록 목록을 반환합니다 (정렬·페이지 미적용).</summary>
     private List<HistoryEntry> FilteredEntries()
         => string.IsNullOrWhiteSpace(SearchText)
@@ -134,6 +165,8 @@ public abstract partial class HistoryDialogViewModelBase : ObservableObject
                 .Select(e => new HistoryEntryViewModel(e, _entryProjectName));
             DateGroups.Add(new HistoryDateGroup(group.Key, entryVms));
         }
+
+        RebuildPageButtons();
 
         OnPropertyChanged(nameof(HasEntries));
         OnPropertyChanged(nameof(FilteredCount));

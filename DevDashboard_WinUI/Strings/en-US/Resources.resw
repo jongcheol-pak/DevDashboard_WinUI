@@ -338,6 +338,7 @@
   <data name="HistoryEditHeader" xml:space="preserve"><value>Edit Entry</value></data>
   <data name="AddKindCombo.Header" xml:space="preserve"><value>Kind</value></data>
   <data name="HistoryKind_None" xml:space="preserve"><value>Uncategorized</value></data>
+  <data name="HistoryPage_InfoFormat" xml:space="preserve"><value>Page {0} / {1}</value></data>
   <data name="HistoryPage_PrevPage" xml:space="preserve"><value>Previous page</value></data>
   <data name="HistoryPage_NextPage" xml:space="preserve"><value>Next page</value></data>
 

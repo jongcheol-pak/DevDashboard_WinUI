@@ -6,6 +6,27 @@ using Microsoft.UI.Xaml;
 
 namespace DevDashboard.Presentation.ViewModels;
 
+/// <summary>페이지 이동 버튼 한 칸 — 번호 버튼이거나 건너뛴 구간을 알리는 생략 표식입니다.</summary>
+public sealed class HistoryPageButton
+{
+    /// <summary>이동할 페이지 번호 (생략 표식이면 0)</summary>
+    public int Page { get; private init; }
+
+    /// <summary>생략 표식(…) 여부</summary>
+    public bool IsEllipsis { get; private init; }
+
+    /// <summary>현재 보고 있는 페이지인지 여부 (강조 표시용)</summary>
+    public bool IsCurrent { get; private init; }
+
+    /// <summary>버튼에 표시할 문자열</summary>
+    public string Text => IsEllipsis ? "…" : Page.ToString();
+
+    public static HistoryPageButton Number(int page, bool isCurrent)
+        => new() { Page = page, IsCurrent = isCurrent };
+
+    public static HistoryPageButton Ellipsis() => new() { IsEllipsis = true };
+}
+
 /// <summary>날짜별 그룹 항목 (날짜 헤더 + 해당 날짜의 기록 목록)</summary>
 public partial class HistoryDateGroup : ObservableObject
 {

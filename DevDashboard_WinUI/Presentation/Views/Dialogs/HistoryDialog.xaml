@@ -271,6 +271,38 @@
                                 ToolTipService.ToolTip="{x:Bind Vm.PrevPageTooltip}">
                             <FontIcon Glyph="&#xE76B;" FontSize="12" />
                         </Button>
+                        <!-- 페이지 번호 — 첫·마지막·현재 주변만 두고 건너뛴 구간은 …로 알린다 -->
+                        <ItemsControl ItemsSource="{x:Bind Vm.PageButtons}" VerticalAlignment="Center">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="6" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:HistoryPageButton">
+                                    <Grid>
+                                        <TextBlock
+                                            Text="{x:Bind Text}"
+                                            MinWidth="20"
+                                            TextAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            FontSize="12.5"
+                                            Foreground="{ThemeResource AppTextDisabledBrush}"
+                                            Visibility="{x:Bind IsEllipsis}" />
+                                        <Button
+                                            Content="{x:Bind Text}"
+                                            MinWidth="32" Height="32"
+                                            Padding="8,0"
+                                            CornerRadius="8"
+                                            FontSize="12.5"
+                                            Visibility="{x:Bind local:HistoryDialog.NumberVisibility(IsEllipsis)}"
+                                            Style="{x:Bind local:HistoryDialog.PageButtonStyle(IsCurrent)}"
+                                            Tag="{x:Bind Page}"
+                                            Click="PageNumber_Click" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                         <Button Width="32" Height="32" Padding="0" CornerRadius="8"
                                 Command="{x:Bind Vm.NextPageCommand}" IsEnabled="{x:Bind Vm.CanNextPage, Mode=OneWay}"
                                 ToolTipService.ToolTip="{x:Bind Vm.NextPageTooltip}">
