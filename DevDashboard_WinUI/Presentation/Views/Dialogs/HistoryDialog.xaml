@@ -52,7 +52,6 @@
         <Grid Grid.Row="1" x:Name="ListArea" RowSpacing="12">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
@@ -89,7 +88,7 @@
                 </Button>
             </Grid>
 
-            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" VerticalAlignment="Stretch">
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" VerticalAlignment="Stretch">
                 <StackPanel Spacing="20" Margin="0,0,12,12">
 
                     <!-- 기록 목록 -->
@@ -253,7 +252,7 @@
 
             <!-- 페이지 컨트롤 (좌측 페이지 정보 + 가로 중앙 이전·번호·다음) -->
             <Border
-                Grid.Row="3"
+                Grid.Row="2"
                 BorderBrush="{ThemeResource AppBorderBrush}"
                 BorderThickness="0,1,0,0"
                 Padding="0,14,0,0"
@@ -287,7 +286,7 @@
                                             TextAlignment="Center"
                                             VerticalAlignment="Center"
                                             FontSize="12.5"
-                                            Foreground="{ThemeResource AppTextDisabledBrush}"
+                                            Foreground="{ThemeResource TextFillColorDisabledBrush}"
                                             Visibility="{x:Bind local:HistoryDialog.EllipsisVisibility(IsEllipsis)}" />
                                         <Button
                                             Content="{x:Bind Text}"

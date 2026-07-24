@@ -430,7 +430,7 @@
   <data name="TestStatusPill_Tooltip" xml:space="preserve"><value>Click to change status (passed → failed → not run)</value></data>
   <!-- ===== ProjectMemoDialog (card More menu → Memo) ===== -->
   <data name="ProjectMemo_TitleFormat" xml:space="preserve"><value>{0} — Memo</value></data>
-  <data name="ProjectMemo_Placeholder" xml:space="preserve"><value>Write a memo for this project...</value></data>
+  <data name="ProjectMemo_Placeholder" xml:space="preserve"><value>Write a memo for this project…</value></data>
   <data name="ProjectMemo_Delete" xml:space="preserve"><value>Delete memo</value></data>
 
   <data name="TestNote_Tooltip" xml:space="preserve"><value>Note</value></data>

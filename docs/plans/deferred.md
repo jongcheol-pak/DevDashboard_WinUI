@@ -73,6 +73,13 @@
 - **[SUGGEST] 카드 hover 애니메이션 Storyboard 재사용** — `AnimateCardTranslate`가 호출마다 새 Storyboard를 만들고 이전 것을 Stop하지 않아 빠른 hover 시 잔상 가능(0.15s·마지막 To 우선이라 실사용 영향 작음). 카드당 Storyboard 캐시 후 재사용 검토. (출처: 대시보드 카드 후속 T2 quality m1, 2026-07-23)
 - **[SUGGEST] PinOrder 메모리 동기화 간극** — 드래그 재정렬(`UpdatePinOrder`)이 DB만 갱신하고 각 카드 `ProjectCardViewModel._item.PinOrder`는 미갱신이라 `ToModel()`이 stale PinOrder를 반환한다. "재정렬 → 새로고침 없이 편집 저장" 시 그 stale 값이 DB에 재기록돼 재정렬을 되돌릴 수 있다(핀 자체는 유지). 근본 해결: 재정렬 시 메모리 동기화 또는 `ToModel()`에 PinOrder 동기화 추가. (출처: 대시보드 카드 후속 T3 quality m1/S1, 2026-07-23)
 
+- **[함정] XAML 리소스 키 오타는 빌드가 잡지 못한다** — `{ThemeResource AppXxxBrush}`는 **런타임 조회**라 키가 없어도 빌드가 통과하고, 그 요소가 실체화되는 순간에야 깨진다. 2026-07-24 작업에서 `AppTextDisabledBrush`(Palette에 Color만 있고 Brush 키 없음)를 참조해 **기록이 2페이지 이상일 때만** 드러나는 결함이 들어갔고, 하필 그 경로가 유일하게 실행 검증되지 않은 시나리오라 F-7 리뷰가 아니었으면 사용자 손에서 처음 터질 뻔했다. **신규 `App*` 리소스를 쓸 때는 `Resources/Palette.xaml`·`Styles.xaml`에 그 키가 실재하는지 grep으로 확인할 것**(Color 키와 Brush 키는 별개다). 조건부 표시(Visibility)로만 나타나는 요소일수록 위험하다. (F-7 B1, 2026-07-24)
+- **[전체 작업 기록(`ProjectHistoryDialog`) 시안 미적용]** — 2026-07-24 작업은 카드별 `HistoryDialog`만 시안 재구현했다(사용자 결정). 전체 다이얼로그는 구 레이아웃(유형 dot+텍스트, 시각 미표시, 인라인 폼, 번호 없는 페이지)으로 남아 **두 화면의 모양이 갈린다**. 단 정렬·마크다운 내보내기의 시각 반영은 베이스 공유라 함께 적용됐다. PRD **FR-H4**(두 다이얼로그 중복 정리)와 묶어 진행. (원 plan: 카드 메모+작업기록 시안, 2026-07-24)
+- **[날짜만 수정한 기존 기록의 시각 폴백 어긋남]** — 시각 도입 시 `CompletedAt` 시각이 00:00이면 `CreatedAt` 시각을 보여주므로(데이터 무변형 선택), 과거에 날짜를 수정한 기록은 표시 시각이 실제 완료 시점과 다를 수 있다. 그 기록을 한 번 편집해 시각을 지정하면 해소된다. (원 plan: 카드 메모+작업기록 시안 D5, 2026-07-24)
+- **[SUGGEST] "N건" 포맷 로직 2곳 중복** — `HistoryDialog.CountText(int)`(헤더)와 `HistoryDateGroup.CountText`(그룹 헤더)가 같은 `string.Format(Get("HistoryDialog_CountFormat"), n)`을 각각 수행한다. 서로 다른 계층(View 코드비하인드 vs VM)이라 강제 통합하면 의존이 어색해져 현행 유지. 포맷을 바꾸면 두 곳을 함께 고쳐야 한다. (T4 quality m1, 2026-07-24)
+- **[빈 제목 오류 문구 제거에 따른 접근성 약화 — 작업 기록]** — 새 기록 폼이 `HistoryDialog_TitleRequired` 문구 대신 저장 버튼 비활성으로 알린다(시안 준수). `TaskEditDialog`에 같은 성질이 이미 등재돼 있으므로(`:30`) 함께 보완 검토. (원 plan: 카드 메모+작업기록 시안 T5, 2026-07-24)
+- **[카드 메모의 발견성]** — 메모는 카드 본문에 표시되지 않고 ⋯ 메뉴 라벨("메모"/"메모 보기")만 유무를 알린다(시안 준수, 사용자 결정). 메모를 적어둔 프로젝트를 밖에서 구분하고 싶다는 요구가 생기면 카드 표식 추가를 논의. (원 plan: 카드 메모+작업기록 시안 Q3, 2026-07-24)
+
 ## 종결
 - [2026-07-22 → 2026-07-23] **[카드 hover 이동 애니메이션 미구현]** — 반영(대시보드 카드 후속 T2: 카드 Border TranslateTransform + 코드비하인드 Storyboard로 hover 시 translateY(-2px) 구현)
 - [2026-07-19 → 2026-07-22] **[테스트→작업 역방향 링크/배지]** (FR-E4 확장) — 구현 완료(테스트 행에 연결된 작업 제목 배지 표시, `TestItem.LinkedTaskTitle` 역참조 방식)

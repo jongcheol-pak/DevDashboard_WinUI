@@ -358,6 +358,10 @@
   - **T4 quality MAJOR(2회차)**: 위 두 수정으로 소비처가 사라진 resw 키 2종이 고아로 남았다 → ko/en에서 제거(V-7 역방향 규칙대로 같은 diff에서 정리).
   - **XAML 함정 재확인**: `DataTemplate` 안에서 코드비하인드 static 헬퍼를 `x:Bind`로 부르려면 **클래스명을 명시**해야 한다(`local:HistoryDialog.KindBrush(Kind)`). 이름만 쓰면 `x:DataType`(항목 VM)에서 찾다가 `WMC1110`으로 실패한다 — TestPage 선례와 동일.
 
+- **T5-T6 완료 + Phase F** (커밋 `54a543a`, `0925a6c`): 뷰 전환형 폼 + 페이지 번호 이동. F-1 클린 리빌드 오류 0·신규 경고 0, F-3 회귀 grep 전부 기대값(resw ko/en 447 대칭).
+  - **F-7이 BLOCKER 1건 검출**: T6이 참조한 `AppTextDisabledBrush`가 **팔레트에 없는 키**였다(Color만 존재). `{ThemeResource}`는 런타임 조회라 빌드가 통과했고, 생략 표식 `TextBlock`이 `PageButtons` 항목 템플릿의 공통 자식이라 **기록이 2페이지 이상이면 다이얼로그가 깨지는** 결함이었다 — 하필 그 경로가 이번 plan에서 유일하게 실행 검증되지 않은(⏳) 시나리오였다. 같은 색값의 실재 키 `TextFillColorDisabledBrush`(#5F5D66, 시안 생략 표식 색과 동일)로 교체하고, **변경 XAML 3종의 `App*` 참조를 전수 검증**(미해결 0)한 뒤 재리빌드로 확인. 교훈은 deferred 대장에 함정으로 등재.
+  - 함께 수정한 F-7 MINOR 3건: 인라인 폼 제거 잔재인 **죽은 `RowDefinition`**(검색행↔목록 사이 12px 여백) 제거 + Row 인덱스 정리 / 메모 placeholder를 시안의 말줄임표(`…`)로 / **편집 폼의 시각 폴백** — 옛 기록을 편집하면 목록은 `09:15`, 폼은 `00:00`을 보이던 불일치를 목록과 같은 값으로 맞춤.
+
 ## F-8 인계 목록 (렌더 육안 확인 대기 — V-9가 `⏳ 미확인`으로 넘긴 행)
 
 > WinUI 3 데스크톱이라 자율 루프에서 창을 캡처해 대조할 수단이 없다(V-9 3분기 중 데스크톱 경로). 코드 경로는 아래 파일:라인에서 충족되나 **화면 결과는 사용자만 판정**할 수 있다.
@@ -423,6 +427,9 @@
 | 이전·다음 | 32×32 radius 8, 비활성 처리 | `:270-274`, `:305-309` (`CanPrevPage`/`CanNextPage` 유지) | ⏳ 미확인 |
 | 번호 규칙 | `{1, 마지막, 현재±1}` + 간격 시 `…` | `HistoryDialogViewModelBase.RebuildPageButtons` | ✅ 코드 경로 |
 | 번호 버튼 | min-w 32 h32 radius 8, 현재만 액센트 | `:294-302` + `PageButtonStyle(IsCurrent)` | ⏳ 미확인 |
+| 생략 표식 | `…` `#5f5d66` | `TextFillColorDisabledBrush`(F-7 B1 수정 — 실재 키로 교체) | ⏳ 미확인 |
+
+> ⚠️ **번호 이동은 기록이 2페이지를 넘어야 나타난다**(페이지당 기본 100건). F-7이 잡은 BLOCKER가 정확히 이 경로에 있었으므로, **기록 101건 이상인 프로젝트로 열어** 번호·생략 표식·현재 페이지 강조를 확인해야 한다.
 
 ## Deferred / Follow-up
 - **[전체 작업 기록(`ProjectHistoryDialog`) 시안 미적용]** — 이번은 카드별 `HistoryDialog`만 재구현했다(Q2). 전체 다이얼로그는 구 레이아웃(dot+텍스트 유형, 시각 없음, 인라인 폼)으로 남아 **두 화면의 모양이 갈린다**. PRD **FR-H4**(두 다이얼로그 중복 정리)와 함께 다룰 후속.

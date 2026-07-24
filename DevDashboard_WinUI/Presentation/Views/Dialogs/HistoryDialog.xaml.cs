@@ -149,7 +149,11 @@ public sealed partial class HistoryDialog : ContentDialog
         // 새 기록은 지금 시각을 기본값으로 둔다 (대부분 방금 끝낸 일을 적기 때문)
         var when = editing?.Model.CompletedAt ?? DateTime.Now;
         FormDatePicker.Date = new DateTimeOffset(when.Date);
-        FormTimePicker.Time = when.TimeOfDay;
+        // 시각이 없는 옛 기록은 목록이 등록 일시의 시각을 보여주므로, 폼에도 같은 값을 채워
+        // 목록과 폼이 다른 시각을 가리키지 않게 한다(그대로 저장하면 그 시각으로 확정된다).
+        FormTimePicker.Time = when.TimeOfDay == TimeSpan.Zero && editing is not null
+            ? editing.Model.CreatedAt.TimeOfDay
+            : when.TimeOfDay;
         InitKindCombo(FormKindCombo, editing?.Model.Kind);
 
         FormHeaderText.Text = editing is null
