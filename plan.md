@@ -302,7 +302,7 @@
 - **Halt Forecast**: 없음 — 기존 파일 재구성 + resw 추가. `Palette.xaml`에 Brush 키를 추가하더라도 **Default 딕셔너리에만**(함정 4) 가산이라 파괴적이지 않다.
 
 ### T5 — 뷰 전환형 새 기록/편집 폼 `Type D`
-- [ ] 구현
+- [x] 구현
 - **Files**: `Presentation/Views/Dialogs/HistoryDialog.xaml`, `Presentation/Views/Dialogs/HistoryDialog.xaml.cs`, `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`
 - **Design**: ① 배치 — 목록 영역과 폼 영역을 같은 `ContentDialog` `Content` 안에 두고 `Visibility`로 교체(D7), 폼 상태는 코드비하인드가 보유. ② 신규 심볼 — `ShowFormView(HistoryEntryViewModel? editing, string initialTitle)`(폼을 열고 필드를 채우는 private), `ShowListView()`(목록 복귀), `UpdateSaveEnabled()`(제목 유무로 저장 활성 갱신). ③ 의존 방향 — 코드비하인드 → VM(`AddEntry`/`UpdateEntry`), VM은 폼을 모른다. ④ 비추상화 — 폼 전용 ViewModel(고아 `HistoryEntryDialogViewModel`)을 되살리지 않고, 폼을 별도 UserControl로 분리하지 않는다(소비처 1곳).
 - **구성**:
@@ -397,6 +397,22 @@
 | 펼침 상세 | 상단 구분선 + 좌측 들여쓰기 50 + 12.5px | `:257-271` `BorderThickness="0,1,0,0"` + `Margin="50,11,14,13"` | ⏳ 미확인 |
 | 빈 상태 | 상하 60 여백, 회색 13px | `:274-282` + 문구는 검색 여부로 분기(코드비하인드 `:134-143`) | ⏳ 미확인 |
 | 페이지 영역 | 상단 구분선 + 좌측 정보 + 중앙 버튼 | `:287-315` | ⏳ 미확인 |
+
+### T5 — 새 기록/편집 폼 (시안 `:826~876`, 렌더 3.png)
+
+| 요소 | 디자인 값 | 구현 위치 (코드 경로 충족) | 렌더 판정 |
+|---|---|---|---|
+| 전환 방식 | 목록을 폼이 대체(헤더는 유지) | `HistoryDialog.xaml:283` `FormArea` + 코드비하인드 `ShowFormView`/`ShowListView` | ✅ 코드 경로 |
+| 하단 [닫기] | 폼 화면에서는 사라짐 | `ShowFormView`가 `CloseButtonText=""`, 복귀 시 복원 | ⏳ 미확인 |
+| 뒤로가기 | [‹ 목록] h32 radius 8, 12px | `:294-300` | ⏳ 미확인 |
+| 폼 제목 | "새 기록 추가" 14.5px/700 (수정 시 "기록 수정") | `:301` + 코드비하인드가 문구 분기 | ⏳ 미확인 |
+| 제목 필수 | 라벨 옆 빨간 `*` + 하단 2px 액센트 밑줄(상시) | `:306-322` `Rectangle Height="2"` | ⏳ 미확인 |
+| 제목 placeholder | "무엇을 작업했나요?" | resw `HistoryForm_TitleBox.PlaceholderText` | ✅ 문구 확인 |
+| 날짜·시간·유형 | 2열 그리드, 각 h38 | `:325-348` `Grid` 2열 × 2행 | ⏳ 미확인 |
+| 프로젝트 선택 | 카드별에서는 미표시 | 폼에 없음(의도 — Q2) | ✅ 코드 경로 |
+| 내용 | 멀티라인, placeholder "작업 내용을 기록해 두면…(선택)" | `:349-361` + resw | ✅ 문구 확인 |
+| 하단 버튼 | [저장][취소] 각 flex1 h42 radius 10 | `:364-383` `Grid` 2열 균등 | ⏳ 미확인 |
+| 저장 비활성 | 제목이 비면 비활성 | `UpdateSaveEnabled()` (TextChanged + 폼 열 때) | ✅ 코드 경로 |
 
 ## Deferred / Follow-up
 - **[전체 작업 기록(`ProjectHistoryDialog`) 시안 미적용]** — 이번은 카드별 `HistoryDialog`만 재구현했다(Q2). 전체 다이얼로그는 구 레이아웃(dot+텍스트 유형, 시각 없음, 인라인 폼)으로 남아 **두 화면의 모양이 갈린다**. PRD **FR-H4**(두 다이얼로그 중복 정리)와 함께 다룰 후속.
