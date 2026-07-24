@@ -154,6 +154,7 @@ public sealed partial class DashboardView : UserControl
         card.ShowGitStatusRequested += OnShowGitStatusRequested;
         card.OpenTodoRequested += OnOpenTodoRequested;
         card.OpenHistoryRequested += OnOpenHistoryRequested;
+        card.OpenMemoRequested += OnOpenMemoRequested;
         card.OpenTestListRequested += OnOpenTestListRequested;
         card.ConfigureCommandSlotRequested += OnConfigureCommandSlotRequested;
         card.ChangeCommandIconRequested += OnChangeCommandIconRequested;
@@ -164,6 +165,7 @@ public sealed partial class DashboardView : UserControl
         card.ShowGitStatusRequested -= OnShowGitStatusRequested;
         card.OpenTodoRequested -= OnOpenTodoRequested;
         card.OpenHistoryRequested -= OnOpenHistoryRequested;
+        card.OpenMemoRequested -= OnOpenMemoRequested;
         card.OpenTestListRequested -= OnOpenTestListRequested;
         card.ConfigureCommandSlotRequested -= OnConfigureCommandSlotRequested;
         card.ChangeCommandIconRequested -= OnChangeCommandIconRequested;
@@ -216,6 +218,24 @@ public sealed partial class DashboardView : UserControl
             var dialog = new HistoryDialog(dialogVm);
             await dialog.ShowAsync();
             card.OnHistoryDialogClosed(dialogVm);
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+        }
+    }
+
+    private async void OnOpenMemoRequested(object? sender, EventArgs e)
+    {
+        try
+        {
+            if (sender is not ProjectCardViewModel card) return;
+            var dialog = new ProjectMemoDialog(card.Name, card.CurrentMemo);
+            var result = await dialog.ShowAsync();
+            // [메모 삭제]는 Hide()로 닫혀 결과가 None이므로 저장 여부를 IsDeleteRequested로 함께 판단한다
+            if (result == ContentDialogResult.Primary || dialog.IsDeleteRequested)
+                card.ApplyMemo(dialog.ResultMemo);
         }
         catch (Exception ex)
         {

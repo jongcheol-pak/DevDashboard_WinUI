@@ -369,6 +369,14 @@
                                         <MenuFlyoutItem x:Uid="CardMenu_GitStatus"
                                                         Command="{Binding ShowGitStatusCommand}"
                                                         Visibility="{Binding IsGitRepo, Converter={StaticResource BoolToVisibility}}" />
+                                        <!-- 메모 라벨은 메모 유무에 따라 "메모"/"메모 보기"로 바뀌므로
+                                             x:Uid 고정 문구 대신 VM 프로퍼티를 바인딩한다 (시안 :1599) -->
+                                        <MenuFlyoutItem Text="{Binding MemoMenuLabel}"
+                                                        Command="{Binding OpenMemoCommand}">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xE70B;" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
                                         <MenuFlyoutItem x:Uid="CardMenu_History"
                                                         Command="{Binding OpenHistoryCommand}">
                                             <MenuFlyoutItem.Icon>

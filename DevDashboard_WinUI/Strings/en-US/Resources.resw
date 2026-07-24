@@ -152,6 +152,8 @@
   <data name="CardMenu_TerminalDefault.Text" xml:space="preserve"><value>Default terminal</value></data>
   <data name="CardMenu_TerminalPowerShell.Text" xml:space="preserve"><value>PowerShell</value></data>
   <data name="CardMenu_GitStatus.Text" xml:space="preserve"><value>Git status</value></data>
+  <data name="CardMenu_Memo" xml:space="preserve"><value>Memo</value></data>
+  <data name="CardMenu_MemoView" xml:space="preserve"><value>View memo</value></data>
   <data name="CardMenu_History.Text" xml:space="preserve"><value>Work history</value></data>
   <data name="CardMenu_Settings.Text" xml:space="preserve"><value>Project settings</value></data>
   <data name="CardMenu_Delete.Text" xml:space="preserve"><value>Delete</value></data>
@@ -418,6 +420,11 @@
   <data name="TestSuiteFilter_All" xml:space="preserve"><value>All</value></data>
   <data name="TestSuitePassCount" xml:space="preserve"><value>{0}/{1} passed</value></data>
   <data name="TestStatusPill_Tooltip" xml:space="preserve"><value>Click to change status (passed → failed → not run)</value></data>
+  <!-- ===== ProjectMemoDialog (card More menu → Memo) ===== -->
+  <data name="ProjectMemo_TitleFormat" xml:space="preserve"><value>{0} — Memo</value></data>
+  <data name="ProjectMemo_Placeholder" xml:space="preserve"><value>Write a memo for this project...</value></data>
+  <data name="ProjectMemo_Delete" xml:space="preserve"><value>Delete memo</value></data>
+
   <data name="TestNote_Tooltip" xml:space="preserve"><value>Note</value></data>
   <data name="TestNote_Title" xml:space="preserve"><value>Add note</value></data>
   <data name="TestNote_Placeholder" xml:space="preserve"><value>Enter a note. Save it empty to remove the note.</value></data>

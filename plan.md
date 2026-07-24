@@ -233,7 +233,7 @@
 - **Halt Forecast**: 없음 — 스키마 **가산** 변경(기존 컬럼·데이터 무변경), 파괴적·외부 작업 없음. 사전 승인 항목의 "비파괴 스키마 추가"에 해당.
 
 ### T2 — 프로젝트 메모 다이얼로그 + 카드 ⋯ 메뉴 항목 `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `Presentation/Views/Dialogs/ProjectMemoDialog.xaml`(신규), `Presentation/Views/Dialogs/ProjectMemoDialog.xaml.cs`(신규), `Presentation/ViewModels/ProjectCardViewModel.cs`, `Presentation/Views/DashboardView.xaml`, `Presentation/Views/DashboardView.xaml.cs`, `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`
 - **Design**: ① 배치 — 다이얼로그는 `Presentation/Views/Dialogs/`(기존 10개와 동일), 진입은 카드 VM 커맨드 → View가 표시(기존 작업 기록 흐름과 동형). ② 신규 심볼 — `ProjectMemoDialog`(메모 편집 ContentDialog, `ResultMemo`/`IsDeleteRequested` 노출), `ProjectCardViewModel.OpenMemoCommand` + `OpenMemoRequested` 이벤트 + `HasMemo`(라벨 분기용) + `CurrentMemo`(다이얼로그 초기값) + `ApplyMemo(string)`(모델 반영 + `UpdateMemo` 호출). ③ 의존 방향 — View → VM → Domain, VM은 다이얼로그 타입을 참조하지 않는다(이벤트로 역전 — `OpenHistoryRequested` 선례). ④ 비추상화 — 메모 전용 서비스·인터페이스를 만들지 않는다(카드 VM이 직접 리포지토리 저장 경로를 쓴다, 기존 카드 편집과 동일).
 - **구성**:
@@ -342,6 +342,25 @@
   6. `ProjectHistoryDialog`(전체)는 `PageButtons`를 소비하지 않아 화면·동작이 그대로다(D10).
 - **Edge Cases**: 전체 1페이지 → 번호 영역 숨김(시안 `pageCount<=1`이면 빈 배열) / 2~5페이지 → 생략 없이 전부 표시 / 현재가 1 또는 마지막 → 한쪽 이웃만 존재 / 검색으로 페이지 수 급감 → `RebuildGroups`의 기존 페이지 보정이 먼저 동작한 뒤 번호 재계산 / 페이지 크기 1000·기록 수천 건 → 번호는 최대 5개 + 생략 2개로 상한.
 - **Halt Forecast**: 없음 — VM 가산 + View 재배치.
+
+## F-8 인계 목록 (렌더 육안 확인 대기 — V-9가 `⏳ 미확인`으로 넘긴 행)
+
+> WinUI 3 데스크톱이라 자율 루프에서 창을 캡처해 대조할 수단이 없다(V-9 3분기 중 데스크톱 경로). 코드 경로는 아래 파일:라인에서 충족되나 **화면 결과는 사용자만 판정**할 수 있다.
+
+### T2 — 메모 다이얼로그 (시안 `:519~535`, 렌더 2.png)
+
+| 요소 | 디자인 값 | 구현 위치 (코드 경로 충족) | 렌더 판정 |
+|---|---|---|---|
+| 컨테이너 폭 | `min(680px,94vw)` | `ProjectMemoDialog.xaml:10-11` `ContentDialogMinWidth`/`MaxWidth` = 680 | ⏳ 미확인 |
+| 제목 문구 | `{프로젝트명} — 메모` | `ProjectMemoDialog.xaml.cs:24` + resw `ProjectMemo_TitleFormat` | ✅ 문구 확인 |
+| 제목 크기 | 17px/700 | `ContentDialog` 기본 제목 스타일 사용(별도 지정 없음) | ⏳ 미확인 |
+| 입력 크기 | `rows 16`(≈320) | `ProjectMemoDialog.xaml:27` `MinHeight="320"` | ⏳ 미확인 |
+| 입력 외형 | bg `#242429`, border `#2e2e34`, radius 10, 13.5px | 앱 기본 `TextBox` 스타일 사용 — 시안 값과 미세차 가능 | ⏳ 미확인 |
+| placeholder | "프로젝트 메모를 입력하세요…" | `ProjectMemoDialog.xaml.cs:28` + resw | ✅ 문구 확인 |
+| 삭제 버튼 조건 | 메모가 있을 때만 노출 | `ProjectMemoDialog.xaml.cs:32-35` | ✅ 코드 경로 |
+| 삭제 버튼 색 | 테두리·배경 연한 적색 + 글자 `#f0716a` | `ProjectMemoDialog.xaml:36-38` `AppAccentSoftBrush`/`AppDangerBrush` 근사 | ⏳ 미확인 |
+| 하단 배치 | 좌 [메모 삭제] · 우 [취소][저장] | 삭제는 `Content` 하단 좌측(`:33-40`), 취소·저장은 `ContentDialog` 기본 버튼 | ⏳ 미확인 |
+| 저장 강조 | 액센트 배경 | `ProjectMemoDialog.xaml:6` `DefaultButton="Primary"`(WinUI가 기본 버튼에 액센트 적용) | ⏳ 미확인 |
 
 ## Deferred / Follow-up
 - **[전체 작업 기록(`ProjectHistoryDialog`) 시안 미적용]** — 이번은 카드별 `HistoryDialog`만 재구현했다(Q2). 전체 다이얼로그는 구 레이아웃(dot+텍스트 유형, 시각 없음, 인라인 폼)으로 남아 **두 화면의 모양이 갈린다**. PRD **FR-H4**(두 다이얼로그 중복 정리)와 함께 다룰 후속.

@@ -243,6 +243,9 @@ public partial class ProjectCardViewModel : ObservableObject
     /// <summary>작업 기록 다이얼로그 표시 요청 이벤트</summary>
     public event EventHandler? OpenHistoryRequested;
 
+    /// <summary>프로젝트 메모 다이얼로그 표시 요청 이벤트</summary>
+    public event EventHandler? OpenMemoRequested;
+
     /// <summary>테스트 전체 페이지 표시 요청 이벤트</summary>
     public event EventHandler? OpenTestListRequested;
 
@@ -551,6 +554,9 @@ public partial class ProjectCardViewModel : ObservableObject
     private void OpenHistory() => OpenHistoryRequested?.Invoke(this, EventArgs.Empty);
 
     [RelayCommand]
+    private void OpenMemo() => OpenMemoRequested?.Invoke(this, EventArgs.Empty);
+
+    [RelayCommand]
     private void OpenTestList() => OpenTestListRequested?.Invoke(this, EventArgs.Empty);
 
     // --- To-Do / History 다이얼로그 결과 처리 (View에서 호출) ---
@@ -585,6 +591,30 @@ public partial class ProjectCardViewModel : ObservableObject
     {
         _item.HasActiveTest = _item.TestCategories?.Any(c => c.Items.Any(t => !t.IsCompleted)) == true;
         OnPropertyChanged(nameof(HasInProgressTest));
+    }
+
+    // --- 프로젝트 메모 ---
+
+    /// <summary>현재 메모 (메모 다이얼로그 초기값)</summary>
+    public string CurrentMemo => _item.Memo;
+
+    /// <summary>메모 보유 여부</summary>
+    public bool HasMemo => !string.IsNullOrWhiteSpace(_item.Memo);
+
+    /// <summary>더 보기 메뉴의 메모 항목 라벨 — 메모가 있으면 "메모 보기"로 바뀝니다.
+    /// 카드 본문에는 메모를 표시하지 않으므로(시안 준수) 이 라벨이 메모 유무를 알리는 유일한 표식입니다.</summary>
+    public string MemoMenuLabel => HasMemo
+        ? LocalizationService.Get("CardMenu_MemoView")
+        : LocalizationService.Get("CardMenu_Memo");
+
+    /// <summary>메모를 모델에 반영하고 DB에 저장합니다 (빈 문자열이면 메모 삭제).</summary>
+    public void ApplyMemo(string memo)
+    {
+        _item.Memo = memo;
+        _repository.UpdateMemo(_item.Id, memo);
+        OnPropertyChanged(nameof(CurrentMemo));
+        OnPropertyChanged(nameof(HasMemo));
+        OnPropertyChanged(nameof(MemoMenuLabel));
     }
 
     /// <summary>작업 기록 다이얼로그 뷰모델을 생성합니다.</summary>
