@@ -210,7 +210,7 @@ public abstract partial class HistoryDialogViewModelBase : ObservableObject
 
             foreach (var entry in group.OrderByDescending(e => e.CompletedAt).ThenByDescending(e => e.CreatedAt))
             {
-                sb.AppendLine($"### {entry.CompletedAt:HH:mm} {entry.Title}");
+                sb.AppendLine($"### {HistoryEntryViewModel.FormatTime(entry)} {entry.Title}");
                 sb.AppendLine();
 
                 if (!string.IsNullOrWhiteSpace(entry.Description))
