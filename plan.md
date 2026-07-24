@@ -277,7 +277,7 @@
 - **Halt Forecast**: 없음 — VM 2파일. 정렬·내보내기가 전체 다이얼로그와 공유되지만 **D10에서 의도된 파급으로 사전 확정**했으므로 구현 중 결정 분기가 아니다.
 
 ### T4 — 작업 기록 목록 화면 시안 재구현 `Type D`
-- [ ] 구현
+- [x] 구현
 - **Files**: `Presentation/Views/Dialogs/HistoryDialog.xaml`, `Presentation/Views/Dialogs/HistoryDialog.xaml.cs`, `Presentation/ViewModels/HistoryDialogViewModel.cs`(행 pill이 소비하는 `ProjectName` — T3에서 추가, T4가 바인딩), `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`, `Resources/Palette.xaml`(입력 배경 Brush 키 1개, 필요 시)
 - **Design**: ① 배치 — 레이아웃은 `HistoryDialog.xaml`, 색·상태 계산은 같은 다이얼로그 코드비하인드(NFR-2: VM에 Brush 미참조). ② 신규 심볼 — `HistoryDialog.KindBrush(string)`·`KindBackBrush(string)`(유형 배지 전경·배경 Brush를 직접 반환하는 public static, 함정 5) + `static readonly SolidColorBrush` 색 상수 4쌍 + 행 hover 핸들러 2개. ③ 의존 방향 — XAML `x:Bind` 함수 바인딩 → 코드비하인드 static(선례 `TestPage.StatusBrush`), VM은 문자열 `Kind`만 노출. ④ 비추상화 — 공용 배지 컨트롤·Converter·팔레트 이관을 만들지 않는다(소비처 이 다이얼로그 1곳, deferred에 색 이관 검토만 등재).
 - **구성**:
@@ -370,6 +370,27 @@
 | 하단 배치 | 좌 [메모 삭제] · 우 [취소][저장] | 삭제는 `Content` 하단 좌측(`:33-40`), 취소·저장은 `ContentDialog` 기본 버튼 | ⏳ 미확인 |
 | 저장 강조 | 액센트 배경 | `ProjectMemoDialog.xaml:6` `DefaultButton="Primary"`(WinUI가 기본 버튼에 액센트 적용) | ⏳ 미확인 |
 
+### T4 — 작업 기록 목록 화면 (시안 `:753~825`, 렌더 4.png)
+
+| 요소 | 디자인 값 | 구현 위치 (코드 경로 충족) | 렌더 판정 |
+|---|---|---|---|
+| 컨테이너 크기 | 760 × 680 | `HistoryDialog.xaml:12-15` | ⏳ 미확인 |
+| 헤더 구성 | 제목 + 프로젝트 pill + "N건" | `HistoryDialog.xaml:33-48` (`ContentDialog.Title` 제거 확인) | ⏳ 미확인 |
+| 헤더 pill | 12px, bg `#26262c`, radius 7, padding 4/10 | `:38-43` `AppBorderBrush` + `CornerRadius="7"` | ⏳ 미확인 |
+| 헤더 건수 | 검색 필터 적용 후 건수 | `:44-48` `CountText(Vm.FilteredCount)` | ✅ 코드 경로 |
+| 검색행 | h38, gap 10, [＋ 새 기록] 액센트, 내보내기 38×38 | `:62-90` | ⏳ 미확인 |
+| 날짜 그룹 헤더 | 날짜(monospace) + 건수 + 남는 폭 구분선 | `:136-161` `Grid` 3열 + `Rectangle` | ⏳ 미확인 |
+| 기록 행 카드 | bg `#222227`, border `#2a2a30`, radius 10 | `:167-176` `AppCardAltBrush`/`AppBorderBrush` | ⏳ 미확인 |
+| 행 hover | bg `#26262b` | `:174-175` + 코드비하인드 `:269-279` | ⏳ 미확인 |
+| 시각 | 11.5px monospace, 회색 | `:194-200` `Consolas` + `TimeText` | ⏳ 미확인 |
+| 제목 | 13.5px, 남는 폭 채우고 말줄임 | `:201-208` `TextTrimming` | ⏳ 미확인 |
+| 유형 배지 | 11px/700, radius 6, padding 3/9, 유형별 색 | `:210-221` + `KindBrush`/`KindBackBrush`(코드비하인드 `:21-49`) | ⏳ 미확인 |
+| 프로젝트 pill | 11.5px, bg `#2b2b31`, radius 6 | `:222-231` `AppHoverFillBrush` | ⏳ 미확인 |
+| 편집·삭제 | 27×27, radius 7 | `:232-255` | ⏳ 미확인 |
+| 펼침 상세 | 상단 구분선 + 좌측 들여쓰기 50 + 12.5px | `:257-271` `BorderThickness="0,1,0,0"` + `Margin="50,11,14,13"` | ⏳ 미확인 |
+| 빈 상태 | 상하 60 여백, 회색 13px | `:274-282` + 문구는 검색 여부로 분기(코드비하인드 `:134-143`) | ⏳ 미확인 |
+| 페이지 영역 | 상단 구분선 + 좌측 정보 + 중앙 버튼 | `:287-315` | ⏳ 미확인 |
+
 ## Deferred / Follow-up
 - **[전체 작업 기록(`ProjectHistoryDialog`) 시안 미적용]** — 이번은 카드별 `HistoryDialog`만 재구현했다(Q2). 전체 다이얼로그는 구 레이아웃(dot+텍스트 유형, 시각 없음, 인라인 폼)으로 남아 **두 화면의 모양이 갈린다**. PRD **FR-H4**(두 다이얼로그 중복 정리)와 함께 다룰 후속.
 - **[`InitKindCombo`/`KindFromCombo` 중복]**(deferred.md:15) — 이번에도 3번째 사용처가 생기지 않아 대장 유지.
@@ -379,6 +400,7 @@
 - **[빈 제목 오류 문구 제거에 따른 접근성 약화]** — T5가 `HistoryDialog_TitleRequired` 문구를 비활성 버튼으로 대체한다(시안 준수). `TaskEditDialog`에서 같은 성질이 이미 등재돼 있으므로(deferred.md:30) 함께 보완 검토.
 - **[resw 고아 audit에 이번 분 합산]** — T5로 `HistoryDialog_TitleRequired`·`HistoryAddNewHeader.Text`가, T4로 구 `EmptyHistoryText` 문구가 고아화/치환된다. 기존 고아 정리 항목들과 일괄 처리.
 - **[README/스크린샷 갱신]**(deferred.md:18) — 카드 메뉴에 메모가 추가되고 작업 기록 화면이 바뀌어 스크린샷이 또 낡는다. 계속 Deferred.
+- **[SUGGEST] "N건" 포맷 로직 2곳 중복** (T4 quality m1) — `HistoryDialog.CountText(int)`(헤더)와 `HistoryDateGroup.CountText`(그룹 헤더)가 같은 `string.Format(Get("HistoryDialog_CountFormat"), n)`을 각각 수행한다. 서로 다른 계층(View 코드비하인드 vs VM)이라 강제 통합하면 의존이 어색해져 현행 유지. 포맷이 바뀌면 두 곳을 함께 고쳐야 한다.
 - **[GitHub 연결 미구현]**(deferred.md:90의 잔여) — 시안 카드 메뉴의 GitHub 항목은 이번에도 대상 밖. 대장 유지.
 - **[AGENTS.md baseline 경고 기록 stale]**(deferred.md:64) — AGENTS.md는 5건(`NU1903`+`CS0612`×4), 실측은 `CS0618` 1건. 이번 plan은 둘 다 baseline으로 인정해 우회했으나 기록 자체는 여전히 어긋난다. 승인 시 지시가 있으면 `pjc:record-project-fact`로 정정, 없으면 대장 유지.
 - **[프로젝트 재구축 경로의 필드 소실 취약성]** — `ProjectSettingsDialogViewModel.ToProjectItem()`이 새 `ProjectItem`을 통째로 만들기 때문에, 다이얼로그가 다루지 않는 필드는 `MainViewModel`이 **일일이 되살려야** 보존된다(현재 `CommandScripts`·`IsPinned`·`PinOrder`, 이번에 `Memo` 추가 = 4개). 앞으로 필드가 늘 때마다 같은 사고가 반복될 구조다(실제로 핀 소실이 한 번 발생했다 — 커밋 87dadef). 근본 해결은 재구축 대신 **기존 인스턴스에 편집분만 반영**하는 방식으로 바꾸는 것이나 다이얼로그 VM 구조 변경이라 별도 작업.
