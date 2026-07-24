@@ -133,6 +133,8 @@ public sealed class DatabaseContext
         AddColumnIfNotExists(connection, "Histories", "Kind", "TEXT NOT NULL DEFAULT ''");
         // 대시보드 카드 헤더·아바타 색 (빈 문자열이면 프로젝트 이름 해시로 자동 배정)
         AddColumnIfNotExists(connection, "Projects", "HeaderColor", "TEXT NOT NULL DEFAULT ''");
+        // 프로젝트 자유 메모 (카드 더 보기 메뉴)
+        AddColumnIfNotExists(connection, "Projects", "Memo", "TEXT NOT NULL DEFAULT ''");
     }
 
     /// <summary>기존 IsCompleted 값을 Status 컬럼으로 마이그레이션합니다.</summary>
@@ -176,7 +178,7 @@ public sealed class DatabaseContext
         "ProjectId", "Tag", "SlotIndex", "ShellType", "Script", "WorkingDirectory",
         "IconSymbol", "Text", "IsCompleted", "CompletedAt", "Title", "IsDefault",
         "DisplayName", "ExecutablePath", "IconCachePath", "SortOrder", "ProgressNote", "CategoryId", "Status",
-        "CloseAfterCompletion", "Priority", "StartDate", "EndDate", "LinkedTestId", "Method", "Kind"
+        "CloseAfterCompletion", "Priority", "StartDate", "EndDate", "LinkedTestId", "Method", "Kind", "Memo"
     };
 
     private static void AddColumnIfNotExists(SqliteConnection connection, string table, string column, string definition)
@@ -218,6 +220,7 @@ public sealed class DatabaseContext
                 GroupId     TEXT NOT NULL DEFAULT '',
                 Category    TEXT NOT NULL DEFAULT '',
                 HeaderColor TEXT NOT NULL DEFAULT '',
+                Memo        TEXT NOT NULL DEFAULT '',
                 CreatedAt   TEXT NOT NULL DEFAULT '',
                 UseWorkingDirectory INTEGER NOT NULL DEFAULT 0,
                 ShellWorkingDirectory TEXT NOT NULL DEFAULT ''

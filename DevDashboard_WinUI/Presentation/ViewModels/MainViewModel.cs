@@ -458,12 +458,14 @@ public partial class MainViewModel : ObservableObject
         var existing = _allCards.FirstOrDefault(c => c.Id == item.Id);
         if (existing is not null)
         {
-            // ProjectSettingsDialog는 CommandScripts·핀 상태를 다루지 않으므로 기존 값을 보존한다.
-            // 핀은 카드 헤더 버튼으로만 토글되므로, 편집 저장이 다이얼로그 결과(핀 off)로 기존 핀을 덮어쓰지 않게 한다.
+            // ProjectSettingsDialog는 CommandScripts·핀 상태·메모를 다루지 않으므로 기존 값을 보존한다.
+            // 다이얼로그는 ToProjectItem()으로 ProjectItem을 새로 만들어 반환하므로, 여기서 되살리지 않으면
+            // 편집 저장 한 번에 그 필드들이 초기값으로 덮어써진다(핀은 off, 메모는 빈 문자열).
             var existingModel = existing.ToModel();
             item.CommandScripts = existingModel.CommandScripts;
             item.IsPinned = existingModel.IsPinned;
             item.PinOrder = existingModel.PinOrder;
+            item.Memo = existingModel.Memo;
 
             try
             {

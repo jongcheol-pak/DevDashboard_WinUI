@@ -259,6 +259,17 @@ public sealed class SqliteProjectRepository : IProjectRepository
         cmd.ExecuteNonQuery();
     }
 
+    public void UpdateMemo(string projectId, string memo)
+    {
+        using var conn = _db.CreateConnection();
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "UPDATE Projects SET Memo = @memo WHERE Id = @id";
+        cmd.Parameters.AddWithValue("@memo", memo);
+        cmd.Parameters.AddWithValue("@id", projectId);
+        cmd.ExecuteNonQuery();
+    }
+
     public void UpdatePinOrder(IReadOnlyList<string> orderedPinnedIds)
     {
         using var conn = _db.CreateConnection();
@@ -317,8 +328,9 @@ public sealed class SqliteProjectRepository : IProjectRepository
         cmd.CommandText = "SELECT * FROM Projects ORDER BY IsPinned DESC, PinOrder, CreatedAt";
         using var reader = cmd.ExecuteReader();
 
-        // 구버전 DB에는 HeaderColor 컬럼이 없다 (가져오기로 읽는 외부 .db 포함)
+        // 구버전 DB에는 HeaderColor·Memo 컬럼이 없다 (가져오기로 읽는 외부 .db 포함)
         var hasHeaderColor = HasColumn(reader, "HeaderColor");
+        var hasMemo = HasColumn(reader, "Memo");
 
         var list = new List<ProjectItem>();
         while (reader.Read())
@@ -340,6 +352,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
                 GroupId = reader.GetString(reader.GetOrdinal("GroupId")),
                 Category = reader.GetString(reader.GetOrdinal("Category")),
                 HeaderColor = hasHeaderColor ? reader.GetString(reader.GetOrdinal("HeaderColor")) : string.Empty,
+                Memo = hasMemo ? reader.GetString(reader.GetOrdinal("Memo")) : string.Empty,
                 CreatedAt = ParseDateTime(reader.GetString(reader.GetOrdinal("CreatedAt"))),
                 UseWorkingDirectory = reader.GetInt64(reader.GetOrdinal("UseWorkingDirectory")) != 0,
                 ShellWorkingDirectory = reader.GetString(reader.GetOrdinal("ShellWorkingDirectory"))
@@ -420,11 +433,11 @@ public sealed class SqliteProjectRepository : IProjectRepository
         cmd.CommandText = """
             INSERT OR REPLACE INTO Projects
                 (Id, Name, Description, IconPath, Path, DevToolName, Options, Command,
-                 GitStatus, IsPinned, PinOrder, RunAsAdmin, GroupId, Category, HeaderColor, CreatedAt,
+                 GitStatus, IsPinned, PinOrder, RunAsAdmin, GroupId, Category, HeaderColor, Memo, CreatedAt,
                  UseWorkingDirectory, ShellWorkingDirectory)
             VALUES
                 (@id, @name, @desc, @icon, @path, @devTool, @opts, @cmd,
-                 @git, @pinned, @pinOrder, @admin, @groupId, @cat, @headerColor, @created,
+                 @git, @pinned, @pinOrder, @admin, @groupId, @cat, @headerColor, @memo, @created,
                  @useWd, @shellWd)
             """;
         cmd.Parameters.AddWithValue("@id", p.Id);
@@ -442,6 +455,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
         cmd.Parameters.AddWithValue("@groupId", p.GroupId);
         cmd.Parameters.AddWithValue("@cat", p.Category);
         cmd.Parameters.AddWithValue("@headerColor", p.HeaderColor);
+        cmd.Parameters.AddWithValue("@memo", p.Memo);
         cmd.Parameters.AddWithValue("@created", p.CreatedAt.ToString(DateTimeFormat));
         cmd.Parameters.AddWithValue("@useWd", p.UseWorkingDirectory ? 1 : 0);
         cmd.Parameters.AddWithValue("@shellWd", p.ShellWorkingDirectory);
@@ -457,6 +471,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
                 DevToolName = @devTool, Options = @opts, Command = @cmd,
                 GitStatus = @git, IsPinned = @pinned, PinOrder = @pinOrder,
                 RunAsAdmin = @admin, GroupId = @groupId, Category = @cat, HeaderColor = @headerColor,
+                Memo = @memo,
                 UseWorkingDirectory = @useWd, ShellWorkingDirectory = @shellWd
             WHERE Id = @id
             """;
@@ -475,6 +490,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
         cmd.Parameters.AddWithValue("@groupId", p.GroupId);
         cmd.Parameters.AddWithValue("@cat", p.Category);
         cmd.Parameters.AddWithValue("@headerColor", p.HeaderColor);
+        cmd.Parameters.AddWithValue("@memo", p.Memo);
         cmd.Parameters.AddWithValue("@useWd", p.UseWorkingDirectory ? 1 : 0);
         cmd.Parameters.AddWithValue("@shellWd", p.ShellWorkingDirectory);
         cmd.ExecuteNonQuery();

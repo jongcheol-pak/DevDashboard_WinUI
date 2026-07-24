@@ -42,6 +42,9 @@ public interface IProjectRepository
     /// <summary>프로젝트의 핀 상태만 갱신합니다.</summary>
     void UpdatePinned(string projectId, bool isPinned);
 
+    /// <summary>프로젝트의 메모만 갱신합니다. 빈 문자열을 넘기면 메모가 지워집니다.</summary>
+    void UpdateMemo(string projectId, string memo);
+
     /// <summary>핀 고정 카드들의 표시 순서를 저장합니다. 전달된 ID 목록의 인덱스가 순서가 됩니다.</summary>
     void UpdatePinOrder(IReadOnlyList<string> orderedPinnedIds);
 
