@@ -254,7 +254,7 @@
 - **Halt Forecast**: 없음 — 신규 파일 2개는 계획된 산출물, 파괴적·외부 작업 없음.
 
 ### T3 — 작업 기록 시각(HH:MM) 도입 `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `Presentation/ViewModels/HistoryDialogViewModel.cs`, `Presentation/ViewModels/HistoryDialogViewModelBase.cs`, `Presentation/ViewModels/ProjectHistoryDialogViewModel.cs`(베이스 생성자 인자 추가에 따른 `base(...)` 호출 갱신 + 프로젝트 전환 시 이름 갱신 — D13)
 - **Design**: ① 배치 — 표시 포맷은 항목 VM(`HistoryEntryViewModel`), 목록 정렬·건수는 베이스 VM. ② 신규 심볼 — `HistoryEntryViewModel.TimeText`(행에 표시할 HH:MM, 00:00이면 `CreatedAt` 시각으로 폴백) + `HistoryEntryViewModel.ProjectName`(행 pill용, 생성자 주입 — D13) + `HistoryDialogViewModelBase.FilteredCount`(헤더 "N건" — 검색 반영). ③ 의존 방향 — VM → Domain만(Brush·Visibility 등 View 타입 신규 참조 없음, NFR-2). ④ 비추상화 — 시각 전용 값 객체·포맷터 클래스를 만들지 않고, 프로젝트명 전달을 위해 새 추상 멤버를 만들지 않는다(기존 `ExportProjectName` 재사용).
 - **구성**:
@@ -264,6 +264,7 @@
   - 베이스 `RebuildGroups` 정렬을 **`CompletedAt` 전체(날짜+시각) 내림차순 → `CreatedAt` 내림차순**으로 조정한다. **그룹 간 정렬(`:101~104`)과 그룹 내부 정렬(`:118` `group.OrderByDescending(e => e.CreatedAt)`)을 둘 다 고친다** — 실제 행 표시 순서를 정하는 것은 `:118`이라 여기를 빼면 시각 정렬이 성립하지 않는다. 그룹핑 키는 `CompletedAt.Date` 유지.
   - 베이스에 `FilteredCount`(검색 필터 적용 결과 수) 추가 + `RebuildGroups`에서 변경 통지.
   - `ExportToMarkdown`의 항목 줄에 완료 시각을 포함(`HH:mm`).
+  - **(구현 중 추가) `HistoryEntryViewModel.FormatTime(HistoryEntry)` public static 헬퍼**: 폴백 규칙을 목록 표시(`TimeText`)와 내보내기가 **공유**하도록 추출했다. 초안대로 두 곳에 로직을 각각 두면 내보내기만 폴백이 빠져 같은 기록이 화면 `09:15` / 파일 `00:00`으로 어긋난다(T3 quality 리뷰 MAJOR M1). 신규 클래스가 아니라 기존 항목 VM의 정적 메서드라 Design ④(포맷터 클래스 금지)와 충돌하지 않는다.
   - **공유 파급 명시**(D10 표): 정렬·내보내기 2건은 `ProjectHistoryDialog`에도 함께 적용되는 **의도된 개선**이고, `FilteredCount`·`ProjectName`은 전체 다이얼로그가 소비하지 않아 화면 변화가 없다.
 - **Acceptance**:
   1. 빌드 오류 0 · 신규 경고 0(baseline 제외 — 판정 기준은 `## 검증 방법`의 baseline 정의).
