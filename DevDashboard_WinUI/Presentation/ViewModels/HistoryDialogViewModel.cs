@@ -15,6 +15,9 @@ public partial class HistoryDateGroup : ObservableObject
     /// <summary>표시용 날짜 문자열</summary>
     public string DateText => Date.ToString("yyyy-MM-dd");
 
+    /// <summary>그룹 헤더에 표시할 건수 ("N건")</summary>
+    public string CountText => string.Format(LocalizationService.Get("HistoryDialog_CountFormat"), Entries.Count);
+
     /// <summary>해당 날짜의 기록 항목 목록</summary>
     public ObservableCollection<HistoryEntryViewModel> Entries { get; }
 

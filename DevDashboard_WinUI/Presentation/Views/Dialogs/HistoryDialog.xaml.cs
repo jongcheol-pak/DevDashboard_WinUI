@@ -1,8 +1,10 @@
 using DevDashboard.Infrastructure.Services;
 using DevDashboard.Presentation.ViewModels;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
@@ -12,6 +14,41 @@ namespace DevDashboard.Presentation.Views.Dialogs;
 public sealed partial class HistoryDialog : ContentDialog
 {
     private HistoryDialogViewModel Vm { get; }
+
+    // ===== 유형 배지 색 (시안 :1375~1379 값) =====
+    // x:Bind 함수 바인딩은 Converter·ThemeResource를 받지 못하므로 Brush를 직접 반환한다(TestPage 선례).
+    // 팔레트에 없는 색(특히 리팩터링 보라)이 섞여 있으나 전역 강조색이 아니라 유형 구분색이다.
+    private static readonly SolidColorBrush _kindFeatureBrush = new(ColorHelper.FromArgb(0xFF, 0x7A, 0xB5, 0xEC));
+    private static readonly SolidColorBrush _kindFixBrush = new(ColorHelper.FromArgb(0xFF, 0xE8, 0xB4, 0x5A));
+    private static readonly SolidColorBrush _kindRefactorBrush = new(ColorHelper.FromArgb(0xFF, 0xB7, 0x9A, 0xE8));
+    private static readonly SolidColorBrush _kindDefaultBrush = new(ColorHelper.FromArgb(0xFF, 0x8A, 0x88, 0x90));
+
+    private static readonly SolidColorBrush _kindFeatureBackBrush = new(ColorHelper.FromArgb(0x29, 0x5A, 0xA3, 0xE8));
+    private static readonly SolidColorBrush _kindFixBackBrush = new(ColorHelper.FromArgb(0x29, 0xE8, 0xB4, 0x5A));
+    private static readonly SolidColorBrush _kindRefactorBackBrush = new(ColorHelper.FromArgb(0x38, 0x7A, 0x4A, 0xC0));
+    private static readonly SolidColorBrush _kindDefaultBackBrush = new(ColorHelper.FromArgb(0xFF, 0x2B, 0x2B, 0x31));
+
+    /// <summary>유형 배지 글자색. 기본 유형 외(사용자 정의 포함)는 시안대로 회색으로 떨어진다.</summary>
+    public static Brush KindBrush(string kind) => kind switch
+    {
+        "기능" => _kindFeatureBrush,
+        "수정" => _kindFixBrush,
+        "리팩터링" => _kindRefactorBrush,
+        _ => _kindDefaultBrush,
+    };
+
+    /// <summary>유형 배지 배경색 (글자색과 같은 계열의 저투명 틴트)</summary>
+    public static Brush KindBackBrush(string kind) => kind switch
+    {
+        "기능" => _kindFeatureBackBrush,
+        "수정" => _kindFixBackBrush,
+        "리팩터링" => _kindRefactorBackBrush,
+        _ => _kindDefaultBackBrush,
+    };
+
+    /// <summary>헤더의 총 건수 표시 ("N건")</summary>
+    public static string CountText(int count)
+        => string.Format(LocalizationService.Get("HistoryDialog_CountFormat"), count);
     private readonly System.ComponentModel.PropertyChangedEventHandler _vmPropertyChangedHandler;
     private TaskCompletionSource<bool>? _nestedTcs;
 
@@ -218,6 +255,19 @@ public sealed partial class HistoryDialog : ContentDialog
     {
         if (sender is Border { Tag: HistoryEntryViewModel entryVm })
             entryVm.ToggleExpandCommand.Execute(null);
+    }
+
+    // 행 hover 배경 — DataTemplate 안의 Border라 VisualState가 자동 공급되지 않아 직접 교체한다
+    private void EntryBorder_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border border)
+            border.Background = (Brush)Application.Current.Resources["AppHoverFillBrush"];
+    }
+
+    private void EntryBorder_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border border)
+            border.Background = (Brush)Application.Current.Resources["AppCardAltBrush"];
     }
 
     // 수정 버튼 Tapped → 부모 Border의 Tapped 이벤트 전파 차단
