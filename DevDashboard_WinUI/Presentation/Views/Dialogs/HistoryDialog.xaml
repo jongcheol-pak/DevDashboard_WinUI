@@ -260,7 +260,7 @@
                 Visibility="{x:Bind Vm.HasEntries, Converter={StaticResource BoolToVisibility}, Mode=OneWay}">
                 <Grid>
                     <TextBlock
-                        Text="{x:Bind Vm.PageInfoText, Mode=OneWay}"
+                        Text="{x:Bind Vm.PageInfoLabel, Mode=OneWay}"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
                         FontSize="11.5"
@@ -288,7 +288,7 @@
                                             VerticalAlignment="Center"
                                             FontSize="12.5"
                                             Foreground="{ThemeResource AppTextDisabledBrush}"
-                                            Visibility="{x:Bind IsEllipsis}" />
+                                            Visibility="{x:Bind local:HistoryDialog.EllipsisVisibility(IsEllipsis)}" />
                                         <Button
                                             Content="{x:Bind Text}"
                                             MinWidth="32" Height="32"

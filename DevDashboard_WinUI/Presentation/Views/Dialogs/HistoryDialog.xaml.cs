@@ -54,6 +54,10 @@ public sealed partial class HistoryDialog : ContentDialog
     public static Visibility NumberVisibility(bool isEllipsis)
         => isEllipsis ? Visibility.Collapsed : Visibility.Visible;
 
+    /// <summary>생략 표식(…) 표시 여부 — 번호 버튼과 상호 배타</summary>
+    public static Visibility EllipsisVisibility(bool isEllipsis)
+        => isEllipsis ? Visibility.Visible : Visibility.Collapsed;
+
     /// <summary>현재 페이지만 액센트로 강조한다</summary>
     public static Style PageButtonStyle(bool isCurrent)
         => (Style)Application.Current.Resources[isCurrent ? "AccentButtonStyle" : "DefaultButtonStyle"];

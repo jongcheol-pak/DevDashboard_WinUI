@@ -41,8 +41,12 @@ public abstract partial class HistoryDialogViewModelBase : ObservableObject
     /// <summary>전체 페이지 수 (검색 필터 반영, 최소 1)</summary>
     public int TotalPages => Math.Max(1, (int)Math.Ceiling(FilteredEntries().Count / (double)_pageSize));
 
-    /// <summary>페이지 표시 텍스트 ("현재 / 전체 페이지")</summary>
-    public string PageInfoText => string.Format(LocalizationService.Get("HistoryPage_InfoFormat"), CurrentPage, TotalPages);
+    /// <summary>페이지 표시 텍스트 ("현재 / 전체")</summary>
+    public string PageInfoText => $"{CurrentPage} / {TotalPages}";
+
+    /// <summary>페이지 표시 텍스트 (단위 포함, "현재 / 전체 페이지").
+    /// 전체 작업 기록 다이얼로그는 기존 `PageInfoText`를 계속 쓰므로 표시가 바뀌지 않는다.</summary>
+    public string PageInfoLabel => string.Format(LocalizationService.Get("HistoryPage_InfoFormat"), CurrentPage, TotalPages);
 
     /// <summary>페이지 이동 버튼 목록 (번호 또는 생략 표식)</summary>
     public ObservableCollection<HistoryPageButton> PageButtons { get; } = [];
@@ -172,6 +176,7 @@ public abstract partial class HistoryDialogViewModelBase : ObservableObject
         OnPropertyChanged(nameof(FilteredCount));
         OnPropertyChanged(nameof(TotalPages));
         OnPropertyChanged(nameof(PageInfoText));
+        OnPropertyChanged(nameof(PageInfoLabel));
         OnPropertyChanged(nameof(CanPrevPage));
         OnPropertyChanged(nameof(CanNextPage));
     }
