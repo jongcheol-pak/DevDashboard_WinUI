@@ -351,6 +351,13 @@
   - **결정 변경(D4 구현 방식)**: 메뉴 라벨 조건부 전환을 plan의 "MenuFlyout `Opening` 이벤트" 대신 **`MenuFlyoutItem.Text="{Binding MemoMenuLabel}"` 바인딩**으로 구현했다. 같은 `MenuFlyout`의 다른 항목들이 이미 `{Binding}`으로 카드 VM DataContext를 소비하는 검증된 패턴이라 더 단순하고 결과가 같다(spec 리뷰가 Design 실질 충족으로 판정). 가역적 내부 구현이라 Halt 없이 진행.
   - **F-8 인계 시작**: T2 메모 다이얼로그의 렌더 관련 행을 아래 `## F-8 인계 목록`에 등재(데스크톱이라 자동 캡처 불가).
 
+- **T3-T4 완료** (커밋 `bbdc360`, `af229a3`): 시각(HH:MM) 도입 + 목록 화면 시안 재구현. 리뷰가 잡은 결함 4건을 모두 수정 후 통과.
+  - **T3 quality MAJOR**: 마크다운 내보내기가 `TimeText`의 00:00 폴백을 안 써서 같은 기록이 화면 `09:15` / 파일 `00:00`으로 갈렸다 → `FormatTime` static 헬퍼로 규칙을 단일화해 두 경로가 공유.
+  - **T4 spec BLOCKER**: `ContentDialog.Title` 대입이 남아 새 본문 헤더와 **제목이 두 번** 표시되는 상태였다 → Title 제거.
+  - **T4 quality MAJOR**: 빈 상태가 `HasEntries`(검색 미적용 전체 수) 기준이라 기록이 0건인 프로젝트에도 "검색 결과가 없습니다"가 떴다 → `FilteredCount == 0` 기준 + 검색 여부로 문구 분기(`HistoryEmpty_NoEntries`/`_NoSearchResult`).
+  - **T4 quality MAJOR(2회차)**: 위 두 수정으로 소비처가 사라진 resw 키 2종이 고아로 남았다 → ko/en에서 제거(V-7 역방향 규칙대로 같은 diff에서 정리).
+  - **XAML 함정 재확인**: `DataTemplate` 안에서 코드비하인드 static 헬퍼를 `x:Bind`로 부르려면 **클래스명을 명시**해야 한다(`local:HistoryDialog.KindBrush(Kind)`). 이름만 쓰면 `x:DataType`(항목 VM)에서 찾다가 `WMC1110`으로 실패한다 — TestPage 선례와 동일.
+
 ## F-8 인계 목록 (렌더 육안 확인 대기 — V-9가 `⏳ 미확인`으로 넘긴 행)
 
 > WinUI 3 데스크톱이라 자율 루프에서 창을 캡처해 대조할 수단이 없다(V-9 3분기 중 데스크톱 경로). 코드 경로는 아래 파일:라인에서 충족되나 **화면 결과는 사용자만 판정**할 수 있다.

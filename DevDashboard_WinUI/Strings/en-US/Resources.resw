@@ -322,6 +322,15 @@
   <!-- ===== XAML x:Uid — HistoryDialog ===== -->
 
   <data name="HistoryDialog_Header.Text" xml:space="preserve"><value>Work history</value></data>
+  <data name="HistoryForm_Back" xml:space="preserve"><value>List</value></data>
+  <data name="HistoryForm_AddHeader" xml:space="preserve"><value>Add entry</value></data>
+  <data name="HistoryForm_TitleLabel.Text" xml:space="preserve"><value>Title</value></data>
+  <data name="HistoryForm_TitleBox.PlaceholderText" xml:space="preserve"><value>What did you work on?</value></data>
+  <data name="HistoryForm_DateLabel.Text" xml:space="preserve"><value>Date</value></data>
+  <data name="HistoryForm_TimeLabel.Text" xml:space="preserve"><value>Time</value></data>
+  <data name="HistoryForm_KindLabel.Text" xml:space="preserve"><value>Type</value></data>
+  <data name="HistoryForm_DetailLabel.Text" xml:space="preserve"><value>Details</value></data>
+  <data name="HistoryForm_DetailBox.PlaceholderText" xml:space="preserve"><value>Jot down what you did so it is easy to find later (optional)</value></data>
   <data name="HistoryEmpty_NoEntries" xml:space="preserve"><value>No work history yet</value></data>
   <data name="HistoryEmpty_NoSearchResult" xml:space="preserve"><value>No results found</value></data>
   <data name="HistoryDialog_CountFormat" xml:space="preserve"><value>{0} entries</value></data>

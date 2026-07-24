@@ -89,42 +89,6 @@
                 </Button>
             </Grid>
 
-            <!-- 인라인 추가 폼 -->
-            <Border Grid.Row="1"
-                x:Name="AddPanel"
-                Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                CornerRadius="6"
-                Padding="16,12"
-                Visibility="Collapsed">
-                <StackPanel Spacing="10">
-                    <TextBlock x:Uid="HistoryAddNewHeader" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                    <CalendarDatePicker x:Name="AddDatePicker" HorizontalAlignment="Stretch" />
-                    <ComboBox x:Name="AddKindCombo" x:Uid="AddKindCombo" HorizontalAlignment="Stretch" />
-                    <TextBox
-                        x:Name="AddTitleBox"
-                        x:Uid="AddTitleBox"
-                        TextWrapping="Wrap"
-                        MaxLength="200" />
-                    <TextBox
-                        x:Name="AddDescriptionBox"
-                        x:Uid="AddDescriptionBox"
-                        AcceptsReturn="True"
-                        MinHeight="70"
-                        TextWrapping="Wrap"
-                        MaxLength="1000"
-                        helpers:TextBoxHelper.MaxLines="20"
-                        ScrollViewer.VerticalScrollBarVisibility="Auto" />
-                    <TextBlock
-                        x:Name="AddErrorText"
-                        Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                        Visibility="Collapsed" />
-                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                        <Button x:Uid="Btn_Cancel" Click="CancelAdd_Click" />
-                        <Button x:Uid="Btn_Save" Style="{StaticResource AccentButtonStyle}" Click="SaveAdd_Click" />
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-
             <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" VerticalAlignment="Stretch">
                 <StackPanel Spacing="20" Margin="0,0,12,12">
 
@@ -315,6 +279,111 @@
                     </StackPanel>
                 </Grid>
             </Border>
+        </Grid>
+
+        <!-- 새 기록 / 기록 수정 폼 — 목록을 대체한다(시안 :829~875). 중첩 다이얼로그를 쓰지 않는다 -->
+        <Grid Grid.Row="1" x:Name="FormArea" Visibility="Collapsed" RowSpacing="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- 뒤로가기 + 폼 제목 -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <Button x:Uid="HistoryForm_Back" Height="32" CornerRadius="8" Padding="12,0" Click="BackToList_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE76B;" FontSize="12" />
+                        <TextBlock x:Name="BackText" FontSize="12" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <TextBlock x:Name="FormHeaderText" FontSize="14.5" FontWeight="Bold" VerticalAlignment="Center" />
+            </StackPanel>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="16" Margin="0,0,12,0">
+                    <!-- 제목 (필수) -->
+                    <StackPanel Spacing="7">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock x:Uid="HistoryForm_TitleLabel" Style="{StaticResource InputLabelStyle}" />
+                            <TextBlock Text="*" Foreground="{ThemeResource AppAccentBrush}" FontSize="12.5" />
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBox
+                                x:Name="FormTitleBox"
+                                x:Uid="HistoryForm_TitleBox"
+                                Height="38"
+                                MaxLength="200"
+                                TextChanged="FormTitle_TextChanged" />
+                            <!-- 필수 항목 표시 — 시안은 입력 여부와 무관하게 항상 액센트 밑줄을 둔다 -->
+                            <Rectangle Height="2" Fill="{ThemeResource AppAccentBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- 날짜 · 시간 · 유형 (시안은 2열 그리드 안에 함께 놓는다) -->
+                    <Grid ColumnSpacing="14" RowSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Grid.Column="0" Spacing="7">
+                            <TextBlock x:Uid="HistoryForm_DateLabel" Style="{StaticResource InputLabelStyle}" />
+                            <CalendarDatePicker x:Name="FormDatePicker" HorizontalAlignment="Stretch" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Spacing="7">
+                            <TextBlock x:Uid="HistoryForm_TimeLabel" Style="{StaticResource InputLabelStyle}" />
+                            <TimePicker x:Name="FormTimePicker" HorizontalAlignment="Stretch" ClockIdentifier="24HourClock" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="0" Spacing="7">
+                            <TextBlock x:Uid="HistoryForm_KindLabel" Style="{StaticResource InputLabelStyle}" />
+                            <ComboBox x:Name="FormKindCombo" HorizontalAlignment="Stretch" />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- 내용 -->
+                    <StackPanel Spacing="7">
+                        <TextBlock x:Uid="HistoryForm_DetailLabel" Style="{StaticResource InputLabelStyle}" />
+                        <TextBox
+                            x:Name="FormDetailBox"
+                            x:Uid="HistoryForm_DetailBox"
+                            AcceptsReturn="True"
+                            MinHeight="120"
+                            TextWrapping="Wrap"
+                            MaxLength="1000"
+                            helpers:TextBoxHelper.MaxLines="20"
+                            ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- 저장 · 취소 (제목이 비면 저장 비활성 — 시안 :1519) -->
+            <Grid Grid.Row="2" ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Button
+                    x:Name="FormSaveButton"
+                    x:Uid="Btn_Save"
+                    Grid.Column="0"
+                    Height="42"
+                    CornerRadius="10"
+                    HorizontalAlignment="Stretch"
+                    Style="{StaticResource AccentButtonStyle}"
+                    Click="SaveForm_Click" />
+                <Button
+                    x:Uid="Btn_Cancel"
+                    Grid.Column="1"
+                    Height="42"
+                    CornerRadius="10"
+                    HorizontalAlignment="Stretch"
+                    Click="BackToList_Click" />
+            </Grid>
         </Grid>
     </Grid>
 

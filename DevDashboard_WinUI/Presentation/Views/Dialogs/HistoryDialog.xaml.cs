@@ -52,6 +52,9 @@ public sealed partial class HistoryDialog : ContentDialog
     private readonly System.ComponentModel.PropertyChangedEventHandler _vmPropertyChangedHandler;
     private TaskCompletionSource<bool>? _nestedTcs;
 
+    /// <summary>폼이 수정 중인 기록. null이면 새 기록 입력 상태</summary>
+    private HistoryEntryViewModel? _editingEntry;
+
     public HistoryDialog(HistoryDialogViewModel vm)
     {
         Vm = vm;
@@ -60,11 +63,12 @@ public sealed partial class HistoryDialog : ContentDialog
         // 제목은 본문 헤더(제목 + 프로젝트 pill + 건수)가 담당하므로 ContentDialog.Title은 쓰지 않는다
         CloseButtonText = LocalizationService.Get("Dialog_Close");
 
+        BackText.Text = LocalizationService.Get("HistoryForm_Back");
+
         GroupList.ItemsSource = Vm.DateGroups;
         _vmPropertyChangedHandler = (_, _) => RefreshList();
         Vm.PropertyChanged += _vmPropertyChangedHandler;
         RefreshList();
-        InitKindCombo(AddKindCombo, null);
 
         Closing += (_, _) =>
         {
@@ -116,16 +120,52 @@ public sealed partial class HistoryDialog : ContentDialog
         return ShowNestedDialogAsync(dialog);
     }
 
-    /// <summary>추가 폼을 펼치고 제목을 미리 채웁니다. Todo 완료 시 자동 호출됩니다.</summary>
-    internal void OpenAddPanel(string initialTitle)
+    /// <summary>추가 폼을 열고 제목을 미리 채웁니다. 작업을 완료로 옮길 때 작업 페이지에서 호출합니다.</summary>
+    internal void OpenAddPanel(string initialTitle) => ShowFormView(null, initialTitle);
+
+    // ===== 목록 ↔ 폼 전환 =====
+
+    /// <summary>기록 입력 폼을 엽니다. editing이 null이면 새 기록, 아니면 그 기록을 수정합니다.</summary>
+    private void ShowFormView(HistoryEntryViewModel? editing, string initialTitle)
     {
-        AddPanel.Visibility = Visibility.Visible;
-        AddTitleBox.Text = initialTitle;
-        AddDescriptionBox.Text = string.Empty;
-        AddErrorText.Visibility = Visibility.Collapsed;
-        AddDatePicker.Date = DateTimeOffset.Now;
-        AddKindCombo.SelectedIndex = 0;
+        _editingEntry = editing;
+
+        FormTitleBox.Text = editing?.Model.Title ?? initialTitle;
+        FormDetailBox.Text = editing?.Model.Description ?? string.Empty;
+
+        // 새 기록은 지금 시각을 기본값으로 둔다 (대부분 방금 끝낸 일을 적기 때문)
+        var when = editing?.Model.CompletedAt ?? DateTime.Now;
+        FormDatePicker.Date = new DateTimeOffset(when.Date);
+        FormTimePicker.Time = when.TimeOfDay;
+        InitKindCombo(FormKindCombo, editing?.Model.Kind);
+
+        FormHeaderText.Text = editing is null
+            ? LocalizationService.Get("HistoryForm_AddHeader")
+            : LocalizationService.Get("HistoryEditHeader");
+        UpdateSaveEnabled();
+
+        // 목록·검색·페이지네이션과 하단 [닫기]를 함께 감춰 폼만 남긴다(시안은 폼 화면에 닫기가 없다)
+        ListArea.Visibility = Visibility.Collapsed;
+        FormArea.Visibility = Visibility.Visible;
+        CloseButtonText = string.Empty;
     }
+
+    /// <summary>폼을 닫고 목록으로 돌아갑니다 (입력 중이던 내용은 버립니다).</summary>
+    private void ShowListView()
+    {
+        _editingEntry = null;
+        FormArea.Visibility = Visibility.Collapsed;
+        ListArea.Visibility = Visibility.Visible;
+        CloseButtonText = LocalizationService.Get("Dialog_Close");
+    }
+
+    /// <summary>제목이 비면 저장할 수 없다 — 시안은 오류 문구 대신 버튼을 비활성으로 알린다.</summary>
+    private void UpdateSaveEnabled()
+        => FormSaveButton.IsEnabled = !string.IsNullOrWhiteSpace(FormTitleBox.Text);
+
+    private void FormTitle_TextChanged(object sender, TextChangedEventArgs e) => UpdateSaveEnabled();
+
+    private void BackToList_Click(object sender, RoutedEventArgs e) => ShowListView();
 
     // ObservableCollection이 CollectionChanged로 자동 갱신하므로 ItemsSource 재할당 불필요
     private void RefreshList()
@@ -168,88 +208,31 @@ public sealed partial class HistoryDialog : ContentDialog
             Vm.SearchText = sender.Text;
     }
 
-    private void ToggleAddPanel_Click(object sender, RoutedEventArgs e)
+    private void ToggleAddPanel_Click(object sender, RoutedEventArgs e) => ShowFormView(null, string.Empty);
+
+    // 편집도 같은 폼을 쓴다 — 중첩 다이얼로그로는 날짜·시각을 고칠 자리가 없었다
+    private void EditEntry_Click(object sender, RoutedEventArgs e)
     {
-        AddPanel.Visibility = AddPanel.Visibility == Visibility.Visible
-            ? Visibility.Collapsed
-            : Visibility.Visible;
-        if (AddPanel.Visibility == Visibility.Visible)
-        {
-            AddTitleBox.Text = string.Empty;
-            AddDescriptionBox.Text = string.Empty;
-            AddErrorText.Visibility = Visibility.Collapsed;
-            AddDatePicker.Date = DateTimeOffset.Now;
-            AddKindCombo.SelectedIndex = 0;
-        }
+        if (sender is Button { Tag: HistoryEntryViewModel entryVm })
+            ShowFormView(entryVm, string.Empty);
     }
 
-    private async void EditEntry_Click(object sender, RoutedEventArgs e)
+    private void SaveForm_Click(object sender, RoutedEventArgs e)
     {
-        try
-        {
-            if (sender is not Button { Tag: HistoryEntryViewModel entryVm }) return;
+        var title = FormTitleBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(title)) return;   // 저장 버튼이 비활성이라 도달하지 않지만 방어
 
-            var titleBox = new TextBox { Text = entryVm.Model.Title, MaxLength = 200 };
-            var kindCombo = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
-            InitKindCombo(kindCombo, entryVm.Model.Kind);
-            var descBox = new TextBox
-            {
-                Text = entryVm.Model.Description,
-                AcceptsReturn = true,
-                MinHeight = 70,
-                TextWrapping = TextWrapping.Wrap
-            };
-            ScrollViewer.SetVerticalScrollBarVisibility(descBox, ScrollBarVisibility.Auto);
+        var date = FormDatePicker.Date?.Date ?? DateTime.Today;
+        var completedAt = date + FormTimePicker.Time;
+        var desc = FormDetailBox.Text.Trim();
+        var kind = KindFromCombo(FormKindCombo);
 
-            var panel = new StackPanel { Spacing = 10 };
-            panel.Children.Add(titleBox);
-            panel.Children.Add(kindCombo);
-            panel.Children.Add(descBox);
+        if (_editingEntry is null)
+            Vm.AddEntry(new HistoryEntry { Title = title, Description = desc, Kind = kind, CompletedAt = completedAt });
+        else
+            Vm.UpdateEntry(_editingEntry, title, desc, kind, completedAt);
 
-            var dialog = new ContentDialog
-            {
-                Title = LocalizationService.Get("HistoryEditHeader"),
-                Content = panel,
-                PrimaryButtonText = LocalizationService.Get("Dialog_Save"),
-                CloseButtonText = LocalizationService.Get("Dialog_Cancel"),
-                DefaultButton = ContentDialogButton.Primary,
-            };
-
-            if (await ShowNestedDialogAsync(dialog) != ContentDialogResult.Primary) return;
-
-            var title = titleBox.Text.Trim();
-            if (string.IsNullOrWhiteSpace(title)) return;
-
-            Vm.UpdateEntry(entryVm, title, descBox.Text.Trim(), KindFromCombo(kindCombo), entryVm.Model.CompletedAt);
-        }
-        catch (Exception ex)
-        {
-            await ShowNestedErrorAsync(ex.Message);
-        }
-    }
-
-    private void SaveAdd_Click(object sender, RoutedEventArgs e)
-    {
-        var title = AddTitleBox.Text.Trim();
-        if (string.IsNullOrWhiteSpace(title))
-        {
-            AddErrorText.Text = LocalizationService.Get("HistoryDialog_TitleRequired");
-            AddErrorText.Visibility = Visibility.Visible;
-            return;
-        }
-
-        AddErrorText.Visibility = Visibility.Collapsed;
-        var date = AddDatePicker.Date?.Date ?? DateTime.Today;
-        var desc = AddDescriptionBox.Text.Trim();
-        var kind = KindFromCombo(AddKindCombo);
-
-        Vm.AddEntry(new HistoryEntry { Title = title, Description = desc, Kind = kind, CompletedAt = date });
-        AddPanel.Visibility = Visibility.Collapsed;
-    }
-
-    private void CancelAdd_Click(object sender, RoutedEventArgs e)
-    {
-        AddPanel.Visibility = Visibility.Collapsed;
+        ShowListView();
     }
 
     private void DeleteEntry_Click(object sender, RoutedEventArgs e)
