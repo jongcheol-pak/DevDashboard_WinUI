@@ -58,9 +58,10 @@ public sealed partial class HistoryDialog : ContentDialog
     public static Visibility EllipsisVisibility(bool isEllipsis)
         => isEllipsis ? Visibility.Visible : Visibility.Collapsed;
 
-    /// <summary>현재 페이지만 액센트로 강조한다</summary>
-    public static Style PageButtonStyle(bool isCurrent)
-        => (Style)Application.Current.Resources[isCurrent ? "AccentButtonStyle" : "DefaultButtonStyle"];
+    /// <summary>현재 페이지만 액센트로 강조한다.
+    /// 나머지는 null을 돌려 Button의 기본 스타일을 그대로 쓴다 — 기본 스타일 키 이름에 의존하지 않기 위함.</summary>
+    public static Style? PageButtonStyle(bool isCurrent)
+        => isCurrent ? (Style)Application.Current.Resources["AccentButtonStyle"] : null;
     private readonly System.ComponentModel.PropertyChangedEventHandler _vmPropertyChangedHandler;
     private TaskCompletionSource<bool>? _nestedTcs;
 

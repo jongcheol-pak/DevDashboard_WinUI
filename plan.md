@@ -326,7 +326,7 @@
 - **Halt Forecast**: 없음 — 기존 파일 2개 재구성. 편집 UX가 중첩 다이얼로그 → 인폼으로 바뀌지만 **D8로 사전 확정**됐고 공개 API·데이터 계약은 불변.
 
 ### T6 — 페이지네이션 번호 이동 `Type C`
-- [ ] 구현
+- [x] 구현
 - **Files**: `Presentation/ViewModels/HistoryDialogViewModelBase.cs`, `Presentation/Views/Dialogs/HistoryDialog.xaml`, `Presentation/Views/Dialogs/HistoryDialog.xaml.cs`, `Strings/ko-KR/Resources.resw`, `Strings/en-US/Resources.resw`
 - **Design**: ① 배치 — 번호 집합 계산은 베이스 VM(순수 계산), 표시는 `HistoryDialog.xaml`. ② 신규 심볼 — `HistoryDialogViewModelBase.PageButtons`(표시할 페이지 번호·생략 표식 목록) + 그 항목 타입 1개(`HistoryPageButton`: 번호 / 생략 여부 / 현재 여부) + `GoToPage(int)` 커맨드. ③ 의존 방향 — VM은 숫자만 노출, 현재 페이지 강조 색은 View가 결정(NFR-2). ④ 비추상화 — 범용 페이지네이션 컨트롤을 만들지 않는다(소비처 1곳, 전체 다이얼로그는 이번 미적용).
 - **구성**:
@@ -413,6 +413,16 @@
 | 내용 | 멀티라인, placeholder "작업 내용을 기록해 두면…(선택)" | `:349-361` + resw | ✅ 문구 확인 |
 | 하단 버튼 | [저장][취소] 각 flex1 h42 radius 10 | `:364-383` `Grid` 2열 균등 | ⏳ 미확인 |
 | 저장 비활성 | 제목이 비면 비활성 | `UpdateSaveEnabled()` (TextChanged + 폼 열 때) | ✅ 코드 경로 |
+
+### T6 — 페이지네이션 (시안 `:807~823`, `:1398~1413`)
+
+| 요소 | 디자인 값 | 구현 위치 (코드 경로 충족) | 렌더 판정 |
+|---|---|---|---|
+| 영역 | 상단 구분선 + 여백 14, 버튼 묶음 중앙 | `HistoryDialog.xaml:255-262` `BorderThickness="0,1,0,0"` + `HorizontalAlignment="Center"` | ⏳ 미확인 |
+| 페이지 정보 | 좌측 "N / M 페이지" 11.5px | `:263-268` `PageInfoLabel` + resw `HistoryPage_InfoFormat` | ✅ 문구 확인 |
+| 이전·다음 | 32×32 radius 8, 비활성 처리 | `:270-274`, `:305-309` (`CanPrevPage`/`CanNextPage` 유지) | ⏳ 미확인 |
+| 번호 규칙 | `{1, 마지막, 현재±1}` + 간격 시 `…` | `HistoryDialogViewModelBase.RebuildPageButtons` | ✅ 코드 경로 |
+| 번호 버튼 | min-w 32 h32 radius 8, 현재만 액센트 | `:294-302` + `PageButtonStyle(IsCurrent)` | ⏳ 미확인 |
 
 ## Deferred / Follow-up
 - **[전체 작업 기록(`ProjectHistoryDialog`) 시안 미적용]** — 이번은 카드별 `HistoryDialog`만 재구현했다(Q2). 전체 다이얼로그는 구 레이아웃(dot+텍스트 유형, 시각 없음, 인라인 폼)으로 남아 **두 화면의 모양이 갈린다**. PRD **FR-H4**(두 다이얼로그 중복 정리)와 함께 다룰 후속.
