@@ -65,10 +65,12 @@ public sealed partial class ProjectSettingsDialog : ContentDialog
     }
 
     /// <summary>색 견본 칸 클릭 — DataTemplate 안에서는 부모 VM의 커맨드에 바인딩할 수 없어
-    /// 코드비하인드에서 항목을 꺼내 VM에 전달합니다.</summary>
+    /// 코드비하인드에서 항목을 꺼내 VM에 전달합니다.
+    /// ItemsRepeater는 x:Bind를 쓰는 DataTemplate에 DataContext를 채우지 않으므로
+    /// 항목은 Tag(= {x:Bind})로 받는다.</summary>
     private void HeaderColorSwatch_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement { DataContext: HeaderColorItem item })
+        if (sender is FrameworkElement { Tag: HeaderColorItem item })
             Vm.SelectHeaderColorCommand.Execute(item);
     }
 }
