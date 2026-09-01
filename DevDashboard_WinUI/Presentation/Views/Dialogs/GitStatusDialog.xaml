@@ -84,6 +84,7 @@
                                                     <TextBlock
                                                         Grid.Column="0"
                                                         Text="{x:Bind ShortHash}"
+                                                        IsTextSelectionEnabled="True"
                                                         FontFamily="Consolas"
                                                         FontSize="11"
                                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -94,10 +95,12 @@
                                                     <StackPanel Grid.Column="1" Spacing="2">
                                                         <TextBlock
                                                             Text="{x:Bind Message}"
+                                                            IsTextSelectionEnabled="True"
                                                             FontSize="13"
                                                             TextWrapping="Wrap" />
                                                         <TextBlock
                                                             Text="{x:Bind AuthorName}"
+                                                            IsTextSelectionEnabled="True"
                                                             FontSize="11"
                                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                                     </StackPanel>
