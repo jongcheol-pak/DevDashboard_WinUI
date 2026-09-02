@@ -90,10 +90,10 @@
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="vm:IconItem">
                         <Button
+                        Style="{StaticResource SubtleIconButtonStyle}"
                         Width="64" Height="64"
                         Padding="4"
-                        Background="Transparent"
-                        BorderThickness="0"
+                        CornerRadius="8"
                         Click="IconButton_Click"
                         Tag="{x:Bind}">
                             <ToolTipService.ToolTip>

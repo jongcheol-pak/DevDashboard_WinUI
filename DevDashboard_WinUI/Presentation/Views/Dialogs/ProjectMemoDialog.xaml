@@ -29,6 +29,7 @@
         <!-- 메모가 있을 때만 노출. 저장·취소는 ContentDialog 기본 버튼이 담당하므로 여기엔 삭제만 둔다 -->
         <Button
             x:Name="DeleteButton"
+            Style="{StaticResource FlatButtonStyle}"
             Grid.Row="1"
             HorizontalAlignment="Left"
             Background="{ThemeResource AppAccentSoftBrush}"

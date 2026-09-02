@@ -69,7 +69,9 @@
 
                     <!-- 읽음 토글 -->
                     <Button Grid.Column="3"
-                            Style="{StaticResource NotificationReadToggleStyle}"
+                            Style="{StaticResource SubtleIconButtonStyle}"
+                            Width="26" Height="26" Padding="0"
+                            CornerRadius="7" BorderThickness="1"
                             BorderBrush="{x:Bind ReadButtonBorder, Mode=OneWay}"
                             VerticalAlignment="Center"
                             Tag="{x:Bind}"
@@ -102,7 +104,9 @@
             <!-- 뒤로 버튼은 시안이 "모두 읽음"보다 어두운 톤(bg #1D1D21 / border #2B2B31)이라 색을 직접 준다.
                  기본 Button 스타일(#242429/#2E2E34)을 그대로 쓰면 두 버튼이 같은 색으로 보인다. -->
             <Button Grid.Column="0" Click="Back_Click"
+                    Style="{StaticResource FlatButtonStyle}"
                     Height="34" Padding="13,0" CornerRadius="9"
+                    BorderThickness="1"
                     Background="{ThemeResource AppInputBrush}"
                     BorderBrush="{ThemeResource AppHoverFillBrush}"
                     VerticalAlignment="Center">

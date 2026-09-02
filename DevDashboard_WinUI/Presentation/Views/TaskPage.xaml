@@ -376,8 +376,10 @@
                         Style="{StaticResource SeparatorStyle}"
                         VerticalAlignment="Center" />
                     <Button
+                        Style="{StaticResource FlatButtonStyle}"
                         Grid.Column="4"
                         Height="28"
+                        BorderThickness="1"
                         Padding="11,0"
                         CornerRadius="7"
                         FontSize="12"
