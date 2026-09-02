@@ -149,7 +149,7 @@
   <data name="CardMenu_Terminal.Text" xml:space="preserve"><value>터미널</value></data>
   <data name="CardMenu_TerminalDefault.Text" xml:space="preserve"><value>기본 터미널</value></data>
   <data name="CardMenu_TerminalPowerShell.Text" xml:space="preserve"><value>PowerShell</value></data>
-  <data name="CardMenu_GitStatus.Text" xml:space="preserve"><value>Git 상태</value></data>
+  <data name="CardMenu_GitStatus.Text" xml:space="preserve"><value>Git 기록</value></data>
   <data name="CardMenu_Memo" xml:space="preserve"><value>메모</value></data>
   <data name="CardMenu_MemoView" xml:space="preserve"><value>메모 보기</value></data>
   <data name="CardMenu_History.Text" xml:space="preserve"><value>작업 기록</value></data>
@@ -309,11 +309,11 @@
   <data name="TodoStatusChangeConfirmMessage" xml:space="preserve"><value>상태를 변경하시겠습니까?</value></data>
 
   <!-- ===== XAML x:Uid — GitStatusDialog ===== -->
-  <data name="GitStatusDialog_TitleFormat" xml:space="preserve"><value>Git 상태 — {0}</value></data>
+  <data name="GitStatusDialog_TitleFormat" xml:space="preserve"><value>Git 기록 — {0}</value></data>
   <data name="GitPathNotResolved" xml:space="preserve"><value>프로젝트 경로를 확인할 수 없습니다.</value></data>
   <data name="GitStatusDialog.Title" xml:space="preserve"><value>Git 상태</value></data>
   <data name="GitStatusDialog.CloseButtonText" xml:space="preserve"><value>닫기</value></data>
-  <data name="GitLoadingText.Text" xml:space="preserve"><value>Git 상태 불러오는 중...</value></data>
+  <data name="GitLoadingText.Text" xml:space="preserve"><value>Git 기록 불러오는 중...</value></data>
   <data name="GitErrorBar.Title" xml:space="preserve"><value>오류</value></data>
   <data name="NoCommitsText.Text" xml:space="preserve"><value>커밋 기록이 없습니다.</value></data>
   <data name="GitRelative_JustNow" xml:space="preserve"><value>방금 전</value></data>

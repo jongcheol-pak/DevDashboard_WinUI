@@ -18,7 +18,7 @@
 - **위키 참조**: `20_projects/personal/devdashboard-winui/feat-project-launch-actions` — "Git 상태 다이얼로그: **현재 브랜치 + 날짜별 커밋 목록** 표시(변경 파일 목록 기능은 없음). 다이얼로그는 열 때마다 git을 다시 조회." 코드와 일치하며 이번 설계를 바꾸는 새 정보 없음. 허브(`20_projects/personal/devdashboard-winui`) `synced_commit: 3d1f19d`로 최신.
 - **결정 이력**: 대상 프로젝트 위키에 `decisions.md` 없음 — 과거 기각 이력 확인 불가(허브 「최근 주요 변경」에도 Git 상태 관련 보류 기록 없음).
 - **기존 plan 처리**: 직전 "카드 메모 + 작업 기록 시안" plan은 `## Next Steps
-- 권장 다음 액션: **앱을 실행해 `## F-8 인계 목록`의 5항목을 육안 확인** → 어긋난 곳이 있으면 그 항목만 지목해 수정 요청. 확인이 끝나면 `master` 병합·push 승인.
+- 육안 확인 완료(F-8 통과) → 작업 브랜치 커밋·push 완료. 남은 액션: **`master` 병합 승인**.
 - Suggested skills: `pjc:llm-wiki`(위키 `feat-project-launch-actions`의 Git 상태 서술 갱신 — 별도 세션), 공식 `/code-review`(병합 전 diff 검토를 원할 때)
 
 ## Phase Ledger`에 **Phase G 통과(Must 100%)** 기록 → 완료 판정. 그 `## Deferred / Follow-up` 12건 중 대장 미등재분을 이관 완료(신규 2건 등재 + 기존 2항목에 이번 분 합산, 사용자 승인).
@@ -296,12 +296,12 @@ V-9는 `### 시각 속성` 표 27행 전건에 구현 근거(파일:라인)를 �
 
 
 ## Next Steps
-- 권장 다음 액션: **앱을 실행해 `## F-8 인계 목록`의 5항목을 육안 확인** → 어긋난 곳이 있으면 그 항목만 지목해 수정 요청. 확인이 끝나면 `master` 병합·push 승인.
+- 육안 확인 완료(F-8 통과) → 작업 브랜치 커밋·push 완료. 남은 액션: **`master` 병합 승인**.
 - Suggested skills: `pjc:llm-wiki`(위키 `feat-project-launch-actions`의 Git 상태 서술 갱신 — 별도 세션), 공식 `/code-review`(병합 전 diff 검토를 원할 때)
 
 ## Phase Ledger
 - 전 task(T1~T3) 완료.
 - **Phase F 통과 (HEAD `b7bd1cc`)** — F-1 클린 리빌드(`-t:Rebuild`) 오류 0·신규 경고 0(baseline `CS0618` 1건), F-3 회귀 grep 전부 기대값(`GitCommitGroup`·`GroupCommitsByDate`·`GitCommitHistoryLabel` 각 0건 / resw ko·en 454 대칭 / 신규 8키 각 8 / README "변경 파일" 0), F-6.5 README·notes·대장 갱신, F-7 `plan-completion-reviewer` **BLOCKER 0 · MAJOR 0 · MINOR 4 → 전건 반영**(m1 T2 Edge Case stale 정정 / m2 V4 라인 인용 `:21~24` 정정 / m3 T1 acceptance에 최종 454 각주 / m4 행 키보드 접근 불가를 대장 등재).
 - **Phase G 해당 없음** — plan 상단 `**PRD**:`가 "연결 없음"(닿는 active FR 0건)으로 선언돼 진입 조건 미충족.
-- **F-8 미통과 — 렌더 육안 확인 대기**: `## F-8 인계 목록`의 24행이 `⏳ 미확인`으로 남아 완료 선언을 보류한다(WinUI 데스크톱이라 자율 루프에 창 캡처 수단 없음).
+- **F-8 통과 (2026-09-02, 사용자 육안 확인)** — 사용자가 앱을 실행해 `## F-8 인계 목록` 5항목을 확인하고 "모두 잘 됨"으로 회신. 이로써 `⏳ 미확인` 24행이 해소되고 plan 전체 완료.
 - **F-6.5 대장 반영: 등재 4 / 미등재 0** — 신규 3건(위키 서술 갱신 · 커밋 개수 제한 미검토 · 아바타 이니셜 대체) + F-7 m4 1건(행 키보드 접근), 기존 2항목(resw 고아 audit · README/스크린샷)에 이번 분 합산.

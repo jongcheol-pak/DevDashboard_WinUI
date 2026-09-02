@@ -149,7 +149,7 @@
   <data name="CardMenu_Terminal.Text" xml:space="preserve"><value>Terminal</value></data>
   <data name="CardMenu_TerminalDefault.Text" xml:space="preserve"><value>Default terminal</value></data>
   <data name="CardMenu_TerminalPowerShell.Text" xml:space="preserve"><value>PowerShell</value></data>
-  <data name="CardMenu_GitStatus.Text" xml:space="preserve"><value>Git status</value></data>
+  <data name="CardMenu_GitStatus.Text" xml:space="preserve"><value>Git history</value></data>
   <data name="CardMenu_Memo" xml:space="preserve"><value>Memo</value></data>
   <data name="CardMenu_MemoView" xml:space="preserve"><value>View memo</value></data>
   <data name="CardMenu_History.Text" xml:space="preserve"><value>Work history</value></data>
@@ -309,11 +309,11 @@
   <data name="TodoStatusChangeConfirmMessage" xml:space="preserve"><value>Do you want to change the status?</value></data>
 
   <!-- ===== XAML x:Uid — GitStatusDialog ===== -->
-  <data name="GitStatusDialog_TitleFormat" xml:space="preserve"><value>Git Status — {0}</value></data>
+  <data name="GitStatusDialog_TitleFormat" xml:space="preserve"><value>Git History — {0}</value></data>
   <data name="GitPathNotResolved" xml:space="preserve"><value>Cannot resolve project path.</value></data>
   <data name="GitStatusDialog.Title" xml:space="preserve"><value>Git Status</value></data>
   <data name="GitStatusDialog.CloseButtonText" xml:space="preserve"><value>Close</value></data>
-  <data name="GitLoadingText.Text" xml:space="preserve"><value>Loading Git status...</value></data>
+  <data name="GitLoadingText.Text" xml:space="preserve"><value>Loading Git history...</value></data>
   <data name="GitErrorBar.Title" xml:space="preserve"><value>Error</value></data>
   <data name="NoCommitsText.Text" xml:space="preserve"><value>No commit history.</value></data>
   <data name="GitRelative_JustNow" xml:space="preserve"><value>just now</value></data>
