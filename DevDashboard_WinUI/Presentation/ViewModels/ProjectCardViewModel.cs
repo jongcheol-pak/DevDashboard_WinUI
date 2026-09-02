@@ -233,6 +233,9 @@ public partial class ProjectCardViewModel : ObservableObject
     /// <summary>작업 기록 변경 이벤트</summary>
     public event EventHandler? HistoryChanged;
 
+    /// <summary>작업(To-Do) 변경 이벤트 — 마감 알림 집계가 이 프로젝트의 작업에 딸려 있어 메인이 다시 센다.</summary>
+    public event EventHandler? TodosChanged;
+
     /// <summary>Git 상태 다이얼로그 표시 요청 이벤트</summary>
     public event EventHandler? ShowGitStatusRequested;
 
@@ -567,6 +570,7 @@ public partial class ProjectCardViewModel : ObservableObject
     {
         _item.HasActiveTodo = _item.Todos?.Any(t => !t.IsCompleted) == true;
         OnPropertyChanged(nameof(HasInProgressTodo));
+        TodosChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>테스트(칸반) 페이지 뷰모델을 생성합니다. TestCategories와 Todos(연결 배지 역참조용)를 로드해 전달합니다.</summary>

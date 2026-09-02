@@ -329,6 +329,7 @@ public partial class MainViewModel : ObservableObject
         card.PinToggled += OnCardPinToggled;
         card.CommandScriptChanged += OnCommandScriptChanged;
         card.HistoryChanged += OnHistoryChanged;
+        card.TodosChanged += OnCardTodosChanged;
     }
 
     private void UnsubscribeFromCard(ProjectCardViewModel card)
@@ -338,7 +339,14 @@ public partial class MainViewModel : ObservableObject
         card.PinToggled -= OnCardPinToggled;
         card.CommandScriptChanged -= OnCommandScriptChanged;
         card.HistoryChanged -= OnHistoryChanged;
+        card.TodosChanged -= OnCardTodosChanged;
     }
+
+    /// <summary>
+    /// 카드의 작업이 바뀌면 마감 알림을 다시 집계합니다(헤더 안읽음 배지가 그 자리에서 맞도록).
+    /// 이것이 없으면 배지는 알림 팝업을 다시 열 때까지 낡은 값으로 남는다.
+    /// </summary>
+    private void OnCardTodosChanged(object? sender, EventArgs e) => RebuildNotifications();
 
     private static void ShowDbError(Exception ex)
     {
