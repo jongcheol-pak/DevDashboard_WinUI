@@ -208,10 +208,7 @@
                                                             </Border>
 
                                                             <Button Grid.Column="3"
-                                                                    Width="26" Height="26" Padding="0"
-                                                                    CornerRadius="7"
-                                                                    Background="Transparent"
-                                                                    BorderThickness="1"
+                                                                    Style="{StaticResource NotificationReadToggleStyle}"
                                                                     BorderBrush="{Binding ReadButtonBorder}"
                                                                     VerticalAlignment="Top"
                                                                     Tag="{Binding}"
@@ -242,13 +239,8 @@
 
                                     <!-- 시안에서 이 버튼은 빈 상태 분기 밖에 있어 알림이 없어도 표시된다 -->
                                     <Button Grid.Row="2"
+                                            Style="{StaticResource NotificationViewAllStyle}"
                                             Content="{x:Bind NotificationViewAllText}"
-                                            Height="44" HorizontalAlignment="Stretch"
-                                            CornerRadius="0"
-                                            Background="Transparent"
-                                            BorderThickness="0,1,0,0"
-                                            BorderBrush="{ThemeResource AppBorderBrush}"
-                                            FontSize="12.5" FontWeight="Medium"
                                             Click="ViewAllNotifications_Click" />
                                 </Grid>
                             </Flyout>

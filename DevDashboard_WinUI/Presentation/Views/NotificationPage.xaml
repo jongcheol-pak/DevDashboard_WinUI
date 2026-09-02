@@ -69,10 +69,7 @@
 
                     <!-- 읽음 토글 -->
                     <Button Grid.Column="3"
-                            Width="26" Height="26" Padding="0"
-                            CornerRadius="7"
-                            Background="Transparent"
-                            BorderThickness="1"
+                            Style="{StaticResource NotificationReadToggleStyle}"
                             BorderBrush="{x:Bind ReadButtonBorder, Mode=OneWay}"
                             VerticalAlignment="Center"
                             Tag="{x:Bind}"
