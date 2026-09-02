@@ -315,7 +315,6 @@
   <data name="GitStatusDialog.CloseButtonText" xml:space="preserve"><value>Close</value></data>
   <data name="GitLoadingText.Text" xml:space="preserve"><value>Loading Git status...</value></data>
   <data name="GitErrorBar.Title" xml:space="preserve"><value>Error</value></data>
-  <data name="GitCommitHistoryLabel.Text" xml:space="preserve"><value>Recent Commits</value></data>
   <data name="NoCommitsText.Text" xml:space="preserve"><value>No commit history.</value></data>
   <data name="GitRelative_JustNow" xml:space="preserve"><value>just now</value></data>
   <data name="GitRelative_MinuteFormat" xml:space="preserve"><value>{0} minute ago</value></data>

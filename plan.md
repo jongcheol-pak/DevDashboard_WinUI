@@ -49,7 +49,7 @@
 | `RelativeTime(DateTimeOffset)` | `RelativeTime\|TimeAgo\|Humanize` / `분 전\|시간 전` — 레포 전체 `.cs`·`.resw` | 0 / 0 | 없음 | **신규** — 재사용할 구현이 없다. 사용처 1곳이라 공용 서비스로 빼지 않는다 |
 | `AvatarInitial(string)` / `AvatarBrush(string)` | `PersonPicture` / `Avatar` — 레포 전체 `.xaml`·`.cs` | 0 / 0 | 없음 | **신규** — 색은 팔레트 기존 4색을 재사용하고 새 리터럴을 만들지 않는다 |
 | `ShowDetail`/`ShowList` 뷰 전환 | `ShowListView\|ShowFormView` — 레포 전체 `.cs` | 7 (전부 `HistoryDialog.xaml.cs` — `:137`·`:142`·`:171`·`:185`·`:234`·`:240`·`:258`) | `HistoryDialog.ShowFormView/ShowListView` | **패턴 재사용** — 다이얼로그마다 자기 코드비하인드가 갖는 구조라 심볼 자체를 공유하지 않는다 |
-| `GitCommit.Subject`/`Body` | `Subject` — 레포 전체 `.cs` | 0 | 없음 | **신규** — 값 객체 내부 계산 |
+| `GitCommit.Subject` | `Subject` — 레포 전체 `.cs` | 0 | 없음 | **신규** — 값 객체 내부 계산 |
 
 ### 전제 검증
 
@@ -82,35 +82,35 @@
 
 ### 시각 속성
 
-| 요소 | 속성 | 디자인 값 | XAML 대응 수단 | 확인 방법 |
-|---|---|---|---|---|
-| 목록 행 | 레이아웃 | 세로 2줄(제목 / 메타) | `StackPanel Spacing="5"` | ① 캡처 |
-| 목록 행 | 배경 | 페이지와 같은 어두운 면, 카드 테두리 없음 (관측) | `Border Background="Transparent"` | ① 캡처 |
-| 목록 행 | 행 구분 | 행 사이 1px 가로 구분선 (관측) | `BorderBrush="{ThemeResource AppBorderBrush}" BorderThickness="0,0,0,1"` | ① 캡처 |
-| 목록 행 | 안쪽 여백 | 좌우 12px · 상하 11px (관측) | `Padding="12,11"` | ① 캡처 |
-| 목록 행 | hover | 배경이 한 단계 밝아짐 (② 행이 그 상태로 캡처됨) | `PointerEntered`에서 `AppHoverFillBrush`로 교체(`HistoryDialog` 선례) | ① 캡처 2행 |
-| 커밋 제목 | 폰트 크기·굵기 | 13px / 일반 (관측) | `FontSize="13"` | ① 캡처 |
-| 커밋 제목 | 색 | 본문 밝은색 | `{ThemeResource AppTextPrimaryBrush}` | ① 캡처 |
-| 커밋 제목 | 넘침 | 한 줄 말줄임 | `MaxLines="1" TextTrimming="CharacterEllipsis"` | ① 캡처(긴 제목 행) |
-| 메타 줄 | 구성·순서 | 아바타 → 작성자 → `·` → 상대시간 → `·` → 단축해시 | `StackPanel Orientation="Horizontal" Spacing="6"` | ① 캡처 |
-| 메타 줄 | 폰트 크기 | 11.5px (관측) | `FontSize="11.5"` | ① 캡처 |
-| 메타 줄 | 색 | 보조 회색 | `{ThemeResource AppTextTertiaryBrush}` | ① 캡처 |
-| 메타 줄 | 세로 정렬 | 아바타·텍스트 중앙 정렬 | `VerticalAlignment="Center"` | ① 캡처 |
-| 단축해시 | 서체 | 모노스페이스 | `FontFamily="Consolas"` | ① 캡처(자간 균일) |
-| 목록 아바타 | 크기·모양 | 지름 16px 원 (관측) | `Ellipse Width="16" Height="16"` + 중앙 `TextBlock`(9px) | ① 캡처 |
-| 상세 아바타 | 크기·모양 | 지름 40px 원 (관측) | `Ellipse Width="40" Height="40"` + 중앙 `TextBlock`(16px) | ② 캡처 |
-| 상세 헤더 | 레이아웃 | 아바타 좌측 · 우측에 2줄(이름 / 날짜 · 이메일) | `Grid` 2열 + `StackPanel Spacing="2"`, `ColumnSpacing="12"` | ② 캡처 |
-| 상세 작성자명 | 폰트 | 13px / 약간 굵게 / 밝은색 (관측) | `FontSize="13" FontWeight="SemiBold"` + `AppTextPrimaryBrush` | ② 캡처 |
-| 상세 부제 | 구성 | `{날짜} · {이메일}` 한 줄 | 단일 `TextBlock` | ② 캡처 |
-| 상세 부제 | 날짜 형식 | 기준은 로케일 장식형 `2026년 9월 2일` | **`yyyy-MM-dd HH:mm`로 대체**(아래 「기준과 다르게 가는 항목」 V1) | ② 캡처 |
-| 상세 부제 | 폰트·색 | 12px / 보조 회색 (관측) | `FontSize="12"` + `AppTextTertiaryBrush` | ② 캡처 |
-| 상세 본문 | 서체 | 모노스페이스 | `FontFamily="Consolas"` | ② 캡처 |
-| 상세 본문 | 폰트 크기 | 13px (관측) | `FontSize="13"` | ② 캡처 |
-| 상세 본문 | 줄 간격 | 넓음 — 글자 높이의 약 1.5배 (관측) | `LineHeight="20"` | ② 캡처 |
-| 상세 본문 | 줄번호 | 좌측에 우측정렬 회색 번호 열 | **구현하지 않음**(아래 V2) | ② 캡처 |
-| 상세 본문 | 배경 | 페이지보다 약간 어두운 면 (관측) | `Border Background="{ThemeResource AppInputBrush}" CornerRadius="8" Padding="16"` | ② 캡처 |
-| 상세 본문 | 선택 | 드래그 선택 가능 | `IsTextSelectionEnabled="True"` | 사용자 직전 요청 |
-| 날짜 그룹 헤더 | 존재 여부 | 없음 | 현행 `ItemsControl` 2중첩을 1단으로 축소 | ① 캡처 |
+| 요소 | 속성 | 디자인 값 | XAML 대응 수단 | 확인 방법 | 구현 근거 (V-9) | 판정 (V-9) |
+|---|---|---|---|---|---|---|
+| 목록 행 | 레이아웃 | 세로 2줄(제목 / 메타) | `StackPanel Spacing="5"` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:84` | ⏳ 미확인 — 속성 반영 확인 |
+| 목록 행 | 배경 | 페이지와 같은 어두운 면, 카드 테두리 없음 (관측) | `Border Background="Transparent"` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:76`(`RowRestBrush`=Transparent) | ⏳ 미확인 — 속성 반영 확인 |
+| 목록 행 | 행 구분 | 행 사이 1px 가로 구분선 (관측) | `BorderBrush="{ThemeResource AppBorderBrush}" BorderThickness="0,0,0,1"` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:77~78` | ⏳ 미확인 — 속성 반영 확인 |
+| 목록 행 | 안쪽 여백 | 좌우 12px · 상하 11px (관측) | `Padding="12,11"` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:79` | ⏳ 미확인 — 속성 반영 확인 |
+| 목록 행 | hover | 배경이 한 단계 밝아짐 (② 행이 그 상태로 캡처됨) | `PointerEntered`에서 `AppHoverFillBrush`로 교체(`HistoryDialog` 선례) | ① 캡처 2행 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml.cs:129`(`RowHoverBrush`=`AppHoverFillColor`) | ⏳ 미확인 — 속성 반영 확인 |
+| 커밋 제목 | 폰트 크기·굵기 | 13px / 일반 (관측) | `FontSize="13"` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:88` | ⏳ 미확인 — 속성 반영 확인 |
+| 커밋 제목 | 색 | 본문 밝은색 | `{ThemeResource AppTextPrimaryBrush}` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:89` | ⏳ 미확인 — 속성 반영 확인 |
+| 커밋 제목 | 넘침 | 한 줄 말줄임 | `MaxLines="1" TextTrimming="CharacterEllipsis"` | ① 캡처(긴 제목 행) | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:90~91` | ⏳ 미확인 — 속성 반영 확인 |
+| 메타 줄 | 구성·순서 | 아바타 → 작성자 → `·` → 상대시간 → `·` → 단축해시 | `StackPanel Orientation="Horizontal" Spacing="6"` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:94~129` | ⏳ 미확인 — 속성 반영 확인 |
+| 메타 줄 | 폰트 크기 | 11.5px (관측) | `FontSize="11.5"` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:106`·`:111`·`:116`·`:121`·`:127` | ⏳ 미확인 — 속성 반영 확인 |
+| 메타 줄 | 색 | 보조 회색 | `{ThemeResource AppTextTertiaryBrush}` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:107` 외 4곳 | ⏳ 미확인 — 속성 반영 확인 |
+| 메타 줄 | 세로 정렬 | 아바타·텍스트 중앙 정렬 | `VerticalAlignment="Center"` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:95` 외 5곳 | ⏳ 미확인 — 속성 반영 확인 |
+| 단축해시 | 서체 | 모노스페이스 | `FontFamily="Consolas"` | ① 캡처(자간 균일) | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:126` | ⏳ 미확인 — 속성 반영 확인 |
+| 목록 아바타 | 크기·모양 | 지름 16px 원 (관측) | `Ellipse Width="16" Height="16"` + 중앙 `TextBlock`(9px) | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:95~102` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 아바타 | 크기·모양 | 지름 40px 원 (관측) | `Ellipse Width="40" Height="40"` + 중앙 `TextBlock`(16px) | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:175~181` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 헤더 | 레이아웃 | 아바타 좌측 · 우측에 2줄(이름 / 날짜 · 이메일) | `Grid` 2열 + `StackPanel Spacing="2"`, `ColumnSpacing="12"` | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:169~193` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 작성자명 | 폰트 | 13px / 약간 굵게 / 밝은색 (관측) | `FontSize="13" FontWeight="SemiBold"` + `AppTextPrimaryBrush` | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:186~187` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 부제 | 구성 | `{날짜} · {이메일}` 한 줄 | 단일 `TextBlock` | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml.cs:107~110` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 부제 | 날짜 형식 | 기준은 로케일 장식형 `2026년 9월 2일` | **`yyyy-MM-dd HH:mm`로 대체**(아래 「기준과 다르게 가는 항목」 V1) | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml.cs:107` | ✅ 의도된 이탈 (V1) |
+| 상세 부제 | 폰트·색 | 12px / 보조 회색 (관측) | `FontSize="12"` + `AppTextTertiaryBrush` | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:190~191` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 본문 | 서체 | 모노스페이스 | `FontFamily="Consolas"` | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:203` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 본문 | 폰트 크기 | 13px (관측) | `FontSize="13"` | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:204` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 본문 | 줄 간격 | 넓음 — 글자 높이의 약 1.5배 (관측) | `LineHeight="20"` | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:205` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 본문 | 줄번호 | 좌측에 우측정렬 회색 번호 열 | **구현하지 않음**(아래 V2) | ② 캡처 | 해당 없음 — 구현하지 않음 | ✅ 의도된 이탈 (V2) |
+| 상세 본문 | 배경 | 페이지보다 약간 어두운 면 (관측) | `Border Background="{ThemeResource AppInputBrush}" CornerRadius="8" Padding="16"` | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:196~200` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 본문 | 선택 | 드래그 선택 가능 | `IsTextSelectionEnabled="True"` | 사용자 직전 요청 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:208` | ⏳ 미확인 — 속성 반영 확인 |
+| 날짜 그룹 헤더 | 존재 여부 | 없음 | 현행 `ItemsControl` 2중첩을 1단으로 축소 | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:71`(`ItemsControl` 1단) | ✅ 소스로 판정 — 그룹 템플릿 제거 확인 |
 
 ### 기준과 다르게 가는 항목 (의도된 이탈 — V-9 대조 시 이 표를 근거로 판정)
 
@@ -118,8 +118,21 @@
 |---|---|---|---|
 | V1 | 상세 부제 날짜가 `2026년 9월 2일`(로케일 장식형) | `yyyy-MM-dd HH:mm` | 레포의 확립된 날짜 표기 관례다 — `HistoryDialogViewModel.cs:59`·`:60`, `ProjectSettingsDialogViewModel.cs:314`가 모두 `yyyy-MM-dd HH:mm`이고 구 `GroupCommitsByDate`도 `yyyy-MM-dd`였다. 장식형은 ko/en 문화권마다 형태가 갈려(en-US는 요일까지 붙는다) 다국어 레이아웃이 흔들린다 |
 | V2 | 상세 본문에 줄번호 열 | 줄번호 없음 | 사용자 결정 Q2 — 줄 단위로 쪼개면 WinUI에서 한 줄 안에서만 드래그 선택된다(직전 요청이 "드래그 선택"이었다) |
-| V3 | 아바타가 실제 프로필 사진 | 이니셜 원형(이메일 해시 색) | 사용자 결정 Q1 — 로컬 `git log`로는 이미지를 얻을 수 없다 |
-| V4 | 아바타 원 색이 사진마다 다름 | 팔레트 기존 4색(`AppInfoBrush`·`AppSuccessBrush`·`AppWarningBrush`·`AppAccentBrush`) 로테이션 | 신규 색 리터럴을 추가하지 않는다(대장 `:70` 색 리터럴 누적 항목을 키우지 않기 위함) |
+| V3 | 아바타가 실제 프로필 사진 | 이니셜 원형(이메일 해시 색) — `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml.cs:176` `AvatarInitial` | 사용자 결정 Q1 — 로컬 `git log`로는 이미지를 얻을 수 없다 |
+| V4 | 아바타 원 색이 사진마다 다름 | 팔레트 기존 4색 로테이션 — `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:22~25` 별칭 + `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml.cs:184` `AvatarBrush` | 신규 색 리터럴을 추가하지 않는다(대장 `:70` 색 리터럴 누적 항목을 키우지 않기 위함) |
+
+## F-8 인계 목록 (렌더 육안 확인 대기)
+
+V-9는 `### 시각 속성` 표 27행 전건에 구현 근거(파일:라인)를 지목했고, 그중 **24행이 `⏳ 미확인`**이다 — WinUI 데스크톱 앱이라 자율 루프에 앱 기동·창 캡처 수단이 없다(`references/phase-v9-detail.md` 렌더 3분기의 「데스크톱 UI 대상」). **속성이 표대로 들어갔다는 것은 소스로 확인했고, 그 값이 기준 이미지와 같아 보이는지는 확인하지 못했다** — 폰트 크기·간격은 캡처에서 읽은 관측 추정치라 특히 그렇다.
+
+확인 완료 3행: 날짜 그룹 헤더 제거(소스 판정) · V1 날짜 형식 · V2 줄번호 미구현(둘 다 의도된 이탈).
+
+**사용자 확인이 필요한 것** — 앱을 실행해 카드 ⋯ → Git 상태를 열고:
+1. 목록이 기준 이미지 ①처럼 보이는가(행 구분선·2줄 구성·글자 크기·아바타 지름·간격)
+2. 행에 마우스를 올리면 배경이 밝아지고, 클릭하면 상세로 전환되는가
+3. 상세가 기준 이미지 ②처럼 보이는가(아바타 40px·작성자·날짜·이메일·모노스페이스 본문)
+4. 상세 본문 전체를 한 번에 드래그 선택할 수 있는가
+5. 뒤로 버튼으로 목록에 복귀하는가
 
 ## 리뷰 이력 (plan-reviewer)
 
@@ -166,7 +179,7 @@
 
 - [ ] T2. **Git 상태 다이얼로그를 목록 + 상세 2뷰로 개편** — Type **D** · Depends on T1(문구 키가 있어야 코드의 `LocalizationService.Get()`이 참조 가능 — `x:Uid`는 쓰지 않는다)
   - Files:
-    - `DevDashboard_WinUI/Domain/ValueObjects/GitCommit.cs` — `Subject`/`Body` 파생 프로퍼티 추가
+    - `DevDashboard_WinUI/Domain/ValueObjects/GitCommit.cs` — `Subject` 파생 프로퍼티 추가
     - `DevDashboard_WinUI/Presentation/ViewModels/ProjectCardViewModel.cs` — `GitCommitGroups` → `GitCommits` 평면 목록 교체, `GroupCommitsByDate` 제거
     - `DevDashboard_WinUI/Presentation/Models/GitCommitGroup.cs` — **삭제**(P2에서 소비처 전수 확인 완료)
     - `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml` — 목록 restyle + 상세 뷰 신설
@@ -174,7 +187,7 @@
   - **Design**:
     - **배치**: 데이터 파생은 `Domain/ValueObjects/GitCommit.cs`(순수 문자열 분해라 외부 의존 없음), **표시 변환**(상대시간·이니셜·아바타 색)은 `GitStatusDialog.xaml.cs`의 **정적 헬퍼**에 둔다 — `x:Bind` 함수 바인딩은 Converter도 ThemeResource도 받지 못하므로 코드비하인드가 `string`/`Brush`를 직접 반환하는 것이 이 레포의 확립된 방식이다(P5, AGENTS.md 함정 5).
     - **신규 심볼과 책임**:
-      - `GitCommit.Subject` — 메시지 첫 줄(목록 제목). `GitCommit.Body` — 첫 줄 이후 전문(없으면 빈 문자열).
+      - `GitCommit.Subject` — 메시지 첫 줄(목록 제목). **본문만 떼는 `Body`는 만들지 않는다** — 상세 뷰가 제목·본문을 나누지 않고 `Message` 전문을 한 덩어리로 그리므로 소비처가 없다(구현 중 확인, spec 리뷰 M1).
       - `ProjectCardViewModel.GitCommits` — 최신순 평면 커밋 목록(기존 `GitCommitGroups` 대체).
       - `GitStatusDialog.RelativeTime(DateTimeOffset)` — 상대시간 문자열. `GitStatusDialog.AvatarInitial(string)` — 이니셜 1글자. `GitStatusDialog.AvatarBrush(string)` — 이메일 해시로 고른 팔레트 4색 중 하나.
       - `GitStatusDialog.ShowDetail(GitCommit)` / `ShowList()` — 뷰 전환(`HistoryDialog.ShowFormView`/`ShowListView` 선례와 동형). 뒤로 라벨은 `BackText.Text`에 코드로 채운다(같은 선례).
@@ -193,7 +206,7 @@
   - **에러·로딩·브랜치 행은 현행 유지** — 이번 요청 범위가 커밋 목록/상세다.
   - Edge Cases:
     - 커밋 0건 → `NoCommitsText` 표시(판정을 `GitCommitGroups.Count` → `GitCommits.Count`로 교체)
-    - 메시지가 한 줄뿐 → `Body` 빈 문자열. 상세 본문은 `Message` 전문을 그리므로 빈 화면이 되지 않는다
+    - 메시지가 한 줄뿐 → `Subject`가 그 줄 전체가 된다. 상세 본문은 `Message` 전문을 그리므로 빈 화면이 되지 않는다
     - 제목이 매우 긺 → `CharacterEllipsis` 말줄임(목록), 상세에서는 전문 표시
     - `AuthorName`이 빈 문자열 → 이니셜 `?` 폴백(인덱스 접근 예외 방지)
     - `AuthorEmail`이 빈 문자열 → 해시 0 → 4색 중 첫 색. 상세 헤더의 이메일 부분은 빈 값이면 구분점째로 생략
@@ -253,7 +266,7 @@
 - **파일 삭제**(T2): `DevDashboard_WinUI/Presentation/Models/GitCommitGroup.cs`. 소비처 전수 확인 완료(9 hit / 4파일, 전부 이번에 함께 수정), git 이력에 복구 경로 있음.
 - **공개 프로퍼티 제거·교체**(T2): `ProjectCardViewModel.GitCommitGroups`(`IReadOnlyList<GitCommitGroup>`) → `GitCommits`(`IReadOnlyList<GitCommit>`). 소비처는 `GitStatusDialog.xaml.cs` 2곳뿐(전수 확인).
 - **private 메서드 제거**(T2): `ProjectCardViewModel.GroupCommitsByDate`.
-- **도메인 값 객체 가산**(T2): `GitCommit.Subject`/`Body` 파생 프로퍼티(계산 전용, 생성자·직렬화 무변경).
+- **도메인 값 객체 가산**(T2): `GitCommit.Subject` 파생 프로퍼티(계산 전용, 생성자·직렬화 무변경).
 
 ## 불가피한 Halt (위임 불가)
 - commit / push / 병합 / 태그 / 릴리즈 / PR — 구현·검증 완료 후 최종 보고에서 별도 승인.

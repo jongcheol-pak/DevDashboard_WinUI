@@ -50,8 +50,8 @@ public sealed partial class GitStatusDialog : ContentDialog
     {
         try
         {
-            // 다시 열었을 때 이전 상세 화면이 남아 있지 않도록 목록으로 되돌린다
-            ShowList();
+            // 뷰 상태를 여기서 초기화하지 않는다 — 이 다이얼로그는 열 때마다 새로 생성되고
+            // (DashboardView.xaml.cs:186) 두 뷰 모두 XAML에서 Collapsed로 시작한다.
             BackText.Text = LocalizationService.Get("GitDetail_Back");
 
             string? error;
