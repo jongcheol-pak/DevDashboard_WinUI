@@ -492,4 +492,22 @@
         </Setter>
     </Style>
 
+    <!-- ===== 알림 팝업 프레젠터 =====
+         Flyout 기본 프레젠터는 안쪽 여백을 갖고 폭이 내용에 맞춰지는데, 시안 알림 패널은
+         폭 380 고정 · 여백 0(행이 좌우 끝까지 닿는다) · 높이 상한 안에서 목록만 스크롤이다.
+         그 세 가지를 얻으려면 프레젠터 스타일을 직접 준다. -->
+    <Style x:Key="NotificationFlyoutPresenterStyle" TargetType="FlyoutPresenter">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="MinWidth" Value="380" />
+        <Setter Property="MaxWidth" Value="380" />
+        <Setter Property="MaxHeight" Value="560" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="Background" Value="{ThemeResource AppCardBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource AppBorderStrongBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="ScrollViewer.HorizontalScrollMode" Value="Disabled" />
+        <Setter Property="ScrollViewer.VerticalScrollMode" Value="Disabled" />
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
+    </Style>
+
 </ResourceDictionary>

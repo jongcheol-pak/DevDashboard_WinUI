@@ -505,9 +505,6 @@
   <data name="Notification_Badge_Overdue" xml:space="preserve"><value>{0} days overdue</value></data>
   <data name="Notification_Badge_DueToday" xml:space="preserve"><value>Due today</value></data>
   <data name="Notification_Badge_Imminent" xml:space="preserve"><value>D{0}</value></data>
-  <data name="Notification_Deadline_Imminent" xml:space="preserve"><value>Soon</value></data>
-  <data name="Notification_Deadline_DueToday" xml:space="preserve"><value>Due today</value></data>
-  <data name="Notification_Deadline_Overdue" xml:space="preserve"><value>Overdue</value></data>
   <data name="Notification_MarkRead_Tooltip" xml:space="preserve"><value>Mark as read</value></data>
   <data name="Notification_MarkUnread_Tooltip" xml:space="preserve"><value>Mark as unread</value></data>
   <data name="Notification_Header_Tooltip" xml:space="preserve"><value>Notifications</value></data>

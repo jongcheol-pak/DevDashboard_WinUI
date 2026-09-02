@@ -21,8 +21,11 @@ public partial class NotificationPageViewModel : ObservableObject
 
     private static readonly string _unreadFormat = LocalizationService.Get("Notification_UnreadFormat");
 
-    /// <summary>프로젝트별 알림 그룹</summary>
+    /// <summary>프로젝트별 알림 그룹 (알림 페이지가 소비)</summary>
     public ObservableCollection<NotificationProjectGroup> Groups { get; } = [];
+
+    /// <summary>그룹 없는 평면 목록 (헤더 알림 팝업이 소비 — 팝업은 프로젝트별로 묶지 않고 마감 순으로 나열한다)</summary>
+    public ObservableCollection<NotificationItemViewModel> Items { get; } = [];
 
     /// <summary>표시할 알림이 하나라도 있는지 여부 (빈 상태 표시용)</summary>
     [ObservableProperty] public partial bool HasNotifications { get; set; }
@@ -68,15 +71,26 @@ public partial class NotificationPageViewModel : ObservableObject
         BuildGroups(readKeys);
     }
 
-    /// <summary>알림을 프로젝트별로 묶어 그룹을 구성합니다(각 그룹 내 종료일 오름차순 유지).</summary>
+    /// <summary>
+    /// 알림 항목을 만들어 평면 목록(팝업용)과 프로젝트별 그룹(페이지용)에 함께 담습니다.
+    /// 같은 항목 인스턴스를 두 목록이 공유하므로 한쪽에서 읽음을 토글하면 다른 쪽도 즉시 반영된다.
+    /// 평면 목록은 원본 순서(종료일 오름차순)를, 그룹은 각 그룹 내 그 순서를 유지한다.
+    /// </summary>
     private void BuildGroups(IReadOnlySet<string> readKeys)
     {
         Groups.Clear();
+        Items.Clear();
+
+        var byId = _notifications.ToDictionary(
+            n => NotificationService.BuildKey(n),
+            n => CreateItem(n, readKeys.Contains(NotificationService.BuildKey(n))));
+
+        foreach (var n in _notifications)
+            Items.Add(byId[NotificationService.BuildKey(n)]);
+
         foreach (var group in _notifications.GroupBy(n => n.ProjectId))
         {
-            var items = group
-                .Select(n => CreateItem(n, readKeys.Contains(NotificationService.BuildKey(n))))
-                .ToList();
+            var items = group.Select(n => byId[NotificationService.BuildKey(n)]).ToList();
             Groups.Add(new NotificationProjectGroup(group.Key, group.First().ProjectName, items));
         }
 

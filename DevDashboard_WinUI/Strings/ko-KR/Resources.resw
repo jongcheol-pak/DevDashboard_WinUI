@@ -505,9 +505,6 @@
   <data name="Notification_Badge_Overdue" xml:space="preserve"><value>{0}일 경과</value></data>
   <data name="Notification_Badge_DueToday" xml:space="preserve"><value>오늘 마감</value></data>
   <data name="Notification_Badge_Imminent" xml:space="preserve"><value>D{0}</value></data>
-  <data name="Notification_Deadline_Imminent" xml:space="preserve"><value>임박</value></data>
-  <data name="Notification_Deadline_DueToday" xml:space="preserve"><value>오늘 마감</value></data>
-  <data name="Notification_Deadline_Overdue" xml:space="preserve"><value>경과</value></data>
   <data name="Notification_MarkRead_Tooltip" xml:space="preserve"><value>읽음으로 표시</value></data>
   <data name="Notification_MarkUnread_Tooltip" xml:space="preserve"><value>읽지 않음으로 표시</value></data>
   <data name="Notification_Header_Tooltip" xml:space="preserve"><value>알림</value></data>

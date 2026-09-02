@@ -62,6 +62,9 @@ public partial class MainViewModel : ObservableObject
     /// <summary>안읽음 알림이 하나 이상 있는지 여부 (배지 표시용)</summary>
     public bool HasUnreadNotifications => UnreadNotificationCount > 0;
 
+    /// <summary>헤더 벨 배지에 표시할 문구. 두 자릿수부터는 "9+"로 줄여 배지가 넓어지지 않게 한다.</summary>
+    public string UnreadNotificationBadge => UnreadNotificationCount > 9 ? "9+" : UnreadNotificationCount.ToString();
+
     // 마지막으로 계산된 마감 알림 목록 (드롭다운·페이지가 공유 — RebuildNotifications가 갱신)
     private List<Notification> _currentNotifications = [];
 

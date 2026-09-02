@@ -116,31 +116,148 @@
                             Style="{StaticResource TopBarIconButtonStyle}"
                             ToolTipService.ToolTip="{x:Bind NotificationTooltip}">
                         <Button.Flyout>
-                            <Flyout Opening="NotificationFlyout_Opening">
-                                <StackPanel Width="300" Spacing="8">
-                                    <TextBlock Text="{x:Bind NotificationFlyoutTitle}"
-                                               Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                    <ItemsControl x:Name="NotificationSummaryList" />
-                                    <TextBlock x:Name="NotificationFlyoutEmpty"
-                                               Text="{x:Bind NotificationEmptyText}"
-                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                                    <Button x:Name="ViewAllNotificationsButton"
+                            <!-- 팝업 안은 전부 {Binding}이다 — Window XAML의 DataTemplate에서는
+                                 x:Bind 함수 바인딩을 쓸 수 없어(WinUI 3 Window는 FrameworkElement가 아니다)
+                                 표시값을 NotificationItemViewModel 프로퍼티로 노출해 두었다. -->
+                            <Flyout Opening="NotificationFlyout_Opening"
+                                    FlyoutPresenterStyle="{StaticResource NotificationFlyoutPresenterStyle}">
+                                <Grid x:Name="NotificationFlyoutRoot">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <!-- 헤더: 제목 + 안읽음 건수 + 모두 읽음 -->
+                                    <Grid Grid.Row="0" Padding="18,16" ColumnSpacing="9"
+                                          BorderThickness="0,0,0,1"
+                                          BorderBrush="{ThemeResource AppBorderBrush}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{x:Bind NotificationFlyoutTitle}"
+                                                   FontSize="15" FontWeight="Bold" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="{Binding UnreadCaption}"
+                                                   FontSize="11.5" VerticalAlignment="Center"
+                                                   Foreground="{ThemeResource AppTextTertiaryBrush}" />
+                                        <Button Grid.Column="3"
+                                                Content="{x:Bind NotificationMarkAllText}"
+                                                Height="28" Padding="10,0" CornerRadius="7"
+                                                FontSize="11.5" VerticalAlignment="Center"
+                                                Command="{Binding MarkAllReadCommand}"
+                                                Visibility="{Binding HasUnread, Converter={StaticResource BoolToVisibility}}" />
+                                    </Grid>
+
+                                    <!-- 알림 목록 (전체 표시 — 패널 높이를 넘으면 이 영역만 스크롤) -->
+                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                                                  Visibility="{Binding HasNotifications, Converter={StaticResource BoolToVisibility}}">
+                                        <ItemsControl ItemsSource="{Binding Items}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Padding="18,13"
+                                                            BorderThickness="0,0,0,1"
+                                                            BorderBrush="{ThemeResource AppSurfaceBrush}"
+                                                            Background="Transparent"
+                                                            Tag="{Binding}"
+                                                            Tapped="NotificationRow_Tapped"
+                                                            PointerEntered="NotificationRow_PointerEntered"
+                                                            PointerExited="NotificationRow_PointerExited"
+                                                            Opacity="{Binding RowOpacity}">
+                                                        <Grid ColumnSpacing="11">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <Border Grid.Column="0"
+                                                                    Width="26" Height="26" CornerRadius="8"
+                                                                    VerticalAlignment="Top"
+                                                                    Background="{Binding BadgeBackground}">
+                                                                <FontIcon Glyph="&#xE917;" FontSize="12"
+                                                                          Foreground="{Binding BadgeForeground}" />
+                                                            </Border>
+
+                                                            <StackPanel Grid.Column="1" VerticalAlignment="Top">
+                                                                <TextBlock Text="{Binding TodoText}"
+                                                                           FontSize="13" FontWeight="Bold"
+                                                                           TextWrapping="Wrap" />
+                                                                <TextBlock Text="{Binding PopupSubCaption}"
+                                                                           FontSize="11.5" Margin="0,3,0,0"
+                                                                           TextWrapping="Wrap"
+                                                                           Foreground="{Binding SubCaptionForeground}" />
+                                                            </StackPanel>
+
+                                                            <Border Grid.Column="2"
+                                                                    CornerRadius="6" Padding="8,3"
+                                                                    VerticalAlignment="Top"
+                                                                    Background="{Binding BadgeBackground}">
+                                                                <TextBlock Text="{Binding BadgeText}"
+                                                                           FontSize="10.5" FontWeight="Bold"
+                                                                           Foreground="{Binding BadgeForeground}" />
+                                                            </Border>
+
+                                                            <Button Grid.Column="3"
+                                                                    Width="26" Height="26" Padding="0"
+                                                                    CornerRadius="7"
+                                                                    Background="Transparent"
+                                                                    BorderThickness="1"
+                                                                    BorderBrush="{Binding ReadButtonBorder}"
+                                                                    VerticalAlignment="Top"
+                                                                    Tag="{Binding}"
+                                                                    Click="NotificationReadToggle_Click"
+                                                                    ToolTipService.ToolTip="{Binding ReadToggleTooltip}">
+                                                                <FontIcon Glyph="&#xE73E;" FontSize="12"
+                                                                          Foreground="{Binding ReadButtonForeground}" />
+                                                            </Button>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+
+                                    <!-- 빈 상태 (시안: 2줄) -->
+                                    <StackPanel Grid.Row="1" Padding="18,44"
+                                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                Visibility="{Binding HasNotifications, Converter={StaticResource InverseBoolToVisibility}}">
+                                        <TextBlock Text="{x:Bind NotificationEmptyText}"
+                                                   FontSize="12.5" LineHeight="20" HorizontalAlignment="Center"
+                                                   Foreground="{ThemeResource AppTextMutedBrush}" />
+                                        <TextBlock Text="{x:Bind NotificationEmptyHintText}"
+                                                   FontSize="12.5" LineHeight="20" HorizontalAlignment="Center"
+                                                   TextWrapping="Wrap" TextAlignment="Center"
+                                                   Foreground="{ThemeResource AppTextMutedBrush}" />
+                                    </StackPanel>
+
+                                    <!-- 시안에서 이 버튼은 빈 상태 분기 밖에 있어 알림이 없어도 표시된다 -->
+                                    <Button Grid.Row="2"
                                             Content="{x:Bind NotificationViewAllText}"
-                                            HorizontalAlignment="Stretch"
+                                            Height="44" HorizontalAlignment="Stretch"
+                                            CornerRadius="0"
+                                            Background="Transparent"
+                                            BorderThickness="0,1,0,0"
+                                            BorderBrush="{ThemeResource AppBorderBrush}"
+                                            FontSize="12.5"
                                             Click="ViewAllNotifications_Click" />
-                                </StackPanel>
+                                </Grid>
                             </Flyout>
                         </Button.Flyout>
                         <Grid>
-                            <FontIcon Glyph="&#xE7ED;" FontSize="16" />
+                            <FontIcon Glyph="&#xEA8F;" FontSize="16" />
                             <Border x:Name="NotificationBadge"
-                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                    CornerRadius="7" MinWidth="14" Height="14" Padding="3,0"
+                                    Background="{ThemeResource AppAccentBrush}"
+                                    CornerRadius="8" MinWidth="16" Height="16" Padding="4,0"
                                     HorizontalAlignment="Right" VerticalAlignment="Top"
                                     Margin="0,-3,-3,0"
                                     Visibility="{Binding HasUnreadNotifications, Converter={StaticResource BoolToVisibility}}">
-                                <TextBlock Text="{Binding UnreadNotificationCount}"
-                                           FontSize="9" FontWeight="Bold" Foreground="White"
+                                <TextBlock Text="{Binding UnreadNotificationBadge}"
+                                           FontSize="10" FontWeight="Bold"
+                                           Foreground="{ThemeResource AppBgBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                         </Grid>
