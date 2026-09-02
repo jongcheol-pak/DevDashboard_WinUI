@@ -17,12 +17,16 @@
 
 - **위키 참조**: `20_projects/personal/devdashboard-winui/feat-project-launch-actions` — "Git 상태 다이얼로그: **현재 브랜치 + 날짜별 커밋 목록** 표시(변경 파일 목록 기능은 없음). 다이얼로그는 열 때마다 git을 다시 조회." 코드와 일치하며 이번 설계를 바꾸는 새 정보 없음. 허브(`20_projects/personal/devdashboard-winui`) `synced_commit: 3d1f19d`로 최신.
 - **결정 이력**: 대상 프로젝트 위키에 `decisions.md` 없음 — 과거 기각 이력 확인 불가(허브 「최근 주요 변경」에도 Git 상태 관련 보류 기록 없음).
-- **기존 plan 처리**: 직전 "카드 메모 + 작업 기록 시안" plan은 `## Phase Ledger`에 **Phase G 통과(Must 100%)** 기록 → 완료 판정. 그 `## Deferred / Follow-up` 12건 중 대장 미등재분을 이관 완료(신규 2건 등재 + 기존 2항목에 이번 분 합산, 사용자 승인).
+- **기존 plan 처리**: 직전 "카드 메모 + 작업 기록 시안" plan은 `## Next Steps
+- 권장 다음 액션: **앱을 실행해 `## F-8 인계 목록`의 5항목을 육안 확인** → 어긋난 곳이 있으면 그 항목만 지목해 수정 요청. 확인이 끝나면 `master` 병합·push 승인.
+- Suggested skills: `pjc:llm-wiki`(위키 `feat-project-launch-actions`의 Git 상태 서술 갱신 — 별도 세션), 공식 `/code-review`(병합 전 diff 검토를 원할 때)
+
+## Phase Ledger`에 **Phase G 통과(Must 100%)** 기록 → 완료 판정. 그 `## Deferred / Follow-up` 12건 중 대장 미등재분을 이관 완료(신규 2건 등재 + 기존 2항목에 이번 분 합산, 사용자 승인).
 - **작업 공간**: 무관한 미커밋 잔재 3종(csproj NuGet 버전 / ProjectSettingsDialog 색 견본 클릭 버그 / notes.md)을 사용자 승인 후 커밋 3건으로 분리 정리(`88a3716`·`579eb44`·`7e8b2a0`). 착수 시점 워킹트리 clean.
-- **Deferred 대장 조회**(`docs/plans/deferred.md` `## 대기` 16건):
+- **Deferred 대장 조회**(`docs/plans/deferred.md` `## 대기` — 착수 시점 **67건**(실측; Investigation Log 최초 작성 시 16건으로 적었던 것은 `- [` 로 시작하는 줄만 센 오류다)):
   - **할 일 후보(주제 매칭)**: Git 상태 다이얼로그를 다루는 대기 항목 **0건**.
   - **전제 반증(제목 스캔 전건 + 걸린 항목 전문)**: **[함정] XAML 리소스 키 오타는 빌드가 잡지 못한다**(`:76`)가 이번 plan의 전제에 걸린다 — T2가 `ThemeResource App*Brush`를 새로 참조하므로 **키 실재를 grep으로 확인**해야 한다(아래 `### 전제 검증` P4). **[README/스크린샷]**(`:18`)은 이번 T3와 겹치나 T3는 문구 1줄 정정이고 그 항목은 스크린샷 갱신이라 별개 — 대장 유지.
-  - **소진 batch 판정**: `## 대기` 16건으로 잔량 임계(100건) 미달 → batch task 없음.
+  - **소진 batch 판정**: `## 대기` 67건으로 잔량 임계(100건) 미달 → batch task 없음(수치를 정정해도 판정은 같다).
 - **스킬 개선 큐**: 대상 아님 — 이 세션의 cwd에 `plugins/pjc/.claude-plugin/plugin.json` 없음(하네스 레포가 아니다).
 - **현행 구현 (직접 Read)**:
   - `Domain/ValueObjects/GitCommit.cs`: `record GitCommit(Hash, AuthorName, AuthorEmail, Date, Message)` + `ShortHash`(7자리). `Message`는 `git log --format=%B` 결과라 **제목·본문이 합쳐진 전문**이다.
@@ -119,7 +123,7 @@
 | V1 | 상세 부제 날짜가 `2026년 9월 2일`(로케일 장식형) | `yyyy-MM-dd HH:mm` | 레포의 확립된 날짜 표기 관례다 — `HistoryDialogViewModel.cs:59`·`:60`, `ProjectSettingsDialogViewModel.cs:314`가 모두 `yyyy-MM-dd HH:mm`이고 구 `GroupCommitsByDate`도 `yyyy-MM-dd`였다. 장식형은 ko/en 문화권마다 형태가 갈려(en-US는 요일까지 붙는다) 다국어 레이아웃이 흔들린다 |
 | V2 | 상세 본문에 줄번호 열 | 줄번호 없음 | 사용자 결정 Q2 — 줄 단위로 쪼개면 WinUI에서 한 줄 안에서만 드래그 선택된다(직전 요청이 "드래그 선택"이었다) |
 | V3 | 아바타가 실제 프로필 사진 | 이니셜 원형(이메일 해시 색) — `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml.cs:176` `AvatarInitial` | 사용자 결정 Q1 — 로컬 `git log`로는 이미지를 얻을 수 없다 |
-| V4 | 아바타 원 색이 사진마다 다름 | 팔레트 기존 4색 로테이션 — `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:22~25` 별칭 + `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml.cs:184` `AvatarBrush` | 신규 색 리터럴을 추가하지 않는다(대장 `:70` 색 리터럴 누적 항목을 키우지 않기 위함) |
+| V4 | 아바타 원 색이 사진마다 다름 | 팔레트 기존 4색 로테이션 — `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:21~24` 별칭 + `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml.cs:184` `AvatarBrush` | 신규 색 리터럴을 추가하지 않는다(대장 `:70` 색 리터럴 누적 항목을 키우지 않기 위함) |
 
 ## F-8 인계 목록 (렌더 육안 확인 대기)
 
@@ -173,7 +177,7 @@ V-9는 `### 시각 속성` 표 27행 전건에 구현 근거(파일:라인)를 �
   - Edge Cases: 빈 문자열 값 없음 / `{0}` 플레이스홀더가 양쪽 언어에 모두 존재해야 함
   - Halt Forecast: 없음(가산 등록, 기존 키 무변경)
   - **Acceptance**:
-    1. `grep -c "<data name=" Strings/ko-KR/Resources.resw` = **작성 시점 447건** → 수정 후 **455건**. en-US도 447 → **455건**(대칭)
+    1. `grep -c "<data name=" Strings/ko-KR/Resources.resw` = **작성 시점 447건** → 수정 후 **455건**. en-US도 447 → **455건**(대칭). **최종값은 454/454다** — T2의 quality 리뷰 반영으로 고아가 된 `GitCommitHistoryLabel.Text`를 ko/en 양쪽에서 제거했다(대칭은 유지)
     2. `grep -c "GitRelative_\|GitDetail_Back"`가 ko/en 각 **8건**이고, **8키 모두 접미(`.Text` 등) 없는 베어네임**이다
     3. 빌드 통과(신규 경고 0)
 
@@ -212,7 +216,7 @@ V-9는 `### 시각 속성` 표 27행 전건에 구현 근거(파일:라인)를 �
     - `AuthorEmail`이 빈 문자열 → 해시 0 → 4색 중 첫 색. 상세 헤더의 이메일 부분은 빈 값이면 구분점째로 생략
     - 커밋 시각이 미래(시계 오차·리베이스) → 음수 경과 → `GitRelative_JustNow`
     - 30일 초과 → 상대시간 대신 절대 날짜 `yyyy-MM-dd`(문구 키 불요)
-    - 상세를 열어둔 채 다이얼로그를 닫음 → `Closing`의 `_cts` 취소 경로는 그대로. 다시 열면 `OnOpened`가 **목록 뷰로 초기화**해야 한다(뷰 상태를 매 `OnOpened`에서 리셋)
+    - 상세를 열어둔 채 다이얼로그를 닫음 → `Closing`의 `_cts` 취소 경로는 그대로. **뷰 상태 리셋은 불요**로 확정됐다 — 이 다이얼로그는 열 때마다 새 인스턴스이고(`DashboardView.xaml.cs:186`) 두 뷰 모두 XAML 초기값이 `Collapsed`다(구현 중 확인, quality 1R MAJOR ①)
     - detached HEAD → 브랜치 라벨 `(detached HEAD)` — 현행 동작 유지
   - Halt Forecast:
     - **(ii-a) 사전 승인**: `Presentation/Models/GitCommitGroup.cs` **파일 삭제**(git 이력에 복구 경로 있음, 소비처 전수 확인 완료) + `ProjectCardViewModel.GitCommitGroups` **공개 프로퍼티 제거**(소비처 1파일 2곳, 전수 확인)
@@ -291,5 +295,13 @@ V-9는 `### 시각 속성` 표 27행 전건에 구현 근거(파일:라인)를 �
 - **T3 완료** (Type A): `README.md:32`의 "변경 파일 확인" 오기를 실제 기능(브랜치·커밋 목록·커밋 상세)으로 정정(잔존 0건), `notes.md` 최상단에 이번 회차 기록 추가(구현에서 갈렸던 4건 + 렌더 미확인 사실 포함).
 
 
+## Next Steps
+- 권장 다음 액션: **앱을 실행해 `## F-8 인계 목록`의 5항목을 육안 확인** → 어긋난 곳이 있으면 그 항목만 지목해 수정 요청. 확인이 끝나면 `master` 병합·push 승인.
+- Suggested skills: `pjc:llm-wiki`(위키 `feat-project-launch-actions`의 Git 상태 서술 갱신 — 별도 세션), 공식 `/code-review`(병합 전 diff 검토를 원할 때)
+
 ## Phase Ledger
-(구현 중 갱신)
+- 전 task(T1~T3) 완료.
+- **Phase F 통과 (HEAD `b7bd1cc`)** — F-1 클린 리빌드(`-t:Rebuild`) 오류 0·신규 경고 0(baseline `CS0618` 1건), F-3 회귀 grep 전부 기대값(`GitCommitGroup`·`GroupCommitsByDate`·`GitCommitHistoryLabel` 각 0건 / resw ko·en 454 대칭 / 신규 8키 각 8 / README "변경 파일" 0), F-6.5 README·notes·대장 갱신, F-7 `plan-completion-reviewer` **BLOCKER 0 · MAJOR 0 · MINOR 4 → 전건 반영**(m1 T2 Edge Case stale 정정 / m2 V4 라인 인용 `:21~24` 정정 / m3 T1 acceptance에 최종 454 각주 / m4 행 키보드 접근 불가를 대장 등재).
+- **Phase G 해당 없음** — plan 상단 `**PRD**:`가 "연결 없음"(닿는 active FR 0건)으로 선언돼 진입 조건 미충족.
+- **F-8 미통과 — 렌더 육안 확인 대기**: `## F-8 인계 목록`의 24행이 `⏳ 미확인`으로 남아 완료 선언을 보류한다(WinUI 데스크톱이라 자율 루프에 창 캡처 수단 없음).
+- **F-6.5 대장 반영: 등재 4 / 미등재 0** — 신규 3건(위키 서술 갱신 · 커밋 개수 제한 미검토 · 아바타 이니셜 대체) + F-7 m4 1건(행 키보드 접근), 기존 2항목(resw 고아 audit · README/스크린샷)에 이번 분 합산.
