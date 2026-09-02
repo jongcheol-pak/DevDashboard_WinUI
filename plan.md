@@ -276,14 +276,14 @@
 
 ## Tasks
 
-- [ ] T1. `Notification`에 작업 카테고리를 담고 감지 로직이 채우게 한다
+- [x] T1. `Notification`에 작업 카테고리를 담고 감지 로직이 채우게 한다
   - **Type**: C
   - **Design**: ① `Domain/ValueObjects/Notification.cs`에 `TodoCategory` 필드 1개 추가(빈 문자열이면 미분류 — `TodoItem.Category`와 같은 규약). ② 신규 심볼은 필드 하나뿐이며 계산·변환을 도메인에 두지 않는다(표시 문구 조립은 T2의 ViewModel 몫). ③ 의존 방향 불변 — `NotificationService`(Domain)가 `TodoItem`(Domain)에서 읽어 채우고, Presentation이 소비한다. ④ **비추상화 선언**: 카테고리 표시명 해석(빈 값 → "미분류")을 도메인에 넣지 않는다 — 그것은 지역화가 필요한 표현 관심사다.
   - **Acceptance**: Given 종료일이 지난 미완료 작업에 카테고리 `백엔드`가 있고, When `NotificationService.Detect`가 집계하면, Then 반환된 `Notification.TodoCategory == "백엔드"`이고 카테고리가 빈 작업은 `TodoCategory == string.Empty`다. 빌드 오류 0 · 신규 경고 0(기준선 `CS0618` 1건).
   - **Files**:
     - 주: `DevDashboard_WinUI/Domain/ValueObjects/Notification.cs` · `DevDashboard_WinUI/Domain/Services/NotificationService.cs`
   - **Edge Cases**:
-    - `todo.Category`가 `null`(구버전 DB) → `?? string.Empty`로 정규화
+    - ~~`todo.Category`가 `null`(구버전 DB) → `?? string.Empty`로 정규화~~ → **실측 결과 불요**: `TodoItem.Category`는 non-nullable(`:36`, 기본값 `string.Empty`)이고 DB 읽기가 구버전을 `hasCategory` 가드로 이미 `string.Empty`로 정규화한다(`SqliteProjectRepository.cs:114`·`:882`). 방어용 `??`를 넣었다가 quality 리뷰 m1 지적으로 제거
     - 카테고리가 공백만인 문자열 → 표시 단계(T2)에서 `IsNullOrWhiteSpace`로 미분류 처리
   - **Halt Forecast**:
     - (i) `record` 필드 추가가 기존 생성부를 깨는가 → 생성 지점이 `Detect` 1곳뿐임을 확인 완료(P3)

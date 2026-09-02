@@ -50,7 +50,7 @@ public static class NotificationService
                     ProjectName = project.Name,
                     TodoId = todo.Id,
                     TodoText = todo.Text,
-                    TodoCategory = todo.Category ?? string.Empty,
+                    TodoCategory = todo.Category,
                     EndDate = endDate,
                     Status = status
                 });
