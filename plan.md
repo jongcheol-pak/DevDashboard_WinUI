@@ -177,7 +177,7 @@ V-9는 `### 시각 속성` 표 27행 전건에 구현 근거(파일:라인)를 �
     2. `grep -c "GitRelative_\|GitDetail_Back"`가 ko/en 각 **8건**이고, **8키 모두 접미(`.Text` 등) 없는 베어네임**이다
     3. 빌드 통과(신규 경고 0)
 
-- [ ] T2. **Git 상태 다이얼로그를 목록 + 상세 2뷰로 개편** — Type **D** · Depends on T1(문구 키가 있어야 코드의 `LocalizationService.Get()`이 참조 가능 — `x:Uid`는 쓰지 않는다)
+- [x] T2. **Git 상태 다이얼로그를 목록 + 상세 2뷰로 개편** — Type **D** · Depends on T1(문구 키가 있어야 코드의 `LocalizationService.Get()`이 참조 가능 — `x:Uid`는 쓰지 않는다)
   - Files:
     - `DevDashboard_WinUI/Domain/ValueObjects/GitCommit.cs` — `Subject` 파생 프로퍼티 추가
     - `DevDashboard_WinUI/Presentation/ViewModels/ProjectCardViewModel.cs` — `GitCommitGroups` → `GitCommits` 평면 목록 교체, `GroupCommitsByDate` 제거
@@ -249,6 +249,7 @@ V-9는 `### 시각 속성` 표 27행 전건에 구현 근거(파일:라인)를 �
 - 테스트 없음(AGENTS.md) — 기능 확인은 사용자 육안.
 
 ## Deferred / Follow-up
+- **[Git 상태 resw 고아 — 기존분]** `GitStatusDialog.Title`·`GitStatusDialog.CloseButtonText`(ko/en 각 1건)는 `x:Uid` 소비를 전제한 키인데 `ContentDialog`에 `x:Uid`가 없고 코드가 `GitStatusDialog_TitleFormat`·`Dialog_Close`로 채운다 — **이번 변경 이전부터** 미사용이었다(T2가 만든 고아가 아니다). 대장의 다른 resw 고아 audit과 함께 일괄 처리.
 - **[위키 `feat-project-launch-actions` 서술 갱신]** — `:35`의 "브랜치 + **날짜별** 커밋 목록"이 이번 개편으로 어긋난다(평면 목록 + 상세 페이지). 위키 본문 갱신은 ingest 세션 소관이므로 다음 "위키 업데이트" 때 반영.
 - **[커밋 목록 개수 제한 미검토]**(P6) — `GetCommitsAsync`가 전체 이력을 가져오고 `ItemsControl`이 전부 그린다. 현행과 같은 부하라 이번에 악화되지는 않으나, 커밋 수천 건 저장소에서의 첫 렌더 비용은 측정된 바 없다. 느려지면 `git log -n <N>` 제한이나 가상화(`ItemsRepeater`) 도입 검토.
 - **[아바타는 이니셜 원형 — 실제 프로필 사진 아님]** — 로컬 git으로는 이미지를 얻을 수 없어 이름 이니셜 + 이메일 해시 색으로 대체했다(사용자 결정 Q1). GitHub 연동이 생기면 실제 아바타로 승격 가능.
@@ -282,6 +283,12 @@ V-9는 `### 시각 속성` 표 27행 전건에 구현 근거(파일:라인)를 �
 - **T1 완료** (Type B): resw ko/en 각 447 → 455건(대칭), 신규 8키 전부 베어네임. spec-prefilter **PASS**.
   - V-7 연결 확인: 신규 8키의 코드 참조 0건 → **ⓑ 분기(T2가 연결 예정)**. T2에서 `LocalizationService.Get()`·`BackText.Text`로 소비된다.
   - 결정: 뒤로 라벨을 `x:Uid`가 아니라 코드로 채우기로 확정(선례 `HistoryDialog.xaml.cs:79`) — 계획 리뷰 M1 반영분.
+- **T2 완료** (Type D): 목록 restyle + 상세 뷰 신설. `GitCommitGroup` 삭제(9 hit / 4파일 전건 정리), `GroupCommitsByDate` 제거, `GitCommit.Subject` 추가.
+  - **계획 정정**: plan이 `GitCommit.Body`도 요구했으나 상세 뷰가 `Message` 전문을 한 덩어리로 그리므로 소비처가 없다 — 만들지 않고 미구현 사유를 `GitCommit.cs` remarks에 남겼다(spec 리뷰 M1이 plan 내적 모순으로 확인, plan 해당 서술 정정).
+  - **리뷰 반영**: quality 1R MAJOR 2건 — ① `OnOpened`의 뷰 리셋이 로딩 중 목록을 미리 보이게 함 → 리셋을 아예 제거(매번 새 인스턴스 + XAML 초기값 Collapsed라 불필요) ② `GitCommitHistoryLabel.Text`가 고아 리소스가 됨 → ko/en 양쪽 제거(455 → **454건 대칭**).
+  - **아바타 색 구현 결정**: 팔레트가 `ThemeDictionaries > Default`에만 있어 `Application.Current.Resources[key]`로 못 꺼낸다 → `DashboardView` 선례대로 다이얼로그 리소스에 브러시 별칭을 두고, `x:Bind` 함수 바인딩이 static만 호출 가능하므로 생성자에서 static 필드에 캐시한다.
+  - **hover 복귀 색**: `null`이 아니라 `RowRestBrush`(Transparent)로 되돌린다 — 배경이 `null`이면 행이 포인터 입력을 받지 못해 클릭(상세 전환)이 죽는다.
+
 
 ## Phase Ledger
 (구현 중 갱신)
