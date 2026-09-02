@@ -599,7 +599,8 @@ public sealed partial class MainWindow : WindowEx
         vm.OpenTaskCommand.Execute(item);
     }
 
-    /// <summary>팝업 알림 행의 읽음 토글(행 클릭으로 번지지 않게 이벤트를 여기서 멈춘다).</summary>
+    /// <summary>팝업 알림 행의 읽음 토글. 이 클릭이 행 클릭(Tapped)으로 번지지 않는 것은
+    /// Button이 포인터 이벤트를 소비하기 때문이며, 여기서 따로 전파를 막지는 않는다.</summary>
     private void NotificationReadToggle_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement { Tag: NotificationItemViewModel item }) return;

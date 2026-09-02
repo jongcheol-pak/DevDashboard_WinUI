@@ -389,6 +389,8 @@
 5. 읽음 토글이 양방향으로 동작하고 재시작 후에도 유지되는가
 6. 작업을 완료로 바꾼 뒤 팝업을 열지 않아도 배지가 갱신되는가
 7. 마감상태별 색(경과 코랄 / 오늘 주황 / 임박 하늘)이 시안과 같은가
+8. 팝업 알림이 많을 때 **목록만 스크롤**되고 헤더("알림 · 읽지 않음 N건 · 모두 읽음")와 하단 "모든 알림 보기"가 고정되는가
+9. 팝업에서 읽음 버튼을 눌렀을 때 **팝업이 닫히거나 작업 페이지로 이동하지 않는가**(버튼 클릭이 행 클릭으로 번지지 않는가)
 
 ## 사전 승인 항목 (일괄 승인 대상)
 
@@ -400,7 +402,7 @@
 - resw 신규 키 추가 (T2 — `Notification_Badge_Overdue`·`_Badge_DueToday`·`_Badge_Imminent`·`_UnreadFormat`·`_EmptyHint`·`_MarkUnread_Tooltip`, ko/en 각 1건씩) 및 값 교체 (`Notification_DuePrefix`·`Notification_Empty`)
 - 고아 resw 키 `Notification_Deadline_Imminent`·`_Deadline_DueToday`·`_Deadline_Overdue` 제거 (T3 — ko/en 각 3건)
 - `NotificationPage` 공개 정적 멤버 6종(`DeadlineLabel`·`DeadlineBrush`·`FormatDue`·`UnreadDotVisibility`·`ReadOpacity`·`MarkReadTooltip`)과 그 전용 private 필드 4종(`_overdueBrush`·`_dueTodayBrush`·`_imminentBrush`·`_duePrefix`) 제거 (T3 — T3 Design ⑤가 정본)
-- `NotificationPage`에 정적 프로퍼티 `EmptyHintText` 추가, `MainWindow`에 `NotificationEmptyHintText` 추가 (T2·T3 — 빈 상태 2줄째)
+- `NotificationPage`에 정적 프로퍼티 `EmptyHintText` 추가, `MainWindow`에 `NotificationEmptyHintText`·`NotificationMarkAllText` 추가 (T2·T3 — 빈 상태 2줄째 + 팝업 "모두 읽음" 라벨. **`NotificationMarkAllText`는 계획에 없던 1개로, F-7 m2 지적으로 여기 기록** — 팝업 헤더가 페이지와 같은 `Notification_MarkAll` 문구를 쓰는데 Window에서 `x:Bind`로 읽으려면 이 프로퍼티가 필요했다. 문자열 상수라 동작 영향 없음)
 
 ## 불가피한 Halt (위임 불가)
 
@@ -455,6 +457,15 @@
   - **T4가 만든 성능 결함을 같은 루프에서 고쳤다**: `RebuildNotifications`가 작업 편집마다 불리게 되면서 `GetAllProjectItemsWithTodos`의 **프로젝트별 DB 재조회**가 그대로 편집 지연이 됐다(quality 1R M1). 카드가 이미 읽어 둔 메모리 Todos를 쓰도록 바꿔 재조회를 없앴다 — 부수적으로 "저장 큐가 비기 전에 DB를 읽어 낡은 값을 볼 수 있던" 잠재 race도 사라졌다(spec 재리뷰 확인).
   - **`Notification_Deadline_*` 3키·구 정적 멤버 6종·private 필드 4종 제거 완료** — 호출부가 사라지는 T3에서 함께 처리해 중간 상태에서 빌드가 깨지지 않았다.
 
+## Next Steps
+
+- 권장 다음 액션: **F-8 사용자 육안 확인 9항목**(위 `## F-8 인계 목록`). 통과하면 `master` 병합·push 승인 요청.
+- Suggested skills: `pjc:llm-wiki`(알림 기능이 위키에 아예 없다 — feature 페이지 신규 작성이 필요한 별도 세션), 공식 `/code-review`(병합 전 diff 검토를 원할 때)
+
 ## Phase Ledger
 
-<!-- implement-task가 채운다 -->
+- 전 task(T1~T4) 완료.
+- **Phase F 통과 (HEAD `2bc474a` 기준 + F-7 반영분)** — F-1 클린 리빌드(`-t:Rebuild`) 오류 0·신규 경고 0(baseline `CS0618` 1건), F-2 해당 없음(테스트 프로젝트 부재), F-3 회귀 grep 전건 기대값(`Ellipse` 0 · `Notification_Badge_` 6 · `local:NotificationPage.` 5종 · `E7ED` 0/`EA8F` 1 · `DeadlineLabel` 0 · `Notification_Deadline_` 0 · `TodosChanged` 3 · resw ko/en 457 대칭), F-6.5 notes·대장 갱신, F-7 `plan-completion-reviewer` **BLOCKER 0 · MAJOR 2 · MINOR 3 → 전건 반영**(M1 대장 `## 종결` 3건 등재 / M2 F-8 목록에 스크롤 고정·팝업 토글 2항목 추가 / m1 `NotificationReadToggle_Click` 주석 정정 / m2 `NotificationMarkAllText`를 사전 승인 항목에 기록 / m3 판정 유보 — 되돌림 불요).
+- **Phase G 통과 (Must 100%)** — F-7이 PRD 교차 검증을 수행해 **FR-N1~N4 전건 충족** 확인(N1 감지 로직 불변 + `TodoCategory` 채움 / N2 그룹·읽음·모두 읽음·클릭 이동 유지 / N3 드롭다운 패널 + "모든 알림 보기" 존치 / N4 `BuildKey` 불변 + 읽음 해제 경로만 추가). `## PRD Coverage`의 "이번 범위 외 (기구현)" 행은 대조 제외. FR-N3 문구의 느슨함은 PRD 수정 승인 대기로 대장 등재.
+- **F-8 미완** — 렌더 육안 확인 9항목이 사용자 확인 대기. 완료 선언은 그 뒤.
+- **F-6.5 대장 반영: 등재 2 / 종결 3 / 합산 1** — 신규 2건(PRD FR-N3 문구 · 팝업 전체 표시 성능), 종결 3건(알림 배지 상한·요약 개수 / 알림 배지 실시간 갱신 / NotificationPage 시안 대조), 기존 1항목(README·스크린샷)에 이번 분 합산.
