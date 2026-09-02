@@ -141,7 +141,7 @@
 
 ## Tasks
 
-- [ ] T1. **상대시간·상세 화면 문구 resw 등록 (ko/en 양쪽)** — Type **B**
+- [x] T1. **상대시간·상세 화면 문구 resw 등록 (ko/en 양쪽)** — Type **B**
   - Files: `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`
   - 신규 8키 — **전부 코드에서 `LocalizationService.Get()`으로 소비하므로 베어네임**(접미 없음)이다(AGENTS.md 함정 3: `x:Uid` 소비만 `.Text` 접미가 필요하고, 접미를 잘못 붙이면 빌드는 통과하면서 빈 라벨이 된다). 뒤로 라벨을 `x:Uid`가 아니라 코드로 채우는 이유는 **선례가 그렇기 때문**이다 — `HistoryDialog.xaml:325`가 "아이콘과 함께 놓아야 해서 x:Uid 미사용"이라 명시하고 `.xaml.cs:79`에서 `BackText.Text`를 채운다.
 
@@ -266,7 +266,9 @@
 - [x] **Q4. README:32의 어긋난 서술을 이번에 고칠 것인가** (4-E 선택 동반 변경 — 채택하지 않아도 요청은 성립) — A) 함께 수정 / B) 이번 제외(Deferred). → **사용자 선택: A → T3 신설**.
 
 ## Progress Log
-(구현 중 갱신)
+- **T1 완료** (Type B): resw ko/en 각 447 → 455건(대칭), 신규 8키 전부 베어네임. spec-prefilter **PASS**.
+  - V-7 연결 확인: 신규 8키의 코드 참조 0건 → **ⓑ 분기(T2가 연결 예정)**. T2에서 `LocalizationService.Get()`·`BackText.Text`로 소비된다.
+  - 결정: 뒤로 라벨을 `x:Uid`가 아니라 코드로 채우기로 확정(선례 `HistoryDialog.xaml.cs:79`) — 계획 리뷰 M1 반영분.
 
 ## Phase Ledger
 (구현 중 갱신)

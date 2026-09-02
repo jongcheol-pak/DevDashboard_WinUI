@@ -317,6 +317,14 @@
   <data name="GitErrorBar.Title" xml:space="preserve"><value>Error</value></data>
   <data name="GitCommitHistoryLabel.Text" xml:space="preserve"><value>Recent Commits</value></data>
   <data name="NoCommitsText.Text" xml:space="preserve"><value>No commit history.</value></data>
+  <data name="GitRelative_JustNow" xml:space="preserve"><value>just now</value></data>
+  <data name="GitRelative_MinuteFormat" xml:space="preserve"><value>{0} minute ago</value></data>
+  <data name="GitRelative_MinutesFormat" xml:space="preserve"><value>{0} minutes ago</value></data>
+  <data name="GitRelative_HourFormat" xml:space="preserve"><value>{0} hour ago</value></data>
+  <data name="GitRelative_HoursFormat" xml:space="preserve"><value>{0} hours ago</value></data>
+  <data name="GitRelative_DayFormat" xml:space="preserve"><value>{0} day ago</value></data>
+  <data name="GitRelative_DaysFormat" xml:space="preserve"><value>{0} days ago</value></data>
+  <data name="GitDetail_Back" xml:space="preserve"><value>Back</value></data>
 
   <!-- ===== XAML x:Uid — HistoryDialog ===== -->
 

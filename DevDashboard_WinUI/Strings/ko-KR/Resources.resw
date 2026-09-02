@@ -317,6 +317,14 @@
   <data name="GitErrorBar.Title" xml:space="preserve"><value>오류</value></data>
   <data name="GitCommitHistoryLabel.Text" xml:space="preserve"><value>최근 커밋</value></data>
   <data name="NoCommitsText.Text" xml:space="preserve"><value>커밋 기록이 없습니다.</value></data>
+  <data name="GitRelative_JustNow" xml:space="preserve"><value>방금 전</value></data>
+  <data name="GitRelative_MinuteFormat" xml:space="preserve"><value>{0}분 전</value></data>
+  <data name="GitRelative_MinutesFormat" xml:space="preserve"><value>{0}분 전</value></data>
+  <data name="GitRelative_HourFormat" xml:space="preserve"><value>{0}시간 전</value></data>
+  <data name="GitRelative_HoursFormat" xml:space="preserve"><value>{0}시간 전</value></data>
+  <data name="GitRelative_DayFormat" xml:space="preserve"><value>{0}일 전</value></data>
+  <data name="GitRelative_DaysFormat" xml:space="preserve"><value>{0}일 전</value></data>
+  <data name="GitDetail_Back" xml:space="preserve"><value>목록</value></data>
 
   <!-- ===== XAML x:Uid — HistoryDialog ===== -->
 
