@@ -27,11 +27,16 @@ public sealed partial class NotificationPage : UserControl
     private static readonly SolidColorBrush _dueTodayBrush = new(ColorHelper.FromArgb(0xFF, 0xE8, 0xB4, 0x5A));
     private static readonly SolidColorBrush _imminentBrush = new(ColorHelper.FromArgb(0xFF, 0x5A, 0xA3, 0xE8));
 
+    // 행 마우스 오버 테두리 #3D3D45 (시안 style-hover). 기본 테두리는 항목 뷰모델의 RowBorder가 갖고,
+    // 복귀는 ClearValue로 XAML 바인딩을 되살려 기본색 사본을 여기 두지 않는다.
+    private static readonly SolidColorBrush _rowHoverBorderBrush = new(ColorHelper.FromArgb(0xFF, 0x3D, 0x3D, 0x45));
+
     // 헤더·툴팁 (x:Bind 정적 참조)
     public static string PageTitle { get; } = LocalizationService.Get("Notification_Title");
     public static string BackText { get; } = LocalizationService.Get("Notification_Back");
     public static string MarkAllText { get; } = LocalizationService.Get("Notification_MarkAll");
     public static string EmptyText { get; } = LocalizationService.Get("Notification_Empty");
+    public static string EmptyHintText { get; } = LocalizationService.Get("Notification_EmptyHint");
     public static string MarkReadTooltip { get; } = LocalizationService.Get("Notification_MarkRead_Tooltip");
 
     private static readonly string _duePrefix = LocalizationService.Get("Notification_DuePrefix");
@@ -72,10 +77,24 @@ public sealed partial class NotificationPage : UserControl
             Vm.OpenTaskCommand.Execute(item);
     }
 
-    /// <summary>항목 읽음 처리 버튼.</summary>
-    private void MarkRead_Click(object sender, RoutedEventArgs e)
+    /// <summary>항목 읽음 토글 버튼(읽음 ↔ 안읽음 양방향 — 시안 readBtn).</summary>
+    private void ReadToggle_Click(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement { Tag: NotificationItemViewModel item })
-            Vm.MarkReadCommand.Execute(item);
+            Vm.ToggleReadCommand.Execute(item);
+    }
+
+    /// <summary>행에 마우스를 올리면 테두리를 밝힌다(시안 style-hover).</summary>
+    private void Row_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border border)
+            border.BorderBrush = _rowHoverBorderBrush;
+    }
+
+    /// <summary>행에서 마우스가 벗어나면 기본 테두리로 되돌린다(로컬 값을 지우면 XAML 바인딩이 되살아난다).</summary>
+    private void Row_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border border)
+            border.ClearValue(Border.BorderBrushProperty);
     }
 }

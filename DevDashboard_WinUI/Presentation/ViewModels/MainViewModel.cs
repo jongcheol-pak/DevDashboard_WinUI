@@ -747,6 +747,16 @@ public partial class MainViewModel : ObservableObject
         UnreadNotificationCount = CountUnread();
     }
 
+    /// <summary>단일 알림의 읽음 처리를 해제하고 영속화합니다(읽음 버튼은 토글이라 되돌리는 경로가 필요).</summary>
+    public void UnmarkNotificationRead(Notification notification)
+    {
+        if (notification is null) return;
+        var key = NotificationService.BuildKey(notification);
+        if (_settings.ReadNotificationIds.Remove(key))
+            SaveSettings();
+        UnreadNotificationCount = CountUnread();
+    }
+
     /// <summary>주어진 알림들을 모두 읽음 처리하고 영속화합니다.</summary>
     public void MarkAllNotificationsRead(IEnumerable<Notification> notifications)
     {

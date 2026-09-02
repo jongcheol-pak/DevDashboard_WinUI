@@ -498,12 +498,18 @@
   <data name="Notification_Title" xml:space="preserve"><value>알림</value></data>
   <data name="Notification_Back" xml:space="preserve"><value>대시보드</value></data>
   <data name="Notification_MarkAll" xml:space="preserve"><value>모두 읽음</value></data>
-  <data name="Notification_Empty" xml:space="preserve"><value>마감이 임박한 작업이 없습니다.</value></data>
-  <data name="Notification_DuePrefix" xml:space="preserve"><value>마감</value></data>
+  <data name="Notification_Empty" xml:space="preserve"><value>마감된 작업이 없습니다.</value></data>
+  <data name="Notification_EmptyHint" xml:space="preserve"><value>종료일이 지난 미완료 작업이 여기에 표시됩니다.</value></data>
+  <data name="Notification_UnreadFormat" xml:space="preserve"><value>읽지 않음 {0}건</value></data>
+  <data name="Notification_DuePrefix" xml:space="preserve"><value>종료일</value></data>
+  <data name="Notification_Badge_Overdue" xml:space="preserve"><value>{0}일 경과</value></data>
+  <data name="Notification_Badge_DueToday" xml:space="preserve"><value>오늘 마감</value></data>
+  <data name="Notification_Badge_Imminent" xml:space="preserve"><value>D{0}</value></data>
   <data name="Notification_Deadline_Imminent" xml:space="preserve"><value>임박</value></data>
   <data name="Notification_Deadline_DueToday" xml:space="preserve"><value>오늘 마감</value></data>
   <data name="Notification_Deadline_Overdue" xml:space="preserve"><value>경과</value></data>
-  <data name="Notification_MarkRead_Tooltip" xml:space="preserve"><value>읽음 처리</value></data>
+  <data name="Notification_MarkRead_Tooltip" xml:space="preserve"><value>읽음으로 표시</value></data>
+  <data name="Notification_MarkUnread_Tooltip" xml:space="preserve"><value>읽지 않음으로 표시</value></data>
   <data name="Notification_Header_Tooltip" xml:space="preserve"><value>알림</value></data>
   <data name="Notification_ViewAll" xml:space="preserve"><value>모든 알림 보기</value></data>
   <data name="CardPlaceholder_DescAndTags.Text" xml:space="preserve"><value>설명·태그 추가</value></data>

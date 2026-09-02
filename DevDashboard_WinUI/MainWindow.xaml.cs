@@ -586,6 +586,7 @@ public sealed partial class MainWindow : WindowEx
             _viewModel.GetCurrentNotifications(),
             _viewModel.GetReadKeys(),
             n => _viewModel.MarkNotificationRead(n),
+            n => _viewModel.UnmarkNotificationRead(n),
             ns => _viewModel.MarkAllNotificationsRead(ns),
             NavigateToProjectTasks);
         ShowPage(new NotificationPage(vm));

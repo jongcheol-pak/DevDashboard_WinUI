@@ -498,12 +498,18 @@
   <data name="Notification_Title" xml:space="preserve"><value>Notifications</value></data>
   <data name="Notification_Back" xml:space="preserve"><value>Dashboard</value></data>
   <data name="Notification_MarkAll" xml:space="preserve"><value>Mark all read</value></data>
-  <data name="Notification_Empty" xml:space="preserve"><value>No upcoming deadlines.</value></data>
-  <data name="Notification_DuePrefix" xml:space="preserve"><value>Due</value></data>
+  <data name="Notification_Empty" xml:space="preserve"><value>No overdue tasks.</value></data>
+  <data name="Notification_EmptyHint" xml:space="preserve"><value>Unfinished tasks past their due date appear here.</value></data>
+  <data name="Notification_UnreadFormat" xml:space="preserve"><value>{0} unread</value></data>
+  <data name="Notification_DuePrefix" xml:space="preserve"><value>Due date</value></data>
+  <data name="Notification_Badge_Overdue" xml:space="preserve"><value>{0} days overdue</value></data>
+  <data name="Notification_Badge_DueToday" xml:space="preserve"><value>Due today</value></data>
+  <data name="Notification_Badge_Imminent" xml:space="preserve"><value>D{0}</value></data>
   <data name="Notification_Deadline_Imminent" xml:space="preserve"><value>Soon</value></data>
   <data name="Notification_Deadline_DueToday" xml:space="preserve"><value>Due today</value></data>
   <data name="Notification_Deadline_Overdue" xml:space="preserve"><value>Overdue</value></data>
   <data name="Notification_MarkRead_Tooltip" xml:space="preserve"><value>Mark as read</value></data>
+  <data name="Notification_MarkUnread_Tooltip" xml:space="preserve"><value>Mark as unread</value></data>
   <data name="Notification_Header_Tooltip" xml:space="preserve"><value>Notifications</value></data>
   <data name="Notification_ViewAll" xml:space="preserve"><value>View all notifications</value></data>
   <data name="CardPlaceholder_DescAndTags.Text" xml:space="preserve"><value>Add description · tags</value></data>
