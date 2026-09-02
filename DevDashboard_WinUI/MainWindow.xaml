@@ -157,9 +157,11 @@
                                         <ItemsControl ItemsSource="{Binding Items}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
+                                                    <!-- 행 구분선 #232328은 팝업 배경(#1C1C20)보다 밝은 시안 전용 값이라
+                                                         팔레트에 대응 토큰이 없다(가장 가까운 AppBorderBrush는 #26262C). -->
                                                     <Border Padding="18,13"
                                                             BorderThickness="0,0,0,1"
-                                                            BorderBrush="{ThemeResource AppSurfaceBrush}"
+                                                            BorderBrush="#FF232328"
                                                             Background="Transparent"
                                                             Tag="{Binding}"
                                                             Tapped="NotificationRow_Tapped"
@@ -242,7 +244,7 @@
                                             Background="Transparent"
                                             BorderThickness="0,1,0,0"
                                             BorderBrush="{ThemeResource AppBorderBrush}"
-                                            FontSize="12.5"
+                                            FontSize="12.5" FontWeight="Medium"
                                             Click="ViewAllNotifications_Click" />
                                 </Grid>
                             </Flyout>
@@ -255,9 +257,10 @@
                                     HorizontalAlignment="Right" VerticalAlignment="Top"
                                     Margin="0,-3,-3,0"
                                     Visibility="{Binding HasUnreadNotifications, Converter={StaticResource BoolToVisibility}}">
+                                <!-- 글자색 #1D1113은 코랄 배지 위에서만 쓰는 시안 전용 값이라 팔레트에 없다. -->
                                 <TextBlock Text="{Binding UnreadNotificationBadge}"
                                            FontSize="10" FontWeight="Bold"
-                                           Foreground="{ThemeResource AppBgBrush}"
+                                           Foreground="#FF1D1113"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                         </Grid>
