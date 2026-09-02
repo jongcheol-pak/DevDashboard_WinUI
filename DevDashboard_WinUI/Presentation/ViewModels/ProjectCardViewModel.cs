@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevDashboard.Infrastructure.Services;
 using DevDashboard.Presentation.Converters;
-using DevDashboard.Presentation.Models;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace DevDashboard.Presentation.ViewModels;
@@ -72,9 +71,9 @@ public partial class ProjectCardViewModel : ObservableObject
     [ObservableProperty]
     public partial string GitBranch { get; set; } = string.Empty;
 
-    /// <summary>날짜별로 그룹화된 커밋 목록</summary>
+    /// <summary>최신순 커밋 목록</summary>
     [ObservableProperty]
-    public partial IReadOnlyList<GitCommitGroup> GitCommitGroups { get; set; } = [];
+    public partial IReadOnlyList<GitCommit> GitCommits { get; set; } = [];
 
     // --- 커맨드 스크립트 슬롯별 설정 상태 ---
 
@@ -316,16 +315,9 @@ public partial class ProjectCardViewModel : ObservableObject
         if (!string.IsNullOrWhiteSpace(branchError)) return branchError;
 
         GitBranch = string.IsNullOrWhiteSpace(branch) ? "(detached HEAD)" : branch;
-        GitCommitGroups = GroupCommitsByDate(commits);
+        // git log가 이미 최신순으로 주므로 다시 정렬하지 않는다
+        GitCommits = commits;
         return null;
-    }
-
-    private static IReadOnlyList<GitCommitGroup> GroupCommitsByDate(IReadOnlyList<GitCommit> commits)
-    {
-        return [.. commits
-            .GroupBy(c => c.Date.LocalDateTime.Date)
-            .OrderByDescending(g => g.Key)
-            .Select(g => new GitCommitGroup(g.Key.ToString("yyyy-MM-dd"), g))];
     }
 
     private static string? ResolveWorkingDirectory(string path)
