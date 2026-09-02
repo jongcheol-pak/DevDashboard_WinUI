@@ -719,10 +719,15 @@ public partial class MainViewModel : ObservableObject
     /// <summary>알림 감지용 — 모든 프로젝트의 Todos를 DB에서 로드하여 반환합니다(GetAllProjectItemsWithHistories의 Todos판).</summary>
     public List<ProjectItem> GetAllProjectItemsWithTodos()
     {
-        var items = _allCards.Select(c => c.ToModel()).ToList();
-        foreach (var item in items)
-            item.Todos = _projectRepository.GetTodos(item.Id);
-        return items;
+        // 카드가 이미 읽어 둔 Todos를 그대로 쓴다(EnsureTodosLoaded는 로드된 카드에서 즉시 반환).
+        // 매번 DB를 다시 읽으면 작업을 하나 고칠 때마다 프로젝트 수만큼 연결·쿼리가 생긴다 —
+        // 알림 재집계가 작업 편집마다 일어나게 된 뒤로는 그 비용이 그대로 편집 지연이 된다.
+        // 작업 페이지는 카드와 같은 ProjectItem 인스턴스를 고치므로 메모리 값이 항상 최신이고,
+        // DB를 바꾸는 경로(가져오기·프로젝트 교체)는 카드를 새로 만들어 다시 읽게 한다.
+        foreach (var card in _allCards)
+            card.EnsureTodosLoaded();
+
+        return _allCards.Select(c => c.ToModel()).ToList();
     }
 
     /// <summary>전체 프로젝트의 마감 알림을 재계산하고 안읽음 개수를 갱신합니다.

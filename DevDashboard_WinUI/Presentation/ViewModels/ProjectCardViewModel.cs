@@ -565,7 +565,8 @@ public partial class ProjectCardViewModel : ObservableObject
         return new TaskPageViewModel(_item, _repository, _settings, RefreshTodoCardState);
     }
 
-    /// <summary>작업 페이지에서 작업이 변경된 뒤 카드의 진행 중 표시(HasInProgressTodo)를 갱신합니다.</summary>
+    /// <summary>작업 페이지에서 작업이 변경된 뒤 카드의 진행 중 표시(HasInProgressTodo)를 갱신하고,
+    /// <see cref="TodosChanged"/>로 메인의 마감 알림 재집계를 트리거합니다(헤더 안읽음 배지 갱신).</summary>
     private void RefreshTodoCardState()
     {
         _item.HasActiveTodo = _item.Todos?.Any(t => !t.IsCompleted) == true;
