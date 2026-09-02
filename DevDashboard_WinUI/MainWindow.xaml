@@ -152,7 +152,11 @@
                                     </Grid>
 
                                     <!-- 알림 목록 (전체 표시 — 패널 높이를 넘으면 이 영역만 스크롤) -->
+                                    <!-- 가로 스크롤을 꺼야 한다 — 켜져 있으면 ScrollViewer가 자식에게 무한 가로 공간을 줘서
+                                         행의 제목·부제가 접히지 않고, 그만큼 팝업 폭을 넘겨 읽음 버튼이 잘린다. -->
                                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollMode="Disabled"
+                                                  HorizontalScrollBarVisibility="Disabled"
                                                   Visibility="{Binding HasNotifications, Converter={StaticResource BoolToVisibility}}">
                                         <ItemsControl ItemsSource="{Binding Items}">
                                             <ItemsControl.ItemTemplate>
