@@ -68,8 +68,6 @@
   <data name="GroupDialog_TitleEdit" xml:space="preserve"><value>Edit Group</value></data>
   <data name="GroupDialog_NameRequired" xml:space="preserve"><value>Please enter a group name.</value></data>
   <data name="GroupDialog_DuplicateFormat" xml:space="preserve"><value>A group named '{0}' already exists.</value></data>
-  <data name="HistoryDialog_TitleFormat" xml:space="preserve"><value>Work History — {0}</value></data>
-  <data name="HistoryDialog_TitleRequired" xml:space="preserve"><value>Please enter a title.</value></data>
   <data name="HistoryDialog_MarkdownType" xml:space="preserve"><value>Markdown</value></data>
   <data name="ProjectHistoryDialog_TitleRequired" xml:space="preserve"><value>Please enter a title.</value></data>
   <data name="ProjectSettingsDialog_TitleAdd" xml:space="preserve"><value>Add Project</value></data>
@@ -120,7 +118,7 @@
   <data name="AllHistoryButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>All Work History</value></data>
   <data name="AppSettingsBtn.[ToolTipService.ToolTip]" xml:space="preserve"><value>App Settings</value></data>
   <data name="NewProjectText.Text" xml:space="preserve"><value>New Project</value></data>
-  <data name="AllGroupTab.Content" xml:space="preserve"><value>All</value></data>
+  <data name="AllGroupTabLabel.Text" xml:space="preserve"><value>All</value></data>
   <data name="GroupTabRenameItem.Text" xml:space="preserve"><value>Rename</value></data>
   <data name="GroupTabDeleteItem.Text" xml:space="preserve"><value>Delete</value></data>
   <data name="AddGroupButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>Add Group</value></data>
@@ -145,6 +143,20 @@
   <data name="HistoryButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>Work History</value></data>
   <data name="TerminalButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>Open Terminal</value></data>
   <data name="TerminalPowerShellMenuItem.Text" xml:space="preserve"><value>Run PowerShell</value></data>
+  <!-- Card "more" menu -->
+  <data name="CardMenu_Run.Text" xml:space="preserve"><value>Run</value></data>
+  <data name="CardMenu_OpenFolder.Text" xml:space="preserve"><value>Open folder</value></data>
+  <data name="CardMenu_Terminal.Text" xml:space="preserve"><value>Terminal</value></data>
+  <data name="CardMenu_TerminalDefault.Text" xml:space="preserve"><value>Default terminal</value></data>
+  <data name="CardMenu_TerminalPowerShell.Text" xml:space="preserve"><value>PowerShell</value></data>
+  <data name="CardMenu_GitStatus.Text" xml:space="preserve"><value>Git history</value></data>
+  <data name="CardMenu_Memo" xml:space="preserve"><value>Memo</value></data>
+  <data name="CardMenu_MemoView" xml:space="preserve"><value>View memo</value></data>
+  <data name="CardMenu_History.Text" xml:space="preserve"><value>Work history</value></data>
+  <data name="CardMenu_Settings.Text" xml:space="preserve"><value>Project settings</value></data>
+  <data name="CardMenu_Delete.Text" xml:space="preserve"><value>Delete</value></data>
+  <data name="ToolTip_More" xml:space="preserve"><value>More</value></data>
+  <data name="ToolTip_AddScript" xml:space="preserve"><value>Add script</value></data>
   <data name="AddNewProjectText.Text" xml:space="preserve"><value>Add New Project</value></data>
   <data name="LoadingText.Text" xml:space="preserve"><value>Loading...</value></data>
 
@@ -214,6 +226,8 @@
   <data name="ProjGroupCombo.PlaceholderText" xml:space="preserve"><value>Select group</value></data>
   <data name="ProjCategoryLabel.Text" xml:space="preserve"><value>Category *</value></data>
   <data name="ProjCategoryCombo.PlaceholderText" xml:space="preserve"><value>Select category</value></data>
+  <data name="ProjHeaderColorLabel.Text" xml:space="preserve"><value>Card header color</value></data>
+  <data name="ProjHeaderColorAuto" xml:space="preserve"><value>Automatic (based on project name)</value></data>
   <data name="ProjDevToolLabel.Text" xml:space="preserve"><value>Dev Tool *</value></data>
   <data name="ProjDevToolCombo.PlaceholderText" xml:space="preserve"><value>Select dev tool</value></data>
   <data name="ProjCommandLabel.Text" xml:space="preserve"><value>Command *</value></data>
@@ -295,28 +309,45 @@
   <data name="TodoStatusChangeConfirmMessage" xml:space="preserve"><value>Do you want to change the status?</value></data>
 
   <!-- ===== XAML x:Uid — GitStatusDialog ===== -->
-  <data name="GitStatusDialog_TitleFormat" xml:space="preserve"><value>Git Status — {0}</value></data>
+  <data name="GitStatusDialog_TitleFormat" xml:space="preserve"><value>Git History — {0}</value></data>
   <data name="GitPathNotResolved" xml:space="preserve"><value>Cannot resolve project path.</value></data>
   <data name="GitStatusDialog.Title" xml:space="preserve"><value>Git Status</value></data>
   <data name="GitStatusDialog.CloseButtonText" xml:space="preserve"><value>Close</value></data>
-  <data name="GitLoadingText.Text" xml:space="preserve"><value>Loading Git status...</value></data>
+  <data name="GitLoadingText.Text" xml:space="preserve"><value>Loading Git history...</value></data>
   <data name="GitErrorBar.Title" xml:space="preserve"><value>Error</value></data>
-  <data name="GitCommitHistoryLabel.Text" xml:space="preserve"><value>Recent Commits</value></data>
   <data name="NoCommitsText.Text" xml:space="preserve"><value>No commit history.</value></data>
+  <data name="GitRelative_JustNow" xml:space="preserve"><value>just now</value></data>
+  <data name="GitRelative_MinuteFormat" xml:space="preserve"><value>{0} minute ago</value></data>
+  <data name="GitRelative_MinutesFormat" xml:space="preserve"><value>{0} minutes ago</value></data>
+  <data name="GitRelative_HourFormat" xml:space="preserve"><value>{0} hour ago</value></data>
+  <data name="GitRelative_HoursFormat" xml:space="preserve"><value>{0} hours ago</value></data>
+  <data name="GitRelative_DayFormat" xml:space="preserve"><value>{0} day ago</value></data>
+  <data name="GitRelative_DaysFormat" xml:space="preserve"><value>{0} days ago</value></data>
+  <data name="GitDetail_Back" xml:space="preserve"><value>Back</value></data>
 
   <!-- ===== XAML x:Uid — HistoryDialog ===== -->
 
+  <data name="HistoryDialog_Header.Text" xml:space="preserve"><value>Work history</value></data>
+  <data name="HistoryForm_Back" xml:space="preserve"><value>List</value></data>
+  <data name="HistoryForm_AddHeader" xml:space="preserve"><value>Add entry</value></data>
+  <data name="HistoryForm_TitleLabel.Text" xml:space="preserve"><value>Title</value></data>
+  <data name="HistoryForm_TitleBox.PlaceholderText" xml:space="preserve"><value>What did you work on?</value></data>
+  <data name="HistoryForm_DateLabel.Text" xml:space="preserve"><value>Date</value></data>
+  <data name="HistoryForm_TimeLabel.Text" xml:space="preserve"><value>Time</value></data>
+  <data name="HistoryForm_KindLabel.Text" xml:space="preserve"><value>Type</value></data>
+  <data name="HistoryForm_DetailLabel.Text" xml:space="preserve"><value>Details</value></data>
+  <data name="HistoryForm_DetailBox.PlaceholderText" xml:space="preserve"><value>Jot down what you did so it is easy to find later (optional)</value></data>
+  <data name="HistoryEmpty_NoEntries" xml:space="preserve"><value>No work history yet</value></data>
+  <data name="HistoryEmpty_NoSearchResult" xml:space="preserve"><value>No results found</value></data>
+  <data name="HistoryDialog_CountFormat" xml:space="preserve"><value>{0} entries</value></data>
   <data name="HistorySearchBox.PlaceholderText" xml:space="preserve"><value>Search...</value></data>
-  <data name="AddHistoryBtn.Content" xml:space="preserve"><value>Add New</value></data>
-  <data name="HistoryAddNewHeader.Text" xml:space="preserve"><value>Add New Entry</value></data>
+  <data name="AddHistoryBtn.Content" xml:space="preserve"><value>+ New entry</value></data>
   <data name="HistoryEditHeader" xml:space="preserve"><value>Edit Entry</value></data>
   <data name="AddKindCombo.Header" xml:space="preserve"><value>Kind</value></data>
   <data name="HistoryKind_None" xml:space="preserve"><value>Uncategorized</value></data>
+  <data name="HistoryPage_InfoFormat" xml:space="preserve"><value>Page {0} / {1}</value></data>
   <data name="HistoryPage_PrevPage" xml:space="preserve"><value>Previous page</value></data>
   <data name="HistoryPage_NextPage" xml:space="preserve"><value>Next page</value></data>
-  <data name="AddTitleBox.PlaceholderText" xml:space="preserve"><value>Title (required)</value></data>
-  <data name="AddDescriptionBox.PlaceholderText" xml:space="preserve"><value>Description (optional)</value></data>
-  <data name="EmptyHistoryText.Text" xml:space="preserve"><value>No work history.</value></data>
 
   <!-- ===== XAML x:Uid — ProjectHistoryDialog ===== -->
   <data name="ProjectHistoryDialogTitle" xml:space="preserve"><value>All Work History</value></data>
@@ -404,6 +435,11 @@
   <data name="TestSuiteFilter_All" xml:space="preserve"><value>All</value></data>
   <data name="TestSuitePassCount" xml:space="preserve"><value>{0}/{1} passed</value></data>
   <data name="TestStatusPill_Tooltip" xml:space="preserve"><value>Click to change status (passed → failed → not run)</value></data>
+  <!-- ===== ProjectMemoDialog (card More menu → Memo) ===== -->
+  <data name="ProjectMemo_TitleFormat" xml:space="preserve"><value>{0} — Memo</value></data>
+  <data name="ProjectMemo_Placeholder" xml:space="preserve"><value>Write a memo for this project…</value></data>
+  <data name="ProjectMemo_Delete" xml:space="preserve"><value>Delete memo</value></data>
+
   <data name="TestNote_Tooltip" xml:space="preserve"><value>Note</value></data>
   <data name="TestNote_Title" xml:space="preserve"><value>Add note</value></data>
   <data name="TestNote_Placeholder" xml:space="preserve"><value>Enter a note. Save it empty to remove the note.</value></data>
@@ -470,5 +506,8 @@
   <data name="Notification_MarkRead_Tooltip" xml:space="preserve"><value>Mark as read</value></data>
   <data name="Notification_Header_Tooltip" xml:space="preserve"><value>Notifications</value></data>
   <data name="Notification_ViewAll" xml:space="preserve"><value>View all notifications</value></data>
+  <data name="CardPlaceholder_DescAndTags.Text" xml:space="preserve"><value>Add description · tags</value></data>
+  <data name="CardPlaceholder_Desc.Text" xml:space="preserve"><value>Add description</value></data>
+  <data name="CardPlaceholder_Tags.Text" xml:space="preserve"><value>Add tags</value></data>
 
 </root>

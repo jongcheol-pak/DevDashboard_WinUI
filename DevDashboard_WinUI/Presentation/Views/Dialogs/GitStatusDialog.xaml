@@ -3,8 +3,8 @@
     x:Class="DevDashboard.Presentation.Views.Dialogs.GitStatusDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DevDashboard.Presentation.Views.Dialogs"
     xmlns:models="using:DevDashboard.Domain.ValueObjects"
-    xmlns:pmodels="using:DevDashboard.Presentation.Models"
     CornerRadius="8"
     Opened="OnOpened">
 
@@ -13,116 +13,202 @@
         <x:Double x:Key="ContentDialogMaxWidth">700</x:Double>
         <x:Double x:Key="ContentDialogMaxHeight">700</x:Double>
         <x:Double x:Key="ContentDialogMinHeight">700</x:Double>
+
+        <!-- 팔레트 색은 ThemeDictionaries 안에 있어 코드에서 Application.Current.Resources로 못 꺼낸다.
+             DashboardView 선례대로 뷰 자신의 리소스에 브러시로 별칭을 만들어 코드에서 조회한다. -->
+        <SolidColorBrush x:Key="RowHoverBrush" Color="{ThemeResource AppHoverFillColor}" />
+        <SolidColorBrush x:Key="RowRestBrush" Color="Transparent" />
+        <SolidColorBrush x:Key="Avatar1Brush" Color="{ThemeResource AppInfoColor}" />
+        <SolidColorBrush x:Key="Avatar2Brush" Color="{ThemeResource AppSuccessColor}" />
+        <SolidColorBrush x:Key="Avatar3Brush" Color="{ThemeResource AppWarningColor}" />
+        <SolidColorBrush x:Key="Avatar4Brush" Color="{ThemeResource AppAccentColor}" />
     </ContentDialog.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalAlignment="Stretch" >
-        <StackPanel Spacing="12" Margin="0,0,12,0">
-
-            <!-- 로딩 중 -->
-            <StackPanel
-                x:Name="LoadingPanel"
-                Orientation="Horizontal"
-                Spacing="12"
-                HorizontalAlignment="Center"
-                Padding="0,24">
-                <ProgressRing IsActive="True" Width="24" Height="24" />
-                <TextBlock x:Uid="GitLoadingText" VerticalAlignment="Center" />
-            </StackPanel>
-
-            <!-- 에러 -->
-            <InfoBar
-                x:Name="ErrorBar"
-                x:Uid="GitErrorBar"
-                IsOpen="False"
-                Severity="Error"
-                IsClosable="False" />
-
-            <!-- 로드 완료 패널 -->
-            <StackPanel x:Name="ContentPanel" Spacing="12" Visibility="Collapsed">
-
-                <!-- 브랜치 -->
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon Glyph="&#xF1D3;" FontFamily="Segoe MDL2 Assets" FontSize="16"
-                              Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    <TextBlock x:Name="BranchText"
-                               Style="{StaticResource BodyStrongTextBlockStyle}"
-                               VerticalAlignment="Center" />
-                </StackPanel>
-
-                <Rectangle Style="{StaticResource SeparatorStyle}" />
-
-                <!-- 변경 파일 목록 -->
-                <TextBlock x:Uid="GitCommitHistoryLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
-
-                <ItemsControl x:Name="CommitList">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="pmodels:GitCommitGroup">
-                            <StackPanel Margin="0,0,0,8">
-                                <!-- 날짜 그룹 헤더 -->
-                                <TextBlock
-                                    Text="{x:Bind DateLabel}"
-                                    FontSize="14" FontWeight="SemiBold"
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    Margin="4,4,0,6" />
-
-                                <!-- 그룹 내 커밋 목록 -->
-                                <ItemsControl ItemsSource="{x:Bind Items}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="models:GitCommit">
-                                            <Border
-                                                Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                                                CornerRadius="4"
-                                                Padding="12,8"
-                                                Margin="0,0,0,4">
-                                                <Grid ColumnSpacing="8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <!-- 단축 해시 -->
-                                                    <TextBlock
-                                                        Grid.Column="0"
-                                                        Text="{x:Bind ShortHash}"
-                                                        FontFamily="Consolas"
-                                                        FontSize="11"
-                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                        VerticalAlignment="Top"
-                                                        Margin="0,1,0,0" />
-
-                                                    <!-- 메시지 + 작성자 -->
-                                                    <StackPanel Grid.Column="1" Spacing="2">
-                                                        <TextBlock
-                                                            Text="{x:Bind Message}"
-                                                            FontSize="13"
-                                                            TextWrapping="Wrap" />
-                                                        <TextBlock
-                                                            Text="{x:Bind AuthorName}"
-                                                            FontSize="11"
-                                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                                    </StackPanel>
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-
-                <!-- 커밋 없음 -->
-                <TextBlock
-                    x:Name="NoCommitsText"
-                    x:Uid="NoCommitsText"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    HorizontalAlignment="Center"
-                    Padding="0,24"
-                    Visibility="Collapsed" />
-
-            </StackPanel>
-
+    <Grid>
+        <!-- 로딩 중 -->
+        <StackPanel
+            x:Name="LoadingPanel"
+            Orientation="Horizontal"
+            Spacing="12"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            Padding="0,24">
+            <ProgressRing IsActive="True" Width="24" Height="24" />
+            <TextBlock x:Uid="GitLoadingText" VerticalAlignment="Center" />
         </StackPanel>
-    </ScrollViewer>
+
+        <!-- 에러 -->
+        <InfoBar
+            x:Name="ErrorBar"
+            x:Uid="GitErrorBar"
+            VerticalAlignment="Top"
+            IsOpen="False"
+            Severity="Error"
+            IsClosable="False" />
+
+        <!-- ===== 목록 뷰 ===== -->
+        <Grid x:Name="ListArea" Visibility="Collapsed" RowSpacing="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- 브랜치 -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
+                <FontIcon Glyph="&#xF1D3;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                          Foreground="{ThemeResource AppTextTertiaryBrush}" />
+                <TextBlock x:Name="BranchText"
+                           Style="{StaticResource BodyStrongTextBlockStyle}"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+
+            <Rectangle Grid.Row="1" Style="{StaticResource SeparatorStyle}" />
+
+            <!-- 커밋 목록 -->
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                <Grid Margin="0,0,12,0">
+                    <ItemsControl x:Name="CommitList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:GitCommit">
+                                <!-- 기준 이미지는 카드가 아니라 하단 구분선으로 나뉜 행이다 -->
+                                <Border
+                                    Background="{StaticResource RowRestBrush}"
+                                    BorderBrush="{ThemeResource AppBorderBrush}"
+                                    BorderThickness="0,0,0,1"
+                                    Padding="12,11"
+                                    Tapped="CommitRow_Tapped"
+                                    PointerEntered="CommitRow_PointerEntered"
+                                    PointerExited="CommitRow_PointerExited"
+                                    Tag="{x:Bind}">
+                                    <StackPanel Spacing="5">
+                                        <!-- 제목(메시지 첫 줄) -->
+                                        <TextBlock
+                                            Text="{x:Bind Subject}"
+                                            FontSize="13"
+                                            Foreground="{ThemeResource AppTextPrimaryBrush}"
+                                            MaxLines="1"
+                                            TextTrimming="CharacterEllipsis" />
+
+                                        <!-- 아바타 · 작성자 · 상대시간 · 단축 해시 -->
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <Grid Width="16" Height="16" VerticalAlignment="Center">
+                                                <Ellipse Fill="{x:Bind local:GitStatusDialog.AvatarBrush(AuthorEmail)}" />
+                                                <TextBlock
+                                                    Text="{x:Bind local:GitStatusDialog.AvatarInitial(AuthorName)}"
+                                                    FontSize="9"
+                                                    Foreground="{ThemeResource AppTextPrimaryBrush}"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center" />
+                                            </Grid>
+                                            <TextBlock
+                                                Text="{x:Bind AuthorName}"
+                                                FontSize="11.5"
+                                                Foreground="{ThemeResource AppTextTertiaryBrush}"
+                                                VerticalAlignment="Center" />
+                                            <TextBlock
+                                                Text="·"
+                                                FontSize="11.5"
+                                                Foreground="{ThemeResource AppTextTertiaryBrush}"
+                                                VerticalAlignment="Center" />
+                                            <TextBlock
+                                                Text="{x:Bind local:GitStatusDialog.RelativeTime(Date)}"
+                                                FontSize="11.5"
+                                                Foreground="{ThemeResource AppTextTertiaryBrush}"
+                                                VerticalAlignment="Center" />
+                                            <TextBlock
+                                                Text="·"
+                                                FontSize="11.5"
+                                                Foreground="{ThemeResource AppTextTertiaryBrush}"
+                                                VerticalAlignment="Center" />
+                                            <TextBlock
+                                                Text="{x:Bind ShortHash}"
+                                                FontFamily="Consolas"
+                                                FontSize="11.5"
+                                                Foreground="{ThemeResource AppTextTertiaryBrush}"
+                                                VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- 커밋 없음 -->
+                    <TextBlock
+                        x:Name="NoCommitsText"
+                        x:Uid="NoCommitsText"
+                        Foreground="{ThemeResource AppTextTertiaryBrush}"
+                        HorizontalAlignment="Center"
+                        Padding="0,24"
+                        Visibility="Collapsed" />
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- ===== 상세 뷰 ===== -->
+        <Grid x:Name="DetailArea" Visibility="Collapsed" RowSpacing="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- 뒤로 가기 (라벨은 아이콘과 함께 놓아야 해서 코드비하인드가 채운다 — x:Uid 미사용) -->
+            <Button Grid.Row="0"
+                    Height="32" CornerRadius="8" Padding="12,0"
+                    HorizontalAlignment="Left"
+                    Click="BackToList_Click">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon Glyph="&#xE76B;" FontSize="12" />
+                    <TextBlock x:Name="BackText" FontSize="12" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+
+            <!-- 작성자 헤더 -->
+            <Grid Grid.Row="1" ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Grid Grid.Column="0" Width="40" Height="40" VerticalAlignment="Top">
+                    <Ellipse x:Name="DetailAvatar" />
+                    <TextBlock x:Name="DetailAvatarInitial"
+                               FontSize="16"
+                               Foreground="{ThemeResource AppTextPrimaryBrush}"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Grid>
+
+                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                    <TextBlock x:Name="DetailAuthorText"
+                               FontSize="13" FontWeight="SemiBold"
+                               Foreground="{ThemeResource AppTextPrimaryBrush}"
+                               IsTextSelectionEnabled="True" />
+                    <TextBlock x:Name="DetailMetaText"
+                               FontSize="12"
+                               Foreground="{ThemeResource AppTextTertiaryBrush}"
+                               IsTextSelectionEnabled="True" />
+                </StackPanel>
+            </Grid>
+
+            <!-- 커밋 메시지 전문 -->
+            <Border Grid.Row="2"
+                    Background="{ThemeResource AppInputBrush}"
+                    CornerRadius="8"
+                    Padding="16">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <TextBlock x:Name="DetailMessageText"
+                               FontFamily="Consolas"
+                               FontSize="13"
+                               LineHeight="20"
+                               Foreground="{ThemeResource AppTextPrimaryBrush}"
+                               TextWrapping="Wrap"
+                               IsTextSelectionEnabled="True" />
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
 
 </ContentDialog>

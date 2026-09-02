@@ -68,8 +68,6 @@
   <data name="GroupDialog_TitleEdit" xml:space="preserve"><value>그룹 수정</value></data>
   <data name="GroupDialog_NameRequired" xml:space="preserve"><value>그룹 이름을 입력하세요.</value></data>
   <data name="GroupDialog_DuplicateFormat" xml:space="preserve"><value>'{0}' 이름의 그룹이 이미 존재합니다.</value></data>
-  <data name="HistoryDialog_TitleFormat" xml:space="preserve"><value>작업 기록 — {0}</value></data>
-  <data name="HistoryDialog_TitleRequired" xml:space="preserve"><value>제목을 입력하세요.</value></data>
   <data name="HistoryDialog_MarkdownType" xml:space="preserve"><value>마크다운</value></data>
   <data name="ProjectHistoryDialog_TitleRequired" xml:space="preserve"><value>제목을 입력하세요.</value></data>
   <data name="ProjectSettingsDialog_TitleAdd" xml:space="preserve"><value>프로젝트 추가</value></data>
@@ -120,7 +118,7 @@
   <data name="AllHistoryButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>전체 작업 기록</value></data>
   <data name="AppSettingsBtn.[ToolTipService.ToolTip]" xml:space="preserve"><value>앱 설정</value></data>
   <data name="NewProjectText.Text" xml:space="preserve"><value>새 프로젝트</value></data>
-  <data name="AllGroupTab.Content" xml:space="preserve"><value>전체</value></data>
+  <data name="AllGroupTabLabel.Text" xml:space="preserve"><value>전체</value></data>
   <data name="GroupTabRenameItem.Text" xml:space="preserve"><value>이름 변경</value></data>
   <data name="GroupTabDeleteItem.Text" xml:space="preserve"><value>삭제</value></data>
   <data name="AddGroupButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>그룹 추가</value></data>
@@ -145,6 +143,20 @@
   <data name="HistoryButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>작업 기록</value></data>
   <data name="TerminalButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>터미널 열기</value></data>
   <data name="TerminalPowerShellMenuItem.Text" xml:space="preserve"><value>PowerShell 실행</value></data>
+  <!-- 카드 '더 보기' 메뉴 -->
+  <data name="CardMenu_Run.Text" xml:space="preserve"><value>실행</value></data>
+  <data name="CardMenu_OpenFolder.Text" xml:space="preserve"><value>폴더 열기</value></data>
+  <data name="CardMenu_Terminal.Text" xml:space="preserve"><value>터미널</value></data>
+  <data name="CardMenu_TerminalDefault.Text" xml:space="preserve"><value>기본 터미널</value></data>
+  <data name="CardMenu_TerminalPowerShell.Text" xml:space="preserve"><value>PowerShell</value></data>
+  <data name="CardMenu_GitStatus.Text" xml:space="preserve"><value>Git 기록</value></data>
+  <data name="CardMenu_Memo" xml:space="preserve"><value>메모</value></data>
+  <data name="CardMenu_MemoView" xml:space="preserve"><value>메모 보기</value></data>
+  <data name="CardMenu_History.Text" xml:space="preserve"><value>작업 기록</value></data>
+  <data name="CardMenu_Settings.Text" xml:space="preserve"><value>프로젝트 설정</value></data>
+  <data name="CardMenu_Delete.Text" xml:space="preserve"><value>삭제</value></data>
+  <data name="ToolTip_More" xml:space="preserve"><value>더 보기</value></data>
+  <data name="ToolTip_AddScript" xml:space="preserve"><value>실행 스크립트 추가</value></data>
   <data name="AddNewProjectText.Text" xml:space="preserve"><value>새 프로젝트 추가</value></data>
   <data name="LoadingText.Text" xml:space="preserve"><value>로딩 중...</value></data>
 
@@ -214,6 +226,8 @@
   <data name="ProjGroupCombo.PlaceholderText" xml:space="preserve"><value>그룹 선택</value></data>
   <data name="ProjCategoryLabel.Text" xml:space="preserve"><value>카테고리 *</value></data>
   <data name="ProjCategoryCombo.PlaceholderText" xml:space="preserve"><value>카테고리 선택</value></data>
+  <data name="ProjHeaderColorLabel.Text" xml:space="preserve"><value>카드 헤더 색상</value></data>
+  <data name="ProjHeaderColorAuto" xml:space="preserve"><value>자동 (프로젝트 이름에 따라 배정)</value></data>
   <data name="ProjDevToolLabel.Text" xml:space="preserve"><value>개발 도구 *</value></data>
   <data name="ProjDevToolCombo.PlaceholderText" xml:space="preserve"><value>개발 도구 선택</value></data>
   <data name="ProjCommandLabel.Text" xml:space="preserve"><value>명령어 *</value></data>
@@ -295,28 +309,45 @@
   <data name="TodoStatusChangeConfirmMessage" xml:space="preserve"><value>상태를 변경하시겠습니까?</value></data>
 
   <!-- ===== XAML x:Uid — GitStatusDialog ===== -->
-  <data name="GitStatusDialog_TitleFormat" xml:space="preserve"><value>Git 상태 — {0}</value></data>
+  <data name="GitStatusDialog_TitleFormat" xml:space="preserve"><value>Git 기록 — {0}</value></data>
   <data name="GitPathNotResolved" xml:space="preserve"><value>프로젝트 경로를 확인할 수 없습니다.</value></data>
   <data name="GitStatusDialog.Title" xml:space="preserve"><value>Git 상태</value></data>
   <data name="GitStatusDialog.CloseButtonText" xml:space="preserve"><value>닫기</value></data>
-  <data name="GitLoadingText.Text" xml:space="preserve"><value>Git 상태 불러오는 중...</value></data>
+  <data name="GitLoadingText.Text" xml:space="preserve"><value>Git 기록 불러오는 중...</value></data>
   <data name="GitErrorBar.Title" xml:space="preserve"><value>오류</value></data>
-  <data name="GitCommitHistoryLabel.Text" xml:space="preserve"><value>최근 커밋</value></data>
   <data name="NoCommitsText.Text" xml:space="preserve"><value>커밋 기록이 없습니다.</value></data>
+  <data name="GitRelative_JustNow" xml:space="preserve"><value>방금 전</value></data>
+  <data name="GitRelative_MinuteFormat" xml:space="preserve"><value>{0}분 전</value></data>
+  <data name="GitRelative_MinutesFormat" xml:space="preserve"><value>{0}분 전</value></data>
+  <data name="GitRelative_HourFormat" xml:space="preserve"><value>{0}시간 전</value></data>
+  <data name="GitRelative_HoursFormat" xml:space="preserve"><value>{0}시간 전</value></data>
+  <data name="GitRelative_DayFormat" xml:space="preserve"><value>{0}일 전</value></data>
+  <data name="GitRelative_DaysFormat" xml:space="preserve"><value>{0}일 전</value></data>
+  <data name="GitDetail_Back" xml:space="preserve"><value>목록</value></data>
 
   <!-- ===== XAML x:Uid — HistoryDialog ===== -->
 
+  <data name="HistoryDialog_Header.Text" xml:space="preserve"><value>작업 기록</value></data>
+  <data name="HistoryForm_Back" xml:space="preserve"><value>목록</value></data>
+  <data name="HistoryForm_AddHeader" xml:space="preserve"><value>새 기록 추가</value></data>
+  <data name="HistoryForm_TitleLabel.Text" xml:space="preserve"><value>제목</value></data>
+  <data name="HistoryForm_TitleBox.PlaceholderText" xml:space="preserve"><value>무엇을 작업했나요?</value></data>
+  <data name="HistoryForm_DateLabel.Text" xml:space="preserve"><value>날짜</value></data>
+  <data name="HistoryForm_TimeLabel.Text" xml:space="preserve"><value>시간</value></data>
+  <data name="HistoryForm_KindLabel.Text" xml:space="preserve"><value>유형</value></data>
+  <data name="HistoryForm_DetailLabel.Text" xml:space="preserve"><value>내용</value></data>
+  <data name="HistoryForm_DetailBox.PlaceholderText" xml:space="preserve"><value>작업 내용을 기록해 두면 나중에 찾기 쉽습니다 (선택)</value></data>
+  <data name="HistoryEmpty_NoEntries" xml:space="preserve"><value>작업 기록이 없습니다</value></data>
+  <data name="HistoryEmpty_NoSearchResult" xml:space="preserve"><value>검색 결과가 없습니다</value></data>
+  <data name="HistoryDialog_CountFormat" xml:space="preserve"><value>{0}건</value></data>
   <data name="HistorySearchBox.PlaceholderText" xml:space="preserve"><value>검색...</value></data>
-  <data name="AddHistoryBtn.Content" xml:space="preserve"><value>새 기록 추가</value></data>
-  <data name="HistoryAddNewHeader.Text" xml:space="preserve"><value>새 기록 추가</value></data>
+  <data name="AddHistoryBtn.Content" xml:space="preserve"><value>＋ 새 기록</value></data>
   <data name="HistoryEditHeader" xml:space="preserve"><value>기록 수정</value></data>
   <data name="AddKindCombo.Header" xml:space="preserve"><value>유형</value></data>
   <data name="HistoryKind_None" xml:space="preserve"><value>미분류</value></data>
+  <data name="HistoryPage_InfoFormat" xml:space="preserve"><value>{0} / {1} 페이지</value></data>
   <data name="HistoryPage_PrevPage" xml:space="preserve"><value>이전 페이지</value></data>
   <data name="HistoryPage_NextPage" xml:space="preserve"><value>다음 페이지</value></data>
-  <data name="AddTitleBox.PlaceholderText" xml:space="preserve"><value>제목 (필수)</value></data>
-  <data name="AddDescriptionBox.PlaceholderText" xml:space="preserve"><value>상세 설명 (선택)</value></data>
-  <data name="EmptyHistoryText.Text" xml:space="preserve"><value>작업 기록이 없습니다.</value></data>
 
   <!-- ===== XAML x:Uid — ProjectHistoryDialog ===== -->
   <data name="ProjectHistoryDialogTitle" xml:space="preserve"><value>전체 작업 기록</value></data>
@@ -404,6 +435,11 @@
   <data name="TestSuiteFilter_All" xml:space="preserve"><value>전체</value></data>
   <data name="TestSuitePassCount" xml:space="preserve"><value>{0}/{1} 통과</value></data>
   <data name="TestStatusPill_Tooltip" xml:space="preserve"><value>클릭하면 상태가 바뀝니다 (통과 → 실패 → 미실행)</value></data>
+  <!-- ===== ProjectMemoDialog (카드 더 보기 메뉴 → 메모) ===== -->
+  <data name="ProjectMemo_TitleFormat" xml:space="preserve"><value>{0} — 메모</value></data>
+  <data name="ProjectMemo_Placeholder" xml:space="preserve"><value>프로젝트 메모를 입력하세요…</value></data>
+  <data name="ProjectMemo_Delete" xml:space="preserve"><value>메모 삭제</value></data>
+
   <data name="TestNote_Tooltip" xml:space="preserve"><value>메모</value></data>
   <data name="TestNote_Title" xml:space="preserve"><value>메모 추가</value></data>
   <data name="TestNote_Placeholder" xml:space="preserve"><value>메모를 입력하세요. 비워 두고 저장하면 메모가 삭제됩니다.</value></data>
@@ -470,5 +506,8 @@
   <data name="Notification_MarkRead_Tooltip" xml:space="preserve"><value>읽음 처리</value></data>
   <data name="Notification_Header_Tooltip" xml:space="preserve"><value>알림</value></data>
   <data name="Notification_ViewAll" xml:space="preserve"><value>모든 알림 보기</value></data>
+  <data name="CardPlaceholder_DescAndTags.Text" xml:space="preserve"><value>설명·태그 추가</value></data>
+  <data name="CardPlaceholder_Desc.Text" xml:space="preserve"><value>설명 추가</value></data>
+  <data name="CardPlaceholder_Tags.Text" xml:space="preserve"><value>태그 추가</value></data>
 
 </root>

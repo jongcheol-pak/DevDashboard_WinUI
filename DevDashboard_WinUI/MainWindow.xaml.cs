@@ -359,8 +359,9 @@ public sealed partial class MainWindow : WindowEx
 
     private void GroupTab_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
-        if (sender is FrameworkElement { DataContext: ProjectGroup group })
-            _ = OpenGroupDialogAsync(group);
+        // 탭의 DataContext는 표시용 wrapper(GroupTabViewModel)다
+        if (sender is FrameworkElement { DataContext: GroupTabViewModel tab })
+            _ = OpenGroupDialogAsync(tab.Group);
     }
 
     private async void GroupTabRename_Click(object sender, RoutedEventArgs e)
@@ -403,8 +404,8 @@ public sealed partial class MainWindow : WindowEx
 
     private static ProjectGroup? GetGroupFromMenuFlyoutItem(object sender)
     {
-        if (sender is MenuFlyoutItem { DataContext: ProjectGroup group })
-            return group;
+        if (sender is MenuFlyoutItem { DataContext: GroupTabViewModel tab })
+            return tab.Group;
         return null;
     }
 
@@ -863,9 +864,6 @@ public sealed partial class MainWindow : WindowEx
     }
 
     // ─── 프로젝트 추가/편집 ──────────────────────────────────────────────
-
-    private void AddProjectButton_Click(object sender, RoutedEventArgs e)
-        => _ = OpenProjectSettingsDialogAsync(null);
 
     private void OnAddProjectRequested(object? sender, EventArgs e)
         => _ = OpenProjectSettingsDialogAsync(null);

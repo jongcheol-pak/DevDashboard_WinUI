@@ -1,231 +1,307 @@
-# plan.md — 테스트 화면(TestPage) "연결된 작업" 배지 추가
+# plan.md — Git 상태 다이얼로그: 커밋 목록 + 상세 페이지 2단 구조 개편
 
-**PRD**: docs/prd.md (FR-E4 테스트↔작업 연결 배지·링크)
-**기준 디자인**: `docs/DevDashboard WinUI/DevDashboard Redesign.dc.html` — 테스트 목록 페이지의 링크 배지 마크업(261~266줄) + 데이터 정의(`hasLink`/`link`, 1078줄) + 링크 값의 출처(1508줄 `link: title`)
-**사용자 제공 렌더 이미지**: 배지가 실제로 그려진 화면(파란 테두리 pill + 링크 아이콘 + 텍스트) — 2026-07-22
+**기준 이미지**: 사용자 제공 2장(2026-09-02)을 레포에 고정했다 — ① `docs/design/uploads/git-status-commit-list.png`(GitHub 커밋 목록 스타일: 제목 1줄 + 아바타·작성자·상대시간·단축해시 1줄, 날짜 그룹 없음) ② `docs/design/uploads/git-status-commit-detail.png`(커밋 상세: 아바타 + 작성자명 + 커밋일자 · 이메일 헤더 + 메시지 전문). **대화에만 있던 이미지는 후속 세션이 대조할 수 없어** 계획 단계에서 파일로 남긴다. `## 시각 요소 분해` 참조.
+**PRD**: 연결 없음 — `docs/prd.md`의 active FR 중 Git 상태 다이얼로그 **자체**를 규정한 항목이 없다(FR-D3이 "더 보기 메뉴에 Git 상태를 넣는다"고만 언급하며, 이번 변경은 그 메뉴 항목 존재를 건드리지 않는다). Step 1 경량 확인 결과 닿는 FR 0건이라 `**PRD**:` 연결을 만들지 않는다.
 
 ## 요구 이해
 
-> 원문(사용자, 2026-07-22): "테스트↔작업 연결 배지 시안이 이미지처럼 되어 있는데 다시 확인해서 추가해놔" (+ 테스트 화면 스크린샷 1장)
+> 원문(사용자, 2026-09-02): "git 상태 화면에서 1번 이미지처럼 목록을 표시하고 클릭시 페이지 전환을 해서 2번 화면처럼 내용을 표시 하도록 수정해줘"
 
 이해한 요구:
-- 직전 작업 보고에서 "FR-E4 연결 배지의 화면 표현이 사라졌다"고 했는데, **시안에는 테스트 화면 쪽에 연결 배지가 실재**하므로 그것을 구현하라는 지시다. 사용자가 제공한 이미지는 **테스트 화면(TestPage)**이며(폴더 아이콘 + "UI·UX" + "0/1 통과" = 스위트 헤더), 테스트 항목 이름 아래에 **링크 아이콘 + 텍스트**의 파란 테두리 pill이 붙어 있다.
-- 시안 원본에서 이 배지는 `t.hasLink`일 때만 표시되며 내용은 **연결된 작업의 제목**(`link: title`, 1508줄)이다 — 즉 **테스트 → 작업 방향**의 표시다.
-- 현행 코드는 `TodoItem.LinkedTestId`(작업 → 테스트) **단방향**이라 테스트에서 작업 제목을 얻으려면 **역참조 조회**가 필요하다. 이것이 대장의 `[테스트→작업 역방향 링크/배지]` 항목이며, 이번에 재수용한다.
-- 이번 범위는 **연결 배지 하나**다. 시안 같은 행에 있는 방법(`t.method`)·에러(`t.error`) 표시는 사용자가 지목하지 않았으므로 이번에 하지 않는다(각각 대장 유지).
-
-## Goal
-
-테스트 항목 행에 **연결된 작업 제목**을 시안(261~266줄)과 같은 파란 테두리 pill로 표시해, 테스트에서 어느 작업과 연결됐는지 화면에서 확인할 수 있게 한다. PRD FR-E4의 "연결 배지" 몫을 테스트 쪽에서 충족한다.
+- **① 목록 restyle**: 현행 Git 상태 화면의 커밋 목록을 참고 이미지 ①처럼 바꾼다 — 커밋 **제목(첫 줄)**을 큰 글씨 1줄로, 그 아래 **아바타 · 작성자 · 상대시간 · 단축해시**를 작은 글씨 1줄로. 현행의 **날짜 그룹 헤더는 제거**하고 최신순 평면 목록으로 만든다(사용자 확정 Q3).
+- **② 상세 전환**: 목록 항목을 클릭하면 **같은 다이얼로그 안에서** 상세 화면으로 전환된다(새 창·중첩 다이얼로그가 아니다 — WinUI 3은 중첩 ContentDialog를 지원하지 않고, 레포에 `HistoryDialog`의 목록↔폼 뷰 전환 선례가 있다).
+- **③ 상세 내용**: 참고 이미지 ②처럼 **아바타 + 작성자명 + 커밋일자 · 이메일** 헤더와 **커밋 메시지 전문**을 표시하고, 목록으로 돌아가는 버튼을 둔다. 전문은 **줄번호 없이 모노스페이스 블록 하나**로 그려 본문 전체를 한 번에 드래그 선택·복사할 수 있게 한다(사용자 확정 Q2 — 줄 단위로 쪼개면 WinUI 제약상 한 줄 안에서만 선택된다).
+- **아바타는 이니셜 원형**이다(사용자 확정 Q1). 로컬 `git log`는 작성자 이름·이메일까지만 주므로 참고 이미지의 GitHub 프로필 사진은 원리상 재현할 수 없고, 네트워크(Gravatar)로 가져오는 방식은 작성자 이메일을 외부로 보내게 되므로 택하지 않았다.
 
 ## Investigation Log (근거)
 
-### 문서·대장
-- **위키 참조**: vault 미설정 — 코드 1차 출처로 진행.
-- **AGENTS.md 신선도 점검**: 이번에 참조하는 경로(`Domain/Entities/{TestItem,TodoItem}.cs`·`Presentation/ViewModels/TestPageViewModel.cs`·`Presentation/Views/TestPage.xaml`·`Resources/Converters.xaml`) 전부 실재. 빌드 명령·`DevDashboard.csproj`도 실재. 어긋남 0건.
-  - 관련 함정 직결: **5**(x:Bind **함수 바인딩**은 Converter를 못 받음 — 단 **일반 x:Bind는 Converter 사용 가능**하며 `TaskPage.xaml`의 `{x:Bind Description, Converter={StaticResource StringNotEmptyToVisibility}}`가 그 선례다)·**11**(공용 DataTemplate 소비처 전수 확인).
-  - **AGENTS.md 경고 baseline stale**(대장 등재분): 실측 상시 경고는 `CS0618` 1건이며 문서의 "NU1903 1 + CS0612 4"와 다르다 — 이번 plan의 "신규 경고 0" 판정은 **실측 baseline(CS0618 1건)** 기준으로 한다.
-- **Deferred 대장 확인**(`docs/plans/deferred.md`):
-  - **`[테스트→작업 역방향 링크/배지]`(FR-E4 확장) — 이번 작업이 이 항목의 재수용이다.** 원문: "테스트 목록에서 연결된 작업 배지/링크 표시. 현재 TodoItem.LinkedTestId 단방향만. TestItem→Todo 역참조 조회 필요. 사용자 결정으로 Phase 3 제외." 요구·기술 판단이 이번 요청과 정확히 일치한다 → 완료 시 `## 종결`로 이동.
-  - `[FR-E4 작업별 연결 배지 표시 소멸]`(2026-07-22 등재) — 그건 **작업 화면(TaskPage) 쪽** 몫(`TodoItem.LinkedTestBadge`)이라 이번 작업과 **별개**다. 이번 구현은 반대 방향(테스트→작업)이므로 그 항목은 대장에 그대로 유지한다.
-  - `[PRD FR-E4 문구가 구현과 어긋남 — 사용자 승인 대기]` — 이번 구현으로 FR-E4의 "연결 배지"가 **테스트 쪽에서 충족**되므로 문구 정정의 필요성이 줄어든다(작업 쪽 배지만 미표시로 남음). 항목은 유지하되 이번 결과를 반영해 재판단 대상으로 남긴다.
-  - `[FR-T6/E4 "방법" 필드 확장 소비]`·`[FR-E5 에러 표시 미착수]` — 시안 같은 행의 방법·에러 표시는 이번 범위 밖이라 **그대로 유지**.
-  - `[Test* 구 resw 고아 정리]`·`[BOM/no-BOM 인코딩 통일]` 등 나머지는 무관.
-- **PRD 경량 확인**: 이번 변경은 **FR-E4**(Should — "테스트↔작업 연결(연결 배지·링크), 칸반 카테고리 그룹 통과율 배지 배선") 중 **연결 배지** 몫에 직접 닿는다 → PRD 연결(Phase G 활성).
+- **위키 참조**: `20_projects/personal/devdashboard-winui/feat-project-launch-actions` — "Git 상태 다이얼로그: **현재 브랜치 + 날짜별 커밋 목록** 표시(변경 파일 목록 기능은 없음). 다이얼로그는 열 때마다 git을 다시 조회." 코드와 일치하며 이번 설계를 바꾸는 새 정보 없음. 허브(`20_projects/personal/devdashboard-winui`) `synced_commit: 3d1f19d`로 최신.
+- **결정 이력**: 대상 프로젝트 위키에 `decisions.md` 없음 — 과거 기각 이력 확인 불가(허브 「최근 주요 변경」에도 Git 상태 관련 보류 기록 없음).
+- **기존 plan 처리**: 직전 "카드 메모 + 작업 기록 시안" plan은 `## Next Steps
+- 육안 확인 완료(F-8 통과) → 작업 브랜치 커밋·push 완료. 남은 액션: **`master` 병합 승인**.
+- Suggested skills: `pjc:llm-wiki`(위키 `feat-project-launch-actions`의 Git 상태 서술 갱신 — 별도 세션), 공식 `/code-review`(병합 전 diff 검토를 원할 때)
 
-### 현행 구현 (직접 Read)
-
-**`Domain/Entities/TestItem.cs`**(51줄)
-- `ObservableObject` 상속, `[ObservableProperty] partial` 프로퍼티 방식(`Text`·`Method`·`ProgressNote`·`Status`·`CompletedAt`). `Id`·`CategoryId`·`CreatedAt`은 일반 프로퍼티.
-- **연결 정보 필드 없음** — 테스트에서 작업을 가리키는 값이 도메인에 존재하지 않는다.
-
-**`Domain/Entities/TodoItem.cs`**
-- `LinkedTestId`(:50, 일반 string, **영속**) — 작업 → 테스트 단방향 링크.
-- `LinkedTestBadge`(:52-54, `[ObservableProperty]`, 주석에 "**표시 전용 — 영속화하지 않으며 TaskPageViewModel이 설정**") — **이번에 만들 속성의 정확한 선례**다(도메인에 표시 전용 비영속 속성을 두고 VM이 채우는 패턴).
-
-**`Presentation/ViewModels/TaskPageViewModel.cs`**(대칭 선례)
-- `BuildTestStatusLookup`(:75-81)이 `testId → status` 딕셔너리를 만들고, `Rebuild()`(:105-106)가 `t.LinkedTestBadge = MapTestBadge(GetLinkedTestStatus(t))`로 **매 재구성마다 표시 값을 채운다**. 이번 구현은 이 패턴의 **반대 방향** 대칭이다.
-
-**⚠️ `ProjectItem.Todos`는 지연 로딩이다 (plan-reviewer B1으로 발견 — 이 plan의 성립 조건)**
-- `SqliteProjectRepository.cs:35` 주석대로 `Todos`·`TestCategories`·`Histories`는 **진입 시점에 필요한 것만** DB에서 채운다. 채우는 주체는 `ProjectCardViewModel`의 `EnsureTodosLoaded()`(:295-300)·`EnsureTestsLoaded()`(:311-316)이며, 각각 `_todosLoaded`/`_testsLoaded` 플래그로 1회만 로드한다.
-- **작업 화면 진입** `CreateTaskPageViewModel()`(:517-523)은 `EnsureTodosLoaded()` + `EnsureHistoriesLoaded()` + `EnsureTestsLoaded()`를 **모두** 호출한다.
-- **테스트 화면 진입** `CreateTestPageViewModel()`(:533-537)은 **`EnsureTestsLoaded()`만** 호출한다 — 즉 테스트 화면을 열면 `_item.Todos`는 로드되지 않은 초기 상태다.
-- **결과**: 이 사실을 모르고 구현하면 `BuildLinkedTaskTitles()`의 딕셔너리가 항상 비어 **모든 배지가 `Collapsed`가 된다**. 빌드·grep은 전부 통과하므로 정적 검증으로는 잡히지 않는다(리뷰어 지적 그대로). → **T1에서 `CreateTestPageViewModel()`에 `EnsureTodosLoaded()`를 추가**해 해소한다(작업 화면이 이미 `EnsureTestsLoaded()`를 부르는 것과 대칭).
-- 유일 진입 경로 확인: `DashboardView.xaml.cs:237`이 `CreateTestPageViewModel()`을 호출하는 단일 지점(grep 전수).
-
-**`Presentation/ViewModels/TestPageViewModel.cs`**(현재 확인 범위 1~105줄)
-- `_project`(`ProjectItem`) 보유 — `_project.Todos` 필드 자체는 접근 가능하나, **로드 여부는 위 지연 로딩 규약에 달려 있다**(T1이 해소).
-- `Rebuild()`(:66-101): 통계 → 스위트 필터 → `SuiteGroups` 재구성. **표시 값을 채울 지점이 이 메서드 하나로 모여 있다**(`OnSelectedStatusChanged`·`OnSelectedSuiteFilterChanged`·생성자가 전부 여기로 수렴).
-- 항목 표시는 `TestSuiteGroup`에 `ObservableCollection<TestItem>`을 담는 방식이라, **`TestItem` 자체에 표시 값이 있으면 XAML이 그대로 바인딩**할 수 있다(별도 wrapper 불필요).
-
-**`Presentation/Views/TestPage.xaml`**
-- `TestItemRowTemplate`(:22-115): `Border`(구분선·hover·`ContextFlyout`) 안 `Grid` — **열 3개**(아이콘 `Auto` / 본문 `*` / pill `Auto`), **행 2개**(0=이름, 1=메모). 아이콘·pill은 `Grid.RowSpan="2"`로 세로 중앙.
-  - 이름 `TextBlock`(:76-83): 13px, 최대 2줄 말줄임.
-  - 메모 `Border`(:86-105): `Grid.Row="1"`, `NoteVisibility(ProgressNote)` 조건, 좌측 warning 바 + 깃발 아이콘.
-  - **배지를 이름과 메모 사이에 넣으려면 행이 하나 더 필요**하다(시안 순서: 이름 → 링크 배지 → 메모).
-- **색 리터럴 직접 사용 선례**: 미실행 테스트 배지가 상태에 따라 변하지 않는 색을 XAML에 `#8A8890`/`#35353C` 리터럴로 직접 적었다(notes 2026-07-21 기록). 링크 배지도 상태 무관 고정색이라 **같은 방식이 적절**하다 — 정적 브러시 헬퍼 불필요.
-- **소비처 전수**(grep): `TestItemRowTemplate`은 `TestPage.xaml` 안에서만 참조(정의 1 + 소비 1) — 함정 11 리스크 없음.
-
-**`Resources/Converters.xaml`**
-- `StringNotEmptyToVisibility`(:16) 등록됨 — `TaskPage.xaml`이 `{x:Bind Description, Converter={StaticResource StringNotEmptyToVisibility}}`로 사용 중. **일반 x:Bind + Converter 조합이 이 레포에서 동작함이 확인된 선례**이므로 신규 Visibility 헬퍼를 만들 필요가 없다.
-
-**아이콘**: 시안은 체인 2개가 겹친 SVG(`:263`). Segoe Fluent Icons의 대응 글리프는 **`E71B`(Link)**. 이 레포의 기존 `FontIcon` 사용 글리프를 전수 확인한 결과 `E71B`는 **미사용**이라 충돌 없음.
+## Phase Ledger`에 **Phase G 통과(Must 100%)** 기록 → 완료 판정. 그 `## Deferred / Follow-up` 12건 중 대장 미등재분을 이관 완료(신규 2건 등재 + 기존 2항목에 이번 분 합산, 사용자 승인).
+- **작업 공간**: 무관한 미커밋 잔재 3종(csproj NuGet 버전 / ProjectSettingsDialog 색 견본 클릭 버그 / notes.md)을 사용자 승인 후 커밋 3건으로 분리 정리(`88a3716`·`579eb44`·`7e8b2a0`). 착수 시점 워킹트리 clean.
+- **Deferred 대장 조회**(`docs/plans/deferred.md` `## 대기` — 착수 시점 **67건**(실측; Investigation Log 최초 작성 시 16건으로 적었던 것은 `- [` 로 시작하는 줄만 센 오류다)):
+  - **할 일 후보(주제 매칭)**: Git 상태 다이얼로그를 다루는 대기 항목 **0건**.
+  - **전제 반증(제목 스캔 전건 + 걸린 항목 전문)**: **[함정] XAML 리소스 키 오타는 빌드가 잡지 못한다**(`:76`)가 이번 plan의 전제에 걸린다 — T2가 `ThemeResource App*Brush`를 새로 참조하므로 **키 실재를 grep으로 확인**해야 한다(아래 `### 전제 검증` P4). **[README/스크린샷]**(`:18`)은 이번 T3와 겹치나 T3는 문구 1줄 정정이고 그 항목은 스크린샷 갱신이라 별개 — 대장 유지.
+  - **소진 batch 판정**: `## 대기` 67건으로 잔량 임계(100건) 미달 → batch task 없음(수치를 정정해도 판정은 같다).
+- **스킬 개선 큐**: 대상 아님 — 이 세션의 cwd에 `plugins/pjc/.claude-plugin/plugin.json` 없음(하네스 레포가 아니다).
+- **현행 구현 (직접 Read)**:
+  - `Domain/ValueObjects/GitCommit.cs`: `record GitCommit(Hash, AuthorName, AuthorEmail, Date, Message)` + `ShortHash`(7자리). `Message`는 `git log --format=%B` 결과라 **제목·본문이 합쳐진 전문**이다.
+  - `Infrastructure/Services/GitHelper.cs:58` `GetCommitsAsync`: `--no-pager log --no-color --date=iso-strict --format=%H%n%an%n%ae%n%ad%n%B%n`. **개수 제한 없음**(전체 이력). 이번에 건드리지 않는다.
+  - `Presentation/ViewModels/ProjectCardViewModel.cs:77` `GitCommitGroups`(`IReadOnlyList<GitCommitGroup>`), `:319` `GroupCommitsByDate`가 `Date.LocalDateTime.Date` 기준 그룹핑 후 내림차순.
+  - `Presentation/Views/Dialogs/GitStatusDialog.xaml`: `ScrollViewer > StackPanel` 안에 로딩 패널 / `InfoBar` 에러 / 브랜치 행 / `ItemsControl`(2중첩: 그룹 → 커밋). 커밋 카드는 `Border` + 해시·메시지·작성자. 다이얼로그 크기 700×700 고정(`ContentDialogMinWidth/MaxWidth/MinHeight/MaxHeight` 리소스 오버라이드).
+  - `GitStatusDialog.xaml.cs`: `OnOpened`에서 `_card.LoadGitStatusAsync` → `BranchText.Text`·`CommitList.ItemsSource` 채우고 `ContentPanel` 표시. `_cts`로 취소.
+- **소비처 전수 (grep, 레포 전체 `.cs`/`.xaml`, `obj/` 제외)**:
+  - `GitCommitGroup` — **9 hit / 4파일**(실측): 정의(`Presentation/Models/GitCommitGroup.cs` 2곳), `ProjectCardViewModel`(프로퍼티·그룹핑 메서드·생성 4곳), `GitStatusDialog.xaml`(DataTemplate `x:DataType`), `GitStatusDialog.xaml.cs`(2곳). **Git 상태 다이얼로그 전용** — 그룹을 없애면 완전 고아가 된다.
+  - `GitCommit` — **7 hit / 4파일**(실측): 정의(`GitCommit.cs:6`), `GitHelper`(`:57`·`:58`·`:67`·`:106`), `GitStatusDialog.xaml:71`(DataTemplate). 나머지 1건(`GitStatusDialog.xaml:55` `GitCommitHistoryLabel`)은 **부분 문자열 일치일 뿐 무관어**라 실질 소비처는 6건이다. 전건 Read 완료.
+- **뷰 전환 선례 (직접 Read)**: `HistoryDialog.xaml`이 `ListArea`/`FormArea` 두 `Grid`를 겹쳐 두고 `.xaml.cs`의 `ShowFormView()`(`:142`)/`ShowListView()`(`:171`)가 `Visibility`를 토글하고 `BackToList_Click`(`:185`)이 뒤로를 처리한다. 뒤로 버튼은 `Button`(`HistoryDialog.xaml:326`) + `FontIcon Glyph="&#xE76B;"` + `TextBlock x:Name="BackText"`(`:329`)이며, **라벨은 `x:Uid`가 아니라 코드비하인드가 채운다**(`.xaml.cs:79` `BackText.Text = LocalizationService.Get("HistoryForm_Back")` — `:325` 주석에 "아이콘과 함께 놓아야 해서 x:Uid 미사용"이라 적혀 있다). **T2가 이 패턴을 그대로 따른다.**
+- **행 클릭 선례 (직접 Read)**: `HistoryDialog.xaml:130~139` — `Border`에 `Tapped` + `PointerEntered`/`PointerExited` + `Tag="{x:Bind}"`. `Tag`로 항목을 넘기는 이유는 `ItemsRepeater`가 `x:Bind` 템플릿에 `DataContext`를 채우지 않기 때문(커밋 `579eb44`에서 같은 함정을 겪었다). `ItemsControl`은 `DataContext`를 채우지만 **선례 일치를 위해 `Tag`를 쓴다**.
+- **부재 판정 (신규 작성의 근거)**:
+  - **상대시간 포맷터 없음** — 검색어 ①`RelativeTime|TimeAgo|Humanize`(레포 전체 `.cs`) **0건** ②`분 전|시간 전`(레포 전체 `.cs`/`.resw`) **0건**. 재사용할 기존 구현이 없다.
+  - **아바타/이니셜 표시 없음** — 검색어 ①`PersonPicture`(레포 전체 `.xaml`) **0건** ②`Avatar`(레포 전체 `.cs`/`.xaml`) **0건**(`Initial` 검색의 hit는 전부 `InitializeComponent`·`_isInitialized` 등 무관어).
+- **resw 현황**: ko-KR / en-US 각 **447 항목(실측, 대칭)**. Git 관련 기존 키 8개(`GitStatusDialog_TitleFormat`·`GitStatusDialog.Title`·`GitStatusDialog.CloseButtonText`·`GitLoadingText.Text`·`GitErrorBar.Title`·`GitCommitHistoryLabel.Text`·`NoCommitsText.Text`·`GitPathNotResolved`).
+- **팔레트 확인**: `Resources/Palette.xaml`은 `Default`(다크) 딕셔너리 하나. 아바타 색에 쓸 기존 색은 `AppInfoColor`(#5B93D8)·`AppSuccessColor`(#5DB463)·`AppWarningColor`(#D9954A)·`AppAccentColor`(#F0716A) 4종이 실재한다 — **신규 색 리터럴을 추가하지 않는다**(대장 `:70` 색 리터럴 누적 항목을 더 키우지 않기 위함).
+- **테스트**: 테스트 프로젝트 부재(AGENTS.md) — 4-C 해당 없음, 검증은 빌드 + 사용자 육안.
 
 ### 4-D. 재사용 확인
 
-| 신규 심볼 | 유사 기존 구현 검색 결과 | 재사용/신규 사유 |
-|---|---|---|
-| `TestItem.LinkedTaskTitle` | `TodoItem.LinkedTestBadge`(`TodoItem.cs:52-54`) — **표시 전용·비영속·VM이 채움**의 동일 패턴 | **신규(선례 대칭 재현)** — 반대 방향(테스트→작업)이라 기존 속성을 재사용할 수 없다. 같은 주석 규약("표시 전용 — 영속화하지 않으며 TestPageViewModel이 설정")을 따른다 |
-| `TestPageViewModel`의 역참조 채우기 | `TaskPageViewModel.BuildTestStatusLookup`/`MapTestBadge`/`GetLinkedTestStatus`(:75-97) — 반대 방향의 같은 구조 | **신규(선례 대칭 재현)** — 방향이 반대라 그 메서드들을 호출할 수 없다. 단 **딕셔너리 없이** 단순 조회로 둔다(아래 D3) |
-| 배지 표시 조건 | `StringNotEmptyToVisibility` 컨버터(`Converters.xaml:16`), `TestPage.NoteVisibility`(정적 헬퍼) | **컨버터 재사용(신규 0)** — 일반 x:Bind는 Converter를 받으므로 헬퍼를 새로 만들지 않는다 |
-| 배지 색 | `AppInfoBrush`(#5B93D8 — 시안 #7AB5EC와 다름), TestPage의 색 리터럴 직접 사용 선례 | **XAML 리터럴(신규 심볼 0)** — 상태와 무관한 고정색이라 헬퍼·팔레트 추가가 불필요 |
-| 배지 컨테이너 스타일 | `TagBadgeStyle`(`Styles.xaml:189`, CornerRadius **4**) | **미사용** — 시안은 `border-radius:999px` 완전 캡슐이라 값이 다르고, 재사용해도 CornerRadius를 덮어써야 해 이득이 없다. 인라인 `Border`로 그린다 |
+| 신규 심볼 | 검색어·스코프 | hit | 유사 기존 구현 | 재사용/신규 사유 |
+|---|---|---|---|---|
+| `RelativeTime(DateTimeOffset)` | `RelativeTime\|TimeAgo\|Humanize` / `분 전\|시간 전` — 레포 전체 `.cs`·`.resw` | 0 / 0 | 없음 | **신규** — 재사용할 구현이 없다. 사용처 1곳이라 공용 서비스로 빼지 않는다 |
+| `AvatarInitial(string)` / `AvatarBrush(string)` | `PersonPicture` / `Avatar` — 레포 전체 `.xaml`·`.cs` | 0 / 0 | 없음 | **신규** — 색은 팔레트 기존 4색을 재사용하고 새 리터럴을 만들지 않는다 |
+| `ShowDetail`/`ShowList` 뷰 전환 | `ShowListView\|ShowFormView` — 레포 전체 `.cs` | 7 (전부 `HistoryDialog.xaml.cs` — `:137`·`:142`·`:171`·`:185`·`:234`·`:240`·`:258`) | `HistoryDialog.ShowFormView/ShowListView` | **패턴 재사용** — 다이얼로그마다 자기 코드비하인드가 갖는 구조라 심볼 자체를 공유하지 않는다 |
+| `GitCommit.Subject` | `Subject` — 레포 전체 `.cs` | 0 | 없음 | **신규** — 값 객체 내부 계산 |
+
+### 전제 검증
+
+| # | 이 plan이 참으로 삼는 전제 | 확인 근거 | 판정 |
+|---|---|---|---|
+| P1 | `GitCommit.Message`가 제목·본문을 모두 담은 전문이다(제목/본문 분리를 파생 프로퍼티로 만들 수 있다) | `GitHelper.cs:60`의 포맷 문자열이 `%B`(raw body = subject + body). `%s`(subject only)가 아님 | 확인 |
+| P2 | `GitCommitGroup`을 없애도 다른 화면이 깨지지 않는다 | grep 전수 9 hit / 4파일 전건 Read — 소비처가 Git 상태 다이얼로그 경로뿐 | 확인 |
+| P3 | 같은 `ContentDialog` 안에서 Visibility 토글로 뷰를 전환하는 것이 이 레포의 검증된 방식이다 | `HistoryDialog.xaml.cs:142`·`:171`·`:185` 직접 Read(2026-07-24 회차에서 구현·검증됨) | 확인 |
+| P4 | T2가 참조할 `App*Brush` 키가 `Palette.xaml`에 실재한다 | `AppCardAltBrush`(`:48`)·`AppInputBrush`(`:49`)·`AppBorderBrush`(`:50`)·`AppHoverFillBrush`(`:52`) 확인. 아바타용 `AppAccentBrush`(`:56`)·`AppSuccessBrush`(`:62`)·`AppInfoBrush`(`:64`)·`AppWarningBrush`(`:65`)도 Brush 키로 실재. **Color만 있고 Brush가 없는 키**(`AppTextDisabledColor` 등)는 쓰지 않는다 — 대장 `:76` 함정 | 확인 |
+| P5 | `x:Bind` 함수 바인딩으로 `Brush`·문자열을 코드비하인드 정적 메서드에서 직접 받을 수 있다 | AGENTS.md 함정 5 + `TestPage.StatusBrush`·`TaskPage.PriorityBrush` 선례 명시 | 확인 |
+| P6 | 커밋 개수가 많아도(수천 건) 평면 `ItemsControl`이 실용적이다 | **미확인** — 현행도 같은 `ItemsControl`에 전체 이력을 그려 왔으므로 **이번 변경이 성능을 악화시키지 않는다**는 것만 확인됐다(그룹 2중첩 → 1중첩으로 오히려 단순해진다). 절대 성능은 미측정 — 성립을 좌우하지 않으므로 Deferred |
+
+## 동반 변경 판정
+
+| # | 대상 | 축 | 구분 | 처리 |
+|---|---|---|---|---|
+| 1 | `README.md:32` "Git 상태 다이얼로그로 **변경 파일** 확인" | ① 서술 문서 | **선택** | 이번 변경 이전부터 실제와 어긋난 서술(위키도 "변경 파일 목록 기능은 없음"으로 적었다). **사용자가 함께 수정을 선택 → T3으로 편입** |
+| 2 | `DevDashboard_WinUI/notes.md` | ① 서술 문서 | **필수** | **T3 Files에 편입**(AGENTS.md:96이 "작업 내역 영구 기록"으로 규정 — 갱신하지 않으면 이번 개편이 기록에서 빠진다) |
+| 3 | 위키 `feat-project-launch-actions.md:35` "브랜치 + **날짜별** 커밋 목록" | ① 서술 문서 | **무관(이번 범위 밖)** | 위키 본문 갱신은 ingest 세션 소관(plan-feature Step 1: "위키 본문 갱신은 하지 않는다"). Deferred에 등재 |
+| 4 | 규약 복제본 | ② | **무관** | Git 상태 화면 규약을 복제한 파일 없음(grep `GitCommit` 4파일이 전부) |
+| 5 | 검증 자산(테스트·골든) | ③ | **무관** | 테스트 프로젝트 부재(AGENTS.md) |
+| 6 | 버전·매니페스트 | ④ | **무관** | AGENTS.md에 릴리즈·버전 규약 없음. csproj 버전 조작 대상 아님 |
+| 7 | 날짜 그룹 표시 제거로 무효화되는 기존 표시 | ⑤ | **필수(의도됨)** | 사용자 확정 Q3. 날짜는 각 행의 상대시간·상세의 절대 일시가 대신한다 — T2 범위 안 |
 
 ## 시각 요소 분해
 
-> 기준: 시안 원본 HTML `:261-266`의 인라인 스타일 + 사용자 제공 렌더 이미지(2026-07-22). px는 WinUI 논리 단위로 그대로 옮긴다. 최종 판정은 빌드 후 사용자 육안 대조(⏳ HUMAN-VERIFY).
+**기준**: `docs/design/uploads/git-status-commit-list.png`(① 목록) · `docs/design/uploads/git-status-commit-detail.png`(② 상세) — 사용자가 2026-09-02에 제공한 참고 화면 캡처를 레포에 고정한 것이다. 이식(①-b)이 아니라 **시각 충실도(①-a)** 요청이므로 `### 참조 정합 인벤토리` 표는 만들지 않는다(원본 소스가 없는 외부 서비스 화면이라 항목별 `원본 근거`를 적을 수 없다 — 근거 없는 행을 만들지 않는다는 규칙).
 
-| 요소 | 속성 | 디자인 값 | XAML 대응 수단 | 확인 방법 |
-|---|---|---|---|---|
-| 링크 배지 | 표시 조건 | `hasLink` = 연결된 작업이 있을 때만 | `Visibility` + `StringNotEmptyToVisibility` 컨버터 | HTML 소스 :261, :1078 |
-| 링크 배지 | 위치 | 테스트 이름 **아래**, 메모 **위** | `Grid.Row="1"`(메모를 행 2로 밀어냄) | HTML 소스 :259-275 (순서: 이름 → 링크 → 방법 → 메모) |
-| 링크 배지 | 가로 정렬 | `align-self:flex-start` (내용 폭만큼만, 좌측) | `HorizontalAlignment="Left"` | HTML 소스 :262 |
-| 링크 배지 | 배치·간격 | `inline-flex`, `align-items:center`, `gap:5px` | `StackPanel Orientation="Horizontal" Spacing="5"` + 세로 중앙 | HTML 소스 :262 |
-| 링크 배지 | 모서리 | 시안은 `border-radius:999px`(완전 캡슐) | **`CornerRadius="4"`(라운드 사각형) — 시안과 의도적으로 다름.** 캡슐 렌더가 타원처럼 보인다는 육안 확인 후 사용자가 "사각형 + 모서리만 조금 둥글게"로 정정(2026-07-22). 같은 행의 메모 블록·`TagBadgeStyle`과 같은 값이라 화면 내 일관성도 유지된다 | 사용자 결정(시안 대비 의도적 차이) |
-| 링크 배지 | 테두리 | `1px solid rgba(90,163,232,.45)` | `BorderThickness="1" BorderBrush="#735AA3E8"`(0.45×255≈0x73) | HTML 소스 :262 |
-| 링크 배지 | 배경 | 없음(투명 — 테두리형) | `Background` 미지정 | HTML 소스 :262 |
-| 링크 배지 | padding | `2px 9px` | `Padding="9,2"` | HTML 소스 :262 |
-| 링크 배지 | 글자 | `11px`, `#7ab5ec` | `FontSize="11" Foreground="#7AB5EC"` | HTML 소스 :262 |
-| 링크 배지 | 폭 | **내용 폭에 딱 맞음**(`inline-flex` + `align-self:flex-start`), 넘치면 말줄임(`max-width:100%`) | 배지 내부를 **`Grid`(Auto/**Auto**)** 로 담는다 + `TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"`. ⚠️ 두 실패 경로를 모두 피해야 한다: `StackPanel`은 자식에게 **무한 폭**을 줘 트리밍 미발동(F-7 M1), `*` 열은 **남는 폭을 다 먹어 배지가 가로로 늘어난다**(사용자 육안 지적 2026-07-22) | HTML 소스 :262, :264 + 사용자 제공 시안/현재 비교 이미지 |
-| 링크 아이콘 | 모양 | 체인 2개가 겹친 링크 아이콘 | `FontIcon Glyph="&#xE71B;"`(Segoe Fluent "Link") | HTML 소스 :263 |
-| 링크 아이콘 | 크기·색 | `10×10`, `stroke:currentColor`(= 글자색 `#7ab5ec`) | `FontSize="10" Foreground="#7AB5EC"` | HTML 소스 :263 |
-| 링크 아이콘 | 축소 | `flex-shrink:0` (텍스트가 길어도 아이콘은 안 줄어듦) | `Grid`가 아니라 `StackPanel` + 텍스트만 말줄임 → 자동 충족 | HTML 소스 :263 |
-| 배지 텍스트 | 내용 | 연결된 **작업 제목**(`link: title`) | `{x:Bind LinkedTaskTitle}` | HTML 소스 :264, :1508 |
-| 행 간격 | 이름↔배지 | `gap:3px` (본문 세로 스택) | 배지 `Margin="0,3,0,0"` | HTML 소스 :259 |
+**기준의 성격과 한계**: 기준이 코드가 아니라 **렌더된 PNG**라 폰트 크기·간격은 캡처에서 읽은 **관측 추정치**다. 아래 표의 「디자인 값」에 `(관측)`을 붙인 항목이 그것이며, 정확한 CSS 값을 대조할 원본이 없다. 또한 기준이 웹 화면이라 CSS 개념이 XAML로 1:1 대응하지 않으므로 **XAML 대응 수단을 함께** 적는다.
 
-## Decisions
+### 시각 속성
 
-- **D1 (표시 값을 도메인 표시 전용 속성으로)**: `TestItem`에 `LinkedTaskTitle`(`[ObservableProperty]`, **비영속**)을 추가하고 `TestPageViewModel`이 채운다. *Source*: `TodoItem.LinkedTestBadge`(`TodoItem.cs:52-54`)가 정확히 같은 규약("표시 전용 — 영속화하지 않으며 TaskPageViewModel이 설정")으로 이미 존재하며, 그 값을 `TaskPage.xaml`이 직접 바인딩해 왔다. 같은 패턴을 반대 방향으로 재현하면 `TestSuiteGroup` wrapper를 바꾸지 않고 XAML이 `TestItem`을 그대로 바인딩할 수 있다.
-  - **대안 기각**: VM에 `testId → 작업제목` 딕셔너리를 두고 XAML이 함수 바인딩으로 조회 — 함정 5로 함수 바인딩은 Converter를 못 받고, `TestItem`이 자기 표시 값을 모르면 행 템플릿이 VM 참조를 별도로 들어야 해 복잡해진다.
-- **D2 (영속화하지 않음)**: `LinkedTaskTitle`은 매 `Rebuild()`마다 재계산하며 DB에 저장하지 않는다. *Source*: 값의 출처가 `TodoItem.Text`(이미 영속)라 **중복 저장은 동기화 실패 지점**만 만든다 — 작업 제목이 바뀌면 저장된 사본이 낡는다. `SaveTestCategories`의 INSERT 컬럼을 건드리지 않으므로 NFR-3(스키마 하위호환)에도 무영향(AGENTS.md의 "INSERT 컬럼 추가 시 파라미터 갱신" 함정도 비해당).
-- **D3 (딕셔너리 없이 단순 조회)**: 역참조는 `_project.Todos`에서 `LinkedTestId == test.Id`인 항목을 찾는 방식으로 하되, **매 테스트마다 전체 Todos를 훑지 않도록** `Rebuild()` 시작에서 `LinkedTestId → 작업제목` 딕셔너리를 **한 번** 만들어 쓴다. *Source*: `TaskPageViewModel.BuildTestStatusLookup`(:75-81)이 같은 이유로 `_testStatusById` 딕셔너리를 쓰는 선례. 개인 대시보드 규모라 성능 자체는 문제가 아니지만, 이중 루프보다 **의도가 명확**하고 선례와 일관된다.
-- **D4 (한 테스트에 여러 작업이 연결된 경우 첫 항목만)**: `LinkedTestId`는 작업당 1개지만 **여러 작업이 같은 테스트 Id를 가질 수 있다**(도메인이 막지 않음 — `CreateLinkedTest`는 항상 새 테스트를 만들어 1:1이지만 데이터상 보장은 없다). 딕셔너리 구성 시 **먼저 만난 항목을 유지**한다(`TryAdd`). 시안도 링크가 문자열 하나라 복수 표현이 없다.
-- **D5 (배지는 표시 전용 — 클릭 동작 없음)**: 시안 마크업(`:262-265`)에 `onClick`이 없다. 작업으로 이동하는 링크 동작은 넣지 않는다(넣으려면 페이지 전환·스크롤·하이라이트 설계가 필요해 별도 논의 대상).
-- **D6 (색은 XAML 리터럴)**: 글자 `#7AB5EC`·테두리 `#735AA3E8`을 XAML에 직접 적는다. *Source*: 상태에 따라 변하지 않는 고정색이며, TestPage의 미실행 배지가 같은 이유로 `#8A8890`/`#35353C`를 리터럴로 쓴 선례가 있다(notes 2026-07-21). 팔레트 신규 색은 추가하지 않는다(함정 4 — 다크 단일 딕셔너리 정책 유지).
-- **D8 (테스트 화면 진입 시 `Todos`도 로드한다)**: `ProjectCardViewModel.CreateTestPageViewModel()`에 `EnsureTodosLoaded()`를 추가한다. *Source*: `SqliteProjectRepository.cs:35`(지연 로딩 규약) + `ProjectCardViewModel.cs:517-523`(작업 화면은 `EnsureTestsLoaded()`까지 부른다) vs `:533-537`(테스트 화면은 `EnsureTestsLoaded()`만) — 이 비대칭 때문에 역참조 대상인 `Todos`가 비어 **배지가 전멸**한다(plan-reviewer B1). 로드는 `_todosLoaded` 플래그로 1회만 일어나므로 비용은 최초 진입 1회의 DB 조회뿐이고, 작업 화면이 이미 반대 방향(테스트 로드)을 하고 있어 **대칭을 맞추는 것이 자연스럽다**.
-  - **대안 기각**: `TestPageViewModel` 생성자에서 리포지토리로 직접 `GetTodos`를 부르는 방식 — 로드 책임이 `ProjectCardViewModel`에 모여 있는 기존 구조(플래그 기반 1회 로드)를 깨고 중복 조회를 만든다.
-- **D7 (작업이 삭제되면 배지도 자동으로 사라진다)**: 역참조를 **매번 계산**하므로 작업이 삭제되면 딕셔너리에 없어져 배지가 자동 소멸한다 — 별도 정리 로직이 필요 없다. 반대로 **테스트가 삭제되면** `TodoItem.LinkedTestId`가 고아 값으로 남지만(기존 동작), 그것은 작업 쪽 배지 경로의 문제라 이번 범위 밖이다(기존과 동일하게 `GetLinkedTestStatus`가 null을 반환해 배지 미표시).
+| 요소 | 속성 | 디자인 값 | XAML 대응 수단 | 확인 방법 | 구현 근거 (V-9) | 판정 (V-9) |
+|---|---|---|---|---|---|---|
+| 목록 행 | 레이아웃 | 세로 2줄(제목 / 메타) | `StackPanel Spacing="5"` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:84` | ⏳ 미확인 — 속성 반영 확인 |
+| 목록 행 | 배경 | 페이지와 같은 어두운 면, 카드 테두리 없음 (관측) | `Border Background="Transparent"` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:76`(`RowRestBrush`=Transparent) | ⏳ 미확인 — 속성 반영 확인 |
+| 목록 행 | 행 구분 | 행 사이 1px 가로 구분선 (관측) | `BorderBrush="{ThemeResource AppBorderBrush}" BorderThickness="0,0,0,1"` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:77~78` | ⏳ 미확인 — 속성 반영 확인 |
+| 목록 행 | 안쪽 여백 | 좌우 12px · 상하 11px (관측) | `Padding="12,11"` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:79` | ⏳ 미확인 — 속성 반영 확인 |
+| 목록 행 | hover | 배경이 한 단계 밝아짐 (② 행이 그 상태로 캡처됨) | `PointerEntered`에서 `AppHoverFillBrush`로 교체(`HistoryDialog` 선례) | ① 캡처 2행 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml.cs:129`(`RowHoverBrush`=`AppHoverFillColor`) | ⏳ 미확인 — 속성 반영 확인 |
+| 커밋 제목 | 폰트 크기·굵기 | 13px / 일반 (관측) | `FontSize="13"` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:88` | ⏳ 미확인 — 속성 반영 확인 |
+| 커밋 제목 | 색 | 본문 밝은색 | `{ThemeResource AppTextPrimaryBrush}` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:89` | ⏳ 미확인 — 속성 반영 확인 |
+| 커밋 제목 | 넘침 | 한 줄 말줄임 | `MaxLines="1" TextTrimming="CharacterEllipsis"` | ① 캡처(긴 제목 행) | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:90~91` | ⏳ 미확인 — 속성 반영 확인 |
+| 메타 줄 | 구성·순서 | 아바타 → 작성자 → `·` → 상대시간 → `·` → 단축해시 | `StackPanel Orientation="Horizontal" Spacing="6"` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:94~129` | ⏳ 미확인 — 속성 반영 확인 |
+| 메타 줄 | 폰트 크기 | 11.5px (관측) | `FontSize="11.5"` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:106`·`:111`·`:116`·`:121`·`:127` | ⏳ 미확인 — 속성 반영 확인 |
+| 메타 줄 | 색 | 보조 회색 | `{ThemeResource AppTextTertiaryBrush}` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:107` 외 4곳 | ⏳ 미확인 — 속성 반영 확인 |
+| 메타 줄 | 세로 정렬 | 아바타·텍스트 중앙 정렬 | `VerticalAlignment="Center"` | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:95` 외 5곳 | ⏳ 미확인 — 속성 반영 확인 |
+| 단축해시 | 서체 | 모노스페이스 | `FontFamily="Consolas"` | ① 캡처(자간 균일) | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:126` | ⏳ 미확인 — 속성 반영 확인 |
+| 목록 아바타 | 크기·모양 | 지름 16px 원 (관측) | `Ellipse Width="16" Height="16"` + 중앙 `TextBlock`(9px) | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:95~102` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 아바타 | 크기·모양 | 지름 40px 원 (관측) | `Ellipse Width="40" Height="40"` + 중앙 `TextBlock`(16px) | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:175~181` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 헤더 | 레이아웃 | 아바타 좌측 · 우측에 2줄(이름 / 날짜 · 이메일) | `Grid` 2열 + `StackPanel Spacing="2"`, `ColumnSpacing="12"` | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:169~193` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 작성자명 | 폰트 | 13px / 약간 굵게 / 밝은색 (관측) | `FontSize="13" FontWeight="SemiBold"` + `AppTextPrimaryBrush` | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:186~187` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 부제 | 구성 | `{날짜} · {이메일}` 한 줄 | 단일 `TextBlock` | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml.cs:107~110` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 부제 | 날짜 형식 | 기준은 로케일 장식형 `2026년 9월 2일` | **`yyyy-MM-dd HH:mm`로 대체**(아래 「기준과 다르게 가는 항목」 V1) | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml.cs:107` | ✅ 의도된 이탈 (V1) |
+| 상세 부제 | 폰트·색 | 12px / 보조 회색 (관측) | `FontSize="12"` + `AppTextTertiaryBrush` | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:190~191` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 본문 | 서체 | 모노스페이스 | `FontFamily="Consolas"` | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:203` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 본문 | 폰트 크기 | 13px (관측) | `FontSize="13"` | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:204` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 본문 | 줄 간격 | 넓음 — 글자 높이의 약 1.5배 (관측) | `LineHeight="20"` | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:205` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 본문 | 줄번호 | 좌측에 우측정렬 회색 번호 열 | **구현하지 않음**(아래 V2) | ② 캡처 | 해당 없음 — 구현하지 않음 | ✅ 의도된 이탈 (V2) |
+| 상세 본문 | 배경 | 페이지보다 약간 어두운 면 (관측) | `Border Background="{ThemeResource AppInputBrush}" CornerRadius="8" Padding="16"` | ② 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:196~200` | ⏳ 미확인 — 속성 반영 확인 |
+| 상세 본문 | 선택 | 드래그 선택 가능 | `IsTextSelectionEnabled="True"` | 사용자 직전 요청 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:208` | ⏳ 미확인 — 속성 반영 확인 |
+| 날짜 그룹 헤더 | 존재 여부 | 없음 | 현행 `ItemsControl` 2중첩을 1단으로 축소 | ① 캡처 | `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:71`(`ItemsControl` 1단) | ✅ 소스로 판정 — 그룹 템플릿 제거 확인 |
 
-## PRD Coverage
+### 기준과 다르게 가는 항목 (의도된 이탈 — V-9 대조 시 이 표를 근거로 판정)
 
-| PRD ID | 우선순위 | 대응 task | 상태 |
+| # | 기준 이미지 | 이번 구현 | 사유 |
 |---|---|---|---|
-| FR-E4 (테스트↔작업 연결 배지·링크 + FR-T8 배선) | Should | T1, T2 | ⚠️ **부분 커버(확대)** — "연결 **배지**"의 **테스트 쪽 표현**을 이번에 구현(시안에 실재하는 유일한 연결 배지). FR-T8 배선 몫은 기구현·무변경. **미충족 잔여 2건**: ① **"링크"(배지 클릭 → 연결된 작업으로 이동)** 미구현 — 시안에 `onClick`이 없어 표시 전용으로 뒀다(D5, Deferred 등재) ② **작업 쪽 배지**(`TodoItem.LinkedTestBadge`)는 시안에 없어 여전히 미표시(대장 `[FR-E4 작업별 연결 배지 표시 소멸]` 유지) |
-| FR-E1·E2·E3·E5 (테스트 페이지·상태 모델·다이얼로그·목록 restyle) | Must/Should | — | 이번 범위 외 (기구현 — 행 템플릿에 요소 1개를 추가할 뿐 기존 구성 무변경) |
-| FR-T1~T8 (작업 도메인·칸반·목록·다이얼로그) | Must/Should | — | 이번 범위 외 (기구현 — `TodoItem`은 **읽기만** 하고 수정하지 않는다) |
-| FR-C*·FR-S*·FR-H*·FR-N* 등 그 외 active Must | Must/Should | — | 이번 범위 외 (기구현, 이번 diff 무관) |
-| NFR-1 (빌드 오류 0·신규 경고 0) | — | 전 task | 검증 대상(실측 baseline `CS0618` 1건 제외) |
-| NFR-2 (계층 위반 0) | — | T1 | 검증 대상(VM은 View 타입을 참조하지 않는다 — 표시 값은 `string`) |
-| NFR-3 (DB 스키마 하위호환) | — | — | ✅ 무영향(D2 — 비영속 표시 전용 속성, INSERT 컬럼 무변경) |
-| NFR-4 (다국어 ko/en 대칭) | — | — | 해당 없음(신규 문구 0 — 배지 내용은 사용자 데이터인 작업 제목) |
-| NFR-5 (테스트) | — | — | 조건 미발동(테스트 프로젝트 부재 — AGENTS.md) |
+| V1 | 상세 부제 날짜가 `2026년 9월 2일`(로케일 장식형) | `yyyy-MM-dd HH:mm` | 레포의 확립된 날짜 표기 관례다 — `HistoryDialogViewModel.cs:59`·`:60`, `ProjectSettingsDialogViewModel.cs:314`가 모두 `yyyy-MM-dd HH:mm`이고 구 `GroupCommitsByDate`도 `yyyy-MM-dd`였다. 장식형은 ko/en 문화권마다 형태가 갈려(en-US는 요일까지 붙는다) 다국어 레이아웃이 흔들린다 |
+| V2 | 상세 본문에 줄번호 열 | 줄번호 없음 | 사용자 결정 Q2 — 줄 단위로 쪼개면 WinUI에서 한 줄 안에서만 드래그 선택된다(직전 요청이 "드래그 선택"이었다) |
+| V3 | 아바타가 실제 프로필 사진 | 이니셜 원형(이메일 해시 색) — `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml.cs:176` `AvatarInitial` | 사용자 결정 Q1 — 로컬 `git log`로는 이미지를 얻을 수 없다 |
+| V4 | 아바타 원 색이 사진마다 다름 | 팔레트 기존 4색 로테이션 — `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml:21~24` 별칭 + `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml.cs:184` `AvatarBrush` | 신규 색 리터럴을 추가하지 않는다(대장 `:70` 색 리터럴 누적 항목을 키우지 않기 위함) |
 
-## 작업 단계
+## F-8 인계 목록 (렌더 육안 확인 대기)
 
-### T1 — 데이터: `TestItem`에 연결 작업 제목 + VM 역참조 채우기 `Type C`
-- [x] 구현
-- **Files**: `DevDashboard_WinUI/Domain/Entities/TestItem.cs`, `DevDashboard_WinUI/Presentation/ViewModels/TestPageViewModel.cs`, `DevDashboard_WinUI/Presentation/ViewModels/ProjectCardViewModel.cs`(지연 로딩 — D8)
-- **Design**: ① 배치 — 표시 값 속성은 `Domain/Entities/TestItem.cs`(선례 `TodoItem.LinkedTestBadge`와 같은 자리), 채우는 로직은 `TestPageViewModel`, 데이터 로드 보장은 `ProjectCardViewModel.CreateTestPageViewModel()`. ② 신규 심볼 — `TestItem.LinkedTaskTitle`(표시 전용 비영속 string, 연결된 작업 제목 / 빈 문자열이면 미연결) / `TestPageViewModel.BuildLinkedTaskTitles()`(`Rebuild()` 앞부분에서 `LinkedTestId → 작업 제목` 딕셔너리를 만들어 각 `TestItem`에 대입). ③ 의존 방향 — VM이 `_project.Todos`(도메인)를 읽어 `TestItem`(도메인)에 쓴다. View 타입 참조 없음(값이 `string`). ④ 비추상화 — 양방향 링크를 관리하는 서비스/인덱스 클래스를 만들지 않는다(조회 지점이 이 한 곳뿐 — 3회 문턱 미달). `TodoItem`·`TestItem`에 상호 참조 필드를 추가하지도 않는다(D2 — 영속 중복 금지).
-- **구성**:
-  - (D1·D2) `TestItem`에 `[ObservableProperty] public partial string LinkedTaskTitle { get; set; } = string.Empty;` 추가 + 주석에 **"표시 전용 — 영속화하지 않으며 TestPageViewModel이 설정"** 명시(`TodoItem.LinkedTestBadge` 규약 그대로).
-  - (D3·D4) `BuildLinkedTaskTitles()`: `_project.Todos`를 훑어 `LinkedTestId`가 비어 있지 않은 항목으로 `Dictionary<string, string>`(테스트 Id → 작업 제목)을 만들되 **`TryAdd`로 첫 항목 유지**. 그 뒤 `_project.TestCategories`의 전 항목을 돌며 `t.LinkedTaskTitle = map.GetValueOrDefault(t.Id, string.Empty)`로 대입(연결이 없으면 빈 문자열 — 이전 값이 남지 않게 **항상 대입**).
-  - `Rebuild()` 시작(통계 계산 전)에서 `BuildLinkedTaskTitles()` 호출 — 필터 변경·재구성 때마다 최신 값이 반영된다.
-  - **(D8) `ProjectCardViewModel.CreateTestPageViewModel()`(:533-537)에 `EnsureTodosLoaded();`를 추가**한다(`EnsureTestsLoaded()` 앞·뒤 무관, 작업 화면의 `CreateTaskPageViewModel()`과 대칭). **이 한 줄이 없으면 배지가 하나도 뜨지 않으며 빌드·grep으로는 검출되지 않는다.** 같은 메서드의 XML 주석(`:532` "TestCategories를 로드해 전달합니다")도 사실과 어긋나게 되므로 **"TestCategories와 Todos(연결 배지 역참조용)를 로드해 전달합니다"로 함께 갱신**한다.
-- **Acceptance**:
-  1. 빌드 오류 0 · 신규 경고 0(실측 baseline `CS0618` 1건 제외).
-  2. `TestItem.LinkedTaskTitle`이 `[ObservableProperty] partial` 방식으로 정의되고, 주석에 "표시 전용"·"영속화하지 않"음이 명시된다.
-  3. `TestPageViewModel.Rebuild()`가 `BuildLinkedTaskTitles()`를 호출하고, 그 메서드가 `_project.Todos`의 `LinkedTestId`로 딕셔너리를 만든다.
-  4. 연결이 없는 테스트에는 **빈 문자열이 대입**된다(이전 값 잔존 없음 — 작업 삭제·링크 해제 시 배지가 사라져야 함, D7).
-  5. `TestItem`이 **DB 저장 경로에 추가되지 않는다** — `SqliteProjectRepository`의 테스트 INSERT/SELECT 컬럼 목록에 `LinkedTaskTitle`이 없다(NFR-3, AGENTS.md의 "INSERT 컬럼 추가 시 파라미터 갱신" 함정 비해당 확인).
-  6. `TestPageViewModel.cs`에 `Microsoft.UI.Xaml` 계열 using·타입이 추가되지 않는다(NFR-2).
-  7. **`CreateTestPageViewModel()`이 `EnsureTodosLoaded()`를 호출한다**(D8) — 이 acceptance가 없으면 기능이 무동작인 채로 전 검증을 통과한다.
-- **Edge Cases**: **`Todos`가 로드되지 않은 상태 → 배지 전멸(정상 아님, D8이 해소)** — `?? []` 가드는 예외만 막을 뿐 이 실패를 고치지 못한다 / `_project.Todos`가 null(`?? []` 가드) / `LinkedTestId`가 빈 문자열인 작업 → 딕셔너리 제외 / `LinkedTestId`가 이미 삭제된 테스트를 가리킴 → 그 키는 어떤 테스트와도 매칭되지 않아 무해 / 같은 테스트에 여러 작업이 연결 → 첫 항목만(D4) / 작업 제목이 빈 문자열 → 배지가 `StringNotEmptyToVisibility`로 미표시(빈 pill이 그려지지 않음) / 작업 제목이 매우 김 → T2에서 말줄임 / `TestCategories`가 null(`?? []` 가드 유지) / `EnsureTodosLoaded()`는 `_todosLoaded` 플래그로 1회만 로드하므로 작업 화면을 먼저 열었다 와도 **중복 DB 조회가 없다**.
-- **Halt Forecast**: (ii-a) 사전 승인 — **도메인 엔티티(`TestItem`)에 공개 속성 1개 추가**(비영속·표시 전용, 기존 선례와 동일 규약) + `CreateTestPageViewModel()`에 로드 호출 1줄 추가(기존 공개 메서드 `EnsureTodosLoaded` 재사용, 시그니처 변경 0). 파괴적·스키마 변경·외부 작업 없음.
+V-9는 `### 시각 속성` 표 27행 전건에 구현 근거(파일:라인)를 지목했고, 그중 **24행이 `⏳ 미확인`**이다 — WinUI 데스크톱 앱이라 자율 루프에 앱 기동·창 캡처 수단이 없다(`references/phase-v9-detail.md` 렌더 3분기의 「데스크톱 UI 대상」). **속성이 표대로 들어갔다는 것은 소스로 확인했고, 그 값이 기준 이미지와 같아 보이는지는 확인하지 못했다** — 폰트 크기·간격은 캡처에서 읽은 관측 추정치라 특히 그렇다.
 
-### T2 — XAML: 테스트 항목 행에 링크 배지 추가 `Type C`
-- [x] 구현
-- **Files**: `DevDashboard_WinUI/Presentation/Views/TestPage.xaml`
-- **Design**: ① 배치 — `TestItemRowTemplate`(`TestPage.xaml`) 안, 이름 행과 메모 행 사이. ② 신규 심볼 — **없음**(마크업만 추가. 표시 조건은 기존 `StringNotEmptyToVisibility` 컨버터, 색은 리터럴 — 4-D). ③ 의존 방향 — XAML이 `TestItem.LinkedTaskTitle`(T1)을 바인딩. 코드비하인드 변경 없음. ④ 비추상화 — 배지용 공용 스타일(`LinkBadgeStyle` 등)을 `Styles.xaml`에 만들지 않는다(소비처 1곳 — 3회 문턱 미달, 인라인이 추적에 낫다).
-- **구성**:
-  - `TestItemRowTemplate`의 `Grid.RowDefinitions`를 2행 → **3행**으로 늘리고, 기존 **메모 `Border`를 `Grid.Row="1"` → `Grid.Row="2"`로 이동**. 상태 아이콘·상태 pill의 `Grid.RowSpan="2"`를 **`"3"`으로** 갱신(세로 중앙 유지).
-  - 링크 배지를 `Grid.Column="1" Grid.Row="1"`에 추가 — `Border`(`CornerRadius="999"`, `BorderThickness="1"`, `BorderBrush="#735AA3E8"`, `Padding="9,2"`, `HorizontalAlignment="Left"`, `Margin="0,3,0,0"`, `Visibility="{x:Bind LinkedTaskTitle, Converter={StaticResource StringNotEmptyToVisibility}, Mode=OneWay}"`) 안에 `StackPanel Orientation="Horizontal" Spacing="5"`(세로 중앙) = `FontIcon Glyph="&#xE71B;" FontSize="10" Foreground="#7AB5EC"` + `TextBlock Text="{x:Bind LinkedTaskTitle, Mode=OneWay}" FontSize="11" Foreground="#7AB5EC" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"`.
-  - 배지 위에 시안 근거 주석 1줄(어느 시안 요소인지 — 후속 수정자가 색 리터럴을 팔레트로 바꾸지 않도록 D6 근거 포함).
-- **Acceptance**:
-  1. 빌드 오류 0 · 신규 경고 0.
-  2. `TestItemRowTemplate`의 `Grid`가 **3행**이고, 메모 `Border`가 `Grid.Row="2"`, 링크 배지가 `Grid.Row="1"`이다.
-  3. 상태 아이콘·상태 pill의 `Grid.RowSpan`이 **`"3"`**이다(2 잔존 0 — 갱신 누락 시 세로 중앙이 깨진다).
-  4. 배지가 `LinkedTaskTitle`에 `Mode=OneWay`로 바인딩되고, `Visibility`가 `StringNotEmptyToVisibility` 컨버터를 쓴다(신규 Visibility 헬퍼 추가 0).
-  5. 배지 마크업이 시각 요소 분해 표의 값과 일치한다 — `CornerRadius="999"`·`BorderBrush="#735AA3E8"`·`Padding="9,2"`·`Spacing="5"`·`HorizontalAlignment="Left"`·`FontSize` 11(글자)/10(아이콘)·`Foreground="#7AB5EC"`·`Glyph="&#xE71B;"`.
-  6. `TestPage.xaml.cs`·`Styles.xaml`·`Palette.xaml`이 **변경되지 않는다**(신규 심볼·공용 스타일·팔레트 색 0).
-- **Edge Cases**: 연결 없음 → 배지 `Collapsed`(행 높이 0, 이름과 메모가 붙는다) / 작업 제목이 매우 김 → 본문 열(`*`) 폭에서 말줄임(아이콘은 축소되지 않음) / 이름이 2줄 + 배지 + 메모 동시 → 행이 세로로 길어지고 아이콘·pill은 `RowSpan=3`으로 세로 중앙 / 메모는 없고 배지만 있음 → 배지가 마지막 요소 / 배지 pill 위에서 우클릭 → 행의 `ContextFlyout`이 그대로 뜬다(배지가 입력을 가로채지 않음 — `Border`에 핸들러 없음).
-- **Halt Forecast**: (i) 사전 해소 — `TestItemRowTemplate` 소비처가 `TestPage.xaml` 1곳임을 grep 전수 확인(함정 11). 파괴적·외부·신규 의존성 없음.
+확인 완료 3행: 날짜 그룹 헤더 제거(소스 판정) · V1 날짜 형식 · V2 줄번호 미구현(둘 다 의도된 이탈).
 
-## 사전 승인 항목 (일괄 승인 대상)
-- **도메인 엔티티 공개 속성 추가**: `TestItem.LinkedTaskTitle`(T1) — 비영속·표시 전용, `TodoItem.LinkedTestBadge`와 동일 규약. DB 스키마·직렬화 무영향.
-- 로컬 작업 브랜치에서 task별 commit(현재 브랜치 `task/taskpage-list-view`에 이어서 진행 — 같은 세션의 연속 작업이라 새 브랜치를 파지 않는다).
+**사용자 확인이 필요한 것** — 앱을 실행해 카드 ⋯ → Git 상태를 열고:
+1. 목록이 기준 이미지 ①처럼 보이는가(행 구분선·2줄 구성·글자 크기·아바타 지름·간격)
+2. 행에 마우스를 올리면 배경이 밝아지고, 클릭하면 상세로 전환되는가
+3. 상세가 기준 이미지 ②처럼 보이는가(아바타 40px·작성자·날짜·이메일·모노스페이스 본문)
+4. 상세 본문 전체를 한 번에 드래그 선택할 수 있는가
+5. 뒤로 버튼으로 목록에 복귀하는가
 
-## 불가피한 Halt (위임 불가)
-- master 병합·push·태그·릴리즈·PR — 별도 승인.
-- **시안 대조 최종 시각 판정** — 배지의 캡슐 모양·테두리 농도·아이콘 모양(`E71B`가 시안의 체인 아이콘과 비슷해 보이는지)·이름/메모와의 간격은 사용자만 판정(⏳ HUMAN-VERIFY).
-- **연결 데이터 실동작 확인** — "테스트 추가" 토글로 만든 작업↔테스트 쌍에서 실제로 배지에 작업 제목이 뜨는지는 앱 실행 확인 필요(⏳ HUMAN-VERIFY).
-- **표시 중복이 의도한 표현인지 판정** — `CreateLinkedTest`는 테스트 제목을 **작업 제목 그대로 복사**하므로(`TaskPageViewModel.cs:239` `Text = todo.Text`), "테스트 추가"로 만든 연결에서는 **행 이름과 배지 텍스트가 같은 문자열로 두 줄 겹쳐 보인다**(작업 제목을 나중에 바꿔야 갈라진다). 시안 예시는 둘이 다른 데이터라 이 중복이 드러나지 않는다. 그대로 둘지, 배지를 다르게(예: 접두어·아이콘만) 표현할지는 사용자 판정 대상(⏳ HUMAN-VERIFY, plan-reviewer m3).
+## 리뷰 이력 (plan-reviewer)
 
-## Deferred / Follow-up
-- **[테스트 행에 방법(Method)·에러 미표시]** — 시안 같은 행에 `t.method`(`:267-269`)·`t.error`(`:277-279`)도 있으나 이번 요청은 연결 배지 한정. 대장의 `[FR-T6/E4 "방법" 필드 확장 소비]`·`[FR-E5 에러 표시 미착수]` 그대로 유지.
-- **[배지 클릭으로 작업 이동 미구현]** — 시안에 클릭 동작이 없어 표시 전용으로 뒀다(D5). 연결된 작업으로 이동하고 싶다는 요구가 생기면 페이지 전환·하이라이트 설계부터 논의.
-- **[작업 쪽 연결 배지는 여전히 미표시]** — 대장 `[FR-E4 작업별 연결 배지 표시 소멸]`은 이번 작업(테스트 쪽)과 별개로 유지된다. 다만 이번 구현으로 FR-E4의 "연결 배지"가 한쪽에서 충족되므로, 대장 `[PRD FR-E4 문구가 구현과 어긋남]`의 정정 필요성은 재판단 대상이 된다.
-- **[SUGGEST] 링크 배지 색을 팔레트 근접색으로 통일 검토** — 시안 값 `#7AB5EC`/테두리 `rgba(90,163,232,.45)`가 팔레트에 없어 XAML 리터럴로 적었다(D6). 팔레트의 `AppInfoBrush`(#5B93D8)가 "정보/링크성" 의미에 부합하는 근접색이라 재사용하면 임의색 도입을 피할 수 있으나, 시안과 색이 달라져 이번엔 시안 정합을 우선했다. 색 리터럴이 더 늘면 팔레트 이관을 함께 검토. (T2 quality 리뷰 S1, 2026-07-22)
-- **[테스트 삭제 시 `TodoItem.LinkedTestId` 고아]** — 테스트를 지워도 작업의 `LinkedTestId`가 남는다(기존 동작, 이번 변경과 무관). 표시상으로는 배지가 안 떠 무해하나 데이터 위생 관점의 후속.
+**종결 형태: 「반영 미검증 종결」** — 재호출 상한(2회)을 소진했고 **마지막 라운드 지적을 전건 반영해 미해결 잔존 0**이지만, **그 반영을 검증한 리뷰 라운드는 없다**(리뷰어가 OK를 낸 것이 아니라 고친 결과를 볼 라운드가 남지 않은 것이다). 아래 ⓐ 대조는 메인이 실물(파일·라인·명령 출력)에서 직접 확인한 결과다.
 
-## Out of Scope
-- `TodoItem`·`LinkedTestId` 변경 — 이번 작업은 **읽기 전용**으로만 참조한다.
-- DB 스키마·직렬화·마이그레이션 변경(D2 — 비영속).
-- 시안 같은 행의 방법·에러 표시(위 Deferred).
-- 배지 클릭 시 작업으로 이동하는 네비게이션(D5).
-- `Palette.xaml` 신규 색·`Styles.xaml` 신규 공용 스타일(D6·Design ④).
-- 작업 화면(TaskPage) 쪽 연결 배지 복원 — 시안에 없으며 별개 항목.
+| 라운드 | 지적 | 심각도 | 처리 | 메인 실물 대조 |
+|---|---|---|---|---|
+| 1R | B1 `## 시각 요소 분해` 섹션 부재 | BLOCKER | 수용 — 섹션 신설 + 기준 이미지 2장을 레포에 고정 | 2R이 "닫힘" 확인. 단 1R이 근거로 든 `docs/design/uploads/1.png`·`2.png`는 **2026-07-23 이전 회차 파일**로 이번 이미지가 아니다(`ls -la` 확인) — 발동 조건 판정 자체는 옳아 지적을 수용했다 |
+| 1R | B2 필수 동반 변경 `notes.md` 미편입 | BLOCKER | 수용 — T3 Files·acceptance 확장 | 2R이 "닫힘" 확인 |
+| 1R | M1 `x:Uid` 부착 대상 불명확 | MAJOR | 수용 — `x:Uid` 미사용 확정(베어네임 키 + 코드비하인드) | 2R이 "대체로 닫힘" |
+| 1R | m1 hit 수치 오류 / m2 대장 라인 / m3 선례 라인 / m4 baseline / m5 README 인용 | MINOR ×5 | 전건 수용·정정 | m2~m5는 2R이 "닫힘" 확인 |
+| 2R | B1 `### 시각 속성` 표와 T2 본문의 시각 수치 **이중 정의**(카드형 vs 구분선형 등 5행 충돌) | BLOCKER | **수용** — 표를 **유일 정본**으로 선언하고 T2 본문에서 수치를 전부 제거(구조·구성 요소만 서술) | `plan.md` T2 「목록 뷰」·「상세 뷰」 재확인 — 배경·테두리·`CornerRadius`·폰트 크기·아바타 지름이 본문에서 사라지고 표 행을 가리키는 참조만 남았다. 표의 `상세 작성자명` 행에 굵기를 보강해 T2에서 뺀 "굵게"가 유실되지 않게 했다 |
+| 2R | m1 4-D `ShowListView\|ShowFormView` hit 5 → 실측 7 (**RECURRING** — 1R m1과 같은 축이 2회 잔존) | MINOR | **수용** — 7건으로 정정하고 라인 7개를 모두 명기 | Grep 도구로 재실측: `:137`·`:142`·`:171`·`:185`·`:234`·`:240`·`:258` = **7건**. 잔존 원인은 Bash `grep \| wc -l`이 같은 파일에서 2건을 빠뜨린 것이었고(같은 사고가 `GitCommitGroup` 7→9에서도 있었다), 이후 수치는 Grep 도구로 검증했다 |
+| 2R | m2 T2 `Depends on` 문구가 `x:Uid` 언급으로 stale | MINOR | 수용 — "코드의 `LocalizationService.Get()`이 참조 가능"으로 정정 | `plan.md:149` 확인 |
+| 2R | m3 `HistoryDialog.xaml.cs:79`는 `OnOpened`가 아니라 **생성자** | MINOR | 수용 — 인용을 "생성자" 선례로 정정하고, 이 다이얼로그가 `OnOpened`를 택하는 사유(뷰 상태 리셋과 같은 자리)를 명시 | `sed -n '71,80p'`로 `HistoryDialog` 생성자 안의 `BackText.Text` 대입 확인 |
+| 2R | m4 `GitStatusDialog.xaml:54`의 stale 주석 `<!-- 변경 파일 목록 -->` 미처리 | MINOR | 수용 — T2 본문에 정정 지시 + acceptance 3-1 신설 | `sed -n '52,58p'`로 해당 주석 실재 확인(1건) |
 
-## Open Questions
-- 없음 — 시안 원본(`:261-266`·`:1078`·`:1508`)과 사용자 제공 렌더 이미지로 형태·데이터 출처가 모두 확정됐고, 구현 방식은 기존 선례(`TodoItem.LinkedTestBadge` 대칭)로 결정 가능하다.
+**사용자 판단이 필요한 사항**: 2R m1이 `RECURRING`으로 표시됐다(같은 축의 수치 오류가 2라운드 연속). 원인은 계획 내용이 아니라 **검증 도구**였고(Bash `grep` 누락 → Grep 도구로 교체) 등급이 MINOR이며 판정(패턴 재사용)도 바뀌지 않았으므로 계획을 되돌릴 사유로 보지 않았다.
+
+## Tasks
+
+- [x] T1. **상대시간·상세 화면 문구 resw 등록 (ko/en 양쪽)** — Type **B**
+  - Files: `DevDashboard_WinUI/Strings/ko-KR/Resources.resw`, `DevDashboard_WinUI/Strings/en-US/Resources.resw`
+  - 신규 8키 — **전부 코드에서 `LocalizationService.Get()`으로 소비하므로 베어네임**(접미 없음)이다(AGENTS.md 함정 3: `x:Uid` 소비만 `.Text` 접미가 필요하고, 접미를 잘못 붙이면 빌드는 통과하면서 빈 라벨이 된다). 뒤로 라벨을 `x:Uid`가 아니라 코드로 채우는 이유는 **선례가 그렇기 때문**이다 — `HistoryDialog.xaml:325`가 "아이콘과 함께 놓아야 해서 x:Uid 미사용"이라 명시하고 `.xaml.cs:79`에서 `BackText.Text`를 채운다.
+
+    | 키 | 소비 | ko | en |
+    |---|---|---|---|
+    | `GitRelative_JustNow` | 코드 | `방금 전` | `just now` |
+    | `GitRelative_MinuteFormat` | 코드 | `{0}분 전` | `{0} minute ago` |
+    | `GitRelative_MinutesFormat` | 코드 | `{0}분 전` | `{0} minutes ago` |
+    | `GitRelative_HourFormat` | 코드 | `{0}시간 전` | `{0} hour ago` |
+    | `GitRelative_HoursFormat` | 코드 | `{0}시간 전` | `{0} hours ago` |
+    | `GitRelative_DayFormat` | 코드 | `{0}일 전` | `{0} day ago` |
+    | `GitRelative_DaysFormat` | 코드 | `{0}일 전` | `{0} days ago` |
+    | `GitDetail_Back` | 코드(`LocalizationService.Get`) | `목록` | `Back` |
+
+  - 단수/복수 키를 나눈 이유: 영어에서 "1 minutes ago"가 어색하다. 한국어는 두 키의 문구가 같지만 **양쪽 언어에 8키를 모두 등록**한다(함정 2 — 한쪽만 넣으면 다른 언어에서 빈 문자열이 되고 빌드는 통과한다).
+  - Edge Cases: 빈 문자열 값 없음 / `{0}` 플레이스홀더가 양쪽 언어에 모두 존재해야 함
+  - Halt Forecast: 없음(가산 등록, 기존 키 무변경)
+  - **Acceptance**:
+    1. `grep -c "<data name=" Strings/ko-KR/Resources.resw` = **작성 시점 447건** → 수정 후 **455건**. en-US도 447 → **455건**(대칭). **최종값은 454/454다** — T2의 quality 리뷰 반영으로 고아가 된 `GitCommitHistoryLabel.Text`를 ko/en 양쪽에서 제거했다(대칭은 유지)
+    2. `grep -c "GitRelative_\|GitDetail_Back"`가 ko/en 각 **8건**이고, **8키 모두 접미(`.Text` 등) 없는 베어네임**이다
+    3. 빌드 통과(신규 경고 0)
+
+- [x] T2. **Git 상태 다이얼로그를 목록 + 상세 2뷰로 개편** — Type **D** · Depends on T1(문구 키가 있어야 코드의 `LocalizationService.Get()`이 참조 가능 — `x:Uid`는 쓰지 않는다)
+  - Files:
+    - `DevDashboard_WinUI/Domain/ValueObjects/GitCommit.cs` — `Subject` 파생 프로퍼티 추가
+    - `DevDashboard_WinUI/Presentation/ViewModels/ProjectCardViewModel.cs` — `GitCommitGroups` → `GitCommits` 평면 목록 교체, `GroupCommitsByDate` 제거
+    - `DevDashboard_WinUI/Presentation/Models/GitCommitGroup.cs` — **삭제**(P2에서 소비처 전수 확인 완료)
+    - `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml` — 목록 restyle + 상세 뷰 신설
+    - `DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml.cs` — 뷰 전환 + 표시 헬퍼
+  - **Design**:
+    - **배치**: 데이터 파생은 `Domain/ValueObjects/GitCommit.cs`(순수 문자열 분해라 외부 의존 없음), **표시 변환**(상대시간·이니셜·아바타 색)은 `GitStatusDialog.xaml.cs`의 **정적 헬퍼**에 둔다 — `x:Bind` 함수 바인딩은 Converter도 ThemeResource도 받지 못하므로 코드비하인드가 `string`/`Brush`를 직접 반환하는 것이 이 레포의 확립된 방식이다(P5, AGENTS.md 함정 5).
+    - **신규 심볼과 책임**:
+      - `GitCommit.Subject` — 메시지 첫 줄(목록 제목). **본문만 떼는 `Body`는 만들지 않는다** — 상세 뷰가 제목·본문을 나누지 않고 `Message` 전문을 한 덩어리로 그리므로 소비처가 없다(구현 중 확인, spec 리뷰 M1).
+      - `ProjectCardViewModel.GitCommits` — 최신순 평면 커밋 목록(기존 `GitCommitGroups` 대체).
+      - `GitStatusDialog.RelativeTime(DateTimeOffset)` — 상대시간 문자열. `GitStatusDialog.AvatarInitial(string)` — 이니셜 1글자. `GitStatusDialog.AvatarBrush(string)` — 이메일 해시로 고른 팔레트 4색 중 하나.
+      - `GitStatusDialog.ShowDetail(GitCommit)` / `ShowList()` — 뷰 전환(`HistoryDialog.ShowFormView`/`ShowListView` 선례와 동형). 뒤로 라벨은 `BackText.Text`에 코드로 채운다(같은 선례).
+    - **의존 방향**: `GitStatusDialog`(Presentation/View) → `ProjectCardViewModel` → `GitHelper`(Infrastructure) → `GitCommit`(Domain). 새 방향을 만들지 않는다. `GitCommit`은 `LocalizationService`를 참조하지 않는다(Domain → Infrastructure 역참조 금지 — 그래서 상대시간이 View에 있다).
+    - **비추상화 선언**: 커밋 행 표시용 ViewModel 래퍼(`GitCommitRow` 등)를 만들지 않는다 — 소비처가 이 다이얼로그 하나뿐이라 래퍼는 파일만 늘리고 추적 경로를 벌린다. 상대시간 포맷터도 공용 서비스로 빼지 않는다(사용처 1곳 — 3회 미만).
+  - > **시각 값의 정본은 `## 시각 요소 분해`의 `### 시각 속성` 표 하나다.** 아래 목록·상세 서술은 **구조와 구성 요소**만 정하고 배경·테두리·폰트 크기·간격·아바타 지름 같은 수치는 반복하지 않는다 — 두 곳에 적으면 서로 어긋나고 어느 쪽이 정본인지 알 수 없게 된다(acceptance 6이 그 표를 판정 기준으로 쓴다).
+  - **목록 뷰**(기준 이미지 ①): 행은 `Border` + `Tapped`·`PointerEntered`·`PointerExited`·`Tag="{x:Bind}"`(행 클릭 선례). 배경·테두리·여백·hover 처리는 표의 `목록 행` 5행을 따른다(기준이 **카드형이 아니라 하단 구분선형**이라는 점이 표에 있다). 내용 2줄 —
+    - 1줄: `Subject` — 한 줄 말줄임(표의 `커밋 제목` 3행)
+    - 2줄: 이니셜 원형 · `AuthorName` · 가운뎃점 · 상대시간 · 가운뎃점 · `ShortHash`(표의 `메타 줄` 4행 + `단축해시` + `목록 아바타`)
+    - 날짜 그룹 `ItemsControl` 중첩을 제거해 `ItemsControl` 1단으로 만든다.
+    - `GitStatusDialog.xaml:54`의 stale 주석 `<!-- 변경 파일 목록 -->`을 실제 내용(커밋 목록)에 맞게 정정한다 — README:32의 같은 오기를 T3이 고치는데 코드 주석만 남으면 어긋난 서술이 그대로 남는다.
+  - **상세 뷰**(기준 이미지 ②): 목록과 형제로 놓인 `Grid`(초기 `Collapsed`) —
+    - 뒤로 버튼: `Button` + `FontIcon Glyph="&#xE76B;"` + `TextBlock x:Name="BackText"`. 라벨은 코드로 채운다 — `BackText.Text = LocalizationService.Get("GitDetail_Back")`(선례는 `HistoryDialog.xaml.cs:79`, **생성자** 안이다). 이 다이얼로그는 **`OnOpened`에 둔다** — 같은 자리에서 뷰 상태를 목록으로 리셋해야 해서(아래 Edge Cases) 초기화가 한곳에 모인다. `x:Uid`를 쓰지 않으므로 부착 대상 혼동·빈 라벨 위험이 없다
+    - 헤더: 이니셜 원형 + `AuthorName` + `커밋일자 · 이메일` 2줄(표의 `상세 아바타`·`상세 헤더`·`상세 작성자명`·`상세 부제` 4행). 일자 형식은 `yyyy-MM-dd HH:mm`이며 기준 이미지의 로케일 장식형과 다른 이유는 **V1**에 있다.
+    - 본문: `Border` > `ScrollViewer` > `TextBlock`(`TextWrapping=Wrap`, `IsTextSelectionEnabled=True`)에 **메시지 전문**(`Message`) 한 덩어리. 서체·크기·줄간격·배경은 표의 `상세 본문` 6행을 따른다. 줄번호 없음(**V2**).
+  - **에러·로딩·브랜치 행은 현행 유지** — 이번 요청 범위가 커밋 목록/상세다.
+  - Edge Cases:
+    - 커밋 0건 → `NoCommitsText` 표시(판정을 `GitCommitGroups.Count` → `GitCommits.Count`로 교체)
+    - 메시지가 한 줄뿐 → `Subject`가 그 줄 전체가 된다. 상세 본문은 `Message` 전문을 그리므로 빈 화면이 되지 않는다
+    - 제목이 매우 긺 → `CharacterEllipsis` 말줄임(목록), 상세에서는 전문 표시
+    - `AuthorName`이 빈 문자열 → 이니셜 `?` 폴백(인덱스 접근 예외 방지)
+    - `AuthorEmail`이 빈 문자열 → 해시 0 → 4색 중 첫 색. 상세 헤더의 이메일 부분은 빈 값이면 구분점째로 생략
+    - 커밋 시각이 미래(시계 오차·리베이스) → 음수 경과 → `GitRelative_JustNow`
+    - 30일 초과 → 상대시간 대신 절대 날짜 `yyyy-MM-dd`(문구 키 불요)
+    - 상세를 열어둔 채 다이얼로그를 닫음 → `Closing`의 `_cts` 취소 경로는 그대로. **뷰 상태 리셋은 불요**로 확정됐다 — 이 다이얼로그는 열 때마다 새 인스턴스이고(`DashboardView.xaml.cs:186`) 두 뷰 모두 XAML 초기값이 `Collapsed`다(구현 중 확인, quality 1R MAJOR ①)
+    - detached HEAD → 브랜치 라벨 `(detached HEAD)` — 현행 동작 유지
+  - Halt Forecast:
+    - **(ii-a) 사전 승인**: `Presentation/Models/GitCommitGroup.cs` **파일 삭제**(git 이력에 복구 경로 있음, 소비처 전수 확인 완료) + `ProjectCardViewModel.GitCommitGroups` **공개 프로퍼티 제거**(소비처 1파일 2곳, 전수 확인)
+    - **(i) 사전 해소**: 아바타 색 신규 리터럴 필요 여부 → 기존 팔레트 4색만 쓰기로 확정(Investigation Log)
+    - 파괴적·외부 작업 없음
+  - **Acceptance**:
+    1. 빌드 통과(`MSBuild -p:Platform=x64`), 오류 0 + **신규 경고 0**(baseline: 자동 생성 `XamlTypeInfo.g.cs`의 `CS0618` 1건만 — AGENTS.md의 "5건" 기록은 stale이며 대장 `:64`에 등재됨)
+    2. `grep -rn "GitCommitGroup" --include=*.cs --include=*.xaml`(obj 제외) = **작성 시점 9건** → 수정 후 **0건**
+    3. `grep -rn "GroupCommitsByDate"`(obj 제외) = **작성 시점 2건** → 수정 후 **0건**
+    3-1. `grep -n "변경 파일" DevDashboard_WinUI/Presentation/Views/Dialogs/GitStatusDialog.xaml` = **작성 시점 1건**(`:54` stale 주석) → 수정 후 **0건**
+    4. `GitStatusDialog.xaml`에 목록 뷰·상세 뷰 두 컨테이너가 `x:Name`으로 존재하고 `.xaml.cs`에 `ShowDetail`/`ShowList`가 존재한다
+    5. T2가 새로 참조하는 `ThemeResource App*Brush` 키를 전건 grep해 `Palette.xaml`/`Styles.xaml`에 실재함을 확인(대장 `:76` 함정 — Color 키와 Brush 키는 별개다)
+    6. `## 시각 요소 분해`의 `### 시각 속성` 표 전 행을 구현 결과와 대조해 일치 또는 「기준과 다르게 가는 항목」(V1~V4)의 의도된 이탈로 판정된다
+    7. 육안(사용자): 목록이 기준 이미지 ① 형태이고, 행 클릭 시 ② 형태 상세로 전환되며, 뒤로 버튼으로 목록에 복귀한다. 상세 본문 전체를 한 번에 드래그 선택할 수 있다
+
+- [x] T3. **문서 갱신 — README 서술 정정 + notes 작업 기록** — Type **A** · Depends on T2(문구가 실제 산출물과 일치해야 함)
+  - Files: `README.md`, `DevDashboard_WinUI/notes.md`
+  - `:32` "Git 상태 다이얼로그로 변경 파일 확인" → 실제 기능(현재 브랜치 · 커밋 목록 · 커밋 상세)에 맞게 정정. **존재하지 않는 기능 서술을 제거**하는 것이며 새 절을 만들지 않는다.
+  - Edge Cases: 같은 문구가 다른 줄에도 있는지 grep 확인(`:29`·`:102`는 "Git 상태"를 **더보기 메뉴 항목명**으로 언급, `:22`는 "새로고침 / Hard 새로고침으로 Git 상태 즉시 갱신"으로 **카드의 git 저장소 재탐지**를 가리킨다 — 셋 다 이번 다이얼로그 개편과 무관해 수정 대상 아님)
+  - Halt Forecast: 없음
+  - `notes.md` `## 최근 변경` 맨 위에 이번 회차 항목을 추가한다 — 무엇을·왜·어떤 결정을 했는지(아바타 이니셜 대체, 줄번호 제외, 날짜 그룹 제거 사유). AGENTS.md:96이 이 파일을 "작업 내역 영구 기록"으로 규정한다.
+  - **Acceptance**:
+    1. `grep -n "변경 파일" README.md` = **작성 시점 1건** → 수정 후 **0건**. 정정 문구가 T2 산출물과 일치(브랜치 · 커밋 목록 · 커밋 상세)
+    2. `notes.md` `## 최근 변경` 최상단 항목의 날짜가 `2026-09-02`이고 본문이 T2 결정 3건(아바타·줄번호·날짜 그룹)을 담는다
 
 ## 검증 방법
-- 빌드: `"C:/Program Files/Microsoft Visual Studio/18/Professional/MSBuild/Current/Bin/MSBuild.exe" "DevDashboard_WinUI/DevDashboard.csproj" -t:Build -p:Configuration=Debug -p:Platform=x64` → 오류 0 + 실측 baseline(`CS0618` 1건) 외 신규 0
-- 회귀 방지 grep(소스 `*.cs`/`*.xaml`, `obj/`·`bin/` 제외):
-  - **T1**: `TestItem.cs`에 `LinkedTaskTitle` 정의 1 + "표시 전용"·"영속화하지 않" 주석 / `TestPageViewModel.cs`에 `BuildLinkedTaskTitles` 정의 1 + `Rebuild()` 호출 1 / `SqliteProjectRepository.cs`에 `LinkedTaskTitle` 잔존 **0**(비영속 확인) / `TestPageViewModel.cs`에 `Microsoft.UI.Xaml` 0 / **`ProjectCardViewModel.cs` 파일 전체 `EnsureTodosLoaded` 3건**(정의 :295 + `CreateTaskPageViewModel` 1 + **`CreateTestPageViewModel` 신규 1**) — 판정 기준은 그중 **`CreateTestPageViewModel` 본문 1건의 존재**다(D8 — 이 grep이 B1 재발을 막는 유일한 정적 방어) / 같은 메서드 XML 주석에 `Todos` 언급 1건
-  - **T2**: `TestItemRowTemplate` 안 `RowDefinition` 3개 / `Grid.RowSpan="2"` 잔존 0·`Grid.RowSpan="3"` 2건 / `Glyph="&#xE71B;"` 1건 / `#7AB5EC` 2건(아이콘·텍스트)·`#735AA3E8` 1건 / `StringNotEmptyToVisibility`가 `LinkedTaskTitle`에 적용 / `TestPage.xaml.cs`·`Styles.xaml`·`Palette.xaml` diff 없음
-- 동작 확인(빌드로 검증 불가 → ⏳ HUMAN-VERIFY):
-  - 작업 화면에서 "테스트 추가"를 켜고 새 작업을 만든 뒤 → 테스트 화면의 그 테스트 행에 **파란 캡슐 배지 + 링크 아이콘 + 작업 제목**이 뜨는지
-  - 배지가 이름 아래·메모 위에 좌측 정렬로 붙는지, 제목이 길면 말줄임되는지
-  - 연결이 없는 테스트에는 배지가 없는지 / **연결된 작업을 삭제하면 배지가 사라지는지**(D7)
-  - 상태 아이콘·상태 pill이 배지가 생겨도 세로 중앙에 유지되는지
 
-## F-8 인계 목록 (렌더 육안 확인 필요 — 완료 선언 보류 사유)
+```
+"C:/Program Files/Microsoft Visual Studio/18/Professional/MSBuild/Current/Bin/MSBuild.exe" \
+  "DevDashboard_WinUI/DevDashboard.csproj" -t:Build -p:Configuration=Debug -p:Platform=x64
+```
+- Phase F는 `-t:Rebuild`로 클린 리빌드.
+- **경고 baseline**: 자동 생성 `obj/.../XamlTypeInfo.g.cs`의 `CS0618` 1건(실측 2026-09-02, 이 세션의 빌드 3회에서 재현). **`NU1903`(`SQLitePCLRaw.lib.e_sqlite3` 취약점 권고)은 NuGet 복원 상태에 따라 다시 출력될 수 있으므로 함께 baseline으로 인정**한다 — AGENTS.md:29~33은 baseline을 5건(`NU1903` 1 + `CS0612` 4)으로 적고 있고 그 기록의 stale 여부는 대장 `:64`에 이미 등재돼 있다. 이번 plan은 **AGENTS.md를 고치지 않으며**(별도 `pjc:record-project-fact` 대상), 판정은 "`CS0618`·`NU1903`·`CS0612`를 제외한 신규 경고 0"으로 한다.
+- 테스트 없음(AGENTS.md) — 기능 확인은 사용자 육안.
 
-1. 배지가 **모서리만 살짝 둥근 파란 사각형**으로 보이는지(`CornerRadius="4"` — 시안의 완전 캡슐에서 사용자 결정으로 정정)
-2. 이름 아래·메모 위에 좌측 정렬로 붙는지, **배지 폭이 내용에 딱 맞는지**(2026-07-22 육안 지적 후 `*` → `Auto` 정정), **작업 제목이 길면 말줄임(…)** 되는지
-3. **"테스트 추가"로 만든 작업↔테스트 쌍에서 실제로 배지에 작업 제목이 뜨는지**(D8 지연 로딩 해소의 실동작 확인)
-4. **연결된 작업을 삭제하면 배지가 사라지는지**(D7 — 역참조를 매번 재계산)
-5. 상태 아이콘·상태 pill이 배지가 생겨도 세로 중앙에 유지되는지(RowSpan 3)
-6. `E71B` 글리프가 시안의 체인 아이콘과 비슷해 보이는지 / 테두리 알파(0x73) 농도
-7. ⚠️ **행 이름과 배지 텍스트가 같은 문자열로 겹쳐 보이는 것**이 의도한 표현인지 — `CreateLinkedTest`가 테스트 제목을 작업 제목 그대로 복사하기 때문(plan-reviewer m3)
+## Deferred / Follow-up
+- **[Git 상태 resw 고아 — 기존분]** `GitStatusDialog.Title`·`GitStatusDialog.CloseButtonText`(ko/en 각 1건)는 `x:Uid` 소비를 전제한 키인데 `ContentDialog`에 `x:Uid`가 없고 코드가 `GitStatusDialog_TitleFormat`·`Dialog_Close`로 채운다 — **이번 변경 이전부터** 미사용이었다(T2가 만든 고아가 아니다). 대장의 다른 resw 고아 audit과 함께 일괄 처리.
+- **[위키 `feat-project-launch-actions` 서술 갱신]** — `:35`의 "브랜치 + **날짜별** 커밋 목록"이 이번 개편으로 어긋난다(평면 목록 + 상세 페이지). 위키 본문 갱신은 ingest 세션 소관이므로 다음 "위키 업데이트" 때 반영.
+- **[커밋 목록 개수 제한 미검토]**(P6) — `GetCommitsAsync`가 전체 이력을 가져오고 `ItemsControl`이 전부 그린다. 현행과 같은 부하라 이번에 악화되지는 않으나, 커밋 수천 건 저장소에서의 첫 렌더 비용은 측정된 바 없다. 느려지면 `git log -n <N>` 제한이나 가상화(`ItemsRepeater`) 도입 검토.
+- **[아바타는 이니셜 원형 — 실제 프로필 사진 아님]** — 로컬 git으로는 이미지를 얻을 수 없어 이름 이니셜 + 이메일 해시 색으로 대체했다(사용자 결정 Q1). GitHub 연동이 생기면 실제 아바타로 승격 가능.
+- **[README/스크린샷]**(deferred.md `:18`) — Git 상태 화면이 바뀌어 스크린샷이 또 낡는다. T3은 문구 1줄만 고치므로 스크린샷 갱신은 대장 유지.
 
-## Phase Ledger
-- 전 task(T1~T2) 완료.
-- **Phase F 통과** — F-2 클린 리빌드(`-t:Rebuild`) 오류 0·신규 경고 0(자동 생성 `CS0618` 1건만), F-3 회귀 grep 10종 기대값, F-6.5 notes 기록(22,636자 — 아카이브 기준 미만)·Deferred 대장 반영(`[테스트→작업 역방향 링크/배지]` 종결 이동), F-7 `plan-completion-reviewer`: BLOCKER 0 / **MAJOR 1**(M1 배지 말줄임 미동작 — `StackPanel`→`Grid` 교체로 **수정 완료**) / MINOR 3(m1 PRD Coverage에 "링크" 미구현 명시 → 반영, m2 Phase Ledger → 이 기록, m3 notes 문구 → M1 수정으로 사실과 일치).
-- **Phase G 통과 (Must 100%)** — 이번 plan이 커버 대상으로 선언한 FR은 **FR-E4(Should)** 하나이며 배지 몫 충족·링크 몫 Deferred로 정직하게 기록. active **Must** FR은 전부 `이번 범위 외 (기구현)`이고 F-7이 코드 4파일 외 무변경으로 회귀 표면 0을 확인 → 미충족 Must 0건, 재루프 0회.
-- **F-8 미통과 — 시각/실동작 확인 대기**: 위 `## F-8 인계 목록` 7건이 남아 **완료 선언 보류**.
+## Out of Scope
+- **변경 파일(working tree) 목록 표시** — 현행에 없는 기능이며 이번 요청도 커밋 목록/상세에 한한다(`GitFileStatus` 값 객체는 정의만 있고 미사용 — 위키 기록과 일치).
+- **커밋 diff 표시** — 참고 이미지 ②는 커밋 메시지 전문이지 diff가 아니다.
+- **커밋 메시지 줄번호** — 사용자 결정 Q2(줄 단위 분해 시 전체 드래그 선택이 불가능해진다).
+- **Gravatar 등 네트워크 아바타 조회** — 사용자 결정 Q1(작성자 이메일 외부 전송).
+- **브랜치 목록·전환 UI** — 현행대로 현재 체크아웃 브랜치 1개만 표시한다.
+
+## 사전 승인 항목 (일괄 승인 대상)
+- **기준 이미지 2파일 추가(계획 단계에서 이미 수행)**: `docs/design/uploads/git-status-commit-list.png`·`git-status-commit-detail.png`. 사용자가 대화로 제공한 캡처를 그대로 복사한 것으로, 후속 세션·리뷰어가 대조할 기준을 레포에 고정하기 위함이다(기존 파일 덮어쓰기 없음 — 신규 파일명). 커밋 포함 여부는 최종 커밋 승인에서 함께 결정한다.
+- **파일 삭제**(T2): `DevDashboard_WinUI/Presentation/Models/GitCommitGroup.cs`. 소비처 전수 확인 완료(9 hit / 4파일, 전부 이번에 함께 수정), git 이력에 복구 경로 있음.
+- **공개 프로퍼티 제거·교체**(T2): `ProjectCardViewModel.GitCommitGroups`(`IReadOnlyList<GitCommitGroup>`) → `GitCommits`(`IReadOnlyList<GitCommit>`). 소비처는 `GitStatusDialog.xaml.cs` 2곳뿐(전수 확인).
+- **private 메서드 제거**(T2): `ProjectCardViewModel.GroupCommitsByDate`.
+- **도메인 값 객체 가산**(T2): `GitCommit.Subject` 파생 프로퍼티(계산 전용, 생성자·직렬화 무변경).
+
+## 불가피한 Halt (위임 불가)
+- commit / push / 병합 / 태그 / 릴리즈 / PR — 구현·검증 완료 후 최종 보고에서 별도 승인.
+- 계획에 없던 파괴적 작업이 필요해지는 경우.
+
+## Open Questions
+- [x] **Q1. 아바타를 어떻게 처리할 것인가** — ★A) 이니셜 원형〔근본〕(로컬 데이터만으로 재현 가능한 표현을 택해 "가져올 수 없는 것을 가져오는 척"하지 않는다) / B) Gravatar 네트워크 조회〔우회〕(작성자 이메일이 외부로 나가고 오프라인·미등록 폴백이 또 필요해 문제를 옮길 뿐) / C) 아바타 생략〔근본〕(요구된 시각 요소를 버림). → **사용자 선택: A(★와 일치)**.
+- [x] **Q2. 상세 본문에 줄번호를 붙일 것인가** — ★A) 줄번호 없이 모노스페이스 블록〔근본〕(직전 요청이 "드래그 선택"이었는데 줄 단위 분해는 WinUI 제약상 그 요구를 깨뜨린다 — 두 요구가 충돌하지 않는 쪽) / B) 줄번호 포함〔우회〕(참고 이미지의 겉모습은 맞지만 선택 기능을 잃는다). → **사용자 선택: A(★와 일치)**.
+- [x] **Q3. 날짜 그룹 헤더를 유지할 것인가** — ★A) 그룹 제거〔근본〕(참고 이미지 ①이 평면 목록이고, 날짜 정보는 행의 상대시간·상세의 절대 일시가 대신한다) / B) 그룹 유지〔우회〕(요청한 형태와 다른 화면이 남는다). → **사용자 선택: A(★와 일치)**.
+- [x] **Q4. README:32의 어긋난 서술을 이번에 고칠 것인가** (4-E 선택 동반 변경 — 채택하지 않아도 요청은 성립) — A) 함께 수정 / B) 이번 제외(Deferred). → **사용자 선택: A → T3 신설**.
 
 ## Progress Log
-- T1~T2 완료: `TestItem.LinkedTaskTitle`(표시 전용·비영속) + VM 역참조 채우기 + `EnsureTodosLoaded()` 추가(T1) → `TestItemRowTemplate`에 링크 배지 마크업 추가, 행 2→3단으로 확장하고 메모를 행 2로 이동(T2). 빌드 OK, 리뷰 지적 0.
-  - 결정(T1): plan-reviewer가 BLOCKER로 잡은 **지연 로딩**이 핵심이었다 — `CreateTestPageViewModel()`이 `EnsureTestsLoaded()`만 부르고 `Todos`를 로드하지 않아, 그대로 뒀으면 빌드·grep을 전부 통과하면서 **배지가 조용히 전멸**했을 것이다. 한 줄 추가로 해소하고 acceptance·grep으로 재발을 막았다.
-  - 결정(T2): 배지 색(`#7AB5EC`·`#735AA3E8`)은 시안 값이 팔레트에 없어 XAML 리터럴로 적었다(같은 파일 미실행 배지의 선례). quality 리뷰가 근접색 `AppInfoBrush`(#5B93D8) 재사용을 SUGGEST했으나 **시안 정합 우선**으로 유지하고 Deferred에 등재.
+- **T1 완료** (Type B): resw ko/en 각 447 → 455건(대칭), 신규 8키 전부 베어네임. spec-prefilter **PASS**.
+  - V-7 연결 확인: 신규 8키의 코드 참조 0건 → **ⓑ 분기(T2가 연결 예정)**. T2에서 `LocalizationService.Get()`·`BackText.Text`로 소비된다.
+  - 결정: 뒤로 라벨을 `x:Uid`가 아니라 코드로 채우기로 확정(선례 `HistoryDialog.xaml.cs:79`) — 계획 리뷰 M1 반영분.
+- **T2 완료** (Type D): 목록 restyle + 상세 뷰 신설. `GitCommitGroup` 삭제(9 hit / 4파일 전건 정리), `GroupCommitsByDate` 제거, `GitCommit.Subject` 추가.
+  - **계획 정정**: plan이 `GitCommit.Body`도 요구했으나 상세 뷰가 `Message` 전문을 한 덩어리로 그리므로 소비처가 없다 — 만들지 않고 미구현 사유를 `GitCommit.cs` remarks에 남겼다(spec 리뷰 M1이 plan 내적 모순으로 확인, plan 해당 서술 정정).
+  - **리뷰 반영**: quality 1R MAJOR 2건 — ① `OnOpened`의 뷰 리셋이 로딩 중 목록을 미리 보이게 함 → 리셋을 아예 제거(매번 새 인스턴스 + XAML 초기값 Collapsed라 불필요) ② `GitCommitHistoryLabel.Text`가 고아 리소스가 됨 → ko/en 양쪽 제거(455 → **454건 대칭**).
+  - **아바타 색 구현 결정**: 팔레트가 `ThemeDictionaries > Default`에만 있어 `Application.Current.Resources[key]`로 못 꺼낸다 → `DashboardView` 선례대로 다이얼로그 리소스에 브러시 별칭을 두고, `x:Bind` 함수 바인딩이 static만 호출 가능하므로 생성자에서 static 필드에 캐시한다.
+  - **hover 복귀 색**: `null`이 아니라 `RowRestBrush`(Transparent)로 되돌린다 — 배경이 `null`이면 행이 포인터 입력을 받지 못해 클릭(상세 전환)이 죽는다.
+- **T3 완료** (Type A): `README.md:32`의 "변경 파일 확인" 오기를 실제 기능(브랜치·커밋 목록·커밋 상세)으로 정정(잔존 0건), `notes.md` 최상단에 이번 회차 기록 추가(구현에서 갈렸던 4건 + 렌더 미확인 사실 포함).
+
+
+## Next Steps
+- 육안 확인 완료(F-8 통과) → 작업 브랜치 커밋·push 완료. 남은 액션: **`master` 병합 승인**.
+- Suggested skills: `pjc:llm-wiki`(위키 `feat-project-launch-actions`의 Git 상태 서술 갱신 — 별도 세션), 공식 `/code-review`(병합 전 diff 검토를 원할 때)
+
+## Phase Ledger
+- 전 task(T1~T3) 완료.
+- **Phase F 통과 (HEAD `b7bd1cc`)** — F-1 클린 리빌드(`-t:Rebuild`) 오류 0·신규 경고 0(baseline `CS0618` 1건), F-3 회귀 grep 전부 기대값(`GitCommitGroup`·`GroupCommitsByDate`·`GitCommitHistoryLabel` 각 0건 / resw ko·en 454 대칭 / 신규 8키 각 8 / README "변경 파일" 0), F-6.5 README·notes·대장 갱신, F-7 `plan-completion-reviewer` **BLOCKER 0 · MAJOR 0 · MINOR 4 → 전건 반영**(m1 T2 Edge Case stale 정정 / m2 V4 라인 인용 `:21~24` 정정 / m3 T1 acceptance에 최종 454 각주 / m4 행 키보드 접근 불가를 대장 등재).
+- **Phase G 해당 없음** — plan 상단 `**PRD**:`가 "연결 없음"(닿는 active FR 0건)으로 선언돼 진입 조건 미충족.
+- **F-8 통과 (2026-09-02, 사용자 육안 확인)** — 사용자가 앱을 실행해 `## F-8 인계 목록` 5항목을 확인하고 "모두 잘 됨"으로 회신. 이로써 `⏳ 미확인` 24행이 해소되고 plan 전체 완료.
+- **F-6.5 대장 반영: 등재 4 / 미등재 0** — 신규 3건(위키 서술 갱신 · 커밋 개수 제한 미검토 · 아바타 이니셜 대체) + F-7 m4 1건(행 키보드 접근), 기존 2항목(resw 고아 audit · README/스크린샷)에 이번 분 합산.

@@ -3,7 +3,7 @@ using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevDashboard.Infrastructure.Services;
-using DevDashboard.Presentation.Models;
+using DevDashboard.Presentation.Converters;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace DevDashboard.Presentation.ViewModels;
@@ -55,7 +55,11 @@ public partial class ProjectCardViewModel : ObservableObject
     public partial bool IsPinned { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasIcon))]
     public partial BitmapImage? IconSource { get; set; }
+
+    /// <summary>등록된 아이콘이 실제로 로드됐는지 여부 — 아니면 아바타에 이니셜을 표시합니다.</summary>
+    public bool HasIcon => IconSource is not null;
 
     // --- Git 상태 ---
 
@@ -67,9 +71,9 @@ public partial class ProjectCardViewModel : ObservableObject
     [ObservableProperty]
     public partial string GitBranch { get; set; } = string.Empty;
 
-    /// <summary>날짜별로 그룹화된 커밋 목록</summary>
+    /// <summary>최신순 커밋 목록</summary>
     [ObservableProperty]
-    public partial IReadOnlyList<GitCommitGroup> GitCommitGroups { get; set; } = [];
+    public partial IReadOnlyList<GitCommit> GitCommits { get; set; } = [];
 
     // --- 커맨드 스크립트 슬롯별 설정 상태 ---
 
@@ -135,24 +139,19 @@ public partial class ProjectCardViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsCmd3RunAsAdmin { get; set; }
 
-    // --- 슬롯 표시 여부 ---
+    // --- 슬롯 추가 버튼 ---
 
-    public bool IsCmd1SlotVisible => IsCmd0Configured || IsCmd1Configured;
-    public bool IsCmd2SlotVisible => IsCmd1Configured || IsCmd2Configured;
-    public bool IsCmd3SlotVisible => IsCmd2Configured || IsCmd3Configured;
+    /// <summary>
+    /// 빈 슬롯이 남아 있는지 여부 — 카드의 "＋" 버튼 표시 조건입니다.
+    /// <see cref="AddCommandSlot"/>가 채울 자리를 찾는 기준과 같아야 하므로 컬렉션을 직접 본다
+    /// (슬롯이 앞으로 당겨져 있다는 가정에 기대면, 중간이 빈 옛 데이터에서 추가가 막힌다).
+    /// </summary>
+    public bool CanAddCommandSlot => _item.CommandScripts.Any(s => s is null);
 
-    partial void OnIsCmd0ConfiguredChanged(bool value) => OnPropertyChanged(nameof(IsCmd1SlotVisible));
-    partial void OnIsCmd1ConfiguredChanged(bool value)
-    {
-        OnPropertyChanged(nameof(IsCmd1SlotVisible));
-        OnPropertyChanged(nameof(IsCmd2SlotVisible));
-    }
-    partial void OnIsCmd2ConfiguredChanged(bool value)
-    {
-        OnPropertyChanged(nameof(IsCmd2SlotVisible));
-        OnPropertyChanged(nameof(IsCmd3SlotVisible));
-    }
-    partial void OnIsCmd3ConfiguredChanged(bool value) => OnPropertyChanged(nameof(IsCmd3SlotVisible));
+    partial void OnIsCmd0ConfiguredChanged(bool value) => OnPropertyChanged(nameof(CanAddCommandSlot));
+    partial void OnIsCmd1ConfiguredChanged(bool value) => OnPropertyChanged(nameof(CanAddCommandSlot));
+    partial void OnIsCmd2ConfiguredChanged(bool value) => OnPropertyChanged(nameof(CanAddCommandSlot));
+    partial void OnIsCmd3ConfiguredChanged(bool value) => OnPropertyChanged(nameof(CanAddCommandSlot));
 
     public string Id => _item.Id;
     public string Name => _item.Name;
@@ -168,6 +167,48 @@ public partial class ProjectCardViewModel : ObservableObject
     public string Category => _item.Category;
     public DateTime CreatedAt => _item.CreatedAt;
     public bool RunAsAdmin => _item.RunAsAdmin;
+
+    /// <summary>
+    /// 카드 헤더·아바타에 실제로 쓰는 색 (#RRGGBB).
+    /// 사용자가 고른 색이 있으면 그대로, 없으면 프로젝트 이름에서 자동으로 배정합니다
+    /// (같은 이름은 항상 같은 색 — 개발 도구 배지와 같은 해시를 씁니다).
+    /// </summary>
+    public string EffectiveHeaderColor
+    {
+        get
+        {
+            if (HexToBrushConverter.TryParseHex(_item.HeaderColor, out _))
+                return _item.HeaderColor;
+
+            var color = TagColorConverter.ColorFromName(_item.Name);
+            return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+        }
+    }
+
+    /// <summary>아이콘이 없는 카드의 아바타에 표시할 이니셜 (이름 첫 글자)</summary>
+    public string Initial
+    {
+        get
+        {
+            var name = _item.Name.AsSpan().Trim();
+            return name.IsEmpty ? "?" : char.ToUpperInvariant(name[0]).ToString();
+        }
+    }
+
+    /// <summary>설명이 있는지 여부 (빈 문자열·null이면 false — 표시 컨버터와 같은 IsNullOrEmpty 기준)</summary>
+    public bool HasDescription => !string.IsNullOrEmpty(Description);
+
+    /// <summary>태그가 하나라도 있는지 여부</summary>
+    public bool HasTags => Tags is { Count: > 0 };
+
+    /// <summary>설명·태그가 모두 없어 통합 "설명·태그 추가" 플레이스홀더를 보일지 (시안 noMeta)</summary>
+    public bool ShowMetaPlaceholder => !HasDescription && !HasTags;
+
+    /// <summary>태그는 있으나 설명이 없어 "설명 추가" 플레이스홀더를 보일지 (시안 needDesc)</summary>
+    public bool ShowDescPlaceholder => !HasDescription && HasTags;
+
+    /// <summary>설명은 있으나 태그가 없어 "태그 추가" 플레이스홀더를 보일지 (시안 needTags)</summary>
+    public bool ShowTagsPlaceholder => HasDescription && !HasTags;
 
     /// <summary>완료되지 않은 활성 To-Do 항목이 있는지 여부</summary>
     public bool HasInProgressTodo => _item.HasActiveTodo;
@@ -200,6 +241,9 @@ public partial class ProjectCardViewModel : ObservableObject
 
     /// <summary>작업 기록 다이얼로그 표시 요청 이벤트</summary>
     public event EventHandler? OpenHistoryRequested;
+
+    /// <summary>프로젝트 메모 다이얼로그 표시 요청 이벤트</summary>
+    public event EventHandler? OpenMemoRequested;
 
     /// <summary>테스트 전체 페이지 표시 요청 이벤트</summary>
     public event EventHandler? OpenTestListRequested;
@@ -271,16 +315,9 @@ public partial class ProjectCardViewModel : ObservableObject
         if (!string.IsNullOrWhiteSpace(branchError)) return branchError;
 
         GitBranch = string.IsNullOrWhiteSpace(branch) ? "(detached HEAD)" : branch;
-        GitCommitGroups = GroupCommitsByDate(commits);
+        // git log가 이미 최신순으로 주므로 다시 정렬하지 않는다
+        GitCommits = commits;
         return null;
-    }
-
-    private static IReadOnlyList<GitCommitGroup> GroupCommitsByDate(IReadOnlyList<GitCommit> commits)
-    {
-        return [.. commits
-            .GroupBy(c => c.Date.LocalDateTime.Date)
-            .OrderByDescending(g => g.Key)
-            .Select(g => new GitCommitGroup(g.Key.ToString("yyyy-MM-dd"), g))];
     }
 
     private static string? ResolveWorkingDirectory(string path)
@@ -509,6 +546,9 @@ public partial class ProjectCardViewModel : ObservableObject
     private void OpenHistory() => OpenHistoryRequested?.Invoke(this, EventArgs.Empty);
 
     [RelayCommand]
+    private void OpenMemo() => OpenMemoRequested?.Invoke(this, EventArgs.Empty);
+
+    [RelayCommand]
     private void OpenTestList() => OpenTestListRequested?.Invoke(this, EventArgs.Empty);
 
     // --- To-Do / History 다이얼로그 결과 처리 (View에서 호출) ---
@@ -545,6 +585,30 @@ public partial class ProjectCardViewModel : ObservableObject
         OnPropertyChanged(nameof(HasInProgressTest));
     }
 
+    // --- 프로젝트 메모 ---
+
+    /// <summary>현재 메모 (메모 다이얼로그 초기값)</summary>
+    public string CurrentMemo => _item.Memo;
+
+    /// <summary>메모 보유 여부</summary>
+    public bool HasMemo => !string.IsNullOrWhiteSpace(_item.Memo);
+
+    /// <summary>더 보기 메뉴의 메모 항목 라벨 — 메모가 있으면 "메모 보기"로 바뀝니다.
+    /// 카드 본문에는 메모를 표시하지 않으므로(시안 준수) 이 라벨이 메모 유무를 알리는 유일한 표식입니다.</summary>
+    public string MemoMenuLabel => HasMemo
+        ? LocalizationService.Get("CardMenu_MemoView")
+        : LocalizationService.Get("CardMenu_Memo");
+
+    /// <summary>메모를 모델에 반영하고 DB에 저장합니다 (빈 문자열이면 메모 삭제).</summary>
+    public void ApplyMemo(string memo)
+    {
+        _item.Memo = memo;
+        _repository.UpdateMemo(_item.Id, memo);
+        OnPropertyChanged(nameof(CurrentMemo));
+        OnPropertyChanged(nameof(HasMemo));
+        OnPropertyChanged(nameof(MemoMenuLabel));
+    }
+
     /// <summary>작업 기록 다이얼로그 뷰모델을 생성합니다.</summary>
     public HistoryDialogViewModel CreateHistoryDialogViewModel()
     {
@@ -561,7 +625,9 @@ public partial class ProjectCardViewModel : ObservableObject
 
     // --- 커맨드 스크립트 슬롯 ---
 
-    /// <summary>커맨드 버튼 클릭 — 설정 없으면 설정 다이얼로그, 있으면 실행</summary>
+    /// <summary>커맨드 버튼 클릭 — 설정된 스크립트를 실행합니다.
+    /// 미설정 슬롯은 카드에 버튼이 표시되지 않으므로(설정된 슬롯만 노출) 아래 설정 다이얼로그 분기는
+    /// 데이터가 어긋났을 때를 위한 방어 코드입니다.</summary>
     [RelayCommand]
     private void ExecuteCommandSlot(string indexStr)
     {
@@ -582,6 +648,16 @@ public partial class ProjectCardViewModel : ObservableObject
     private void ConfigureCommandSlot(string indexStr)
     {
         if (!TryParseSlotIndex(indexStr, out var index)) return;
+        ConfigureCommandSlotRequested?.Invoke(this, index);
+    }
+
+    /// <summary>카드의 "＋" 버튼 — 비어 있는 첫 슬롯의 설정 다이얼로그를 엽니다.</summary>
+    [RelayCommand]
+    private void AddCommandSlot()
+    {
+        var index = _item.CommandScripts.FindIndex(s => s is null);
+        if (index < 0) return;
+
         ConfigureCommandSlotRequested?.Invoke(this, index);
     }
 
@@ -758,6 +834,10 @@ public partial class ProjectCardViewModel : ObservableObject
         catch (OperationCanceledException)
         {
             // 관리자 권한 UAC 취소 — 정상 동작으로 무시
+        }
+        catch (System.ComponentModel.Win32Exception ex) when (ex.NativeErrorCode == 1223)
+        {
+            // 관리자 권한 UAC 프롬프트를 사용자가 취소함(ERROR_CANCELLED 1223) — 정상 동작으로 무시
         }
         catch (Exception ex)
         {

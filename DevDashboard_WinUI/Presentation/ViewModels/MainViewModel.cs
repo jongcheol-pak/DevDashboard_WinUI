@@ -30,7 +30,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     public partial BulkObservableCollection<ProjectCardViewModel> FilteredCards { get; set; } = [];
 
-    /// <summary>UI에 바인딩되는 카드 목록 (FilteredCards + AddCardPlaceholder 마지막 항목)</summary>
+    /// <summary>UI에 바인딩되는 카드 목록 (AddCardPlaceholder 첫 항목 + FilteredCards)</summary>
     public BulkObservableCollection<object> DisplayCards { get; } = [];
 
     [ObservableProperty]
@@ -100,6 +100,9 @@ public partial class MainViewModel : ObservableObject
         _projectRepository = projectRepository;
         _settings = settings;
         ApplyInitialSettings();
+        // 초기 그룹은 아래 구독 전에 채워지므로 탭을 여기서 한 번 만든다
+        // (구독에만 의존하면 앱을 켤 때마다 그룹 탭이 비어 보인다)
+        RebuildGroupTabs();
         ApplyFilterAndSort();
 
         Groups.CollectionChanged += OnGroupsCollectionChanged;
@@ -107,7 +110,63 @@ public partial class MainViewModel : ObservableObject
 
     private void OnGroupsCollectionChanged(object? sender,
         System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        => OnPropertyChanged(nameof(CanAddGroup));
+    {
+        OnPropertyChanged(nameof(CanAddGroup));
+        RebuildGroupTabs();
+    }
+
+    /// <summary>
+    /// 그룹 탭 목록 — <see cref="Groups"/>와 같은 순서·개수를 유지합니다
+    /// (코드비하인드가 두 컬렉션의 인덱스를 짝지어 쓰므로 순서가 어긋나면 탭 스크롤이 엉킵니다).
+    /// </summary>
+    public ObservableCollection<GroupTabViewModel> GroupTabs { get; } = [];
+
+    /// <summary>"전체" 탭에 표시할 프로젝트 수</summary>
+    [ObservableProperty]
+    public partial int AllGroupCount { get; set; }
+
+    /// <summary>그룹 목록이 바뀌면 탭을 통째로 다시 만듭니다(순서 보장).</summary>
+    private void RebuildGroupTabs()
+    {
+        GroupTabs.Clear();
+        foreach (var g in Groups)
+            GroupTabs.Add(new GroupTabViewModel(g));
+
+        UpdateGroupCounts();
+    }
+
+    /// <summary>
+    /// 각 탭의 프로젝트 수를 다시 셉니다.
+    /// 시안(:1290)처럼 검색어가 걸려 있으면 검색 결과 기준으로 센다 — 목록에 보이는 것과 숫자가 맞아야 한다.
+    /// </summary>
+    private void UpdateGroupCounts()
+    {
+        var matched = _allCards.Where(MatchesSearch).ToList();
+
+        AllGroupCount = matched.Count;
+        IsAllGroupSelected = string.IsNullOrEmpty(SelectedGroupId);
+
+        foreach (var tab in GroupTabs)
+        {
+            tab.Count = matched.Count(c => c.GroupId == tab.Group.Id);
+            // 탭이 다시 만들어져도 선택 표시가 유지되도록 값으로 들고 있는다
+            tab.IsSelected = tab.Group.Id == SelectedGroupId;
+        }
+    }
+
+    /// <summary>"전체" 탭이 선택된 상태인지 — 개수 배지 강조에 씁니다.</summary>
+    [ObservableProperty]
+    public partial bool IsAllGroupSelected { get; set; } = true;
+
+    /// <summary>현재 검색어에 맞는 카드인지 — 필터 파이프라인과 같은 조건입니다.</summary>
+    private bool MatchesSearch(ProjectCardViewModel card)
+    {
+        if (string.IsNullOrWhiteSpace(SearchText)) return true;
+
+        var keyword = SearchText.Trim();
+        return card.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase)
+            || card.Description.Contains(keyword, StringComparison.OrdinalIgnoreCase);
+    }
 
     private void ApplyInitialSettings()
     {
@@ -216,13 +275,8 @@ public partial class MainViewModel : ObservableObject
         if (!string.IsNullOrEmpty(SelectedGroupId))
             query = query.Where(c => c.GroupId == SelectedGroupId);
 
-        if (!string.IsNullOrWhiteSpace(SearchText))
-        {
-            var keyword = SearchText.Trim();
-            query = query.Where(c =>
-                c.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-                c.Description.Contains(keyword, StringComparison.OrdinalIgnoreCase));
-        }
+        // 탭 개수 배지도 같은 조건을 써야 목록과 숫자가 어긋나지 않는다
+        query = query.Where(MatchesSearch);
 
         List<ProjectCardViewModel> pinned = [], unpinned = [];
         foreach (var c in query)
@@ -243,7 +297,8 @@ public partial class MainViewModel : ObservableObject
         FilteredCards.ResetWith(sorted);
         ProjectCount = sorted.Count;
         HasAnyProjects = _allCards.Count > 0;
-        DisplayCards.ResetWith(sorted.Cast<object>().Append(_addCardPlaceholder));
+        UpdateGroupCounts();
+        DisplayCards.ResetWith(sorted.Cast<object>().Prepend(_addCardPlaceholder));
 
         sw.Stop();
         PerfLog($"ApplyFilterAndSort: all={_allCards.Count}, filtered={sorted.Count}, total={sw.ElapsedMilliseconds}ms");
@@ -403,8 +458,14 @@ public partial class MainViewModel : ObservableObject
         var existing = _allCards.FirstOrDefault(c => c.Id == item.Id);
         if (existing is not null)
         {
-            // ProjectSettingsDialog는 CommandScripts를 관리하지 않으므로 기존 값을 보존
-            item.CommandScripts = existing.ToModel().CommandScripts;
+            // ProjectSettingsDialog는 CommandScripts·핀 상태·메모를 다루지 않으므로 기존 값을 보존한다.
+            // 다이얼로그는 ToProjectItem()으로 ProjectItem을 새로 만들어 반환하므로, 여기서 되살리지 않으면
+            // 편집 저장 한 번에 그 필드들이 초기값으로 덮어써진다(핀은 off, 메모는 빈 문자열).
+            var existingModel = existing.ToModel();
+            item.CommandScripts = existingModel.CommandScripts;
+            item.IsPinned = existingModel.IsPinned;
+            item.PinOrder = existingModel.PinOrder;
+            item.Memo = existingModel.Memo;
 
             try
             {

@@ -63,15 +63,11 @@ public sealed partial class DashboardView : UserControl
     {
         this.Resources["ToolTip_ProjectPathNotFound"] = LocalizationService.Get("ToolTip_ProjectPathNotFound");
         this.Resources["ToolTip_PinUnpin"]            = LocalizationService.Get("ToolTip_PinUnpin");
-        this.Resources["ToolTip_Run"]                 = LocalizationService.Get("ToolTip_Run");
-        this.Resources["ToolTip_OpenFolder"]          = LocalizationService.Get("ToolTip_OpenFolder");
-        this.Resources["ToolTip_CardSettings"]        = LocalizationService.Get("ToolTip_CardSettings");
         this.Resources["ToolTip_Delete"]              = LocalizationService.Get("ToolTip_Delete");
-        this.Resources["ToolTip_GitStatus"]           = LocalizationService.Get("ToolTip_GitStatus");
         this.Resources["ToolTip_ToDo"]                = LocalizationService.Get("ToolTip_ToDo");
-        this.Resources["ToolTip_WorkHistory"]         = LocalizationService.Get("ToolTip_WorkHistory");
-        this.Resources["ToolTip_TestList"]             = LocalizationService.Get("ToolTip_TestList");
-        this.Resources["ToolTip_Terminal"]            = LocalizationService.Get("ToolTip_Terminal");
+        this.Resources["ToolTip_TestList"]            = LocalizationService.Get("ToolTip_TestList");
+        this.Resources["ToolTip_More"]                = LocalizationService.Get("ToolTip_More");
+        this.Resources["ToolTip_AddScript"]           = LocalizationService.Get("ToolTip_AddScript");
     }
 
     // ─── DataContext 변경 시 카드 이벤트 구독 관리 ──────────────────────
@@ -158,6 +154,7 @@ public sealed partial class DashboardView : UserControl
         card.ShowGitStatusRequested += OnShowGitStatusRequested;
         card.OpenTodoRequested += OnOpenTodoRequested;
         card.OpenHistoryRequested += OnOpenHistoryRequested;
+        card.OpenMemoRequested += OnOpenMemoRequested;
         card.OpenTestListRequested += OnOpenTestListRequested;
         card.ConfigureCommandSlotRequested += OnConfigureCommandSlotRequested;
         card.ChangeCommandIconRequested += OnChangeCommandIconRequested;
@@ -168,6 +165,7 @@ public sealed partial class DashboardView : UserControl
         card.ShowGitStatusRequested -= OnShowGitStatusRequested;
         card.OpenTodoRequested -= OnOpenTodoRequested;
         card.OpenHistoryRequested -= OnOpenHistoryRequested;
+        card.OpenMemoRequested -= OnOpenMemoRequested;
         card.OpenTestListRequested -= OnOpenTestListRequested;
         card.ConfigureCommandSlotRequested -= OnConfigureCommandSlotRequested;
         card.ChangeCommandIconRequested -= OnChangeCommandIconRequested;
@@ -220,6 +218,24 @@ public sealed partial class DashboardView : UserControl
             var dialog = new HistoryDialog(dialogVm);
             await dialog.ShowAsync();
             card.OnHistoryDialogClosed(dialogVm);
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowErrorAsync(
+                string.Format(LocalizationService.Get("UnexpectedError"), ex.Message));
+        }
+    }
+
+    private async void OnOpenMemoRequested(object? sender, EventArgs e)
+    {
+        try
+        {
+            if (sender is not ProjectCardViewModel card) return;
+            var dialog = new ProjectMemoDialog(card.Name, card.CurrentMemo);
+            var result = await dialog.ShowAsync();
+            // [메모 삭제]는 Hide()로 닫혀 결과가 None이므로 저장 여부를 IsDeleteRequested로 함께 판단한다
+            if (result == ContentDialogResult.Primary || dialog.IsDeleteRequested)
+                card.ApplyMemo(dialog.ResultMemo);
         }
         catch (Exception ex)
         {
@@ -330,6 +346,76 @@ public sealed partial class DashboardView : UserControl
     }
 
     /// <summary>드래그가 드롭 없이 종료되거나 취소될 때 플레이스홀더를 정리합니다.</summary>
+    // 카드 hover 테두리 (시안 :352). DataTemplate 안에서는 VisualStateManager가 동작하지 않아
+    // 포인터 이벤트로 직접 브러시를 바꾼다(TestPage·TaskPage 행 hover와 같은 방식).
+    private void Card_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (sender is Border card)
+        {
+            card.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Resources["CardHoverBorderBrush"];
+            AnimateCardTranslate(card, -2);
+        }
+    }
+
+    private void Card_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (sender is Border card)
+        {
+            card.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Resources["CardBorderBrush"];
+            AnimateCardTranslate(card, 0);
+        }
+    }
+
+    // 카드에 마우스가 올라오면 위로 살짝(2px) 떠올랐다가 벗어나면 복귀하는 애니메이션 (시안 :352 translateY).
+    // TranslateTransform은 렌더 트랜스폼이라 종속 애니메이션(EnableDependentAnimation)이 필요하다.
+    private static void AnimateCardTranslate(Border card, double toY)
+    {
+        if (card.RenderTransform is not Microsoft.UI.Xaml.Media.TranslateTransform transform)
+            return;
+
+        var animation = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
+        {
+            To = toY,
+            Duration = new Microsoft.UI.Xaml.Duration(TimeSpan.FromMilliseconds(150)),
+            EnableDependentAnimation = true,
+        };
+        Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(animation, transform);
+        Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(animation, "Y");
+
+        var storyboard = new Microsoft.UI.Xaml.Media.Animation.Storyboard();
+        storyboard.Children.Add(animation);
+        storyboard.Begin();
+    }
+
+    // "새 프로젝트 추가" 카드 hover — 시안(:347)은 액센트 테두리로 강조한다.
+    // 팔레트 키는 ThemeDictionaries 안이라 Resources 인덱서로 조회되지 않으므로
+    // 위 카드 hover와 마찬가지로 로컬 flat 별칭을 거친다.
+    private void AddCard_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (sender is Border card)
+            card.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Resources["AddCardHoverBorderBrush"];
+    }
+
+    private void AddCard_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (sender is Border card)
+            card.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Resources["CardBorderBrush"];
+    }
+
+    // 삭제 버튼은 헤더 밴드 위에 있어 평소엔 흰색, hover에서만 위험색으로 바꾼다(시안 :360).
+    // 공용 CardIconButtonStyle을 여러 버튼이 공유하므로 템플릿 대신 여기서 전경만 바꾼다.
+    private void DeleteButton_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        => SetDeleteGlyphBrush(sender, "HeaderIconDangerBrush");
+
+    private void DeleteButton_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        => SetDeleteGlyphBrush(sender, "HeaderIconBrush");
+
+    private void SetDeleteGlyphBrush(object sender, string resourceKey)
+    {
+        if (sender is Button { Content: FontIcon glyph })
+            glyph.Foreground = (Microsoft.UI.Xaml.Media.Brush)Resources[resourceKey];
+    }
+
     private void Card_DropCompleted(UIElement sender, DropCompletedEventArgs e)
     {
         RemoveDropPlaceholder();
@@ -344,7 +430,7 @@ public sealed partial class DashboardView : UserControl
         if (_draggedCardId == target.Id) return;
 
         e.AcceptedOperation = DataPackageOperation.Move;
-        ShowDropPlaceholder(target, e.GetPosition(element));
+        ShowDropPlaceholder(target, e.GetPosition(element), element.ActualWidth);
     }
 
     private void Card_Drop(object sender, DragEventArgs e)
@@ -395,11 +481,13 @@ public sealed partial class DashboardView : UserControl
     // ─── 드롭 플레이스홀더 관리 ────────────────────────────────────────
 
     /// <summary>대상 카드의 좌/우에 빈 카드 플레이스홀더를 삽입합니다.</summary>
-    private void ShowDropPlaceholder(ProjectCardViewModel target, Windows.Foundation.Point posInTarget)
+    /// <param name="targetWidth">대상 카드의 실제 폭 — 카드 폭이 창 크기에 따라 변하므로 상수로 둘 수 없다.</param>
+    private void ShowDropPlaceholder(ProjectCardViewModel target, Windows.Foundation.Point posInTarget, double targetWidth)
     {
         if (Vm is null) return;
 
-        var isLeft = posInTarget.X < 165; // 카드 폭(330)의 절반
+        // 폭을 아직 못 재는 시점(레이아웃 전)이면 좌측으로 본다
+        var isLeft = targetWidth <= 0 || posInTarget.X < targetWidth / 2;
 
         // 같은 대상, 같은 방향이면 재삽입 불필요
         if (_dropTargetId == target.Id && _dropIsLeft == isLeft && _dropPlaceholderIndex >= 0)
