@@ -127,6 +127,10 @@ public partial class NotificationPageViewModel : ObservableObject
                 item.IsRead = true;
 
         _markAllRead(_notifications);
+
+        // 항목마다 IsRead 알림이 오면서 RecountUnread가 항목 수만큼 전체 순회를 반복하므로,
+        // 결과를 아는 이 자리에서 직접 확정한다.
+        UnreadCount = 0;
     }
 
     /// <summary>알림 항목의 프로젝트 작업 페이지로 이동합니다(시안대로 이동 시 읽음 처리도 함께).</summary>

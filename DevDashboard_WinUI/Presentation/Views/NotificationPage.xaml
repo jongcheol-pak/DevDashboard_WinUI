@@ -102,8 +102,12 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
+            <!-- 뒤로 버튼은 시안이 "모두 읽음"보다 어두운 톤(bg #1D1D21 / border #2B2B31)이라 색을 직접 준다.
+                 기본 Button 스타일(#242429/#2E2E34)을 그대로 쓰면 두 버튼이 같은 색으로 보인다. -->
             <Button Grid.Column="0" Click="Back_Click"
                     Height="34" Padding="13,0" CornerRadius="9"
+                    Background="{ThemeResource AppInputBrush}"
+                    BorderBrush="{ThemeResource AppHoverFillBrush}"
                     VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="7">
                     <FontIcon Glyph="&#xE76B;" FontSize="13" />
@@ -172,13 +176,14 @@
             <!-- 빈 상태 (시안: 2줄) -->
             <StackPanel
                 HorizontalAlignment="Center" VerticalAlignment="Center"
-                Spacing="4"
+                Padding="0,80"
                 Visibility="{x:Bind Vm.HasNotifications, Converter={StaticResource InverseBoolToVisibility}, Mode=OneWay}">
+                <!-- LineHeight 23 = 13.5px × 시안 line-height 1.7 -->
                 <TextBlock Text="{x:Bind local:NotificationPage.EmptyText}"
-                           FontSize="13.5" HorizontalAlignment="Center"
+                           FontSize="13.5" LineHeight="23" HorizontalAlignment="Center"
                            Foreground="{ThemeResource AppTextMutedBrush}" />
                 <TextBlock Text="{x:Bind local:NotificationPage.EmptyHintText}"
-                           FontSize="13.5" HorizontalAlignment="Center"
+                           FontSize="13.5" LineHeight="23" HorizontalAlignment="Center"
                            Foreground="{ThemeResource AppTextMutedBrush}" />
             </StackPanel>
         </Grid>

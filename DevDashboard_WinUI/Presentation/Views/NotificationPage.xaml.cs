@@ -21,6 +21,11 @@ public sealed partial class NotificationPage : UserControl
         DataContext = vm;
     }
 
+    // ⚠ 아래 정적 헬퍼 4종(DeadlineBrush·DeadlineLabel·FormatDue·UnreadDotVisibility)과 ReadOpacity·MarkReadTooltip은
+    // 이 화면에서는 더 이상 쓰지 않는다(표시값이 NotificationItemViewModel로 옮겨갔다).
+    // 그래도 남겨 둔 이유: MainWindow.xaml.cs의 알림 팝업이 아직 DeadlineLabel을 부르고 있어, 여기서 지우면
+    // 그 시점에 빌드가 깨진다. 팝업을 재구현하는 T3에서 호출부와 함께 제거한다.
+
     // ===== 마감상태 색 (PRD §3 팔레트: 경과 코랄 #f0716a / 오늘 앰버 #e8b45a / 임박 블루 #5aa3e8) =====
 
     private static readonly SolidColorBrush _overdueBrush = new(ColorHelper.FromArgb(0xFF, 0xF0, 0x71, 0x6A));
@@ -91,10 +96,12 @@ public sealed partial class NotificationPage : UserControl
             border.BorderBrush = _rowHoverBorderBrush;
     }
 
-    /// <summary>행에서 마우스가 벗어나면 기본 테두리로 되돌린다(로컬 값을 지우면 XAML 바인딩이 되살아난다).</summary>
+    /// <summary>행에서 마우스가 벗어나면 기본 테두리로 되돌린다.
+    /// ClearValue를 쓰지 않는 이유: XAML의 `{x:Bind RowBorder}`는 기본 OneTime이라 로컬 값을 한 번 대입하는
+    /// 코드로 컴파일된다 — 그 값을 지우면 바인딩이 되살아나는 게 아니라 Border의 기본값(테두리 없음)이 된다.</summary>
     private void Row_PointerExited(object sender, PointerRoutedEventArgs e)
     {
-        if (sender is Border border)
-            border.ClearValue(Border.BorderBrushProperty);
+        if (sender is Border { Tag: NotificationItemViewModel item } border)
+            border.BorderBrush = item.RowBorder;
     }
 }
