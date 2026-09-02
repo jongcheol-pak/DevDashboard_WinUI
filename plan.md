@@ -289,7 +289,7 @@
     - (i) `record` 필드 추가가 기존 생성부를 깨는가 → 생성 지점이 `Detect` 1곳뿐임을 확인 완료(P3)
   - **Depends on**: -
 
-- [ ] T2. 알림 전체 페이지를 시안대로 재구현한다
+- [x] T2. 알림 전체 페이지를 시안대로 재구현한다
   - **Type**: D
   - **Design**: ① 표시용 값(문구·색·툴팁)은 전부 `Presentation/ViewModels/NotificationPageViewModel.cs`의 `NotificationItemViewModel`에 둔다 — **`NotificationPage.xaml.cs`의 정적 헬퍼를 늘리지 않는다**(그 방식은 Window인 `MainWindow.xaml`이 재사용할 수 없다 — P9·D1). ② 신규 심볼 — `NotificationItemViewModel`: `BadgeText`(시안 `:1117` 공식), `SubCaption`(`{카테고리} · 종료일 {날짜}`), `PopupSubCaption`(`{프로젝트} · {카테고리} · 종료일 {날짜}` — T3가 소비), `ProjectName`, `BadgeBackground`/`BadgeForeground`/`ReadButtonForeground`/`ReadButtonBorder`(`Brush`, `private static` 필드 공유), `ReadToggleTooltip`, `RowOpacity`(읽음 0.5 / 안읽음 1.0 — 팝업이 `{Binding}`으로 쓸 수 있게 VM으로 옮긴다); `NotificationPageViewModel`: `UnreadCount`(int), `HasUnread`(bool), `UnreadCaption`(string — `읽지 않음 {N}건` 완성 문구. **VM에 두는 이유**: T3의 팝업 헤더가 같은 문구를 `{Binding}`으로 재사용한다 — 정적 프로퍼티로 만들면 개수가 바뀔 때 갱신되지 않고 팝업도 못 쓴다). ③ 의존 방향 — View → ViewModel → `Notification`(Domain). ViewModel은 여전히 주입된 콜백으로 영속화를 위임한다(현행 구조 유지). ④ **비추상화 선언**: 배지 문구 포맷터를 공용 서비스로 빼지 않는다(소비처가 이 화면과 팝업 둘뿐이고 둘 다 같은 ViewModel을 쓴다). 시각 값(색·크기)을 `Palette.xaml`로 올리지 않는다(D1). 빈 상태 2줄째용 정적 프로퍼티 `NotificationPage.EmptyHintText`는 이 task에서 추가한다(페이지 전용이라 `x:Bind` 정적 참조로 충분 — 팝업 몫은 T3이 `MainWindow`에 따로 만든다). **기존 `NotificationPage`의 정적 멤버(`DeadlineLabel`·`DeadlineBrush`·`FormatDue`·`UnreadDotVisibility`·`ReadOpacity`·`MarkReadTooltip`)는 이 task에서 지우지 않는다** — `DeadlineLabel`의 외부 호출자(`MainWindow.xaml.cs:569`)가 T3에서야 사라지므로, T2에서 지우면 그 시점에 빌드가 깨진다. **T2가 하는 것은 `NotificationPage.xaml`에서 그 멤버들에 대한 참조를 전부 걷어내는 것까지**이며(그래야 T3의 코드 제거가 XAML 재작업 없이 통과한다), 멤버 자체의 정리는 T3이 호출자와 함께 한다.
   - **Acceptance**:
@@ -443,7 +443,12 @@
 
 ## Progress Log
 
-<!-- implement-task가 채운다 -->
+- **T1-T2 완료** (커밋 `a855012`, T2 pre-review `ffc57cf` → review-fix `7c92417`): `Notification.TodoCategory` 추가 + 알림 페이지 시안 재구현. 빌드 OK, 신규 경고 0.
+  - **결정 D1의 실행 형태 확정**: 색·문구를 `NotificationItemViewModel` 프로퍼티로 노출(팝업이 Window라 `x:Bind` 함수 바인딩 불가 — P9). 페이지는 `{x:Bind}`, 팝업은 `{Binding}`으로 같은 값을 쓴다.
+  - **hover 복귀는 `ClearValue`가 아니라 값 재대입**: `{x:Bind}` 기본 OneTime은 로컬 값 대입이라 지우면 바인딩이 아니라 기본값(테두리 없음)이 된다(quality 1R M1). `Tag`의 항목 VM에서 `RowBorder`를 직접 재대입한다 — **T3의 팝업 hover도 같은 함정에 걸리므로 같은 방식을 쓴다.**
+  - **시안 값 vs 팔레트**: 뒤로 버튼(#1D1D21/#2B2B31 = `AppInputBrush`/`AppHoverFillBrush`), 행 배경 #1F1F24·테두리 #27272D·부제 #98959D는 팔레트에 같은 값이 없어 VM 정적 브러시로 뒀다. 기본 Button 스타일에 맡기면 시안과 다른 색이 된다(spec 1R M1).
+  - **T1 계획 정정**: `todo.Category ?? string.Empty`의 `??`는 불필요했다 — `TodoItem.Category`가 non-nullable이고 DB 읽기가 구버전을 이미 `string.Empty`로 정규화한다(`SqliteProjectRepository.cs:114`·`:882`).
+  - **구 정적 헬퍼 6종 + private 필드 4종은 T3에서 제거한다** — `MainWindow.xaml.cs:569`가 아직 `DeadlineLabel`을 부르므로 지금 지우면 빌드가 깨진다. 코드에도 사유 주석을 남겼다.
 
 ## Phase Ledger
 
