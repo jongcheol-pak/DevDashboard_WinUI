@@ -716,7 +716,7 @@ public partial class MainViewModel : ObservableObject
 
     // --- 마감 알림(Phase 5) ---
 
-    /// <summary>알림 감지용 — 모든 프로젝트의 Todos를 DB에서 로드하여 반환합니다(GetAllProjectItemsWithHistories의 Todos판).</summary>
+    /// <summary>알림 감지용 — 모든 프로젝트를 Todos가 채워진 상태로 반환합니다(아직 안 읽은 카드만 DB에서 로드).</summary>
     public List<ProjectItem> GetAllProjectItemsWithTodos()
     {
         // 카드가 이미 읽어 둔 Todos를 그대로 쓴다(EnsureTodosLoaded는 로드된 카드에서 즉시 반환).

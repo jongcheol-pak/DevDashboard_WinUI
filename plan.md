@@ -358,7 +358,7 @@
     - (ii-a) `MainViewModel`에 공개 프로퍼티 `UnreadNotificationBadge` 추가(계획된 공개 API 변경) → `## 사전 승인 항목`에 등록
   - **Depends on**: T2 (`NotificationItemViewModel`의 표시 프로퍼티와 색 헬퍼를 재사용한다 — T2가 만들지 않으면 팝업 행을 구성할 수 없다)
 
-- [ ] T4. 작업 변경 시 헤더 안읽음 배지를 즉시 갱신한다
+- [x] T4. 작업 변경 시 헤더 안읽음 배지를 즉시 갱신한다
   - **Type**: C
   - **Design**: ① `ProjectCardViewModel`에 이벤트 `TodosChanged`를 두고 `RefreshTodoCardState()`(`:565`) 안에서 발생시킨다. 구독은 `MainViewModel.SubscribeToCard`/`UnsubscribeFromCard` 쌍에 추가한다. ② 신규 심볼 — `ProjectCardViewModel.TodosChanged`(이벤트), `MainViewModel.OnCardTodosChanged`(핸들러 — `RebuildNotifications()` 호출). ③ 의존 방향 — 카드가 이벤트를 올리고 메인이 구독한다(역참조 없음, 기존 이벤트 9종과 동일). ④ **비추상화 선언**: 알림 갱신을 위한 별도 서비스·메신저를 도입하지 않는다 — 이 레포는 DI 컨테이너·메신저 없이 손배선하는 구조다(AGENTS.md Conventions).
   - **Acceptance**: Given 종료일이 지난 미완료 작업이 있고 헤더 배지가 `1`, When 작업 페이지에서 그 작업을 완료로 바꾸고 대시보드로 돌아오면, Then **팝업을 열지 않아도** 헤더 배지가 사라진다. 구독/해제가 짝을 이룬다 — `grep -c "TodosChanged" DevDashboard_WinUI/Presentation/ViewModels/MainViewModel.cs` **작성 시점 0건** → 수정 후 **3건**(구독 1 · 해제 1 · 핸들러 정의 1). 빌드 오류 0 · 신규 경고 0.
@@ -449,6 +449,11 @@
   - **시안 값 vs 팔레트**: 뒤로 버튼(#1D1D21/#2B2B31 = `AppInputBrush`/`AppHoverFillBrush`), 행 배경 #1F1F24·테두리 #27272D·부제 #98959D는 팔레트에 같은 값이 없어 VM 정적 브러시로 뒀다. 기본 Button 스타일에 맡기면 시안과 다른 색이 된다(spec 1R M1).
   - **T1 계획 정정**: `todo.Category ?? string.Empty`의 `??`는 불필요했다 — `TodoItem.Category`가 non-nullable이고 DB 읽기가 구버전을 이미 `string.Empty`로 정규화한다(`SqliteProjectRepository.cs:114`·`:882`).
   - **구 정적 헬퍼 6종 + private 필드 4종은 T3에서 제거한다** — `MainWindow.xaml.cs:569`가 아직 `DeadlineLabel`을 부르므로 지금 지우면 빌드가 깨진다. 코드에도 사유 주석을 남겼다.
+- **T3-T4 완료** (커밋 `9847a07`, T4 `7a18a65`+): 팝업 시안 재구현 + 벨 글리프 `E7ED`→`EA8F` + 배지 "9+" + 배지 실시간 갱신 배선. 빌드 OK, 신규 경고 0.
+  - **시안 색을 팔레트 토큰으로 근사하지 않는다**: 팝업 행 구분선(#232328)·배지 글자(#1D1113)는 팔레트에 대응 값이 없어 XAML 리터럴로 뒀다(spec 1R M1·m1). 대응 토큰이 있는 나머지 8곳은 전수 대조해 값이 정확히 일치함을 확인했다.
+  - **파생 프로퍼티에는 `NotifyPropertyChangedFor`를 반드시 건다**: `UnreadNotificationBadge`에 빠뜨려 배지 숫자가 첫 값에 고정됐다(spec BLOCKER·quality MAJOR 동시 지적).
+  - **T4가 만든 성능 결함을 같은 루프에서 고쳤다**: `RebuildNotifications`가 작업 편집마다 불리게 되면서 `GetAllProjectItemsWithTodos`의 **프로젝트별 DB 재조회**가 그대로 편집 지연이 됐다(quality 1R M1). 카드가 이미 읽어 둔 메모리 Todos를 쓰도록 바꿔 재조회를 없앴다 — 부수적으로 "저장 큐가 비기 전에 DB를 읽어 낡은 값을 볼 수 있던" 잠재 race도 사라졌다(spec 재리뷰 확인).
+  - **`Notification_Deadline_*` 3키·구 정적 멤버 6종·private 필드 4종 제거 완료** — 호출부가 사라지는 T3에서 함께 처리해 중간 상태에서 빌드가 깨지지 않았다.
 
 ## Phase Ledger
 
