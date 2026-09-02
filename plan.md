@@ -322,7 +322,7 @@
     - (ii-a) `MainViewModel`에 공개 메서드 `UnmarkNotificationRead` 추가(계획된 공개 API 변경) → `## 사전 승인 항목`에 등록
   - **Depends on**: T1 (부제의 카테고리가 T1의 `TodoCategory`를 소비한다)
 
-- [ ] T3. 헤더 알림 팝업을 시안대로 재구현하고 벨 글리프·배지 상한을 고친다
+- [x] T3. 헤더 알림 팝업을 시안대로 재구현하고 벨 글리프·배지 상한을 고친다
   - **Type**: D
   - **Design**: ① 팝업 행 템플릿은 `MainWindow.xaml`의 `Flyout` 안에 두고(현행 위치 유지), 프레젠터 스타일 `NotificationFlyoutPresenterStyle`은 `Resources/Styles.xaml`에 둔다. 행이 소비하는 표시 프로퍼티는 **T2가 만든 `NotificationItemViewModel`을 그대로 재사용**하며, Window 제약 때문에 전부 `{Binding}`으로 바인딩한다(P9·D1 — `x:Bind` 함수 바인딩을 쓰지 않는다). 팝업 전용 부제는 `PopupSubCaption`. ② 신규 심볼 — `MainViewModel.UnreadNotificationBadge`(int → "9+" 상한 문자열), `NotificationFlyoutPresenterStyle`. ③ 의존 방향 — `MainWindow`(View) → `NotificationItemViewModel`(Presentation/ViewModels) → `Notification`(Domain). ④ **비추상화 선언**: 페이지와 팝업의 행 템플릿을 공용 `DataTemplate`으로 묶지 않는다 — 크기·정렬·부제가 서로 다르고(34 vs 26px 아이콘, center vs top 정렬, 부제에 프로젝트명 유무), 공용화하면 AGENTS.md 함정 11(공용 템플릿의 소비처 충돌)을 자초한다. ⑤ **구 경로 철거를 이 task가 맡는다** — `MainWindow.xaml.cs:569`의 문자열 요약 조립이 행 템플릿으로 대체되면서 `NotificationPage.DeadlineLabel`의 마지막 호출자가 사라지므로, 같은 task에서 `NotificationPage.xaml.cs`의 아래를 **전부** 제거한다(공개 멤버만 지우고 그 전용 private 필드를 남기면 죽은 코드가 된다):
     - 공개 정적 **6종**: `DeadlineLabel`(`:50`) · `DeadlineBrush`(`:42`) · `FormatDue`(`:54`) · `UnreadDotVisibility`(`:57`) · `ReadOpacity`(`:61`) · `MarkReadTooltip`(`:35` — 유일 소비처 `NotificationPage.xaml:71`이 T2에서 VM `ReadToggleTooltip`으로 대체돼 고아)
