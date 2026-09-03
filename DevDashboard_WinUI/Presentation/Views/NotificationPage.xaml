@@ -76,6 +76,7 @@
                             VerticalAlignment="Center"
                             Tag="{x:Bind}"
                             Click="ReadToggle_Click"
+                            Tapped="ReadToggle_Tapped"
                             ToolTipService.ToolTip="{x:Bind ReadToggleTooltip, Mode=OneWay}">
                         <FontIcon Glyph="&#xE73E;" FontSize="13"
                                   Foreground="{x:Bind ReadButtonForeground, Mode=OneWay}" />
@@ -142,36 +143,49 @@
         <!-- ===== 본문 ===== -->
         <Grid Grid.Row="1">
             <!-- 프로젝트별 그룹 목록 -->
+            <!-- 가로 스크롤을 끄고 콘텐츠를 왼쪽에 고정한다 — Stretch로 두면 창을 넓혔을 때
+                 남는 폭이 오른쪽으로 밀려 목록이 오른쪽 끝에 붙고 잘린다. -->
             <ScrollViewer
                 VerticalScrollBarVisibility="Auto"
+                HorizontalScrollMode="Disabled"
+                HorizontalScrollBarVisibility="Disabled"
+                HorizontalContentAlignment="Left"
                 Padding="24,18,24,24"
                 Visibility="{x:Bind Vm.HasNotifications, Converter={StaticResource BoolToVisibility}, Mode=OneWay}">
-                <ItemsControl ItemsSource="{x:Bind Vm.Groups, Mode=OneWay}"
-                              MaxWidth="720" HorizontalAlignment="Left">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="vm:NotificationProjectGroup">
-                            <StackPanel Margin="0,0,0,22">
-                                <!-- 그룹 헤더: 프로젝트명 + 건수 + 가로 구분선 -->
-                                <Grid ColumnSpacing="10" Margin="0,0,0,10">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="{x:Bind ProjectName}"
-                                               FontSize="14" FontWeight="Bold" />
-                                    <TextBlock Grid.Column="1" Text="{x:Bind Count}"
-                                               FontSize="12" FontFamily="Consolas"
-                                               VerticalAlignment="Center"
-                                               Foreground="{ThemeResource AppTextTertiaryBrush}" />
-                                    <Rectangle Grid.Column="2" Style="{StaticResource SeparatorStyle}"
-                                               VerticalAlignment="Center" />
-                                </Grid>
-                                <ItemsControl ItemsSource="{x:Bind Items}" ItemTemplate="{StaticResource NotificationItemTemplate}" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <!-- 폭 상한(1080)은 목록에 직접 걸지 않고 star 컬럼에 건다.
+                     ItemsControl에 MaxWidth+Left를 주면 목록 폭이 내용 길이로 줄고,
+                     MaxWidth+Stretch를 주면 남는 폭이 오른쪽으로 밀린다. -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" MaxWidth="1080" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ItemsControl Grid.Column="0" ItemsSource="{x:Bind Vm.Groups, Mode=OneWay}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:NotificationProjectGroup">
+                                <StackPanel Margin="0,0,0,22">
+                                    <!-- 그룹 헤더: 프로젝트명 + 건수 + 가로 구분선 -->
+                                    <Grid ColumnSpacing="10" Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{x:Bind ProjectName}"
+                                                   FontSize="14" FontWeight="Bold" />
+                                        <TextBlock Grid.Column="1" Text="{x:Bind Count}"
+                                                   FontSize="12" FontFamily="Consolas"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{ThemeResource AppTextTertiaryBrush}" />
+                                        <Rectangle Grid.Column="2" Style="{StaticResource SeparatorStyle}"
+                                                   VerticalAlignment="Center" />
+                                    </Grid>
+                                    <ItemsControl ItemsSource="{x:Bind Items}" ItemTemplate="{StaticResource NotificationItemTemplate}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
             </ScrollViewer>
 
             <!-- 빈 상태 (시안: 2줄) -->

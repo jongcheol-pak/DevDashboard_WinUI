@@ -69,7 +69,6 @@
   <data name="GroupDialog_NameRequired" xml:space="preserve"><value>그룹 이름을 입력하세요.</value></data>
   <data name="GroupDialog_DuplicateFormat" xml:space="preserve"><value>'{0}' 이름의 그룹이 이미 존재합니다.</value></data>
   <data name="HistoryDialog_MarkdownType" xml:space="preserve"><value>마크다운</value></data>
-  <data name="ProjectHistoryDialog_TitleRequired" xml:space="preserve"><value>제목을 입력하세요.</value></data>
   <data name="ProjectSettingsDialog_TitleAdd" xml:space="preserve"><value>프로젝트 추가</value></data>
   <data name="ProjectSettingsDialog_TitleEdit" xml:space="preserve"><value>프로젝트 수정</value></data>
   <data name="MainWindow_LauncherCountSuffix" xml:space="preserve"><value>개 런처 앱</value></data>
@@ -79,7 +78,6 @@
   <data name="ToolTip_GridView" xml:space="preserve"><value>그리드 뷰</value></data>
   <data name="ToolTip_ListView" xml:space="preserve"><value>리스트 뷰</value></data>
   <data name="ToolTip_Sort" xml:space="preserve"><value>정렬</value></data>
-  <data name="ToolTip_AllHistory" xml:space="preserve"><value>전체 작업 기록</value></data>
   <data name="ToolTip_AppSettings" xml:space="preserve"><value>앱 설정</value></data>
   <data name="ToolTip_AddGroup" xml:space="preserve"><value>그룹 추가</value></data>
   <data name="ToolTip_Refresh" xml:space="preserve"><value>새로고침</value></data>
@@ -90,7 +88,7 @@
   <data name="ToolTip_CardSettings" xml:space="preserve"><value>설정</value></data>
   <data name="ToolTip_Delete" xml:space="preserve"><value>삭제</value></data>
   <data name="ToolTip_GitStatus" xml:space="preserve"><value>Git 상태</value></data>
-  <data name="ToolTip_ToDo" xml:space="preserve"><value>할 일</value></data>
+  <data name="ToolTip_ToDo" xml:space="preserve"><value>작업</value></data>
   <data name="ToolTip_WorkHistory" xml:space="preserve"><value>작업 기록</value></data>
   <data name="ToolTip_Terminal" xml:space="preserve"><value>터미널</value></data>
 
@@ -115,7 +113,6 @@
   <data name="SortByNameItem.Text" xml:space="preserve"><value>이름순</value></data>
   <data name="SortByCategoryItem.Text" xml:space="preserve"><value>카테고리순</value></data>
   <data name="SortByRecentItem.Text" xml:space="preserve"><value>최근 등록순</value></data>
-  <data name="AllHistoryButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>전체 작업 기록</value></data>
   <data name="AppSettingsBtn.[ToolTipService.ToolTip]" xml:space="preserve"><value>앱 설정</value></data>
   <data name="NewProjectText.Text" xml:space="preserve"><value>새 프로젝트</value></data>
   <data name="AllGroupTabLabel.Text" xml:space="preserve"><value>전체</value></data>
@@ -348,17 +345,6 @@
   <data name="HistoryPage_InfoFormat" xml:space="preserve"><value>{0} / {1} 페이지</value></data>
   <data name="HistoryPage_PrevPage" xml:space="preserve"><value>이전 페이지</value></data>
   <data name="HistoryPage_NextPage" xml:space="preserve"><value>다음 페이지</value></data>
-
-  <!-- ===== XAML x:Uid — ProjectHistoryDialog ===== -->
-  <data name="ProjectHistoryDialogTitle" xml:space="preserve"><value>전체 작업 기록</value></data>
-
-  <data name="ProjectCombo.PlaceholderText" xml:space="preserve"><value>프로젝트 선택</value></data>
-  <data name="AddProjectHistoryBtn.Content" xml:space="preserve"><value>새 기록 추가</value></data>
-  <data name="ProjHistAddNewHeader.Text" xml:space="preserve"><value>새 기록 추가</value></data>
-  <data name="ProjHistSearchBox.PlaceholderText" xml:space="preserve"><value>검색...</value></data>
-  <data name="ProjHistTitleBox.PlaceholderText" xml:space="preserve"><value>제목 (필수)</value></data>
-  <data name="ProjHistDescBox.PlaceholderText" xml:space="preserve"><value>상세 설명 (선택)</value></data>
-  <data name="EmptyProjHistText.Text" xml:space="preserve"><value>작업 기록이 없습니다.</value></data>
 
   <!-- ===== XAML x:Uid — IconPickerDialog ===== -->
   <data name="IconPickerDialogTitle" xml:space="preserve"><value>아이콘 선택</value></data>

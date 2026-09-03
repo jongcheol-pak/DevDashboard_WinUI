@@ -43,6 +43,12 @@ public sealed partial class NotificationPage : UserControl
             Vm.OpenTaskCommand.Execute(item);
     }
 
+    /// <summary>읽음 토글 버튼의 Tapped를 여기서 끊는다 — Button은 Tapped를 소비하지 않아
+    /// 그대로 두면 부모 행의 Tapped가 이어 발생해 프로젝트 작업 페이지로 이동해 버린다.
+    /// 실제 토글은 Click에서 하므로(키보드 Enter/Space도 Click으로 들어온다) 여기서는 전파만 막는다.</summary>
+    private void ReadToggle_Tapped(object sender, TappedRoutedEventArgs e)
+        => e.Handled = true;
+
     /// <summary>항목 읽음 토글 버튼(읽음 ↔ 안읽음 양방향 — 시안 readBtn).</summary>
     private void ReadToggle_Click(object sender, RoutedEventArgs e)
     {

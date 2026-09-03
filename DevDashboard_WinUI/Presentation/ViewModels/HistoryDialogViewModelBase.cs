@@ -8,7 +8,7 @@ namespace DevDashboard.Presentation.ViewModels;
 
 /// <summary>
 /// 작업 기록 다이얼로그 공통 베이스 뷰모델 — 검색·날짜 그룹·CRUD·마크다운 내보내기·페이지네이션·유형을 담당합니다.
-/// 카드별(HistoryDialogViewModel)·전체(ProjectHistoryDialogViewModel)가 상속하며, 저장/수정 표시·프로젝트 선택만 각자 담당합니다.
+/// 카드별 다이얼로그(HistoryDialogViewModel)가 상속하며, 저장·수정 표시는 파생 클래스가 담당합니다.
 /// </summary>
 public abstract partial class HistoryDialogViewModelBase : ObservableObject
 {
@@ -41,11 +41,7 @@ public abstract partial class HistoryDialogViewModelBase : ObservableObject
     /// <summary>전체 페이지 수 (검색 필터 반영, 최소 1)</summary>
     public int TotalPages => Math.Max(1, (int)Math.Ceiling(FilteredEntries().Count / (double)_pageSize));
 
-    /// <summary>페이지 표시 텍스트 ("현재 / 전체")</summary>
-    public string PageInfoText => $"{CurrentPage} / {TotalPages}";
-
-    /// <summary>페이지 표시 텍스트 (단위 포함, "현재 / 전체 페이지").
-    /// 전체 작업 기록 다이얼로그는 기존 `PageInfoText`를 계속 쓰므로 표시가 바뀌지 않는다.</summary>
+    /// <summary>페이지 표시 텍스트 (단위 포함, "현재 / 전체 페이지")</summary>
     public string PageInfoLabel => string.Format(LocalizationService.Get("HistoryPage_InfoFormat"), CurrentPage, TotalPages);
 
     /// <summary>페이지 이동 버튼 목록 (번호 또는 생략 표식)</summary>
@@ -77,7 +73,6 @@ public abstract partial class HistoryDialogViewModelBase : ObservableObject
     }
 
     /// <summary>항목 행에 표시할 프로젝트명을 갱신합니다 (프로젝트를 전환하는 파생이 호출).</summary>
-    protected void SetEntryProjectName(string projectName) => _entryProjectName = projectName;
 
     /// <summary>기본 유형 + 사용자 정의 유형을 합쳐 선택 목록을 구성합니다.</summary>
     protected static IReadOnlyList<string> BuildKinds(AppSettings settings)
@@ -175,7 +170,6 @@ public abstract partial class HistoryDialogViewModelBase : ObservableObject
         OnPropertyChanged(nameof(HasEntries));
         OnPropertyChanged(nameof(FilteredCount));
         OnPropertyChanged(nameof(TotalPages));
-        OnPropertyChanged(nameof(PageInfoText));
         OnPropertyChanged(nameof(PageInfoLabel));
         OnPropertyChanged(nameof(CanPrevPage));
         OnPropertyChanged(nameof(CanNextPage));

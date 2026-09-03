@@ -705,15 +705,6 @@ public partial class MainViewModel : ObservableObject
 
     public List<ProjectItem> GetAllProjectItems() => _allCards.Select(c => c.ToModel()).ToList();
 
-    /// <summary>ProjectHistoryDialog용 — 모든 프로젝트의 Histories를 DB에서 로드하여 반환합니다.</summary>
-    public List<ProjectItem> GetAllProjectItemsWithHistories()
-    {
-        var items = _allCards.Select(c => c.ToModel()).ToList();
-        foreach (var item in items)
-            item.Histories = _projectRepository.GetHistories(item.Id);
-        return items;
-    }
-
     // --- 마감 알림(Phase 5) ---
 
     /// <summary>알림 감지용 — 모든 프로젝트를 Todos가 채워진 상태로 반환합니다(아직 안 읽은 카드만 DB에서 로드).</summary>

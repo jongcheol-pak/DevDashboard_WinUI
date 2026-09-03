@@ -265,7 +265,6 @@ public sealed partial class MainWindow : WindowEx
     private void ApplyToolTips()
     {
         ToolTipService.SetToolTip(SortButton, LocalizationService.Get("ToolTip_Sort"));
-        ToolTipService.SetToolTip(AllHistoryButton, LocalizationService.Get("ToolTip_AllHistory"));
         ToolTipService.SetToolTip(ExportImportButton, LocalizationService.Get("ToolTip_ExportImport"));
         ToolTipService.SetToolTip(AppSettingsButton, LocalizationService.Get("ToolTip_AppSettings"));
         ToolTipService.SetToolTip(AddGroupButton, LocalizationService.Get("ToolTip_AddGroup"));
@@ -486,8 +485,6 @@ public sealed partial class MainWindow : WindowEx
         }
     }
 
-    // ─── 전체 작업 기록 ─────────────────────────────────────────────────
-
     /// <summary>언어 변경 후 재시작 여부를 사용자에게 확인하고 처리합니다.</summary>
     private async Task HandleLanguageChangedAsync()
     {
@@ -548,22 +545,6 @@ public sealed partial class MainWindow : WindowEx
             : Microsoft.UI.Xaml.Visibility.Collapsed;
     }
 
-    private async void ProjectHistoryButton_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            if (_viewModel is null) return;
-
-            var projects = _viewModel.GetAllProjectItemsWithHistories();
-            var dialog = new ProjectHistoryDialog(projects, _viewModel.GetProjectRepository(), _settings);
-            await dialog.ShowAsync();
-        }
-        catch (Exception ex)
-        {
-            await ShowUnexpectedErrorAsync(ex);
-        }
-    }
-
     // ─── 알림 ────────────────────────────────────────────────────────────
 
     /// <summary>알림 드롭다운을 열 때 최신 알림을 재계산하고 팝업 목록을 다시 만듭니다.</summary>
@@ -599,8 +580,13 @@ public sealed partial class MainWindow : WindowEx
         vm.OpenTaskCommand.Execute(item);
     }
 
-    /// <summary>팝업 알림 행의 읽음 토글. 이 클릭이 행 클릭(Tapped)으로 번지지 않는 것은
-    /// Button이 포인터 이벤트를 소비하기 때문이며, 여기서 따로 전파를 막지는 않는다.</summary>
+    /// <summary>읽음 토글 버튼의 Tapped를 여기서 끊는다 — Button은 Tapped를 소비하지 않아
+    /// 그대로 두면 부모 행의 Tapped가 이어 발생해 프로젝트 작업 페이지로 이동해 버린다.
+    /// 실제 토글은 Click에서 하므로(키보드 Enter/Space도 Click으로 들어온다) 여기서는 전파만 막는다.</summary>
+    private void NotificationReadToggle_Tapped(object sender, TappedRoutedEventArgs e)
+        => e.Handled = true;
+
+    /// <summary>팝업 알림 행의 읽음 토글.</summary>
     private void NotificationReadToggle_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement { Tag: NotificationItemViewModel item }) return;

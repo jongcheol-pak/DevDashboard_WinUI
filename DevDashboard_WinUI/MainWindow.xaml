@@ -89,14 +89,6 @@
                         <FontIcon Glyph="&#xE8CB;" FontSize="16" />
                     </Button>
 
-                    <!-- 전체 작업 기록 버튼 -->
-                    <Button x:Name="AllHistoryButton"
-                            Style="{StaticResource TopBarIconButtonStyle}"
-                            IsEnabled="{Binding HasAnyProjects}"
-                            Click="ProjectHistoryButton_Click">
-                        <FontIcon Glyph="&#xE81C;" FontSize="16" />
-                    </Button>
-
                     <!-- 내보내기 / 가져오기 버튼 -->
                     <Button x:Name="ExportImportButton" Style="{StaticResource TopBarIconButtonStyle}">
                         <Button.Flyout>
@@ -215,6 +207,7 @@
                                                                     VerticalAlignment="Top"
                                                                     Tag="{Binding}"
                                                                     Click="NotificationReadToggle_Click"
+                                                                    Tapped="NotificationReadToggle_Tapped"
                                                                     ToolTipService.ToolTip="{Binding ReadToggleTooltip}">
                                                                 <FontIcon Glyph="&#xE73E;" FontSize="12"
                                                                           Foreground="{Binding ReadButtonForeground}" />

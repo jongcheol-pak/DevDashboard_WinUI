@@ -424,11 +424,20 @@
     <Grid Padding="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!-- 어느 프로젝트의 작업 화면인지 알 수 있도록 헤더 위에 프로젝트명을 둔다. -->
+        <TextBlock Grid.Row="0" Text="{x:Bind Vm.Project.Name}"
+                   FontSize="15"
+                   Margin="2,0,0,6"
+                   TextTrimming="CharacterEllipsis"
+                   HorizontalAlignment="Left"
+                   Foreground="{ThemeResource AppTextSecondaryBrush}" />
+
         <!-- ===== 헤더 ===== -->
-        <Grid Grid.Row="0" Margin="0,0,0,16" ColumnSpacing="10">
+        <Grid Grid.Row="1" Margin="0,0,0,16" ColumnSpacing="10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
@@ -482,7 +491,7 @@
         </Grid>
 
         <!-- ===== 본문 ===== -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="2">
             <!-- 칸반 뷰 -->
             <ScrollViewer
                 x:Name="KanbanScrollViewer"

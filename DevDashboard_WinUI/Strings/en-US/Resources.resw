@@ -69,7 +69,6 @@
   <data name="GroupDialog_NameRequired" xml:space="preserve"><value>Please enter a group name.</value></data>
   <data name="GroupDialog_DuplicateFormat" xml:space="preserve"><value>A group named '{0}' already exists.</value></data>
   <data name="HistoryDialog_MarkdownType" xml:space="preserve"><value>Markdown</value></data>
-  <data name="ProjectHistoryDialog_TitleRequired" xml:space="preserve"><value>Please enter a title.</value></data>
   <data name="ProjectSettingsDialog_TitleAdd" xml:space="preserve"><value>Add Project</value></data>
   <data name="ProjectSettingsDialog_TitleEdit" xml:space="preserve"><value>Edit Project</value></data>
   <data name="MainWindow_LauncherCountSuffix" xml:space="preserve"><value>Launcher Apps</value></data>
@@ -79,7 +78,6 @@
   <data name="ToolTip_GridView" xml:space="preserve"><value>Grid View</value></data>
   <data name="ToolTip_ListView" xml:space="preserve"><value>List View</value></data>
   <data name="ToolTip_Sort" xml:space="preserve"><value>Sort</value></data>
-  <data name="ToolTip_AllHistory" xml:space="preserve"><value>All Work History</value></data>
   <data name="ToolTip_AppSettings" xml:space="preserve"><value>App Settings</value></data>
   <data name="ToolTip_AddGroup" xml:space="preserve"><value>Add Group</value></data>
   <data name="ToolTip_Refresh" xml:space="preserve"><value>Refresh</value></data>
@@ -90,7 +88,7 @@
   <data name="ToolTip_CardSettings" xml:space="preserve"><value>Settings</value></data>
   <data name="ToolTip_Delete" xml:space="preserve"><value>Delete</value></data>
   <data name="ToolTip_GitStatus" xml:space="preserve"><value>Git Status</value></data>
-  <data name="ToolTip_ToDo" xml:space="preserve"><value>To-Do</value></data>
+  <data name="ToolTip_ToDo" xml:space="preserve"><value>Task</value></data>
   <data name="ToolTip_WorkHistory" xml:space="preserve"><value>Work History</value></data>
   <data name="ToolTip_Terminal" xml:space="preserve"><value>Terminal</value></data>
 
@@ -115,7 +113,6 @@
   <data name="SortByNameItem.Text" xml:space="preserve"><value>By Name</value></data>
   <data name="SortByCategoryItem.Text" xml:space="preserve"><value>By Category</value></data>
   <data name="SortByRecentItem.Text" xml:space="preserve"><value>By Recent</value></data>
-  <data name="AllHistoryButton.[ToolTipService.ToolTip]" xml:space="preserve"><value>All Work History</value></data>
   <data name="AppSettingsBtn.[ToolTipService.ToolTip]" xml:space="preserve"><value>App Settings</value></data>
   <data name="NewProjectText.Text" xml:space="preserve"><value>New Project</value></data>
   <data name="AllGroupTabLabel.Text" xml:space="preserve"><value>All</value></data>
@@ -348,17 +345,6 @@
   <data name="HistoryPage_InfoFormat" xml:space="preserve"><value>Page {0} / {1}</value></data>
   <data name="HistoryPage_PrevPage" xml:space="preserve"><value>Previous page</value></data>
   <data name="HistoryPage_NextPage" xml:space="preserve"><value>Next page</value></data>
-
-  <!-- ===== XAML x:Uid — ProjectHistoryDialog ===== -->
-  <data name="ProjectHistoryDialogTitle" xml:space="preserve"><value>All Work History</value></data>
-
-  <data name="ProjectCombo.PlaceholderText" xml:space="preserve"><value>Select project</value></data>
-  <data name="AddProjectHistoryBtn.Content" xml:space="preserve"><value>Add New</value></data>
-  <data name="ProjHistAddNewHeader.Text" xml:space="preserve"><value>Add New Entry</value></data>
-  <data name="ProjHistSearchBox.PlaceholderText" xml:space="preserve"><value>Search...</value></data>
-  <data name="ProjHistTitleBox.PlaceholderText" xml:space="preserve"><value>Title (required)</value></data>
-  <data name="ProjHistDescBox.PlaceholderText" xml:space="preserve"><value>Description (optional)</value></data>
-  <data name="EmptyProjHistText.Text" xml:space="preserve"><value>No work history.</value></data>
 
   <!-- ===== XAML x:Uid — IconPickerDialog ===== -->
   <data name="IconPickerDialogTitle" xml:space="preserve"><value>Select Icon</value></data>
