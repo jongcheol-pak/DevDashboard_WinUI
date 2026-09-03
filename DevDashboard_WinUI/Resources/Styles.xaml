@@ -492,4 +492,187 @@
         </Setter>
     </Style>
 
+    <!-- ===== 버튼 hover 색 덮어쓰기 대응 (공용 2종) =====
+         WinUI 기본 Button 스타일은 PointerOver·Pressed에서 배경뿐 아니라 **테두리·글자색까지**
+         한꺼번에 자기 값으로 덮는다. VisualState setter는 로컬 값보다 우선하므로, XAML에서
+         `Background`·`BorderBrush`·`Foreground`를 직접 지정한 버튼은 마우스를 올리는 순간
+         그 색이 통째로 기본색으로 튀었다가 돌아온다 — 깜빡임처럼 보이는 원인이다.
+         아래 두 스타일은 그 세 값을 TemplateBinding으로 그대로 유지하고 hover 표현만 따로 준다.
+
+         · SubtleIconButtonStyle — 배경이 투명한 아이콘/텍스트 버튼용. 배경만 옅게 채운다.
+         · FlatButtonStyle       — 배경색 자체가 의미인 버튼용(실행 버튼·색 견본 등).
+                                   색을 바꾸지 않고 반투명 흰색을 덧씌워 밝기만 올린다. -->
+    <Style x:Key="SubtleIconButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Root"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}">
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          Padding="{TemplateBinding Padding}" />
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Background" Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Background" Value="#FF35353C" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Disabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Opacity" Value="0.3" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="FlatButtonStyle" TargetType="Button">
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}">
+                        <Grid>
+                            <!-- 색을 갈아끼우지 않고 위에 덧씌우는 오버레이. 어떤 배경색에도 같은 정도로 밝아진다. -->
+                            <Border x:Name="Overlay"
+                                    Background="#FFFFFFFF"
+                                    CornerRadius="{TemplateBinding CornerRadius}"
+                                    Opacity="0" />
+                            <ContentPresenter x:Name="Content"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              Foreground="{TemplateBinding Foreground}"
+                                              FontSize="{TemplateBinding FontSize}"
+                                              Padding="{TemplateBinding Padding}" />
+                        </Grid>
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="Overlay.Opacity" Value="0.08" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="Overlay.Opacity" Value="0.14" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Disabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="Content.Opacity" Value="0.4" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== 알림 팝업 하단 "모든 알림 보기" =====
+         시안 hover는 배경 #232329 · 글자 #E8E6E3이고 상단 구분선은 그대로 남는다.
+         기본 스타일에 맡기면 hover에서 테두리까지 함께 바뀌어 구분선 색이 튄다. -->
+    <Style x:Key="NotificationViewAllStyle" TargetType="Button">
+        <Setter Property="Height" Value="44" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0,1,0,0" />
+        <Setter Property="BorderBrush" Value="{ThemeResource AppBorderBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppTextSecondaryBrush}" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Root"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}">
+                        <ContentPresenter x:Name="Content"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Foreground="{TemplateBinding Foreground}" />
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Background" Value="#FF232329" />
+                                        <Setter Target="Content.Foreground" Value="{ThemeResource AppTextPrimaryBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Background" Value="{ThemeResource AppHoverFillBrush}" />
+                                        <Setter Target="Content.Foreground" Value="{ThemeResource AppTextPrimaryBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Disabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Opacity" Value="0.3" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== 알림 팝업 프레젠터 =====
+         Flyout 기본 프레젠터는 안쪽 여백을 갖고 폭이 내용에 맞춰지는데, 시안 알림 패널은
+         폭 380 고정 · 여백 0(행이 좌우 끝까지 닿는다) · 높이 상한 안에서 목록만 스크롤이다.
+         그 세 가지를 얻으려면 프레젠터 스타일을 직접 준다. -->
+    <Style x:Key="NotificationFlyoutPresenterStyle" TargetType="FlyoutPresenter">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="MinWidth" Value="380" />
+        <Setter Property="MaxWidth" Value="380" />
+        <Setter Property="MaxHeight" Value="560" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="Background" Value="{ThemeResource AppCardBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource AppBorderStrongBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="ScrollViewer.HorizontalScrollMode" Value="Disabled" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="ScrollViewer.VerticalScrollMode" Value="Disabled" />
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
+    </Style>
+
 </ResourceDictionary>

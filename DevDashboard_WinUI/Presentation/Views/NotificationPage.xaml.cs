@@ -21,44 +21,15 @@ public sealed partial class NotificationPage : UserControl
         DataContext = vm;
     }
 
-    // ===== 마감상태 색 (PRD §3 팔레트: 경과 코랄 #f0716a / 오늘 앰버 #e8b45a / 임박 블루 #5aa3e8) =====
+    // 행 마우스 오버 테두리 #3D3D45 (시안 style-hover). 기본 테두리는 항목 뷰모델의 RowBorder가 갖는다.
+    private static readonly SolidColorBrush _rowHoverBorderBrush = new(ColorHelper.FromArgb(0xFF, 0x3D, 0x3D, 0x45));
 
-    private static readonly SolidColorBrush _overdueBrush = new(ColorHelper.FromArgb(0xFF, 0xF0, 0x71, 0x6A));
-    private static readonly SolidColorBrush _dueTodayBrush = new(ColorHelper.FromArgb(0xFF, 0xE8, 0xB4, 0x5A));
-    private static readonly SolidColorBrush _imminentBrush = new(ColorHelper.FromArgb(0xFF, 0x5A, 0xA3, 0xE8));
-
-    // 헤더·툴팁 (x:Bind 정적 참조)
+    // 화면 고정 문구 (x:Bind 정적 참조). 항목별로 달라지는 값은 전부 NotificationItemViewModel이 갖는다.
     public static string PageTitle { get; } = LocalizationService.Get("Notification_Title");
     public static string BackText { get; } = LocalizationService.Get("Notification_Back");
     public static string MarkAllText { get; } = LocalizationService.Get("Notification_MarkAll");
     public static string EmptyText { get; } = LocalizationService.Get("Notification_Empty");
-    public static string MarkReadTooltip { get; } = LocalizationService.Get("Notification_MarkRead_Tooltip");
-
-    private static readonly string _duePrefix = LocalizationService.Get("Notification_DuePrefix");
-
-    // ===== x:Bind 정적 헬퍼 (Converter 미적용 — 직접 타입 반환) =====
-
-    /// <summary>마감상태 배지 색 브러시 (임박/오늘/경과)</summary>
-    public static Brush DeadlineBrush(DeadlineStatus status) => status switch
-    {
-        DeadlineStatus.Overdue => _overdueBrush,
-        DeadlineStatus.DueToday => _dueTodayBrush,
-        _ => _imminentBrush,
-    };
-
-    /// <summary>마감상태 배지 라벨 (임박/오늘 마감/경과)</summary>
-    public static string DeadlineLabel(DeadlineStatus status)
-        => LocalizationService.Get($"Notification_Deadline_{status}");
-
-    /// <summary>종료일 표시 ("마감 yyyy-MM-dd")</summary>
-    public static string FormatDue(DateTime date) => $"{_duePrefix} {date:yyyy-MM-dd}";
-
-    /// <summary>안읽음 표시 점의 표시 여부 (안읽음일 때만 표시)</summary>
-    public static Visibility UnreadDotVisibility(bool isRead)
-        => isRead ? Visibility.Collapsed : Visibility.Visible;
-
-    /// <summary>읽음 항목은 흐리게 표시 (읽음 0.5 / 안읽음 1.0)</summary>
-    public static double ReadOpacity(bool isRead) => isRead ? 0.5 : 1.0;
+    public static string EmptyHintText { get; } = LocalizationService.Get("Notification_EmptyHint");
 
     // ===== 네비게이션·상호작용 =====
 
@@ -72,10 +43,32 @@ public sealed partial class NotificationPage : UserControl
             Vm.OpenTaskCommand.Execute(item);
     }
 
-    /// <summary>항목 읽음 처리 버튼.</summary>
-    private void MarkRead_Click(object sender, RoutedEventArgs e)
+    /// <summary>읽음 토글 버튼의 Tapped를 여기서 끊는다 — Button은 Tapped를 소비하지 않아
+    /// 그대로 두면 부모 행의 Tapped가 이어 발생해 프로젝트 작업 페이지로 이동해 버린다.
+    /// 실제 토글은 Click에서 하므로(키보드 Enter/Space도 Click으로 들어온다) 여기서는 전파만 막는다.</summary>
+    private void ReadToggle_Tapped(object sender, TappedRoutedEventArgs e)
+        => e.Handled = true;
+
+    /// <summary>항목 읽음 토글 버튼(읽음 ↔ 안읽음 양방향 — 시안 readBtn).</summary>
+    private void ReadToggle_Click(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement { Tag: NotificationItemViewModel item })
-            Vm.MarkReadCommand.Execute(item);
+            Vm.ToggleReadCommand.Execute(item);
+    }
+
+    /// <summary>행에 마우스를 올리면 테두리를 밝힌다(시안 style-hover).</summary>
+    private void Row_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border border)
+            border.BorderBrush = _rowHoverBorderBrush;
+    }
+
+    /// <summary>행에서 마우스가 벗어나면 기본 테두리로 되돌린다.
+    /// ClearValue를 쓰지 않는 이유: XAML의 `{x:Bind RowBorder}`는 기본 OneTime이라 로컬 값을 한 번 대입하는
+    /// 코드로 컴파일된다 — 그 값을 지우면 바인딩이 되살아나는 게 아니라 Border의 기본값(테두리 없음)이 된다.</summary>
+    private void Row_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border { Tag: NotificationItemViewModel item } border)
+            border.BorderBrush = item.RowBorder;
     }
 }

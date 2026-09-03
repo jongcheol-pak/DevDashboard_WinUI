@@ -277,6 +277,7 @@
 
                             <!-- 개발 도구 실행 버튼 (누르면 실행, 우클릭하면 관리자 권한) -->
                             <Button Grid.Column="0"
+                                    Style="{StaticResource FlatButtonStyle}"
                                     Height="34" CornerRadius="9" Padding="10,0"
                                     BorderThickness="0"
                                     HorizontalAlignment="Stretch"
@@ -614,9 +615,9 @@
                     PointerEntered="AddCard_PointerEntered"
                     PointerExited="AddCard_PointerExited">
                 <Button HorizontalAlignment="Stretch"
+                        Style="{StaticResource SubtleIconButtonStyle}"
                         VerticalAlignment="Stretch"
-                        Background="Transparent"
-                        BorderThickness="0"
+                        CornerRadius="13"
                         Click="AddCard_Click">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
                         <FontIcon Glyph="&#xE710;" FontSize="26"

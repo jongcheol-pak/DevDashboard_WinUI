@@ -333,9 +333,9 @@ FontSize="12" />
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <TextBlock Text="{x:Bind Value}" VerticalAlignment="Center" />
                                                 <Button
+                     Style="{StaticResource SubtleIconButtonStyle}"
                      Padding="4"
-                     Background="Transparent"
-                     BorderThickness="0"
+                     CornerRadius="4"
                      Tag="{Binding Value}"
                      Visibility="{Binding IsDefault, Converter={StaticResource InverseBoolToVisibility}}"
                      Click="RemoveTag_Click">
@@ -400,9 +400,9 @@ FontSize="12" />
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <TextBlock Text="{x:Bind Value}" VerticalAlignment="Center" />
                                                 <Button
+                    Style="{StaticResource SubtleIconButtonStyle}"
                     Padding="4"
-                    Background="Transparent"
-                    BorderThickness="0"
+                    CornerRadius="4"
                     Tag="{Binding Value}"
                     Visibility="{Binding IsDefault, Converter={StaticResource InverseBoolToVisibility}}"
                     Click="RemoveCategory_Click">
@@ -463,9 +463,9 @@ FontSize="12" />
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <TextBlock Text="{x:Bind Value}" VerticalAlignment="Center" />
                                                 <Button
+                    Style="{StaticResource SubtleIconButtonStyle}"
                     Padding="4"
-                    Background="Transparent"
-                    BorderThickness="0"
+                    CornerRadius="4"
                     Tag="{Binding Value}"
                     Visibility="{Binding IsDefault, Converter={StaticResource InverseBoolToVisibility}}"
                     Click="RemoveTaskCategory_Click">
@@ -526,9 +526,9 @@ FontSize="12" />
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <TextBlock Text="{x:Bind Value}" VerticalAlignment="Center" />
                                                 <Button
+                    Style="{StaticResource SubtleIconButtonStyle}"
                     Padding="4"
-                    Background="Transparent"
-                    BorderThickness="0"
+                    CornerRadius="4"
                     Tag="{Binding Value}"
                     Visibility="{Binding IsDefault, Converter={StaticResource InverseBoolToVisibility}}"
                     Click="RemoveHistoryKind_Click">

@@ -99,7 +99,8 @@
                                 <Border CornerRadius="11" BorderThickness="2"
                                         BorderBrush="{ThemeResource TextFillColorPrimaryBrush}"
                                         Visibility="{x:Bind IsSelected, Converter={StaticResource BoolToVisibility}, Mode=OneWay}" />
-                                <Button Width="26" Height="26" Padding="0"
+                                <Button Style="{StaticResource FlatButtonStyle}"
+                                        Width="26" Height="26" Padding="0"
                                         HorizontalAlignment="Center" VerticalAlignment="Center"
                                         CornerRadius="8"
                                         BorderThickness="0"

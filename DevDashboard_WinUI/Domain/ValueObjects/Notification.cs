@@ -19,6 +19,9 @@ public record Notification
     /// <summary>작업 본문 텍스트(표시용)</summary>
     public string TodoText { get; init; } = string.Empty;
 
+    /// <summary>작업 카테고리 (빈 문자열이면 미분류 — 표시명 해석은 표현 계층 담당)</summary>
+    public string TodoCategory { get; init; } = string.Empty;
+
     /// <summary>작업 종료(마감)일 — 알림 대상은 항상 종료일이 지정된 작업</summary>
     public DateTime EndDate { get; init; }
 

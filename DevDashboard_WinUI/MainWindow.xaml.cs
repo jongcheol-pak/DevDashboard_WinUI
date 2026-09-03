@@ -12,6 +12,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using WinUIEx;
 
 namespace DevDashboard;
@@ -49,10 +50,17 @@ public sealed partial class MainWindow : WindowEx
     public SortOrder SortByCategory { get; } = SortOrder.Category;
     public SortOrder SortByDate { get; } = SortOrder.CreatedAt;
 
+    // 알림 팝업 행 배경 — 마우스 오버 #232329(시안 style-hover), 평상시 투명
+    private static readonly SolidColorBrush _notificationRowHoverBrush =
+        new(Microsoft.UI.ColorHelper.FromArgb(0xFF, 0x23, 0x23, 0x29));
+    private static readonly SolidColorBrush _transparentBrush = new(Microsoft.UI.Colors.Transparent);
+
     // 알림 헤더 문자열 — XAML x:Bind용
     public string NotificationTooltip { get; } = LocalizationService.Get("Notification_Header_Tooltip");
     public string NotificationFlyoutTitle { get; } = LocalizationService.Get("Notification_Title");
     public string NotificationEmptyText { get; } = LocalizationService.Get("Notification_Empty");
+    public string NotificationEmptyHintText { get; } = LocalizationService.Get("Notification_EmptyHint");
+    public string NotificationMarkAllText { get; } = LocalizationService.Get("Notification_MarkAll");
     public string NotificationViewAllText { get; } = LocalizationService.Get("Notification_ViewAll");
 
     public MainWindow(AppSettings settings, JsonStorageService storageService,
@@ -257,7 +265,6 @@ public sealed partial class MainWindow : WindowEx
     private void ApplyToolTips()
     {
         ToolTipService.SetToolTip(SortButton, LocalizationService.Get("ToolTip_Sort"));
-        ToolTipService.SetToolTip(AllHistoryButton, LocalizationService.Get("ToolTip_AllHistory"));
         ToolTipService.SetToolTip(ExportImportButton, LocalizationService.Get("ToolTip_ExportImport"));
         ToolTipService.SetToolTip(AppSettingsButton, LocalizationService.Get("ToolTip_AppSettings"));
         ToolTipService.SetToolTip(AddGroupButton, LocalizationService.Get("ToolTip_AddGroup"));
@@ -478,8 +485,6 @@ public sealed partial class MainWindow : WindowEx
         }
     }
 
-    // ─── 전체 작업 기록 ─────────────────────────────────────────────────
-
     /// <summary>언어 변경 후 재시작 여부를 사용자에게 확인하고 처리합니다.</summary>
     private async Task HandleLanguageChangedAsync()
     {
@@ -540,40 +545,71 @@ public sealed partial class MainWindow : WindowEx
             : Microsoft.UI.Xaml.Visibility.Collapsed;
     }
 
-    private async void ProjectHistoryButton_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            if (_viewModel is null) return;
-
-            var projects = _viewModel.GetAllProjectItemsWithHistories();
-            var dialog = new ProjectHistoryDialog(projects, _viewModel.GetProjectRepository(), _settings);
-            await dialog.ShowAsync();
-        }
-        catch (Exception ex)
-        {
-            await ShowUnexpectedErrorAsync(ex);
-        }
-    }
-
     // ─── 알림 ────────────────────────────────────────────────────────────
 
-    /// <summary>알림 드롭다운을 열 때 최신 알림을 재계산하고 요약(상위 5개)을 갱신합니다.</summary>
+    /// <summary>알림 드롭다운을 열 때 최신 알림을 재계산하고 팝업 목록을 다시 만듭니다.</summary>
     private void NotificationFlyout_Opening(object? sender, object e)
     {
-        _viewModel?.RebuildNotifications();
-        var notifications = _viewModel?.GetCurrentNotifications() ?? [];
+        if (_viewModel is null) return;
 
-        var summary = notifications
-            .Take(5)
-            .Select(n => $"{n.ProjectName} · {n.TodoText} ({NotificationPage.DeadlineLabel(n.Status)})")
-            .ToList();
-        NotificationSummaryList.ItemsSource = summary;
+        _viewModel.RebuildNotifications();
+        // 팝업은 열 때마다 새 뷰모델을 쓴다 — 그 사이 작업이 완료·수정됐을 수 있어 이전 목록을 재사용하면 낡는다.
+        NotificationFlyoutRoot.DataContext = CreateNotificationViewModel();
+    }
 
-        var hasAny = notifications.Count > 0;
-        NotificationSummaryList.Visibility = hasAny ? Visibility.Visible : Visibility.Collapsed;
-        NotificationFlyoutEmpty.Visibility = hasAny ? Visibility.Collapsed : Visibility.Visible;
-        ViewAllNotificationsButton.Visibility = hasAny ? Visibility.Visible : Visibility.Collapsed;
+    /// <summary>알림 팝업·페이지가 공유하는 뷰모델을 만듭니다(읽음 처리·이동 콜백을 MainViewModel에 연결).</summary>
+    private NotificationPageViewModel CreateNotificationViewModel()
+    {
+        var vm = _viewModel!;
+        return new NotificationPageViewModel(
+            vm.GetCurrentNotifications(),
+            vm.GetReadKeys(),
+            n => vm.MarkNotificationRead(n),
+            n => vm.UnmarkNotificationRead(n),
+            ns => vm.MarkAllNotificationsRead(ns),
+            NavigateToProjectTasks);
+    }
+
+    /// <summary>팝업 알림 행 클릭 — 팝업을 닫고 해당 작업 페이지로 이동합니다(이동 시 읽음 처리도 함께).</summary>
+    private void NotificationRow_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: NotificationItemViewModel item }) return;
+        if (NotificationFlyoutRoot.DataContext is not NotificationPageViewModel vm) return;
+
+        NotificationButton.Flyout?.Hide();
+        vm.OpenTaskCommand.Execute(item);
+    }
+
+    /// <summary>읽음 토글 버튼의 Tapped를 여기서 끊는다 — Button은 Tapped를 소비하지 않아
+    /// 그대로 두면 부모 행의 Tapped가 이어 발생해 프로젝트 작업 페이지로 이동해 버린다.
+    /// 실제 토글은 Click에서 하므로(키보드 Enter/Space도 Click으로 들어온다) 여기서는 전파만 막는다.</summary>
+    private void NotificationReadToggle_Tapped(object sender, TappedRoutedEventArgs e)
+        => e.Handled = true;
+
+    /// <summary>팝업 알림 행의 읽음 토글.</summary>
+    private void NotificationReadToggle_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: NotificationItemViewModel item }) return;
+        if (NotificationFlyoutRoot.DataContext is not NotificationPageViewModel vm) return;
+
+        // 헤더 배지는 따로 손대지 않아도 된다 — 토글 콜백이 MainViewModel의 읽음 처리·해제를 거치고
+        // 그 두 메서드가 UnreadNotificationCount를 다시 센다.
+        vm.ToggleReadCommand.Execute(item);
+    }
+
+    /// <summary>팝업 행에 마우스를 올리면 배경을 밝힌다(시안 style-hover).</summary>
+    private void NotificationRow_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border border)
+            border.Background = _notificationRowHoverBrush;
+    }
+
+    /// <summary>팝업 행에서 마우스가 벗어나면 투명 배경으로 되돌린다.
+    /// ClearValue를 쓰지 않는 이유: XAML 초기값이 로컬 값이라 지우면 바인딩이 아니라 기본값이 된다.</summary>
+    private void NotificationRow_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border border)
+            border.Background = _transparentBrush;
     }
 
     /// <summary>"모든 알림 보기" — 알림 전체 페이지로 전환합니다.</summary>
@@ -581,14 +617,7 @@ public sealed partial class MainWindow : WindowEx
     {
         if (_viewModel is null) return;
         NotificationButton.Flyout?.Hide();
-
-        var vm = new NotificationPageViewModel(
-            _viewModel.GetCurrentNotifications(),
-            _viewModel.GetReadKeys(),
-            n => _viewModel.MarkNotificationRead(n),
-            ns => _viewModel.MarkAllNotificationsRead(ns),
-            NavigateToProjectTasks);
-        ShowPage(new NotificationPage(vm));
+        ShowPage(new NotificationPage(CreateNotificationViewModel()));
     }
 
     /// <summary>알림 항목 클릭 시 해당 프로젝트의 작업 페이지로 이동합니다(카드 없으면 무시).</summary>

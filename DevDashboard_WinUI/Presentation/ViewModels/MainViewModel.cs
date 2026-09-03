@@ -57,10 +57,14 @@ public partial class MainViewModel : ObservableObject
     /// <summary>안읽음 마감 알림 개수 (헤더 벨 배지) — 0이면 배지 숨김</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasUnreadNotifications))]
+    [NotifyPropertyChangedFor(nameof(UnreadNotificationBadge))]
     public partial int UnreadNotificationCount { get; set; }
 
     /// <summary>안읽음 알림이 하나 이상 있는지 여부 (배지 표시용)</summary>
     public bool HasUnreadNotifications => UnreadNotificationCount > 0;
+
+    /// <summary>헤더 벨 배지에 표시할 문구. 두 자릿수부터는 "9+"로 줄여 배지가 넓어지지 않게 한다.</summary>
+    public string UnreadNotificationBadge => UnreadNotificationCount > 9 ? "9+" : UnreadNotificationCount.ToString();
 
     // 마지막으로 계산된 마감 알림 목록 (드롭다운·페이지가 공유 — RebuildNotifications가 갱신)
     private List<Notification> _currentNotifications = [];
@@ -325,6 +329,7 @@ public partial class MainViewModel : ObservableObject
         card.PinToggled += OnCardPinToggled;
         card.CommandScriptChanged += OnCommandScriptChanged;
         card.HistoryChanged += OnHistoryChanged;
+        card.TodosChanged += OnCardTodosChanged;
     }
 
     private void UnsubscribeFromCard(ProjectCardViewModel card)
@@ -334,7 +339,14 @@ public partial class MainViewModel : ObservableObject
         card.PinToggled -= OnCardPinToggled;
         card.CommandScriptChanged -= OnCommandScriptChanged;
         card.HistoryChanged -= OnHistoryChanged;
+        card.TodosChanged -= OnCardTodosChanged;
     }
+
+    /// <summary>
+    /// 카드의 작업이 바뀌면 마감 알림을 다시 집계합니다(헤더 안읽음 배지가 그 자리에서 맞도록).
+    /// 이것이 없으면 배지는 알림 팝업을 다시 열 때까지 낡은 값으로 남는다.
+    /// </summary>
+    private void OnCardTodosChanged(object? sender, EventArgs e) => RebuildNotifications();
 
     private static void ShowDbError(Exception ex)
     {
@@ -693,24 +705,20 @@ public partial class MainViewModel : ObservableObject
 
     public List<ProjectItem> GetAllProjectItems() => _allCards.Select(c => c.ToModel()).ToList();
 
-    /// <summary>ProjectHistoryDialog용 — 모든 프로젝트의 Histories를 DB에서 로드하여 반환합니다.</summary>
-    public List<ProjectItem> GetAllProjectItemsWithHistories()
-    {
-        var items = _allCards.Select(c => c.ToModel()).ToList();
-        foreach (var item in items)
-            item.Histories = _projectRepository.GetHistories(item.Id);
-        return items;
-    }
-
     // --- 마감 알림(Phase 5) ---
 
-    /// <summary>알림 감지용 — 모든 프로젝트의 Todos를 DB에서 로드하여 반환합니다(GetAllProjectItemsWithHistories의 Todos판).</summary>
+    /// <summary>알림 감지용 — 모든 프로젝트를 Todos가 채워진 상태로 반환합니다(아직 안 읽은 카드만 DB에서 로드).</summary>
     public List<ProjectItem> GetAllProjectItemsWithTodos()
     {
-        var items = _allCards.Select(c => c.ToModel()).ToList();
-        foreach (var item in items)
-            item.Todos = _projectRepository.GetTodos(item.Id);
-        return items;
+        // 카드가 이미 읽어 둔 Todos를 그대로 쓴다(EnsureTodosLoaded는 로드된 카드에서 즉시 반환).
+        // 매번 DB를 다시 읽으면 작업을 하나 고칠 때마다 프로젝트 수만큼 연결·쿼리가 생긴다 —
+        // 알림 재집계가 작업 편집마다 일어나게 된 뒤로는 그 비용이 그대로 편집 지연이 된다.
+        // 작업 페이지는 카드와 같은 ProjectItem 인스턴스를 고치므로 메모리 값이 항상 최신이고,
+        // DB를 바꾸는 경로(가져오기·프로젝트 교체)는 카드를 새로 만들어 다시 읽게 한다.
+        foreach (var card in _allCards)
+            card.EnsureTodosLoaded();
+
+        return _allCards.Select(c => c.ToModel()).ToList();
     }
 
     /// <summary>전체 프로젝트의 마감 알림을 재계산하고 안읽음 개수를 갱신합니다.
@@ -744,6 +752,16 @@ public partial class MainViewModel : ObservableObject
             _settings.ReadNotificationIds.Add(key);
             SaveSettings();
         }
+        UnreadNotificationCount = CountUnread();
+    }
+
+    /// <summary>단일 알림의 읽음 처리를 해제하고 영속화합니다(읽음 버튼은 토글이라 되돌리는 경로가 필요).</summary>
+    public void UnmarkNotificationRead(Notification notification)
+    {
+        if (notification is null) return;
+        var key = NotificationService.BuildKey(notification);
+        if (_settings.ReadNotificationIds.Remove(key))
+            SaveSettings();
         UnreadNotificationCount = CountUnread();
     }
 

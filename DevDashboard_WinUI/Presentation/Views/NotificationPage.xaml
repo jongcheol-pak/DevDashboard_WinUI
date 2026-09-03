@@ -10,131 +10,197 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
 
     <UserControl.Resources>
-        <!-- 알림 항목 카드 -->
+        <!-- 알림 항목 행 (시안: 아이콘 박스 + 제목·부제 + 경과 배지 + 읽음 토글) -->
         <DataTemplate x:Key="NotificationItemTemplate" x:DataType="vm:NotificationItemViewModel">
             <Border
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                Background="{x:Bind RowBackground}"
+                BorderBrush="{x:Bind RowBorder}"
                 BorderThickness="1"
-                CornerRadius="6"
-                Padding="10"
-                Margin="0,0,0,8"
+                CornerRadius="12"
+                Padding="18,15"
+                Margin="0,0,0,10"
                 Tag="{x:Bind}"
                 Tapped="Item_Tapped"
-                Opacity="{x:Bind local:NotificationPage.ReadOpacity(IsRead), Mode=OneWay}">
-                <Grid ColumnSpacing="8">
+                PointerEntered="Row_PointerEntered"
+                PointerExited="Row_PointerExited"
+                Opacity="{x:Bind RowOpacity, Mode=OneWay}">
+                <Grid ColumnSpacing="14">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- 안읽음 표시 점 -->
-                    <Ellipse
-                        Grid.Column="0"
-                        Width="8" Height="8"
-                        VerticalAlignment="Top"
-                        Margin="0,6,0,0"
-                        Fill="{ThemeResource AccentFillColorDefaultBrush}"
-                        Visibility="{x:Bind local:NotificationPage.UnreadDotVisibility(IsRead), Mode=OneWay}" />
+                    <!-- 마감상태 색 시계 아이콘 박스 -->
+                    <Border Grid.Column="0"
+                            Width="34" Height="34"
+                            CornerRadius="9"
+                            Background="{x:Bind BadgeBackground}"
+                            VerticalAlignment="Center">
+                        <FontIcon Glyph="&#xE917;" FontSize="16"
+                                  Foreground="{x:Bind BadgeForeground}" />
+                    </Border>
 
-                    <!-- 작업 텍스트 + 종료일 -->
-                    <StackPanel Grid.Column="1" Spacing="4">
+                    <!-- 제목 + 부제(카테고리 · 종료일) -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock
                             Text="{x:Bind TodoText}"
-                            TextWrapping="Wrap"
-                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            FontSize="14" FontWeight="Bold"
+                            TextTrimming="CharacterEllipsis" />
                         <TextBlock
-                            Text="{x:Bind local:NotificationPage.FormatDue(EndDate)}"
-                            FontSize="11"
-                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            Text="{x:Bind SubCaption}"
+                            FontSize="12"
+                            Margin="0,3,0,0"
+                            Foreground="{x:Bind SubCaptionForeground}"
+                            TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
-                    <!-- 마감상태 배지 + 읽음 처리 -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
-                        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                            <Ellipse
-                                Width="8" Height="8"
-                                VerticalAlignment="Center"
-                                Fill="{x:Bind local:NotificationPage.DeadlineBrush(Status)}" />
-                            <TextBlock
-                                Text="{x:Bind local:NotificationPage.DeadlineLabel(Status)}"
-                                FontSize="11"
-                                VerticalAlignment="Center"
-                                Foreground="{x:Bind local:NotificationPage.DeadlineBrush(Status)}" />
-                        </StackPanel>
-                        <Button
-                            Padding="8,4"
-                            Background="Transparent" BorderThickness="0"
+                    <!-- 경과 배지 -->
+                    <Border Grid.Column="2"
+                            CornerRadius="6"
+                            Padding="8,3"
+                            VerticalAlignment="Center"
+                            Background="{x:Bind BadgeBackground}">
+                        <TextBlock Text="{x:Bind BadgeText}"
+                                   FontSize="10.5" FontWeight="Bold"
+                                   Foreground="{x:Bind BadgeForeground}" />
+                    </Border>
+
+                    <!-- 읽음 토글 -->
+                    <Button Grid.Column="3"
+                            Style="{StaticResource SubtleIconButtonStyle}"
+                            Width="26" Height="26" Padding="0"
+                            CornerRadius="7" BorderThickness="1"
+                            BorderBrush="{x:Bind ReadButtonBorder, Mode=OneWay}"
+                            VerticalAlignment="Center"
                             Tag="{x:Bind}"
-                            Click="MarkRead_Click"
-                            ToolTipService.ToolTip="{x:Bind local:NotificationPage.MarkReadTooltip}"
-                            Visibility="{x:Bind local:NotificationPage.UnreadDotVisibility(IsRead), Mode=OneWay}">
-                            <FontIcon Glyph="&#xE73E;" FontSize="12" />
-                        </Button>
-                    </StackPanel>
+                            Click="ReadToggle_Click"
+                            Tapped="ReadToggle_Tapped"
+                            ToolTipService.ToolTip="{x:Bind ReadToggleTooltip, Mode=OneWay}">
+                        <FontIcon Glyph="&#xE73E;" FontSize="13"
+                                  Foreground="{x:Bind ReadButtonForeground, Mode=OneWay}" />
+                    </Button>
                 </Grid>
             </Border>
         </DataTemplate>
     </UserControl.Resources>
 
-    <Grid Padding="16">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- ===== 헤더 ===== -->
-        <Grid Grid.Row="0" Margin="0,0,0,12" ColumnSpacing="10">
+        <!-- ===== 헤더 (뒤로 + 제목 + 안읽음 pill + 모두 읽음) ===== -->
+        <Grid Grid.Row="0" Padding="24,16,24,0" ColumnSpacing="14">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Click="Back_Click" VerticalAlignment="Center">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                    <FontIcon Glyph="&#xE72B;" FontSize="14" />
-                    <TextBlock Text="{x:Bind local:NotificationPage.BackText}" />
+            <!-- 뒤로 버튼은 시안이 "모두 읽음"보다 어두운 톤(bg #1D1D21 / border #2B2B31)이라 색을 직접 준다.
+                 기본 Button 스타일(#242429/#2E2E34)을 그대로 쓰면 두 버튼이 같은 색으로 보인다. -->
+            <Button Grid.Column="0" Click="Back_Click"
+                    Style="{StaticResource FlatButtonStyle}"
+                    Height="34" Padding="13,0" CornerRadius="9"
+                    BorderThickness="1"
+                    Background="{ThemeResource AppInputBrush}"
+                    BorderBrush="{ThemeResource AppHoverFillBrush}"
+                    VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                    <FontIcon Glyph="&#xE76B;" FontSize="13" />
+                    <TextBlock Text="{x:Bind local:NotificationPage.BackText}" FontSize="12.5" />
                 </StackPanel>
             </Button>
 
             <TextBlock Grid.Column="1" Text="{x:Bind local:NotificationPage.PageTitle}"
-                       Style="{StaticResource SubtitleTextBlockStyle}"
-                       VerticalAlignment="Center" Margin="6,0,0,0" />
+                       FontSize="17" FontWeight="Bold"
+                       VerticalAlignment="Center" />
 
-            <Button Grid.Column="3"
+            <!-- 안읽음 건수 pill -->
+            <Border Grid.Column="2"
+                    Background="{ThemeResource AppBorderBrush}"
+                    CornerRadius="7" Padding="10,4"
+                    VerticalAlignment="Center">
+                <TextBlock Text="{x:Bind Vm.UnreadCaption, Mode=OneWay}"
+                           FontSize="12"
+                           Foreground="{ThemeResource AppTextSecondaryBrush}" />
+            </Border>
+
+            <Button Grid.Column="4"
                     Content="{x:Bind local:NotificationPage.MarkAllText}"
+                    Height="32" Padding="14,0" CornerRadius="8"
+                    FontSize="12.5"
                     VerticalAlignment="Center"
                     Command="{x:Bind Vm.MarkAllReadCommand}"
-                    Visibility="{x:Bind Vm.HasNotifications, Converter={StaticResource BoolToVisibility}, Mode=OneWay}" />
+                    Visibility="{x:Bind Vm.HasUnread, Converter={StaticResource BoolToVisibility}, Mode=OneWay}" />
         </Grid>
 
         <!-- ===== 본문 ===== -->
         <Grid Grid.Row="1">
             <!-- 프로젝트별 그룹 목록 -->
+            <!-- 가로 스크롤을 끄고 콘텐츠를 왼쪽에 고정한다 — Stretch로 두면 창을 넓혔을 때
+                 남는 폭이 오른쪽으로 밀려 목록이 오른쪽 끝에 붙고 잘린다. -->
             <ScrollViewer
                 VerticalScrollBarVisibility="Auto"
+                HorizontalScrollMode="Disabled"
+                HorizontalScrollBarVisibility="Disabled"
+                HorizontalContentAlignment="Left"
+                Padding="24,18,24,24"
                 Visibility="{x:Bind Vm.HasNotifications, Converter={StaticResource BoolToVisibility}, Mode=OneWay}">
-                <ItemsControl ItemsSource="{x:Bind Vm.Groups, Mode=OneWay}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="vm:NotificationProjectGroup">
-                            <StackPanel Margin="0,0,0,12" MaxWidth="560" HorizontalAlignment="Left">
-                                <TextBlock Text="{x:Bind ProjectName}" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,0,0,6" />
-                                <ItemsControl ItemsSource="{x:Bind Items}" ItemTemplate="{StaticResource NotificationItemTemplate}" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <!-- 폭 상한(1080)은 목록에 직접 걸지 않고 star 컬럼에 건다.
+                     ItemsControl에 MaxWidth+Left를 주면 목록 폭이 내용 길이로 줄고,
+                     MaxWidth+Stretch를 주면 남는 폭이 오른쪽으로 밀린다. -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" MaxWidth="1080" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ItemsControl Grid.Column="0" ItemsSource="{x:Bind Vm.Groups, Mode=OneWay}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:NotificationProjectGroup">
+                                <StackPanel Margin="0,0,0,22">
+                                    <!-- 그룹 헤더: 프로젝트명 + 건수 + 가로 구분선 -->
+                                    <Grid ColumnSpacing="10" Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{x:Bind ProjectName}"
+                                                   FontSize="14" FontWeight="Bold" />
+                                        <TextBlock Grid.Column="1" Text="{x:Bind Count}"
+                                                   FontSize="12" FontFamily="Consolas"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{ThemeResource AppTextTertiaryBrush}" />
+                                        <Rectangle Grid.Column="2" Style="{StaticResource SeparatorStyle}"
+                                                   VerticalAlignment="Center" />
+                                    </Grid>
+                                    <ItemsControl ItemsSource="{x:Bind Items}" ItemTemplate="{StaticResource NotificationItemTemplate}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
             </ScrollViewer>
 
-            <!-- 빈 상태 -->
-            <TextBlock
-                Text="{x:Bind local:NotificationPage.EmptyText}"
+            <!-- 빈 상태 (시안: 2줄) -->
+            <StackPanel
                 HorizontalAlignment="Center" VerticalAlignment="Center"
-                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                Visibility="{x:Bind Vm.HasNotifications, Converter={StaticResource InverseBoolToVisibility}, Mode=OneWay}" />
+                Padding="0,80"
+                Visibility="{x:Bind Vm.HasNotifications, Converter={StaticResource InverseBoolToVisibility}, Mode=OneWay}">
+                <!-- LineHeight 23 = 13.5px × 시안 line-height 1.7 -->
+                <TextBlock Text="{x:Bind local:NotificationPage.EmptyText}"
+                           FontSize="13.5" LineHeight="23" HorizontalAlignment="Center"
+                           Foreground="{ThemeResource AppTextMutedBrush}" />
+                <TextBlock Text="{x:Bind local:NotificationPage.EmptyHintText}"
+                           FontSize="13.5" LineHeight="23" HorizontalAlignment="Center"
+                           Foreground="{ThemeResource AppTextMutedBrush}" />
+            </StackPanel>
         </Grid>
     </Grid>
 </UserControl>
